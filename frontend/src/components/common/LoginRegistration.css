@@ -1,0 +1,88 @@
+.form-container
+{
+    display: flex;
+    flex-direction: column;
+    padding: 2rem;
+    gap:1.5rem;
+    justify-content: center;
+    margin: 0 auto;
+}
+.email-oauth-container
+{
+    display:flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-width: 400px;
+    width: fit-content;
+    margin: 0 auto;
+}
+.form-container h2
+{
+    color: white;
+    text-align: center;
+}
+.social-login-options, .form-container form
+{
+    display: flex;
+    flex-direction: column;
+    padding: 0rem;
+    gap: 1.5rem;
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+    justify-content: start;
+    align-items: center;
+}
+.email-oauth-container form
+{
+    padding-bottom: 1.5rem;
+    border-bottom: white solid 1px;
+}
+.form-container h3
+{
+    text-align: center;
+    font-weight: 400;
+    font-size: 1rem;
+}
+.social-login-options img
+{
+    max-height: 20px;
+    width: auto;
+}
+.social-login-options button
+{
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+}
+@media (min-width: 700px)
+{    
+    .email-oauth-container, .social-login-options, .form-container .email-oauth-container form
+    {
+        max-width: none;
+    }
+    .form-container form .form-field
+    {
+        flex-basis: fit-content;
+    }
+    .email-oauth-container
+    {
+        flex-direction: row;
+        gap: 1rem;
+        width: auto;
+        margin: 0 auto;
+    }
+    .email-oauth-container form
+    {
+        border-bottom: none;
+        border-right: white solid 1px;
+        padding-bottom: 0rem;
+        padding-right: 1rem;
+        flex-basis: fit-content;
+    }
+    .social-login-options
+    {
+        font-size: 0.9rem;
+        padding-bottom: 1.5rem;
+    }
+}

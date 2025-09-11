@@ -1,0 +1,93 @@
+.page-section.comment-section
+{
+    width: 100%;
+    padding: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    justify-content: space-between;
+}
+.icons-leave-comment-container
+{
+    display: flex;
+    flex-direction: column;
+    max-width: 500px;    
+    flex-basis: clamp(1px, 100%, 500px);
+    gap: 1rem;
+}
+.icons-leave-comment-container .icon-group
+{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    font-size: 1.7em;
+    color: var(--pale-yellow);
+    margin: 0rem 0 2rem;
+}
+.leave-comment-container
+{
+    margin: 0 0 0rem;
+    width: 100%;
+}
+@media (min-width:700px)
+{
+    .page-section.comment-section
+    {
+        padding: 2rem;
+    }
+}
+@media (min-width: 950px)
+{
+    .icons-leave-comment-container
+    {
+        flex-direction: column-reverse;
+        justify-content: flex-end;
+        position: sticky;
+        top: 1.5rem;
+        align-self: flex-start;
+    }
+    .comments-container
+    {
+        flex: 1;    
+        min-width: 0;
+    }
+}
+.page-section.comment-section textarea
+{
+    width: 100%;
+    height: 150px;
+}
+.leave-comment-container .header-button-container
+{
+    display: flex;
+    padding: 0 0 1rem;
+    justify-content: space-between;
+}
+.header-button-container .button-container
+{
+    position: sticky;
+}
+.leave-comment-container .header-button-container h2
+{
+    margin: 0;
+    padding: 0;
+}
+
+.leave-comment-container .button-container
+{
+    display: flex;
+    justify-content: center;
+    /* padding: 1rem 0 0; */
+}
+.comment
+{
+    margin: 1rem 0;
+}
+.comment .post-info
+{
+    margin: 0 0 1rem;
+}
+.comment .user-link span
+{
+    color: var(--pale-yellow);
+}

@@ -1,0 +1,32 @@
+body::before 
+{
+  content: '';
+  position: fixed;
+  top: 0; 
+  left: 0;
+  right: 0;
+  height: 101vh;
+  z-index: -1;
+  background: linear-gradient(45deg, #0000ff 0%, #330055 60%);
+  background: -webkit-linear-gradient(45deg, #0000ff 0%, #330055 60%); /* Chrome10-25,Safari5.1-6 */
+  background: linear-gradient(45deg, #0000ff 0%, #330055 60%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */        
+}
+.content
+{        
+    position: relative;
+    font-weight: 1;
+    font-style: normal;
+    color: white;
+    padding: 0 0 1rem;
+}
+body.no-scroll
+{
+  overflow: hidden;
+}
+@media (max-width: 699px)
+{
+  body.nav-open
+  {
+    overflow: hidden;
+  }
+}

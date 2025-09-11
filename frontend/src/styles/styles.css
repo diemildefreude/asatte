@@ -1,0 +1,265 @@
+:root
+{
+    --pale-yellow: rgb(249, 251, 210);
+    --grey-yellow: rgb(201, 201, 175);
+    --blue: #1177c0;
+    --blue-gradient: linear-gradient(45deg, #88CDFFCC 0%, #1177c0cc 60%);    
+    --lavender-gradient: linear-gradient(45deg, #505193cc 0%, #c1b7fdcc 60%);
+    --red-gradient: linear-gradient(45deg, #6c0746 0%, #ff4574 70%);
+    --transparent-black: rgba(0, 0, 0, 0.5);
+    --header-height: 60px;
+    --default-button-border: 2px solid white;
+    --hover-button-border: 2px solid var(--pale-yellow);    
+    --disabled-button-border: 2px solid gray;
+}
+html, body
+{
+  font-family: "Cascadia Code", sans-serif;
+  font-optical-sizing: auto;   
+}
+/* Hide the scrollbar without affecting the layout */
+body.modal-open {
+  overflow: hidden;
+}
+a, a:link, a:visited
+{
+    color:var(--pale-yellow);
+}
+.centered-content
+{
+    width: 100%;
+}
+.centered-content, .centered-content h2, .notice-container
+{
+    width: fit-content;
+    margin: 0 auto;
+}
+.top-offset
+{
+    padding: 10rem 1rem 0;
+}
+.vertical-field
+{
+    display: flex;
+    flex-direction: column;
+}
+.padded
+{    
+    padding: 1rem;
+}
+.notice-container
+{
+    background: var(--lavender-gradient);
+}
+.main-info-box
+{
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    border: 2px solid var(--grey-yellow);
+    padding: 1rem;
+    width: fit-content;
+    margin: 0 auto;
+}
+.hidden, .bonus
+{
+    display: none;
+}
+.page-section
+{
+    margin: 0rem 0rem;
+}
+.page-section h2
+{
+    font-weight: 350;
+    margin: 0 0 0.5rem;
+}
+.loading
+{
+    padding: 1rem;
+    color: white;
+}
+.notice
+{
+    color: var(--pale-yellow);
+    font-weight: 400;
+    text-align: center;
+}
+.error
+{
+    color: red;
+    font-weight: 400;
+    text-align: center;
+}
+.form-field .error, .form-field .form-notice
+{
+    font-size: 0.9em;
+}
+.error.small, .form-field .error.small
+{
+    margin-top: 0.4rem;
+    font-size: 0.8em;
+
+}
+.success
+{
+    color: cyan;
+    font-weight: 600;
+    text-align: center;
+}
+button
+{
+    background: transparent;
+    color: white;
+    border: var(--default-button-border);
+    cursor: pointer;
+    padding: 1rem;
+    width: fit-content;
+    margin: 0 auto;
+    font-weight: 200;
+}
+button:hover, .link-button:hover
+{
+    background: var(--blue-gradient);
+    border: var(--hover-button-border);
+    font-weight: 600;
+}
+button:disabled, button:disabled:hover
+{
+    background: transparent;
+    color: gray;
+    border: var(--disabled-button-border);
+    cursor:not-allowed;
+    font-weight: 200;
+}
+.round-image
+{
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+    object-position: center;
+    aspect-ratio: 1/1;
+    border-radius: 50%;
+    display: block;
+}
+.image-drag-panel
+{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+.dragged-over .image-drag-panel
+{    
+    background-color: rgba(249, 251, 210, 0.5);;
+}
+.form-field
+{
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    justify-content: space-between;
+}
+.form-field label
+{
+    font-weight: 300;
+}
+.form-container button
+{    
+    margin: 0 auto;
+    padding: 0.5rem 1rem;
+}
+.sub-form-text
+{
+    text-align: center;
+}
+.sub-form-text a, .sub-field-link
+{
+    color:var(--pale-yellow);
+    text-align: center;
+}
+.sub-field-link
+{
+    font-size: 0.9rem;
+}
+.footnote
+{
+    font-size: 0.7rem;
+    text-align: center;
+}
+.inline-form-field
+{
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+}
+.inline-form-field span
+{
+    align-content: center;
+    font-weight: 300;
+}
+.inline-form-field label, .main-label
+{
+    color: var(--pale-yellow);
+    font-weight: 400;
+    align-content: center;
+    text-wrap: nowrap;
+}
+.inline-form-field input
+{
+    width: clamp(1px, 400px, 100%);
+    flex-basis: clamp(1px, 400px, 100%);
+    padding: 0 0.5rem;
+    color: black;
+}
+.edit-button, .save-button
+{
+    padding: 0.25rem 0.5rem;
+    margin: 0;
+}
+.inline-form-field button.invisible
+{
+    opacity: 0;
+}
+.button-container
+{
+    display: flex;
+    justify-content: space-between;
+}
+.inline-form-field.checkbox
+{
+    justify-content: start;
+}
+.inline-form-field.checkbox input
+{
+    flex-basis: auto;
+    height: 20px;
+    width: 20px;
+}
+.iframe-container
+{
+    position: relative; /* Essential for positioning the iframe */
+    width: 100%;
+    padding-bottom: 56.25%; /* For a 16:9 aspect ratio */
+    height: 0;
+    overflow: hidden;
+    border: 2px solid var(--grey-yellow); /* Add the border here */
+}
+.iframe-container iframe
+{
+    border: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+.form-rte-container
+{
+    border: 1px solid white;
+    padding: 1rem 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}

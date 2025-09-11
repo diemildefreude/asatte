@@ -1,0 +1,99 @@
+:root
+{
+    --carousel-w: 100vw;     
+    --mobile-small-height: calc(100vw / 2.2);
+    --mobile-medium-height: calc(100vw / 1.777);
+    --small-height: clamp(5rem, 30vh, 100rem);
+    --medium-height: clamp(20rem, 50vh, 100rem);
+    --zoom-scale: 1.0;
+    --zoom-origin: center center;
+    --zoom-x: 0px;
+    --zoom-y: 0px;
+}
+.carousel-container-container
+{
+    position: relative;
+    overflow: hidden;
+}
+.carousel-container
+{
+    height: var(--mobile-medium-height);
+    width: var(--carousel-w);
+}
+.carousel-container.small
+{
+    height: var(--mobile-small-height);
+}
+.slider-container
+{
+    touch-action: pan-y;
+    display: block;
+    height: 100%;
+}
+.slider-container.dragging
+{
+    touch-action: none;
+}
+.slider-container
+{
+    cursor:grab;
+}
+.slider-container a
+{
+    cursor:pointer;
+}
+.inner-slider
+{
+    height: 100%;
+    width:fit-content;
+    width: -moz-fit-content;
+    display: flex;
+    gap: 1rem;
+    /* pointer-events: none; */
+    position: relative;
+    top: 0;
+    left: 0;
+    transition-duration: 0.0s;
+}
+.inner-slider.dragging
+{
+    transition-duration: 0.0s;
+    /* pointer-events: none; */
+}
+.inner-slider.dragging .info-item
+{
+    user-select: none;
+    -webkit-user-select: none;  /* Safari, Chrome */
+    -moz-user-select: none;     /* Firefox */
+    -ms-user-select: none; 
+}
+.slide
+{
+    height: 100%;
+    aspect-ratio: auto;
+}
+.slide .work-tile
+{
+    width: 100%;
+    height: 100%;
+}
+.image-carousel .slide img
+{
+    height: 100%;
+    aspect-ratio: auto;
+    object-fit: cover;
+    object-position: center;
+    cursor: zoom-in;
+    user-select: none;
+}
+.slide .work-tile img
+{
+    cursor: inherit;
+}
+@media (min-width: 550px)
+{
+    .carousel-container.small
+    {   
+        height: var(--small-height);
+    }
+}

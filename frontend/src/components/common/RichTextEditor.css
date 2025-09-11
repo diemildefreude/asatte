@@ -1,0 +1,106 @@
+.ql-align-center img
+{
+    margin: 0 auto;
+}
+.ql-align-right img
+{
+    margin: 0 0 0 auto;
+}
+.ql-toolbar.ql-snow .ql-picker-label,
+.ql-toolbar.ql-snow .ql-stroke,
+.ql-toolbar.ql-snow .ql-fill,
+.ql-toolbar.ql-snow .ql-picker-options .ql-picker-item,
+.ql-toolbar.ql-snow .ql-color .ql-fill,
+.ql-toolbar.ql-snow .ql-background .ql-fill,
+.ql-toolbar.ql-snow .ql-picker-label,
+.ql-toolbar.ql-snow .ql-stroke,
+.ql-toolbar.ql-snow .ql-fill,
+.ql-toolbar.ql-snow .ql-picker-options .ql-picker-item
+{
+    color: white !important;
+    stroke: white !important;
+}
+/*.editor-container .ql-formats button.ql-active svg path*/
+.ql-toolbar.ql-snow .ql-bold .ql-stroke,
+.ql-toolbar.ql-snow .ql-bold .ql-fill,
+.ql-toolbar.ql-snow .ql-italic .ql-stroke,
+.ql-toolbar.ql-snow .ql-italic .ql-fill,
+.ql-toolbar.ql-snow .ql-underline .ql-stroke,
+.ql-toolbar.ql-snow .ql-underline .ql-fill,
+.ql-toolbar.ql-snow .ql-strike .ql-stroke,
+.ql-toolbar.ql-snow .ql-strike .ql-fill
+{
+    color: var(--grey-yellow) !important;
+    stroke: var(--grey-yellow) !important;
+}
+.ql-toolbar.ql-snow button.ql-active .ql-stroke,
+.ql-toolbar.ql-snow button.ql-active .ql-fill
+{
+    color: var(--pale-yellow) !important;
+    stroke: var(--pale-yellow) !important;
+}
+.ql-editor.ql-blank::before
+{
+    color: var(--grey-yellow) !important;
+}
+.ql-toolbar.ql-snow .ql-picker-options
+{
+    background-color: #330055 !important;
+}
+.editor-container
+{
+    border: none;
+}
+.editor-container p, .ql-picker-label::before, .editor-container li
+{    
+    font-family: "Cascadia Code", sans-serif !important;
+    font-optical-sizing: auto;
+}
+.editor-container .ql-toolbar
+{
+    border: none !important;
+    border-bottom: 1px solid var(--grey-yellow) !important;
+    border-top: 1px solid var(--grey-yellow) !important;
+}
+.bio-container
+{
+    display:flex;
+    flex-direction: column;
+}
+.editor-container
+{
+    flex-grow: 4;
+    display: flex;
+    flex-direction: column;
+}
+.editor-container .ql-container
+{
+    border: none !important;
+    min-height: 300px;
+    flex-grow: 4;
+    background-color: white;
+    height: fit-content !important;
+    color: black;
+}
+.editor-container a, .editor-container a:link, .editor-container a:visited
+{
+    color: var(--blue) !important;
+}
+.editor-container.read-only a, .editor-container.read-only a:link, .editor-container.read-only a:visited
+{
+    color: white !important;
+}
+.editor-container.read-only .ql-container
+{
+    background-color: transparent;
+    color: white;
+}
+.editor-container strong
+{
+    font-weight: 900;
+}
+.editor-container.read-only .ql-toolbar,
+.editor-container.read-only .ql-editor.ql-blank::before
+{
+    display: none;
+}
