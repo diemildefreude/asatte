@@ -148,18 +148,23 @@ function AutoloadTilesContainer({screenSize, category=Category.Archive, userId=n
     {
         postsToDisplay == 0 && areNoMorePosts ?
         (
-            <p>no posts to load.</p>
+        <p className="centered-content padding-1rem">
+            no posts to load.
+        </p>
+            
         )
         :(postsToDisplay.length > 0 ?
         (
             postsToDisplay.map((post) =>
             {
-                return <Tile post={post} key={post.id} user={user}/>
+                return <Tile post={post} key={post.id}/>
             })
             
         ) :
         (
-            <p>loading posts...</p>
+            <p className="centered-content padding-1rem">
+                loading posts...
+            </p>
         ))
     }
     </div>

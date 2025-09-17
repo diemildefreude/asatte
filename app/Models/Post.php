@@ -21,6 +21,7 @@ class Post extends Model
         'title',
         'subtitle',
         'website',
+        'source_code',
         'main_video',
         'is_private',
         'gallery_image_urls',

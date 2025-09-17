@@ -54,6 +54,25 @@
     width: auto;
     max-width: 100%;
 }
+.source-link
+{
+    margin: 0 auto;
+}
+.source-link a
+{    
+    display: flex;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+.source-link span
+{
+    text-decoration: underline;
+    font-style: italic;
+}
+.source-link i
+{
+    align-self: center;
+}
 @media (min-width:700px)
 {
     .content

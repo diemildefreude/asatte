@@ -5,6 +5,7 @@ import Layout from "../layout/Layout";
 import { useAuth } from "../../contexts/AuthContext";
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getErrorMessage, isValidPassword } from "../../utils/helpers";
+import { Link } from "react-router-dom";
 
 function PasswordChange()
 {
@@ -129,6 +130,7 @@ function PasswordChange()
                     onValidate={handleOldPasswordFormatValidation}
                     disabled={isSubmitting}
                     type="password"
+                    classes="form-field"
                 />
                 <FormField 
                     id="newPassword"
@@ -139,6 +141,7 @@ function PasswordChange()
                     onValidate={handleNewPasswordFormatValidation}
                     disabled={isSubmitting}
                     type="password"
+                    classes="form-field"
                 />
                 <FormField 
                     id="password-confirm"
@@ -148,10 +151,14 @@ function PasswordChange()
                     onChange={(e) => setPasswordConfirmation(e.target.value.trimEnd())}
                     disabled={isSubmitting}
                     type="password"
+                    classes="form-field"
                 />
-                <button type="submit" disabled={!canChangePassword}>
-                    {isSubmitting ? 'updating password...' : 'update'}
-                </button>
+                <div className="horizontal-buttons-container">
+                    <button type="submit" disabled={!canChangePassword}>
+                        {isSubmitting ? 'updating password...' : 'update'}
+                    </button>
+                    <Link to="/dashboard" className="link-button">back</Link>
+                </div>
             </form>
         </div>
     </Layout>

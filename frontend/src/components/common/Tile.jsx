@@ -83,7 +83,7 @@ function Tile({post, isSliderDraggedPointerUp, user=null}) //if user != null, th
                         { !post && <p>Post not loaded yet</p> }
 
                         <Link 
-                            to={`/user/${post.user.username}/post/${post.post_url}`} 
+                            to={`/${post.user.username}/${post.post_url}`} 
                             className="post-link"
                             onClick={handleLinkClick} 
                             draggable="false"

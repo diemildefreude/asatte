@@ -366,7 +366,7 @@ export const AuthProvider = ({ children }) =>
       }
   };
 
-  const createPost = async ( postUrl, title, subtitle, website, mainVideo, isPrivate, statement, imageFields) =>
+  const createPost = async ( postUrl, title, subtitle, website, sourceCode, mainVideo, isPrivate, statement, imageFields) =>
   {
     try
     {
@@ -376,6 +376,7 @@ export const AuthProvider = ({ children }) =>
       formData.append('title', title);
       formData.append('subtitle', subtitle);
       formData.append('website', website);
+      formData.append('source_code', sourceCode);
       formData.append('main_video', mainVideo);
       if(isPrivate)
       {
@@ -414,7 +415,7 @@ export const AuthProvider = ({ children }) =>
     }
   }
 
-  const updatePost = async ( postId, postUrl, title, subtitle, website, mainVideo, isPrivate, statement, imageFields) =>
+  const updatePost = async ( postId, postUrl, title, subtitle, website, sourceCode, mainVideo, isPrivate, statement, imageFields) =>
   {
     console.log(imageFields);
     try
@@ -426,6 +427,7 @@ export const AuthProvider = ({ children }) =>
       formData.append('title', title);
       formData.append('subtitle', subtitle);
       formData.append('website', website);
+      formData.append('source_code', sourceCode);
       formData.append('main_video', mainVideo);
       if(isPrivate)
       {
@@ -499,11 +501,11 @@ export const AuthProvider = ({ children }) =>
 
   const fetchPosts = async (params) => 
   {
-    console.log("fetching INDEX...");
+    //console.log("fetching INDEX...");
       const fetchFn = async () => 
       {
         const response = await api.get('/posts', {params:params});
-        console.log("response", response, "response.data", response.data);
+        //console.log("response", response, "response.data", response.data);
         return response.data;
       };
 

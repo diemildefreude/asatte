@@ -4,10 +4,8 @@ import CarouselContainer from './CarouselContainer';
 import Tile from './Tile';
 import { useAuth } from '../../contexts/AuthContext';
 
-function TileCarousel({size, category=null, userId=null})
+function TileCarousel({size, category=null, userId=null, title="", excludePostId=null})
 {
-    //const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
-    
     const carouselPostCount = 6;
     const [posts, setPosts] = useState([]);
     const {fetchPosts} = useAuth();
@@ -25,31 +23,47 @@ function TileCarousel({size, category=null, userId=null})
         }
         fetchPosts(params).then((data) =>
         {
-            console.log("data", data, typeof data);
-            setPosts(data);
+            if(data.status === "no_more_posts")
+            {
+                return;
+            }
+            let fetchedPosts = data;
+            if(excludePostId)
+            {
+                fetchedPosts = fetchedPosts.filter(post => post['id'] !== excludePostId);
+            }
+            setPosts(fetchedPosts);
         });
     }, [category, userId, setPosts])    
-
     
     return (
-        <CarouselContainer className="carousel-container-container"
-            size={size}
-            isTileCarousel={true}>
-        {
-            posts && (
-            ({isDragging, isDraggedPointerUp}) =>
-                posts.map((post) =>
-                (
-                    <div className="slide" key={post.id}>
-                        <Tile post={post}
-                            isSliderDragging={isDragging}
-                            isSliderDraggedPointerUp={isDraggedPointerUp}
-                        />
-                    </div>
-                ))  
-            )
-        }
-        </CarouselContainer>        
+        posts?.length > 0 ?
+        (
+            <>
+                <h2>{title}</h2>
+                <CarouselContainer className="carousel-container-container"
+                    size={size}
+                    isTileCarousel={true}>
+                {
+                    ({isDragging, isDraggedPointerUp}) =>
+                        posts.map((post) =>
+                        (
+                            <div className="slide" key={post.id}>
+                                <Tile post={post}
+                                    isSliderDragging={isDragging}
+                                    isSliderDraggedPointerUp={isDraggedPointerUp}
+                                />
+                            </div>
+                        )  
+                    )
+                }
+                </CarouselContainer>   
+            </>
+        ):
+        (
+            <></>
+        )
+        
     );
 }
 

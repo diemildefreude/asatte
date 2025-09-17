@@ -56,7 +56,7 @@ function OAuthCallback()
             let errorMessage = 'Social login failed. Please try again.';
             if(status === "email_already_registered_social")
             {
-                errorMessage = 'An account already exists for this e-mail. Please log in using your e-mail or username + password.'
+                errorMessage = 'An account already exists for this e-mail. Please log in using the same method used at registration.'
             }
             navigate(`/login`, { replace: true, state: { status: status, message: errorMessage}});
         }

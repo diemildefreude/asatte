@@ -9,11 +9,22 @@ function NewPost()
 
     return ( 
     <Layout>
-        <DashboardLayout currentTab="post" headerText="Make a new post.">
-            <PostForm
-                isCreateForm={true}
-                user={user}
-            />
+        <DashboardLayout currentTab="post" headerText="new post">
+            {
+                user && user.is_email_verified ?
+                (
+                    <PostForm
+                        isCreateForm={true}
+                        user={user}
+                    />
+                ):
+                (
+                    <p className="centered-content padding-1rem">
+                        Verify your e-mail to begin posting.
+                    </p>
+                )
+            }
+            
         </DashboardLayout>
     </Layout>
     );

@@ -8,7 +8,7 @@ function Dashboard()
 {
     return (
         <Layout> 
-            <DashboardLayout currentTab="profile" headerText="Edit your profile.">    
+            <DashboardLayout currentTab="profile" headerText="your profile">    
                 <div className="profile-boxes-container">   
                     <EditProfile/>
                     <EditBio/>

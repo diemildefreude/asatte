@@ -40,7 +40,7 @@ function App()
           <Route path="/password-recovery" element={<PasswordRecovery />}/>
           <Route path="/password-reset" element={<PasswordReset />}/>
           <Route path="/oauth-callback" element={<OAuthCallback />}/>
-          <Route path="/user/:username/post/:post_url" element={<Post />}/>
+          <Route path="/:username/:post_url" element={<Post />}/>
           <Route path="/user/:user" element={<UserProfile />}/>
           <Route path="*" element={<NotFound />} />
         </Routes>

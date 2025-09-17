@@ -117,7 +117,7 @@ class SocialiteController extends Controller
                     $now = Carbon::now();
                     Log::info("Creating new {$provider} user: {$socialiteUser->email}. Email_verified_at {$now}");
 
-                    $user = User::create([
+                    $user = User::forceCreate([
                         //'username' => $proposedUsername,
                         'email' => $socialiteUser->email,
                         'password' => Hash::make(Str::random(24)), // Generate a random password for social users

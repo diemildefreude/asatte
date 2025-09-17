@@ -71,7 +71,7 @@ function DashboardLayout({ currentTab, headerText, children })
             else if (status === 'invalid_link')
             {
                 message = 'Invalid link.';
-                message = !user?.email_verified_at ? (message + ' Please click below to resend verification e-mail.') : message;
+                message = !user?.email_verified_at ? (message + ' Please click above to resend verification e-mail.') : message;
                 setError(message);
             }
             else if (status)
@@ -125,7 +125,7 @@ function DashboardLayout({ currentTab, headerText, children })
                 else if (status === 'invalid_link')
                 {
                     message = 'Invalid link.';
-                    message = (isAuthenticated && !user?.is_email_verified) ? (message + ' Please click below to resend verification e-mail.') : message;
+                    message = (isAuthenticated && !user?.is_email_verified) ? (message + ' Please click above to resend verification e-mail.') : message;
                 }
                 else if (status === 'cancel_canceled') 
                 { 
@@ -142,7 +142,7 @@ function DashboardLayout({ currentTab, headerText, children })
                 else if (status === 'cancel_error') 
                 {
                     message = 'There was an error processing your request.';
-                    message = (isAuthenticated && !user?.is_email_verified) ? (message + ' Please click below to resend verification e-mail.') : message;
+                    message = (isAuthenticated && !user?.is_email_verified) ? (message + ' Please click above to resend verification e-mail.') : message;
                 }
 
                 setSuccess(message); // Set the message in state

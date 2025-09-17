@@ -61,9 +61,13 @@ a, a:link, a:visited
     width: fit-content;
     margin: 0 auto;
 }
-.hidden, .bonus
+.hidden, .form-field.bonus
 {
     display: none;
+}
+.padding-1rem
+{
+    padding: 1rem;
 }
 .page-section
 {
@@ -107,7 +111,13 @@ a, a:link, a:visited
     font-weight: 600;
     text-align: center;
 }
-button
+.horizontal-buttons-container
+{
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+}
+button, .link-button
 {
     background: transparent;
     color: white;
@@ -117,6 +127,7 @@ button
     width: fit-content;
     margin: 0 auto;
     font-weight: 200;
+    text-decoration: none;
 }
 button:hover, .link-button:hover
 {
@@ -165,7 +176,7 @@ button:disabled, button:disabled:hover
 {
     font-weight: 300;
 }
-.form-container button
+.form-container button, .form-container .link-button
 {    
     margin: 0 auto;
     padding: 0.5rem 1rem;

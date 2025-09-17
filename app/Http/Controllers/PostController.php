@@ -134,7 +134,8 @@ class PostController extends Controller
             'gallery_images.*.alt' => ['nullable', 'string', 'max:255'],
             'gallery_images.*.file' => ['nullable', 'file', 'image', 'mimes:png,jpeg,jpg,webp,bmp', 'max:2048'], // 2MB limit
             'gallery_images.*.url' => ['nullable', 'string'], 
-            'website' => ['string', 'max:255', 'nullable'],           
+            'website' => ['string', 'max:255', 'nullable'],   
+            'source_code' => ['string', 'max:255', 'nullable']
         ],
             [
             'gallery_images.*.file.image' => 'Each uploaded file must be an image.',
@@ -142,6 +143,7 @@ class PostController extends Controller
 
         $userName = $request->user()->username;        
         $website = $request->input('website') ? addHttpProtocol($request->input('website', '')) : null;
+        $sourceCode = $request->input('source_code') ? addHttpProtocol($request->input('source_code', '')) : null;
 
         $editorImageArray = [];
         $statementImageFolder = "$userName/posts/$postUrl/statement";
@@ -185,6 +187,7 @@ class PostController extends Controller
             'user_id' => $request->user()->id,
             ...$basicFields,
             'website' => $website,
+            'source_code' => $sourceCode,
             'is_private' => $isPrivate,
             'gallery_image_urls' => $galleryArray,
             'gallery_alts' => $galleryAltArray,

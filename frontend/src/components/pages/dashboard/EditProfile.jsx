@@ -139,7 +139,12 @@ function EditProfile()
                         )
                     }
                 </div>
-                <Link className="centered-content" to={"/password-change"}>change password</Link>
+                {
+                    user.is_email_verified &&
+                    (
+                        <Link to="/password-change" className="centered-content">change password</Link>
+                    )
+                }
             </form>            
         </div>        
     </div>

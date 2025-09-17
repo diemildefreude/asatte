@@ -29,7 +29,11 @@ Homestead.json
 .phpactor.json
 auth.json
 
+#SSL Keys for local testing
+netart.io+2-key.pem
+netart.io+2.pem
+
 # React Frontend
 
 frontend/.env.development
-frontend/.env.production
+frontend/env.production

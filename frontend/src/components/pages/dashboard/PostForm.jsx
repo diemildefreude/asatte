@@ -66,6 +66,7 @@ function PostForm({isCreateForm=true, post=null, user})
     const [postUrl, setPostUrl] = useState("");
     const [subtitle, setSubtitle] = useState("");
     const [website, setWebsite] = useState("");
+    const [sourceCode, setSourceCode] = useState("");
     const [mainVideoRawUrl, setMainVideoRawUrl] = useState("");
     const [mainVideo, setMainVideo] = useState("");
     const [statement, setStatement] = useState([]);    
@@ -74,6 +75,7 @@ function PostForm({isCreateForm=true, post=null, user})
     const [isPostUrlValid, setIsPostUrlValid] = useState(false);
     const [isSubtitleValid, setIsSubtitleValid] = useState(false);
     const [isWebsiteValid, setIsWebsiteValid] = useState(false);
+    const [isSourceCodeValid, setIsSourceCodeValid] = useState(false);
     const [isMainVideoValid, setIsMainVideoValid] = useState(false);
     const [hasChanged, setHasChanged] = useState(false); //for update
 
@@ -82,6 +84,7 @@ function PostForm({isCreateForm=true, post=null, user})
     const dragCounterRef = useRef(0);
     const canSubmit = title && isTitleValid && postUrl && isPostUrlValid
         && subtitle && isSubtitleValid && ((website && isWebsiteValid) || !website)
+        && ((sourceCode && isSourceCodeValid) || !sourceCode)
         && imageFields.length > 0 && hasImages(imageFields) && hasChanged;    
     const buttonText = isCreateForm ? "create" : "update";
     const loadingText = "loading form...";
@@ -107,6 +110,11 @@ function PostForm({isCreateForm=true, post=null, user})
         if(post.website)
         {
             setWebsite(post.website);
+            setIsWebsiteValid(true);
+        }
+        if(post.sourceCode)
+        {
+            setSourceCode(post.sourceCode)
             setIsWebsiteValid(true);
         }
         if(post.main_video)
@@ -152,13 +160,13 @@ function PostForm({isCreateForm=true, post=null, user})
             const message = isCreateForm ? 'Post successfully created.' : 'Post successfully updated.';
             if(isCreateForm)
             {
-                await createPost(postUrl, title, subtitle, website, mainVideo, 
+                await createPost(postUrl, title, subtitle, website, sourceCode, mainVideo, 
                     isPrivate, statementJson, resizedGalleryImages);
                 setSuccess('Post successfully created.');
             }
             else
             {
-                await updatePost(post.id, postUrl, title, subtitle, website, 
+                await updatePost(post.id, postUrl, title, subtitle, website, sourceCode,
                     mainVideo, isPrivate, statementJson, resizedGalleryImages);                
                 setSuccess('Post successfully updated.');
             }
@@ -248,6 +256,18 @@ function PostForm({isCreateForm=true, post=null, user})
         }        
         setFieldLocalError("");
     },[setIsWebsiteValid]);
+    const handleSourceCodeValidation = useCallback((proposedUrl, setFieldLocalError) =>
+    {
+        const isValid = isUrl(proposedUrl);
+        setIsSourceCodeValid(isValid);
+        if(proposedUrl && !isValid)
+        {
+            setFieldLocalError("Not a valid URL.");
+            return;
+        }        
+        setFieldLocalError("");
+    },[setIsSourceCodeValid]);
+
     const handleSubtitleValidation = useCallback((proposedSubtitle, setFieldLocalError) =>
     {
         if(!proposedSubtitle)
@@ -471,6 +491,18 @@ function PostForm({isCreateForm=true, post=null, user})
                             value={website}
                             onChange={(e) => {setHasChanged(true); setWebsite(e.target.value)}}
                             onValidate={handleWebsiteValidation}
+                            disabled={isSubmitting}
+                            type="text"
+                            isInline={true}
+                            classes="inline-form-field"
+                        />
+                        <FormField 
+                            id="source-code"
+                            label="source code"
+                            placeholder="eg. Github repo"
+                            value={sourceCode}
+                            onChange={(e) => {setHasChanged(true); setSourceCode(e.target.value)}}
+                            onValidate={handleSourceCodeValidation}
                             disabled={isSubmitting}
                             type="text"
                             isInline={true}

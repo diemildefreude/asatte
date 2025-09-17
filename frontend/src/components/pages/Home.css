@@ -16,12 +16,16 @@
 {
     margin: 1rem 0 3rem 1rem;
 }
+.page-section.top-tile-grid
+{
+    margin: 0 0 3rem;
+}
 @media (min-width: 700px)
 {
     .hero
     {    
         font-size: 3rem;
-        padding: 3rem 1rem 1rem;
+        padding: 0rem 1rem 1rem;
         line-height: 3em;
     }
 }

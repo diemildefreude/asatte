@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\LoginType;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
@@ -188,6 +189,7 @@ class AuthController extends Controller
 
             // 4. Mark the email as verified
             $user->markEmailAsVerified(); 
+        
             return redirect($reactAppUrl . '/dashboard?status=verify_verified');
         }
         catch (ModelNotFoundException $e) 
@@ -204,7 +206,7 @@ class AuthController extends Controller
         {
             $user = User::findOrFail($id);
 
-            if (! hash_equals((string) $hash, sha1($user->email))) 
+            if (!hash_equals((string) $hash, sha1($user->email))) 
             {
                 //throw new AuthorizationException;
                 return redirect($reactAppUrl . '/dashboard?status=invalid_link');
@@ -242,14 +244,18 @@ class AuthController extends Controller
     {
         $formattedBirthdate = Carbon::parse($request->birthdate)->format('Y-m-d');
 
-        $user = User::create([
+        $user = User::forceCreate([
             'username' => $request->username,
             'email' => $request->email,
             'password' => Hash::make($request->password), // Hash the password!
             'birthdate' => $formattedBirthdate,
-            'login_type' => $request->login_type,
+            'login_type' => LoginType::Email,
             'provider_id' => null, // Will be null for email registration
+            'profile_completed' => true
         ]);
+
+        $user = User::find($user->id);        
+        $user->sendEmailVerificationNotification();
 
         $oauthRequest = Request::create('oauth/token', 'POST', [
             'grant_type' => 'password',
@@ -264,7 +270,6 @@ class AuthController extends Controller
         $response = app()->handle($oauthRequest);
         $data = json_decode($response->getContent());
 
-        $user->sendEmailVerificationNotification();
         // 3. Return the user data and the generated token
         return response()->json([
             'user' => $user->toArray(),
@@ -272,9 +277,7 @@ class AuthController extends Controller
             'refresh_token' => $data->refresh_token ?? null,
             'expires_in' => $data->expires_in,
             'token_type' => $data->token_type,
-        ], $response->getStatusCode());
-
-        
+        ], $response->getStatusCode());        
     }
     public function login(LoginRequest $request)
     {

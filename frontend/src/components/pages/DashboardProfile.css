@@ -352,8 +352,8 @@
     }
     .text-fields-container .inline-form-field
     {
-        max-width: 550px;
-        margin: 0 auto;
+        width: clamp(1px, 100%, 800px);
+        margin: 0 0 0 auto;
     }
     .dashboard-nav-content-container
     {
@@ -395,6 +395,7 @@
     {
         border: 2px solid var(--grey-yellow);
         border-bottom: none;
+        width: 100%;
     }    
     .dashboard-tab.selected
     {

@@ -21,7 +21,6 @@
         {
             try
             {
-                //console.log("post?.gallery_image_urls", post?.gallery_image_urls);
                 return post?.gallery_image_urls ?? [];
             }
             catch
@@ -29,11 +28,14 @@
                 return [];
             }
         }, [post]);
-        // console.log("imageUrls?", imageUrls);
 
         useEffect(() =>
         {
-            fetchSinglePost(username, post_url).then(setPost);
+            fetchSinglePost(username, post_url).then((data) =>
+            {
+                setPost(data);                
+                window.scrollTo(0,0);
+            });
         }, [username, post_url]);
 
         return (
@@ -80,7 +82,13 @@
                                 <div className="main-info-box">
                                     <div><h2>{post.title}</h2></div>
                                         <div><p><em>{post.subtitle}</em></p></div>   
-                                        <div><p className="post-date"> posted by <UserLink user={post.user}/> on 2025.5.12</p></div>    
+                                        <div><p className="post-date"> posted by <UserLink user={post.user}/> on 2025.5.12</p></div> 
+                                        {
+                                            post.source_code &&
+                                            (
+                                                <div className="source-link"><a href={post.source_code} target="_blank"><i className="fa-solid fa-code"></i><span>source</span></a></div>   
+                                            )
+                                        }
                                 </div>
                             </div>
                         </div>
@@ -90,28 +98,35 @@
                                     <div><h2>{post.title}</h2></div>
                                     <div><p><em>{post.subtitle}</em></p></div>   
                                     <div><p className="post-date"> posted by <UserLink user={post.user}/> on 2025.5.12</p></div>    
+                                    {
+                                        post.source_code &&
+                                        (
+                                            <div className="source-link"><a href={post.source_code} target="_blank"><i className="fa-solid fa-code"></i><span>source</span></a></div>   
+                                        )
+                                    }
                                 </div>
                             </div>
                             <div className="page-section statement">
                                 <RichTextEditor
                                     readOnly={true}
-                                    value={post.statement}                                />
+                                    value={post.statement}  
+                                    key={post.id}                              />
                             </div>
                         </div>
                     </div>                
                     <div className="page-section carousel">
-                        <h2>gallery:</h2>
-                        <ImageCarousel size="small" post={post}></ImageCarousel>
+                        <ImageCarousel size="small" post={post} title={"gallery:"}></ImageCarousel>
                     </div>                    
                     <div className="page-section comment-section">
                         <CommentSection post={post}/>
                     </div>
-                    <div className="page-section carousel">
-                        <h2>more from this user:</h2>
+                    <div className="page-section carousel">                        
                         <TileCarousel 
                             size="small" 
-                            post={post}
                             userId={post.user.id}
+                            title="more from this user:"
+                            excludePostId={post.id}
+                            key={post.user.id}
                         />
                     </div> 
                 </>

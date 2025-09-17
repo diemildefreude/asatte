@@ -4,7 +4,7 @@ import CarouselContainer from './CarouselContainer';
 import ImageZoom from './ImageZoom'; 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
-function ImageCarousel({size, post})
+function ImageCarousel({size, post, title=""})
 {
     const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
     const [isZoomed, setIsZoomed] = useState(false); 
@@ -32,6 +32,7 @@ function ImageCarousel({size, post})
         <>
         {
             imageUrls?.map && (<>
+            <h2>{title}</h2>
             <CarouselContainer className="carousel-container-container image-carousel"
             size={size}>
             {

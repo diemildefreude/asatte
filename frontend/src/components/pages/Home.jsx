@@ -15,7 +15,6 @@ function Home()
         const cleanup = monitorScreenSize(setScreenSize);
         return cleanup;
     }, []);
-    //console.log("ptd", postsToDisplay);
 
     return (
         <Layout>
@@ -23,17 +22,15 @@ function Home()
             <h1>asatte.io</h1>
             <p>the premier hub for internet art</p>
         </div>
-        <div className="page-section">
+        <div className="page-section top-tile-grid">
             <HeroTilesContainer screenSize={screenSize} 
             category={Category.Archive}/>
         </div>
         <div className="page-section carousel">
-            <h2>works from new users:</h2>
-            <TileCarousel size="small" category={Category.Archive}/>
+            <TileCarousel size="small" category={Category.Archive} title="works from new users:"/>
         </div>
         <div className="page-section carousel">
-            <h2>netart news:</h2>
-            <TileCarousel size="small" category={Category.News} />
+            <TileCarousel size="small" category={Category.News} title="netart news:"/>
         </div>
         <div className="page-section">
             <AutoloadTilesContainer screenSize={screenSize} 

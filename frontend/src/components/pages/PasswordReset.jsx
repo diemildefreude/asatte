@@ -48,7 +48,7 @@ function PasswordReset()
             setError('Invalid or missing password reset link. Please request a new one.');
             setFormDisabled(true); // Disable the form if link is invalid
             // Optionally, redirect to forgot password page after a delay
-            setTimeout(() => navigate('/password-recovery'), 3000);
+            //setTimeout(() => navigate('/password-recovery'), 3000);
         } 
         else 
         {
