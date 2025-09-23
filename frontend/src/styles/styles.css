@@ -205,7 +205,7 @@ button:disabled, button:disabled:hover
     justify-content: space-between;
     gap: 1rem;
 }
-.inline-form-field span
+.inline-form-field span, .inline-form-field a
 {
     align-content: center;
     font-weight: 300;

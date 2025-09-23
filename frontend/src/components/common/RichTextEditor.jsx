@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { useQuill } from 'react-quilljs';
 import 'quill/dist/quill.snow.css'; 
@@ -34,6 +34,7 @@ function RichTextEditor({placeholder = 'Start typing...', readOnly = false, valu
 {
     const [isContentSet, setIsContentSet] = useState(false);
     const STORAGE_BASE_URL = `${BACKEND_URL}/storage`;
+    const editorRef = useRef(null);
     let editorClasses = "editor-container";
     editorClasses += readOnly ? " read-only" : "";
 
@@ -48,6 +49,7 @@ function RichTextEditor({placeholder = 'Start typing...', readOnly = false, valu
                     [{ 'header': [1, 2, 3, false] }],
                     ['bold', 'italic', 'underline', 'strike'],
                     ['link', 'image', 'video'],
+                    [{ 'color': [] }, { 'background': [] }],
                     [{ 'list': 'ordered'}, { 'list': 'bullet' }],
                     [{ 'align': [] }],
                     ['clean'],
@@ -95,8 +97,13 @@ function RichTextEditor({placeholder = 'Start typing...', readOnly = false, valu
             onChange(currentContentOps);
         }
 
-        quill.on('text-change', handleTextChange);
-
+        quill.on('text-change', (delta, oldDelta, source) =>
+        {
+            if(source === 'user')
+            {
+                handleTextChange();
+            }
+        });
         return () => 
         {
             if (quill) 
@@ -155,8 +162,14 @@ function RichTextEditor({placeholder = 'Start typing...', readOnly = false, valu
         }        
     },[quill, value]);
 
+    useEffect(() =>
+    {
+        const currentEditor = editorRef.current;
+        currentEditor.parentElement.classList.toggle('read-only', readOnly);
+    },[readOnly]);
+
   return (
-    <div className={editorClasses}>
+    <div className={editorClasses} ref={editorRef}>
         <div ref={quillRef} />
     </div>
   );

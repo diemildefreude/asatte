@@ -531,7 +531,7 @@ function PostForm({isCreateForm=true, post=null, user})
                             disabled={isSubmitting}
                             value={isPrivate}
                         />   
-                        <div className="form-rte-container">
+                        <div className="rte-container">
                             <div className="centered-content">
                                 <h3>artist statement</h3>
                             </div>

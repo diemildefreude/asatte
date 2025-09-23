@@ -41,8 +41,9 @@ function App()
           <Route path="/password-reset" element={<PasswordReset />}/>
           <Route path="/oauth-callback" element={<OAuthCallback />}/>
           <Route path="/:username/:post_url" element={<Post />}/>
-          <Route path="/user/:user" element={<UserProfile />}/>
-          <Route path="*" element={<NotFound />} />
+          <Route path="/:username" element={<UserProfile />}/>
+          <Route path="/not-found" element={<NotFound />} />          
+          <Route path="/*" element={<NotFound />} />
         </Routes>
       </AuthProvider>
     </Router>

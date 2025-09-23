@@ -49,9 +49,10 @@
 }
 .editor-container
 {
-    border: none;
+    border: none;    
 }
-.editor-container p, .ql-picker-label::before, .editor-container li
+.editor-container p, .ql-picker-label::before, .editor-container li, .editor-container h1,
+.editor-container h2, .editor-container h3
 {    
     font-family: "Cascadia Code", sans-serif !important;
     font-optical-sizing: auto;
@@ -62,10 +63,11 @@
     border-bottom: 1px solid var(--grey-yellow) !important;
     border-top: 1px solid var(--grey-yellow) !important;
 }
-.bio-container
+.rte-container
 {
     display:flex;
-    flex-direction: column;
+    flex-direction: column;    
+    width: 100%;
 }
 .editor-container
 {
@@ -79,8 +81,30 @@
     min-height: 300px;
     flex-grow: 4;
     background-color: white;
+    max-height: calc(100svh - 180px);
+    color: black;         
+    overflow-y: scroll;/*I'm not sure why this is needed here*/
+}
+.read-only .editor-container .ql-container
+{
+    max-height: none;
+    overflow-y: auto;
+}
+.ql-editor, .ql-editor * 
+{
+    overflow-wrap: break-word !important;
+}
+@media (min-width: 700px)
+{
+    .editor-container .ql-container
+    {
+        overflow-y: auto; /*but is redundant here*/
+    }
+}
+.editor-container.read-only .ql-container
+{
+    max-height: none;
     height: fit-content !important;
-    color: black;
 }
 .editor-container a, .editor-container a:link, .editor-container a:visited
 {

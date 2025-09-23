@@ -1,6 +1,7 @@
 import EditButton from "./EditButton";
 
-function ProfileItem({name, value, onChange, isSubmitting, isEditingThisField, onEditClick})
+function ProfileItem({name, value, onChange=null, isSubmitting=false, 
+    isLink=false, isEditingThisField=false, onEditClick})
 {
     const isUpdatable = onChange ? true : false;
 
@@ -17,7 +18,18 @@ function ProfileItem({name, value, onChange, isSubmitting, isEditingThisField, o
                     />
                 ):
                 (
-                    <span>{value}</span>
+                    isLink ?
+                    (
+                        <a 
+                            href={value}
+                            target="_blank"
+                        >
+                            {value}
+                        </a>
+                    ):
+                    (
+                        <span>{value}</span>
+                    )
                 )
             }
             <EditButton onClick={(e) => { e.preventDefault(); onEditClick()}} 

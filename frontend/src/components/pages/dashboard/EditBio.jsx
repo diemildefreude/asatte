@@ -61,7 +61,7 @@ function EditBio()
     }
 
     return (
-        <div className="bio-container">
+        <div className="rte-container">
             <div className="centered-header-box">            
                 {
                     (isInEditMode && hasBioChanged) && (

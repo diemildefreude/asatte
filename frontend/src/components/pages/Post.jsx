@@ -1,15 +1,17 @@
     import React, { useEffect, useMemo, useState } from 'react';
-    import { useParams } from 'react-router-dom';
+    import { useParams, useNavigate } from 'react-router-dom';
     import { openPopup } from '../../utils/helpers';
     import { useAuth } from '../../contexts/AuthContext';
     import Layout from '../layout/Layout';
     import './Post.css';
     import '../common/Tile.css';
+    import './DashboardProfile.css';
     import UserLink from '../common/UserLink';
     import RichTextEditor from '../common/RichTextEditor';
     import ImageCarousel from '../common/ImageCarousel';
     import TileCarousel from '../common/TileCarousel';
     import CommentSection from '../common/CommentSection';
+    import VideoIframe from '../common/VideoIframe';
     const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
     function Post()
@@ -17,6 +19,8 @@
         const { username, post_url } = useParams();
         const [post, setPost] = useState(null);
         const {fetchSinglePost} = useAuth();
+        const navigate = useNavigate();
+        
         const imageUrls = useMemo(() =>
         {
             try
@@ -35,7 +39,17 @@
             {
                 setPost(data);                
                 window.scrollTo(0,0);
-            });
+            })
+            .catch((err) =>
+            {
+                const status = err.response?.status || err.status;
+                console.log("err", status);
+                if(status === 404)
+                {
+                    console.log("navigating away...");
+                    navigate('/not-found');
+                }
+            });  
         }, [username, post_url]);
 
         return (
@@ -106,14 +120,21 @@
                                     }
                                 </div>
                             </div>
-                            <div className="page-section statement">
+                            <div className="page-section statement rte-container">
                                 <RichTextEditor
                                     readOnly={true}
                                     value={post.statement}  
                                     key={post.id}                              />
                             </div>
                         </div>
-                    </div>                
+                    </div>     
+                    {
+                        post.main_video && (
+                            <div className="page-section video">
+                                <VideoIframe url={post.main_video}/>
+                            </div>
+                        )
+                    }       
                     <div className="page-section carousel">
                         <ImageCarousel size="small" post={post} title={"gallery:"}></ImageCarousel>
                     </div>                    

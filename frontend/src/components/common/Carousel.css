@@ -18,7 +18,7 @@
 .carousel-container
 {
     height: var(--mobile-medium-height);
-    width: var(--carousel-w);
+    /* width: calc(var(--carousel-w) - 1rem); */
 }
 .carousel-container.small
 {
@@ -97,3 +97,10 @@
         height: var(--small-height);
     }
 }
+/* @media (min-width: 700px)
+{
+    .carousel-container
+    {
+        width: calc(var(--carousel-w) - 2rem);
+    }
+} */

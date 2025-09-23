@@ -7,14 +7,14 @@ import './DashboardProfile.css';
 function Dashboard() 
 {
     return (
-        <Layout> 
-            <DashboardLayout currentTab="profile" headerText="your profile">    
-                <div className="profile-boxes-container">   
-                    <EditProfile/>
-                    <EditBio/>
-                </div>
-            </DashboardLayout>
-        </Layout>
+    <Layout> 
+        <DashboardLayout currentTab="profile" headerText="your profile">    
+            <div className="profile-boxes-container">   
+                <EditProfile/>
+                <EditBio/>
+            </div>
+        </DashboardLayout>
+    </Layout>
     );
 }
 

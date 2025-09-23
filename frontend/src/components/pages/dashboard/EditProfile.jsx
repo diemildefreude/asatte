@@ -90,7 +90,7 @@ function EditProfile()
         }
     };
     return (
-    <div className="main-info-box">
+    <div className="main-info-box sticky">
         <div className="avatar-section">
             {error && (
             <div className="error">
@@ -145,6 +145,9 @@ function EditProfile()
                         <Link to="/password-change" className="centered-content">change password</Link>
                     )
                 }
+                <Link to={`/${user.username}`} className="centered-content">
+                    preview profile
+                </Link>
             </form>            
         </div>        
     </div>

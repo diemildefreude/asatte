@@ -24,6 +24,7 @@ function AutoloadTilesContainer({screenSize, category=Category.Archive, userId=n
     const isFetchingOnScroll = useRef(false);
     const isFetchingOnWidthChange = useRef(false);
     const fetchMethod = isAuthenticated && isDashboard ? fetchMyPosts : fetchPosts;
+    const userField = isDashboard ? user : null;
 
     const getParams = useCallback((amount) =>
     {        
@@ -56,7 +57,6 @@ function AutoloadTilesContainer({screenSize, category=Category.Archive, userId=n
                 setAreNoMorePosts(true);
                 return;
             }
-            console.log("scrollFetch", data);//data[data.length - 1].id);
             fetchIndexRef.current = data[data.length - 1].id + 1;
             setPosts(prev => [...prev, ...data]);    
         }).catch((err) =>
@@ -157,7 +157,7 @@ function AutoloadTilesContainer({screenSize, category=Category.Archive, userId=n
         (
             postsToDisplay.map((post) =>
             {
-                return <Tile post={post} key={post.id}/>
+                return <Tile post={post} key={post.id} user={userField}/>
             })
             
         ) :

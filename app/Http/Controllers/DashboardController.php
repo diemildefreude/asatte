@@ -96,7 +96,8 @@ class DashboardController extends Controller
         ]);
 
         $user = $request->user();
-        $user->website = $request->website;
+        $website = $request->input('website') ? addHttpProtocol($request->input('website', '')) : null;
+        $user->website = $website;
         $user->location = $request->location;
         $user->save();
         

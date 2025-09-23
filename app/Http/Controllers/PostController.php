@@ -211,7 +211,7 @@ class PostController extends Controller
         //Log::info("user?", $user);
         if (!$user) 
         {
-            abort(404);
+            return response()->json(['error' => 'No user by that name found.'], 404);
         }
 
         $post = Post::with(relations: 'user:id,username,avatar,member_type')->
@@ -221,7 +221,7 @@ class PostController extends Controller
         //Log::info("post?", $post);
         if (!$post) 
         {
-            abort(404);
+            return response()->json(['error' => 'No such post found.'], 404);
         }
         return response()->json($post);
     }

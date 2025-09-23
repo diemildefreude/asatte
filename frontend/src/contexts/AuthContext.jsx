@@ -534,13 +534,31 @@ export const AuthProvider = ({ children }) =>
         'Failed to fetch posts after multiple attempts.'
     );
   };
+
+  const fetchUser = async (username) =>
+  {
+    setIsLoading(true);
+    try
+    {
+      const response = await api.get(`/user/${username}`);
+      return response.data;
+    }
+    catch(error)
+    {
+      throw error;
+    }
+    finally
+    {
+      setIsLoading(false);
+    }
+  }
   
   return (
     <AuthContext.Provider value={{ isAuthenticated, user, login, logout, 
       changePassword, registerWithEmail, sendVerificationEmail, refreshUser,
       requestRecoveryMail, resetPassword, completeSocialProfile, loginSocialUser,
       updateProfileInfo, isLoading, updateBio, updateAvatar, createPost, updatePost,
-      fetchSinglePost, fetchPosts, fetchMyPosts, deletePost }}>
+      fetchSinglePost, fetchPosts, fetchMyPosts, deletePost, fetchUser }}>
       {children}
     </AuthContext.Provider>
   );

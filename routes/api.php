@@ -4,8 +4,11 @@ use App\Http\Controllers\SocialiteController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/user/{username}', [UserController::class, 'user']);
 
 Route::get('/posts', [PostController::class, 'index']);
 Route::get('/user/{username}/post/{post_url}', [PostController::class, 'show']);
