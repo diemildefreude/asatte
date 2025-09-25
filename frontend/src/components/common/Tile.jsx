@@ -110,7 +110,7 @@ function Tile({post, isSliderDraggedPointerUp, user=null}) //if user != null, th
                                     draggable="false"
                                     onClick={(e) => 
                                     {
-                                        if(isSliderDraggedPointerUp.current)
+                                        if(isSliderDraggedPointerUp?.current)
                                         {
                                             e.stopPropagation();
                                             e.preventDefault();

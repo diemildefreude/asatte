@@ -94,6 +94,7 @@
 {
     color: var(--pale-yellow);
     text-decoration: none;
+    cursor:pointer
 }
 .post-link span
 {
