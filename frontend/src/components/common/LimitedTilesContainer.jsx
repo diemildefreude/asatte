@@ -1,25 +1,24 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './TilesContainer.css';
 import Tile from './Tile';
-import { ScreenSize, checkIfFetchNeeded } from '../../utils/helpers';
-import { useAuth } from '../../contexts/AuthContext';
+import { Category, FetchOrder, ScreenSize, checkIfFetchNeeded, getNextFetchIndex } from '../../utils/helpers';
 
 const gridPostCounts = {
     [ScreenSize.Nothing]: 0,
-    [ScreenSize.Narrow]: 5, 
+    [ScreenSize.Narrow]: 3, 
     [ScreenSize.Small]: 6,
     [ScreenSize.Mid]: 8,
-    [ScreenSize.Wide]: 11
+    [ScreenSize.Wide]: 12
 };
 
-function HeroTilesContainer({screenSize, category})
+function LimitedTilesContainer({screenSize, fetchMethod, 
+    arePrivatePosts=false, category=Category.Archive, fetchOrder=FetchOrder.Ascending})
 {    
     const [posts, setPosts] = useState([]);
-    const { fetchPosts } = useAuth();
     function getPostAmount(currentSize){return gridPostCounts[currentSize]};    
     const prevScreenSizeRef = useRef(ScreenSize.Nothing);
     const fetchedScreenSize = useRef(ScreenSize.Nothing);
-    const fetchIndexRef = useRef(1);
+    const fetchIndexRef = useRef(fetchOrder === FetchOrder.Ascending ? 1 : null);
     const [areNoMorePosts, setAreNoMorePosts] = useState(false);
 
     useEffect(() =>
@@ -36,10 +35,13 @@ function HeroTilesContainer({screenSize, category})
         const params = new URLSearchParams();
         const amount = getPostAmount(screenSize) - posts.length;
         params.append('amount', amount);
-        params.append('start_id', fetchIndexRef.current);
+        if(fetchIndexRef.current)
+        {
+            params.append('start_id', fetchIndexRef.current);
+        }
         params.append('category', category);
         const fetchedSize = fetchedScreenSize.current;
-        fetchPosts(params).then((data) =>
+        fetchMethod(params).then((data) =>
         {
             if(data.status === 'no_more_posts')
             {
@@ -47,8 +49,7 @@ function HeroTilesContainer({screenSize, category})
                 return;
             }
             setPosts(prev => [...prev, ...data]);
-            //fetchIndex += data.length;
-            fetchIndexRef.current = data[data.length - 1].id + 1;
+            fetchIndexRef.current = getNextFetchIndex(data, fetchOrder);
             fetchedScreenSize.current = screenSize > fetchedSize ? screenSize : fetchedSize;
         });
     }, [screenSize, category, posts, areNoMorePosts, setAreNoMorePosts]);
@@ -56,13 +57,17 @@ function HeroTilesContainer({screenSize, category})
     const postsToDisplay = posts.length > 0 ? posts.slice(0, getPostAmount(screenSize)) : posts;
 
     return (
-    <div className="tiles-container first-row-taller">
+    <div className="tiles-container">
     {
         postsToDisplay.length > 0 ?
         (
             postsToDisplay.map((post) =>
             {
-                return <Tile post={post} key={post.id}/>
+                return <Tile 
+                    post={post} 
+                    key={post.id} 
+                    isDashboard={arePrivatePosts}
+                />
             })
             
         ) :
@@ -74,4 +79,4 @@ function HeroTilesContainer({screenSize, category})
     )
 }
 
-export default HeroTilesContainer;
+export default LimitedTilesContainer;

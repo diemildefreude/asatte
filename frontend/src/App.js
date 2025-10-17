@@ -17,6 +17,9 @@ import NewPost from './components/pages/dashboard/NewPost';
 import Posts from './components/pages/dashboard/Posts';
 import EditPost from './components/pages/dashboard/EditPost';
 import Activity from './components/pages/dashboard/Activity';
+import UserComments from './components/pages/dashboard/UserComments';
+import Notifications from './components/pages/dashboard/Notifications';
+import LikedPosts from './components/pages/dashboard/LikedPosts';
 import Mail from './components/pages/dashboard/Mail';
 import PasswordReset from './components/pages/PasswordReset';
 import NotFound from './components/pages/NotFound';
@@ -33,6 +36,9 @@ function App()
           <Route path="/dashboard/edit-post/:post_url" element={<EditPost />}/>
           <Route path="/dashboard/posts" element={<Posts />}/>
           <Route path="/dashboard/activity" element={<Activity />}/>
+          <Route path="/dashboard/notifications" element={<Notifications />}/>
+          <Route path="/dashboard/liked-posts" element={<LikedPosts />}/>
+          <Route path="/dashboard/comments" element={<UserComments />}/>
           <Route path="/dashboard/mail" element={<Mail />}/>
           <Route path="/login" element={<Login />}/>
           <Route path="/register" element={<Registration />}/>

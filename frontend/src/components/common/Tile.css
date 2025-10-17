@@ -1,6 +1,10 @@
 .work-tile
 {
     user-select: none;
+    font-size: 0.9em;
+}
+.content.touch-device
+{
     font-size: 1.1em;
 }
 .work-tile img
@@ -26,15 +30,16 @@
 {
     display: flex;
     background-color: rgba(0, 0, 0, 0.0);
-    padding: 0.3rem 0.6rem 0.5rem;
 }
 .panel-top
 {
-    flex-direction: column;
+    flex-direction: column;    
+    padding: 0 0.6rem;
 }
 .panel-bottom
 {
-    gap: 1rem;
+    gap: 1rem;    
+    padding: 0 0.6rem 0.3rem;
 }
 .work-tile:hover .info-panel, .work-tile:focus-within .info-panel, 
 .touch-device .info-panel

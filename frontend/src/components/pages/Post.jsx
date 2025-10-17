@@ -60,7 +60,6 @@
                 setPost(data); 
                 setIsLiked(!!data.have_liked);
                 setLikeCount(data.users_who_liked_count);
-                console.log(data);               
                 window.scrollTo(0,0);
             })
             .catch((err) =>

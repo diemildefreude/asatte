@@ -1,10 +1,11 @@
-import { getDateAsYYYYMMDD, getErrorMessage, scrollToElement } from "../../utils/helpers";
+import { getDateAsYYYYMMDD, getErrorMessage, getTimeAsHHMM, scrollToElement } from "../../utils/helpers";
 import UserLink from "./UserLink";
 import { useAuth } from "../../contexts/AuthContext";
 import EditButton from "./EditButton";
 import { useCallback, useState } from "react";
+import { Link } from "react-router-dom";
 
-function Comment({comment, onReply, id, parentLocalId=null, currentUrl, setComments})
+function Comment({comment, isDashboard=false, onReply=null, id, parentLocalId=null, currentUrl=null, setComments=null})
 {
     const {user, isAuthenticated, updateComment, deleteComment} = useAuth();
     const [isEditing, setIsEditing] = useState(false);
@@ -76,18 +77,31 @@ function Comment({comment, onReply, id, parentLocalId=null, currentUrl, setComme
     return (
     <div className="comment" id={elementId}>
         <p className="post-info">
-            <UserLink user={comment.user}/> <em>on {getDateAsYYYYMMDD(comment.created_at)}</em>                        
+        {
+            isDashboard && comment.post ? (<>
+                in <Link
+                    to={`/${comment.post.user.username}/${comment.post.post_url}`} //+#comment-0
+                    className="bold"
+                >
+                    {comment.post.title}
+                </Link> <em>on {getDateAsYYYYMMDD(comment.created_at)}
+                <span className="notice small"> at {getTimeAsHHMM(comment.created_at)}</span></em> 
+            </>):(<>
+                <UserLink user={comment.user}/> <em>on {getDateAsYYYYMMDD(comment.created_at)}
+                <span className="notice small"> at {getTimeAsHHMM(comment.created_at)}</span></em>
+            </>)
+        }                      
         </p>
         <div className="comment-notice-container">
         {            
-            comment.created_at !== comment.updated_at && (
+            !isDashboard && (comment.created_at !== comment.updated_at) && (
                 <span className="notice small greyed-out">
                     (edited)
                 </span>
             )
         }
         {
-            comment.parent_id && parentLocalId ? (
+            comment.parent_id && parentLocalId && currentUrl ? (
                 <span className="notice small"> replied to <a 
                     href={`${currentUrl}/comment-${parentLocalId}`}
                     onClick={(e) => {e.preventDefault(); scrollToElement(currentUrl, parentElementId)}}
@@ -95,6 +109,16 @@ function Comment({comment, onReply, id, parentLocalId=null, currentUrl, setComme
                     this</a> comment
                 </span>
             ) : null
+        }
+        {
+            isDashboard && comment.post && ( //post is only included when using fetchUserComments
+                <Link
+                    to={`/${comment.post.user.username}/${comment.post.post_url}`} //+#comment-0
+                    className="notice small"
+                >
+                    <i className="fa-solid fa-arrow-up-right-from-square"></i> go to comment
+                </Link>
+            )
         }
         </div>
         {
@@ -117,7 +141,7 @@ function Comment({comment, onReply, id, parentLocalId=null, currentUrl, setComme
             isAuthenticated && (
             <div className="comment-buttons-container">
                 {
-                    !isEditing && (<>                        
+                    !isEditing && onReply && (<>                        
                         <button 
                             onClick={() => onReply(comment, elementId, true)}
                             className="small-button"
@@ -137,7 +161,7 @@ function Comment({comment, onReply, id, parentLocalId=null, currentUrl, setComme
                     </>)
                 }
                 {
-                    user.id === comment.user.id && (
+                    !isDashboard && (user.id === comment.user.id) && (
                     <>
                     {
                         isEditing ? (<>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './TilesContainer.css';
 import Tile from './Tile';
-import { ScreenSize, checkIfFetchNeeded, Category } from '../../utils/helpers';
+import { ScreenSize, checkIfFetchNeeded, Category, FetchOrder, getNextFetchIndex } from '../../utils/helpers';
 import { useAuth } from '../../contexts/AuthContext';
 const postsPerRow = {
     [ScreenSize.Nothing]: 0,
@@ -10,27 +10,29 @@ const postsPerRow = {
     [ScreenSize.Mid]: 3,
     [ScreenSize.Wide]: 4
 };
-//let isFirstFetch = true;
-function AutoloadTilesContainer({screenSize, category=Category.Archive, userId=null, isDashboard=false })
+function AutoloadTilesContainer({screenSize, fetchMethod, category=Category.Archive, 
+    userId=null, isDashboard=false, fetchOrder=FetchOrder.Ascending})
 {    
-    const { isAuthenticated, fetchPosts, fetchMyPosts, user } = useAuth();
     const [posts, setPosts] = useState([]);
     const [areNoMorePosts, setAreNoMorePosts] = useState(false);
     const getPostAmount = useCallback((currentSize) =>
     {return postsPerRow[currentSize]}, []);    
     const prevScreenSizeRef = useRef(ScreenSize.Nothing);
     const fetchedScreenSizeRef = useRef(ScreenSize.Nothing);
-    const fetchIndexRef = useRef(1);//index of next post to fetch
+    const fetchIndexRef = useRef(fetchOrder === FetchOrder.Ascending ? 1 : null);//index of next post to fetch
     const isFetchingOnScroll = useRef(false);
     const isFetchingOnWidthChange = useRef(false);
-    const fetchMethod = isAuthenticated && isDashboard ? fetchMyPosts : fetchPosts;
-    const userField = isDashboard ? user : null;
+    //const userField = isDashboard ? user : null;
 
+    
     const getParams = useCallback((amount) =>
     {        
         const params = new URLSearchParams();     
         params.append('amount', amount);
-        params.append('start_id', fetchIndexRef.current);
+        if(fetchIndexRef.current)
+        {
+            params.append('start_id', fetchIndexRef.current);
+        }
         params.append('category', category);
         if(!isDashboard && userId)
         {
@@ -51,13 +53,12 @@ function AutoloadTilesContainer({screenSize, category=Category.Archive, userId=n
         isFetchingOnScroll.current = true;
         fetchMethod(params).then((data) =>
         {
-            //console.log("data?", data);
             if(data.status === 'no_more_posts')
             {
                 setAreNoMorePosts(true);
                 return;
             }
-            fetchIndexRef.current = data[data.length - 1].id + 1;
+            fetchIndexRef.current = getNextFetchIndex(data, fetchOrder);
             setPosts(prev => [...prev, ...data]);    
         }).catch((err) =>
         {
@@ -113,15 +114,14 @@ function AutoloadTilesContainer({screenSize, category=Category.Archive, userId=n
         //fetchIndexRef.current += amount;
         fetchMethod(params).then((data) =>
         {
-            //console.log("data?", data);
             if(data.status === 'no_more_posts')
             {
                 //console.log(data.status);
                 setAreNoMorePosts(true);
                 return;
             }
-            //console.log("widthFetch", data);//[data.length - 1].id);
-            fetchIndexRef.current = data[data.length - 1].id + 1;
+            
+            fetchIndexRef.current = getNextFetchIndex(data, fetchOrder);
             setPosts(prev => [...prev, ...data]);
             fetchedScreenSizeRef.current = screenSize > fetchedSize ? screenSize : fetchedSize;            
             
@@ -157,7 +157,11 @@ function AutoloadTilesContainer({screenSize, category=Category.Archive, userId=n
         (
             postsToDisplay.map((post) =>
             {
-                return <Tile post={post} key={post.id} user={userField}/>
+                return <Tile 
+                    post={post} 
+                    key={post.id} 
+                    isDashboard={isDashboard}
+                    />
             })
             
         ) :

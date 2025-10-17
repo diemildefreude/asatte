@@ -5,16 +5,18 @@ import AutoloadTilesContainer from '../common/AutoloadTilesContainer';
 import TileCarousel from '../common/TileCarousel';
 import Layout from '../layout/Layout';
 import { Category, getScreenSize, monitorScreenSize } from '../../utils/helpers';
+import { useAuth } from '../../contexts/AuthContext';
 
 function Home()
 {    
     const [screenSize, setScreenSize] = useState(getScreenSize());
+    const {fetchPosts} = useAuth();
 
     useEffect(() => //check screen size at regular intervals.
     {   
         const cleanup = monitorScreenSize(setScreenSize);
         return cleanup;
-    }, []);
+    }, [setScreenSize]);
 
     return (
         <Layout>
@@ -33,8 +35,11 @@ function Home()
             <TileCarousel size="small" category={Category.News} title="netart news:"/>
         </div>
         <div className="page-section">
-            <AutoloadTilesContainer screenSize={screenSize} 
-            category={Category.Archive}/>
+            <AutoloadTilesContainer 
+                screenSize={screenSize} 
+                category={Category.Archive}
+                fetchMethod={fetchPosts}
+            />
         </div>
         </Layout>
     );

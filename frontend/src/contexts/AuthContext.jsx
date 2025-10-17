@@ -535,6 +535,23 @@ export const AuthProvider = ({ children }) =>
     );
   };
 
+  const fetchLikedPosts = async (params) =>
+  {
+    //console.log("fetching liked posts...", Object.fromEntries(params));
+    const fetchFn = async () => 
+    {
+      const response = await api.get('/my-liked-posts', {params:params});
+      return response.data;
+    }
+
+    return retryOperation(
+        fetchFn,
+        3, // Number of retries (e.g., 3 attempts total)
+        500, // Delay in milliseconds between retries (1.5 seconds)
+        'Failed to fetch posts after multiple attempts.'
+    );
+  };
+
   const fetchUser = async (username) =>
   {
     setIsLoading(true);
@@ -589,11 +606,13 @@ export const AuthProvider = ({ children }) =>
     }
   }
 
-  const fetchComments = (postId) =>
+  const fetchUserComments = (fetchLimit=null) =>
   {
     const fetchFn = async () => 
       {
-        const response = await api.get(`/${postId}/comments`);
+        const params = new URLSearchParams();
+        fetchLimit && params.append('amount', fetchLimit);
+        const response = await api.get(`/comments`,{params:params});
         return response.data;
       };
 
@@ -602,7 +621,7 @@ export const AuthProvider = ({ children }) =>
           fetchFn,
           3, // Number of retries (e.g., 3 attempts total)
           500, // Delay in milliseconds between retries (1.5 seconds)
-          'Failed to fetch posts after multiple attempts.'
+          'Failed to fetch comments after multiple attempts.'
       );
   }
   const createComment = async (content, postId, parentId=null) =>
@@ -677,7 +696,8 @@ export const AuthProvider = ({ children }) =>
       requestRecoveryMail, resetPassword, completeSocialProfile, loginSocialUser,
       updateProfileInfo, isLoading, updateBio, updateAvatar, createPost, updatePost,
       fetchSinglePost, fetchPosts, fetchMyPosts, deletePost, fetchUser, toggleLike,
-      recordView, createComment, fetchComments, updateComment, deleteComment}}>
+      recordView, createComment, fetchUserComments, updateComment, deleteComment,
+      fetchLikedPosts}}>
       {children}
     </AuthContext.Provider>
   );

@@ -2,12 +2,20 @@ import Layout from "../../layout/Layout";
 import DashboardLayout from "./DashboardLayout";
 import "../DashboardProfile.css";
 import AutoloadTilesContainer from "../../common/AutoloadTilesContainer";
-import { getScreenSize } from "../../../utils/helpers";
-import { useState } from "react";
+import { getScreenSize, monitorScreenSize } from "../../../utils/helpers";
+import { useState, useEffect } from "react";
+import { useAuth } from "../../../contexts/AuthContext";
 
 function Posts()
 {
     const [screenSize, setScreenSize] = useState(getScreenSize());
+    const {fetchMyPosts} = useAuth();
+
+    useEffect(() => //check screen size at regular intervals.
+    {   
+        const cleanup = monitorScreenSize(setScreenSize);
+        return cleanup;
+    }, [setScreenSize]);
 
     return ( 
     <Layout>
@@ -15,6 +23,7 @@ function Posts()
             <AutoloadTilesContainer 
                 screenSize={screenSize}
                 isDashboard={true}
+                fetchMethod={fetchMyPosts}
             />
         </DashboardLayout>
     </Layout>

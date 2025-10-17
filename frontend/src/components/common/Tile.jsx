@@ -7,12 +7,12 @@ import { Link } from 'react-router-dom';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const FRONTEND_URL = process.env.REACT_APP_FRONTEND_URL;
 
-function Tile({post, isSliderDraggedPointerUp, user=null}) //if user != null, this is authorized Dashboard access
+function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false}) 
 {
     if (!post || (!user && !post.user)) return null;
 
     const author = user ?? post.user;
-    const viewText = user ? "preview" : "info";
+    const viewText = isDashboard ? "preview" : "info";
 
     const directory = `${BACKEND_URL}/storage/images/uploaded/${author.username}/posts/${post.post_url}/gallery/small`;
 
@@ -53,7 +53,7 @@ function Tile({post, isSliderDraggedPointerUp, user=null}) //if user != null, th
                     <div className="info-item title">{post.title}</div>
                     <div className="info-item subtitle">{post.subtitle}</div>
                     {
-                        !user && (
+                        !isDashboard && (
                             <div className="info-item link-container">
                                 <UserLink user={author}
                                     onClick={handleLinkClick}
@@ -64,7 +64,7 @@ function Tile({post, isSliderDraggedPointerUp, user=null}) //if user != null, th
                 </div>
                 <div className="panel-bottom">
                     {
-                        user &&
+                        isDashboard &&
                         (
                             <div className="info-item action-links link-container">
                                 <Link 
@@ -93,7 +93,7 @@ function Tile({post, isSliderDraggedPointerUp, user=null}) //if user != null, th
                         </Link>
                     </div>
                     {
-                        (user && post.is_private) ?
+                        (isDashboard && post.is_private) ?
                         (
                             <div className="info-item">
                                 <i className="fa-solid fa-eye-slash"></i>
@@ -102,7 +102,7 @@ function Tile({post, isSliderDraggedPointerUp, user=null}) //if user != null, th
                         (null)
                     }                    
                     {
-                        post.website && !user && 
+                        post.website && !isDashboard && 
                         (
                             <div className="info-item action-links link-container">
                                 <a href={post.web_page_url} 

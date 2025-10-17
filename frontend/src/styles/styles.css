@@ -34,6 +34,10 @@ a, a:link, a:visited
     width: fit-content;
     margin: 0 auto;
 }
+.bold
+{
+    font-weight: 900;
+}
 .top-offset
 {
     padding: 10rem 1rem 0;
@@ -46,6 +50,10 @@ a, a:link, a:visited
 .padded
 {    
     padding: 1rem;
+}
+.side-padded
+{
+    padding: 0 1rem;
 }
 .notice-container
 {

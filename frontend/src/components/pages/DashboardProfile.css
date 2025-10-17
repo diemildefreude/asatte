@@ -71,7 +71,6 @@
     border: 2px solid var(--grey-yellow);
     border-right: none;
     background: var(--lavender-gradient);
-    pointer-events: none;
 }
 .content .dashboard-tabs-container .dashboard-tab.link-button:last-of-type
 {
@@ -531,4 +530,10 @@
         max-width: 400px;
         position: sticky;
     }
+}
+.activity-box-container
+{
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 }

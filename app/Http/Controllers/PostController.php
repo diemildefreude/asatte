@@ -62,10 +62,11 @@ class PostController extends Controller
         $userId = $request->user()->id;
         $limit = $request->query('amount');
         $startId = $request->query('start_id');
+        Log::info($startId);
         $rawPosts = Post::with(relations: 'user:id,username')
             ->where('user_id', '=', $userId)
             ->where('id', '>=', $startId) //uncomment this for real implementation
-            //->limit($limit)
+            ->limit($limit)
             ->get();
         $posts = $rawPosts;
         // $posts = $rawPosts->filter(function ($post) use ($startId) 
@@ -92,6 +93,32 @@ class PostController extends Controller
         return response()->json($posts);
     }
 
+    public function myLikedPosts(Request $request)
+    {
+        $userId = $request->user()->id;
+        $limit = $request->query('amount');
+        $startId = $request->query('start_id');
+        $queryA = Post::whereHas('usersWhoLiked', function ($q) use ($userId)
+        {
+            $q->where('users.id', $userId);
+        });
+        $queryB = (isset($startId) ? $queryA->where('id', '<=',$startId)
+            : $queryA)
+            ->with(relations: 'user:id,username,avatar');
+
+        $posts = $limit ? $queryB->latest()->limit($limit)->get()
+            : $queryB->latest()->get();
+        
+        if(sizeof($posts) == 0)
+        {
+            return response() ->json([
+                'status' => 'no_more_posts',
+                'message' => 'No more posts available with the given parameters.'
+            ], 200);
+        }
+        //remove the above part once testing is done
+        return response()->json($posts);
+    }
     /**
      * Show the form for creating a new resource.
      */
@@ -243,14 +270,6 @@ class PostController extends Controller
         }
         
         $post->load('comments.user');
-        // $comments = $post->comments()->with('user:id,username,avatar')->get();
-
-        // $comments->transform(function ($comment) {
-        //     $comment->content = nl2br(e($comment->content)); // also escape HTML for safety
-        //     return $comment;
-        // });
-
-        // $post->setRelation('comments', $comments);
 
         return response()->json($post);
     }

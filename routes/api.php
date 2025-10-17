@@ -29,18 +29,22 @@ Route::post('/posts/{post}/record-view', [ActivityController::class, 'recordView
 Route::middleware('auth:api')->group(function ()
 {
     Route::get('/my-posts', [PostController::class, 'myPosts']);
+    Route::get('/my-liked-posts', [PostController::class, 'myLikedPosts']);
     Route::resource('posts', PostController::class)->except([
         'index', 'show'
     ]);
     Route::resource('comments', CommentController::class)->except([
-        'index', 'store'
+        'store', 'update'
     ]);
+
     Route::post('/posts/{post}/comments', [CommentController::class, 'store'])
         ->name('posts.comments.store');
     Route::put('/posts/{post}/comments/{comment}', [CommentController::class, 'update'])
         ->name('posts.comments.update');
     Route::delete('/posts/{post}/comments/{comment}', [CommentController::class, 'destroy'])
         ->name('posts.comments.destroy');
+    // Route::get('/users/{user}/comments', [CommentController::class, 'index'])
+    //     ->name('posts.comments.index');
 
     Route::post('/posts/{post}/like', [ActivityController::class, 'toggleLike']);
 

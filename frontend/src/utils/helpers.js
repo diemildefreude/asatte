@@ -16,6 +16,18 @@ export function getDateAsYYYYMMDD(dateTimeString)
     const formattedDate = `${year}-${month}-${day}`;   
     return formattedDate;
 }
+export function getTimeAsHHMM(dateTimeString)
+{
+    const date = new Date(dateTimeString);
+
+    // toLocaleTimeString respects the user's local time zone automatically
+    const timeString = date.toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+        //hour12: false // 24-hour (military) format
+    });
+    return timeString.replace(' AM', 'am').replace(' PM', 'pm');
+}
 function blobToBase64(blob) 
 {
     return new Promise((resolve, reject) => 
@@ -505,6 +517,27 @@ export const Category =
     Archive: 'archive'
 }
 
+export const FetchOrder =
+{
+    Ascending: 'ascending',
+    Descending: 'descending',
+    Random: 'random'
+}
+export function getNextFetchIndex(fetchedPosts, fetchOrder) 
+{
+    if(fetchOrder === FetchOrder.Ascending)
+    {
+        return fetchedPosts[fetchedPosts.length - 1].id + 1;
+    }
+    if(fetchOrder === FetchOrder.Descending)
+    {
+        return fetchedPosts[fetchedPosts.length - 1].id - 1;
+    }
+    if(fetchOrder === FetchOrder.Random)
+    {
+        //do this later
+    }
+}
 export function getScreenSize()
 {    
     const NARROW_SCREEN_BREAKPOINT = 1;

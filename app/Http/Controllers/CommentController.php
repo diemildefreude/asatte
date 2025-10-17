@@ -13,9 +13,21 @@ class CommentController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        $user = $request->user();
+        $query = Comment::with([
+            'post:id,post_url,title,user_id',
+            'post.user:id,username'
+        ])
+        ->where('user_id', $user->id);
+        //Log::info("amount")
+        $comments = isset($request['amount']) ? 
+            $query->limit($request['amount'])->latest()->get() 
+            : $query->latest()->get();
+        //Log::info("$user->id's comments", $comments);
         
+        return response()->json(['comments' => $comments], 200);
     }
 
     /**
