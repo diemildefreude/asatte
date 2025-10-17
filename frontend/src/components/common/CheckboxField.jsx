@@ -2,7 +2,12 @@ function CheckboxField({name, label, value, onChange, disabled})
 {
     return (
     <div className="inline-form-field checkbox">
-        <label htmlFor={name}>{label}</label>
+        <label 
+            htmlFor={name}
+            className="main-label"
+        >
+            {label}
+        </label>
         <input
             type="checkbox"
             name={name}

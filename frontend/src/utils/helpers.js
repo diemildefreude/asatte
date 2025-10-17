@@ -1,3 +1,21 @@
+export function scrollToElement (currentUrl, id)
+{
+    const newUrl = `${currentUrl}#${id}`;
+    window.history.replaceState(null, "", newUrl); // updates URL hash without reloading
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+};
+
+export function getDateAsYYYYMMDD(dateTimeString)
+{
+    const commentDate = new Date(dateTimeString);
+
+    const year = commentDate.getFullYear();
+    const month = (commentDate.getMonth() + 1).toString().padStart(2, '0'); 
+    const day = commentDate.getDate().toString().padStart(2, '0');    
+
+    const formattedDate = `${year}-${month}-${day}`;   
+    return formattedDate;
+}
 function blobToBase64(blob) 
 {
     return new Promise((resolve, reject) => 
@@ -11,7 +29,6 @@ function blobToBase64(blob)
         reader.readAsDataURL(blob);
     });
 }
-
 function handleResizeWithCanvas(img, mimeType)
 {
     return new Promise((resolve) => 
@@ -612,13 +629,18 @@ export const handleSubmit = async (e, uri, data) =>
  */
 export const retryOperation = async (fn, retries = 3, delay = 1000, errorMessage = 'Operation failed after multiple retries.') => {
     let attempts = 0;
-    while (attempts < retries) {
-        try {
+    while (attempts < retries) 
+    {
+        try 
+        {
             return await fn(); // Attempt the operation
-        } catch (error) {
+        } 
+        catch (error) 
+        {
             attempts++;
             console.warn(`Attempt ${attempts} failed:`, error.message || error);
-            if (attempts < retries) {
+            if (attempts < retries) 
+            {
                 console.log(`Retrying in ${delay / 1000} seconds...`);
                 await new Promise(res => setTimeout(res, delay)); // Wait before retrying
                 // Optionally increase delay for exponential backoff (delay * 2)

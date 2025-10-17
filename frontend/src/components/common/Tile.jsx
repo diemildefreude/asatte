@@ -12,7 +12,7 @@ function Tile({post, isSliderDraggedPointerUp, user=null}) //if user != null, th
     if (!post || (!user && !post.user)) return null;
 
     const author = user ?? post.user;
-    const viewText = user ? "preview" : "view info";
+    const viewText = user ? "preview" : "info";
 
     const directory = `${BACKEND_URL}/storage/images/uploaded/${author.username}/posts/${post.post_url}/gallery/small`;
 
@@ -123,7 +123,7 @@ function Tile({post, isSliderDraggedPointerUp, user=null}) //if user != null, th
                                     }
                                 }>
                                     <i className="fa-solid fa-arrow-up-right-from-square"></i>
-                                    <span>visit site</span>                                            
+                                    <span>visit</span>                                            
                                 </a>
                                 </div>
                         )

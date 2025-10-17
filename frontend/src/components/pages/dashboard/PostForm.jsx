@@ -144,17 +144,13 @@ function PostForm({isCreateForm=true, post=null, user})
                 continue;
             }
             const resizedBlob = await resizeImage(file);
-            //console.log("resizedGalleryBlob " + i, resizedBlob);
             const resizedImageFile = new File([resizedBlob], file.name, { type: file.type });
             const newField = {...imageFields[i], value: resizedImageFile};
-            //console.log(`newField${i}`, newField);
             resizedGalleryImages.push(newField);
         };
         //RESIZE STATEMENT IMAGES
         const statementWithResizedImages = await processQuillImages(statement);
-        const statementJson =   JSON.stringify(statementWithResizedImages);
-        //console.log(statementWithResizedImages, statementJson);
-        //
+        const statementJson = JSON.stringify(statementWithResizedImages);
         try
         {
             const message = isCreateForm ? 'Post successfully created.' : 'Post successfully updated.';

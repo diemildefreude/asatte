@@ -58,8 +58,7 @@ a, a:link, a:visited
     gap: 1rem;
     border: 2px solid var(--grey-yellow);
     padding: 1rem;
-    width: fit-content;
-    margin: 0 auto;
+    /* width: fit-content; */
 }
 .hidden, .form-field.bonus
 {
@@ -83,17 +82,22 @@ a, a:link, a:visited
     padding: 1rem;
     color: white;
 }
-.notice
+.notice, .notice a:link, .notice a:visited
 {
     color: var(--pale-yellow);
     font-weight: 400;
     text-align: center;
 }
-.error
+.error, .error a:link, .error a:visited
 {
     color: red;
     font-weight: 400;
     text-align: center;
+}
+.notice.thin, .notice.thin a:link, .notice.thin a:visited,
+.error.thin, .error.thin a:link, .error.thin a:visited
+{
+    font-weight: 1;
 }
 .form-field .error, .form-field .form-notice
 {
@@ -110,6 +114,11 @@ a, a:link, a:visited
     color: cyan;
     font-weight: 600;
     text-align: center;
+}
+.greyed-out
+{
+    color: var(--grey-yellow);
+    opacity: 0.5;
 }
 .horizontal-buttons-container
 {
@@ -129,7 +138,7 @@ button, .link-button
     font-weight: 200;
     text-decoration: none;
 }
-button:hover, .link-button:hover
+.content:not(.touch-device) button:hover, .content:not(.touch-device) .link-button:hover
 {
     background: var(--blue-gradient);
     border: var(--hover-button-border);
@@ -210,7 +219,7 @@ button:disabled, button:disabled:hover
     align-content: center;
     font-weight: 300;
 }
-.inline-form-field label, .main-label
+.inline-form-field .field-name, .main-label
 {
     color: var(--pale-yellow);
     font-weight: 400;
@@ -224,10 +233,14 @@ button:disabled, button:disabled:hover
     padding: 0 0.5rem;
     color: black;
 }
-.edit-button, .save-button
+.edit-button, .save-button, .small-button
 {
     padding: 0.25rem 0.5rem;
     margin: 0;
+}
+.small-button, .content:not(.touch-device) .small-button:hover
+{
+    border: 1px solid white;
 }
 .inline-form-field button.invisible
 {

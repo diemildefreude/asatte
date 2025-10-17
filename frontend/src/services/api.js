@@ -32,7 +32,7 @@ api.interceptors.request.use
 
 // Response Interceptor (for handling 401s, token refresh, etc.)
 // (As provided in the previous comprehensive example, but you can omit if just focusing on request)
-axios.interceptors.response.use(
+api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
@@ -44,13 +44,13 @@ axios.interceptors.response.use(
       const refreshToken = localStorage.getItem('refresh_token');
       if (refreshToken) {
         try {
-          // Attempt to get a new access token using the refresh token
-          const refreshResponse = await axios.post('/oauth/token', {
+          // attempt to get a new access token using the refresh token
+          const refreshResponse = await axios.post(`${BACKEND_URL}/oauth/token`, 
+          {
             grant_type: 'refresh_token',
             refresh_token: refreshToken,
-            client_id: GRANT_CLIENT_ID, // You need to hardcode this or get from env
-            client_secret: GRANT_CLIENT_SECRET, // You need to hardcode this or get from env
-            // Ensure these client details are for the password grant client
+            client_id: GRANT_CLIENT_ID,
+            client_secret: GRANT_CLIENT_SECRET, 
           });
 
           localStorage.setItem('access_token', refreshResponse.data.access_token);
@@ -60,7 +60,7 @@ axios.interceptors.response.use(
           originalRequest.headers.Authorization = `Bearer ${refreshResponse.data.access_token}`;
 
           // Retry the original request
-          return axios(originalRequest);
+          return api(originalRequest);
         } catch (refreshError) {
           console.error('Failed to refresh token:', refreshError);
           // If refresh fails, log out the user

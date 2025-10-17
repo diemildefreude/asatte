@@ -552,13 +552,132 @@ export const AuthProvider = ({ children }) =>
       setIsLoading(false);
     }
   }
+
+  const toggleLike = async (postId) =>
+  {
+    setIsLoading(true);
+    try
+    {
+      const response = await api.post(`/posts/${postId}/like`);
+      return response.data;
+    }
+    catch(error)
+    {
+      throw error;
+    }
+    finally
+    {
+      setIsLoading(false);
+    }
+  }
   
+  const recordView = async (postId) =>
+  {
+     setIsLoading(true);
+    try
+    {
+      const response = await api.post(`/posts/${postId}/record-view`);
+      return response.data;
+    }
+    catch(error)
+    {
+      throw error;
+    }
+    finally
+    {
+      setIsLoading(false);
+    }
+  }
+
+  const fetchComments = (postId) =>
+  {
+    const fetchFn = async () => 
+      {
+        const response = await api.get(`/${postId}/comments`);
+        return response.data;
+      };
+
+      // Use the retryOperation for fetchPosts
+      return retryOperation(
+          fetchFn,
+          3, // Number of retries (e.g., 3 attempts total)
+          500, // Delay in milliseconds between retries (1.5 seconds)
+          'Failed to fetch posts after multiple attempts.'
+      );
+  }
+  const createComment = async (content, postId, parentId=null) =>
+  {
+    console.log("sending comment api post call");
+    try
+    {
+      setIsLoading(true);
+      const formData = new FormData();
+      formData.append('content', content);
+      if(parentId)
+      {
+        formData.append('parent_id', parentId);
+      }
+
+      const response = await api.post(`/posts/${postId}/comments`, formData);
+      return response.data;
+    }
+    catch (error)
+    {
+      throw error;
+    }
+    finally
+    {
+      setIsLoading(false);
+    }
+  }
+  const updateComment = async (commentId, postId, content) =>
+  {
+    console.log("sending comment api put call");
+    try
+    {
+      setIsLoading(true);
+      const formData = new FormData();    
+      formData.append('_method', 'PUT');
+      formData.append('content', content);
+
+      const response = await api.post(`/posts/${postId}/comments/${commentId}`, formData);
+      return response.data;
+    }
+    catch (error)
+    {
+      throw error;
+    }
+    finally
+    {
+      setIsLoading(false);
+    }
+  }
+  const deleteComment = async (commentId, postId) =>
+  {
+    console.log("sending comment api delete call");
+    try
+    {
+      setIsLoading(true);
+
+      const response = await api.delete(`/posts/${postId}/comments/${commentId}`);
+      return response.data;
+    }
+    catch (error)
+    {
+      throw error;
+    }
+    finally
+    {
+      setIsLoading(false);
+    }
+  }
   return (
     <AuthContext.Provider value={{ isAuthenticated, user, login, logout, 
       changePassword, registerWithEmail, sendVerificationEmail, refreshUser,
       requestRecoveryMail, resetPassword, completeSocialProfile, loginSocialUser,
       updateProfileInfo, isLoading, updateBio, updateAvatar, createPost, updatePost,
-      fetchSinglePost, fetchPosts, fetchMyPosts, deletePost, fetchUser }}>
+      fetchSinglePost, fetchPosts, fetchMyPosts, deletePost, fetchUser, toggleLike,
+      recordView, createComment, fetchComments, updateComment, deleteComment}}>
       {children}
     </AuthContext.Provider>
   );

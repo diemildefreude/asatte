@@ -29,7 +29,12 @@ function FormField({ classes='', id, label, placeholder, value="", onChange, dis
             <div className={fieldClasses}>
             {
                 label && (
-                    <label htmlFor={id}>{label}</label>
+                    <label 
+                        htmlFor={id}
+                        className='main-label'
+                    >
+                        {label}
+                    </label>
                 )
             }
                 <input type={type} 

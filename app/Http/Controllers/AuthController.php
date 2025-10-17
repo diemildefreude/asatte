@@ -178,8 +178,6 @@ class AuthController extends Controller
 
             if (! hash_equals((string) $hash, sha1($user->email))) 
             {
-                //Log::error('Hash mismatch for user ID: ' . $id);
-                //throw new AuthorizationException('Invalid verification link.');
                 return redirect($reactAppUrl . '/dashboard?status=invalid_link');
             }
             if ($user->hasVerifiedEmail())

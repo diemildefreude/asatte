@@ -24,6 +24,10 @@
     color: var(--pale-yellow);
     margin: 0rem 0 2rem;
 }
+.icons-leave-comment-container .metric-number
+{
+    font-size: 0.7em;
+}
 .leave-comment-container
 {
     margin: 0 0 0rem;
@@ -57,6 +61,10 @@
     width: 100%;
     height: 150px;
 }
+.comment-edit-area
+{
+    margin: 1rem 0 0;
+}
 .leave-comment-container .header-button-container
 {
     display: flex;
@@ -82,12 +90,32 @@
 .comment
 {
     margin: 1rem 0;
-}
-.comment .post-info
-{
-    margin: 0 0 1rem;
+    padding: 0 0 1rem;
+    border-bottom: 1px solid white;
 }
 .comment .user-link span
 {
     color: var(--pale-yellow);
+}
+.comment .notice.small
+{
+    margin: 0.5rem 0 0;
+    width: fit-content;
+    font-size: 0.8em;
+    font-weight: 1;
+}
+.comment-text
+{
+    margin: 0.5rem 0 0;
+}
+.comment-buttons-container
+{
+    padding: 0.5rem 0 0;
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+}
+.comment-notice-container
+{
+    margin: 0.3rem 0 0;
 }

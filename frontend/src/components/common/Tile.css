@@ -1,6 +1,7 @@
 .work-tile
 {
     user-select: none;
+    font-size: 1.1em;
 }
 .work-tile img
 {

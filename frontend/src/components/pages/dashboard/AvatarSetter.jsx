@@ -93,6 +93,16 @@ function AvatarSetter({user, setSuccess, setError, isSubmitting, setIsSubmitting
         : `${BACKEND_URL}/storage/images/defaults/avatar.webp`;
     const { updateAvatar, refreshUser } = useAuth();
 
+    const closeCropperAndClearInput = useCallback(() => 
+    {
+        setIsImageCropperOpen(false);
+        setSelectedAvatar(null); 
+        if (fileInputRef.current) 
+        {
+            fileInputRef.current.value = "";
+        }
+    }, [setIsImageCropperOpen, setSelectedAvatar]);
+
     const handleCropAndUpload = useCallback(async () =>
     {
         setIsImageCropperOpen(false);
@@ -132,6 +142,7 @@ function AvatarSetter({user, setSuccess, setError, isSubmitting, setIsSubmitting
             setError("Must be .jpeg, .png, .webp, or .bmp");
             return;
         }
+        console.log("opening");
         setIsImageCropperOpen(true);
         const selectedFileUrl = await getImageUrlFromFile(file);
         setSelectedAvatar(selectedFileUrl);
@@ -193,8 +204,8 @@ function AvatarSetter({user, setSuccess, setError, isSubmitting, setIsSubmitting
         {
             return;
         }
-        setIsImageCropperOpen(false);
-    },[setIsImageCropperOpen, imageCropContainerRef.current]);
+        closeCropperAndClearInput();
+    },[closeCropperAndClearInput, imageCropContainerRef.current]);
 
     const handleEscOut = useCallback((e) =>
     {        
@@ -203,10 +214,10 @@ function AvatarSetter({user, setSuccess, setError, isSubmitting, setIsSubmitting
             return;
         }
         if (e.key === "Escape")
-        {            
-            setIsImageCropperOpen(false);
+        { 
+            closeCropperAndClearInput();
         }
-    },[setIsImageCropperOpen, imageCropContainerRef.current]);
+    },[closeCropperAndClearInput, imageCropContainerRef.current]);
 
     const handleTouchOut = useCallback((e) =>
     {
@@ -218,8 +229,8 @@ function AvatarSetter({user, setSuccess, setError, isSubmitting, setIsSubmitting
         {
             return;
         }
-        setIsImageCropperOpen(false);
-    }, [setIsImageCropperOpen, imageCropContainerRef.current]);
+        closeCropperAndClearInput();
+    }, [closeCropperAndClearInput, imageCropContainerRef.current]);
 
     useEffect(() =>
     {
@@ -272,13 +283,16 @@ function AvatarSetter({user, setSuccess, setError, isSubmitting, setIsSubmitting
             )
         }
         <div className="profile-avatar-container" ref={avatarContainerRef}>
+            <label htmlFor="profile_image" className="hidden"
+            ></label>
             <input type="file" accept=".jpg, .jpeg, .png, .webp, .bmp" name="profile_image" 
                 id="profile_image" style={{ display: 'none' }} ref={fileInputRef} 
-                onChange={handleFileSelect}
+                onChange={handleFileSelect} placeholder={null}
             />    
             <button className="avatar-change-button"
                 onClick={handleUpdateClick}   
                 disabled={isSubmitting} 
+                type="button"
             >
                 update
                 <div className="image-drag-panel"></div>

@@ -54,15 +54,18 @@ function UserProfile()
                                 <ProfileItem 
                                     name="username"
                                     value={username}
+                                    isPublic={true}                        
                                 />
                                 <ProfileItem
                                     name="website"
                                     value={user.website}
+                                    isPublic={true}
                                     isLink={true}
                                 />
                                 <ProfileItem
                                     name="location"
                                     value={user.location}
+                                    isPublic={true}
                                 />       
                             </div>        
                         </div>

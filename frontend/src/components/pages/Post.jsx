@@ -1,6 +1,6 @@
-    import React, { useEffect, useMemo, useState } from 'react';
+    import React, { useCallback, useEffect, useMemo, useState } from 'react';
     import { useParams, useNavigate } from 'react-router-dom';
-    import { openPopup } from '../../utils/helpers';
+    import { getDateAsYYYYMMDD, getErrorMessage, openPopup } from '../../utils/helpers';
     import { useAuth } from '../../contexts/AuthContext';
     import Layout from '../layout/Layout';
     import './Post.css';
@@ -18,8 +18,26 @@
     {
         const { username, post_url } = useParams();
         const [post, setPost] = useState(null);
-        const {fetchSinglePost} = useAuth();
+        const [isLiked, setIsLiked] = useState(false);
+        const [likeCount, setLikeCount] = useState(0);
+        const {fetchSinglePost, toggleLike, recordView, isAuthenticated } = useAuth();
         const navigate = useNavigate();
+        
+        useEffect(() =>
+        {
+            if(!post)
+            {
+                return;
+            }
+            recordView(post.id).then((response) =>
+            {
+                console.log("view?", response.status);
+            }).catch((err) => 
+            {
+                const msg = getErrorMessage(err);
+                console.log(msg);
+            })            
+        },[post]);
         
         const imageUrls = useMemo(() =>
         {
@@ -27,9 +45,11 @@
             {
                 return post?.gallery_image_urls ?? [];
             }
-            catch
+            catch(err)
             {
-                return [];
+                const msg = getErrorMessage(err);
+                console.log(msg);
+                return [];                
             }
         }, [post]);
 
@@ -37,7 +57,10 @@
         {
             fetchSinglePost(username, post_url).then((data) =>
             {
-                setPost(data);                
+                setPost(data); 
+                setIsLiked(!!data.have_liked);
+                setLikeCount(data.users_who_liked_count);
+                console.log(data);               
                 window.scrollTo(0,0);
             })
             .catch((err) =>
@@ -50,7 +73,32 @@
                     navigate('/not-found');
                 }
             });  
-        }, [username, post_url]);
+        }, [username, post_url, setPost, setIsLiked, setLikeCount]);
+
+        const handleLikeToggle = useCallback(() =>
+        {
+            if(!post)
+            {
+                return;
+            }
+            const prevIsLiked = isLiked;
+            const prevLikeCount = likeCount;
+            const countChange = isLiked ? -1 : 1;
+            setIsLiked(prev => !prev);
+            setLikeCount(prev => prev + countChange);
+
+            toggleLike(post.id).then((data) =>
+            {
+                setIsLiked(!!data.liked);
+                setLikeCount(data.like_count);
+            })
+            .catch((err) =>
+            {
+                setIsLiked(!!prevIsLiked);
+                setLikeCount(prevLikeCount);
+                console.log(err);
+            });
+        },[post, isLiked, setIsLiked, likeCount, setLikeCount]);
 
         return (
         <Layout>
@@ -85,9 +133,20 @@
                                                 </div>
                                             ) : ( <></>)
                                         }
-                                            <div className="like-button">
-                                                <i className="fa-regular fa-star"></i>
-                                            </div>
+                                        {
+                                            isAuthenticated && (
+                                            <div>
+                                                <button 
+                                                    type="button" 
+                                                    className={isLiked ? "like-button liked" : "like-button"}
+                                                    onClick={handleLikeToggle}                                                    
+                                                    aria-label="Toggle Like"
+                                                    aria-pressed={isLiked}
+                                                >
+                                                    <i className={isLiked ? "fa-solid fa-star" : "fa-regular fa-star"}></i>
+                                                </button>
+                                            </div>)
+                                        }
                                         </div>
                                     </div>
                                 </div>                                
@@ -96,7 +155,7 @@
                                 <div className="main-info-box">
                                     <div><h2>{post.title}</h2></div>
                                         <div><p><em>{post.subtitle}</em></p></div>   
-                                        <div><p className="post-date"> posted by <UserLink user={post.user}/> on 2025.5.12</p></div> 
+                                        <div><p className="post-date"> posted by <UserLink user={post.user}/> <em>on {getDateAsYYYYMMDD(post.created_at)}</em></p></div> 
                                         {
                                             post.source_code &&
                                             (
@@ -139,7 +198,7 @@
                         <ImageCarousel size="small" post={post} title={"gallery:"}></ImageCarousel>
                     </div>                    
                     <div className="page-section comment-section">
-                        <CommentSection post={post}/>
+                        <CommentSection post={post} likeCount={likeCount}/>
                     </div>
                     <div className="page-section carousel">                        
                         <TileCarousel 

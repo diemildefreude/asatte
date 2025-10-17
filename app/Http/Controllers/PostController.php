@@ -25,7 +25,6 @@ class PostController extends Controller
             ->where('is_private', '==', false)
             ->limit($limit)
             ->get();
-        Log::info("userId? $userId");
 
         $posts = $userId ? $rawPosts->filter(function ($post) use ($userId) 
         {
@@ -82,10 +81,6 @@ class PostController extends Controller
         'ip' => $request->ip(),
         'user_agent' => $request->header('User-Agent'),
     ];
-        //Log::info('Incoming request data:', $requestData);
-        //Log::info("$userId, $limit, $startId");
-        //Log::info($rawPosts);
-        //Log::info($posts);
         if(sizeof($posts) == 0)
         {
             return response() ->json([
@@ -196,7 +191,7 @@ class PostController extends Controller
         ];
 
         Post::create($postFields);
-        return response() ->json([
+        return response()->json([
             'status' => 'post_created',
             'message' => 'Your post has been successfully created.'
         ], 200);
@@ -208,21 +203,55 @@ class PostController extends Controller
     public function show(string $username, string $post_url)
     {
         $user = User::where('username', $username)->first();
-        //Log::info("user?", $user);
         if (!$user) 
         {
             return response()->json(['error' => 'No user by that name found.'], 404);
         }
 
-        $post = Post::with(relations: 'user:id,username,avatar,member_type')->
-                    where('post_url', $post_url)
-                    ->where('user_id', $user->id)
-                    ->first();
-        //Log::info("post?", $post);
+
+        $query = Post::with([
+            'user:id,username,avatar,member_type',
+            'comments' => function ($query) 
+            {
+                // ...and for each comment, eager load its user, selecting specific fields
+                $query->with('user:id,username,avatar');
+                //    ->latest(); // Optional: order the comments by newest first
+            }])
+            ->withCount('usersWhoLiked')
+            ->where('post_url', $post_url)
+            ->where('user_id', $user->id);
+
+        $authenticatedUser = auth('api')->user();
+        //Log::info("authd?!: $authenticatedUser");
+        if ($authenticatedUser) 
+        {
+            // The auth() helper works whether the route is protected or not.
+            $userId = $authenticatedUser->id;
+            $query->withExists([
+                'usersWhoLiked as have_liked' => function ($query) use ($userId) 
+                {
+                    $query->where('user_id', $userId);
+                }
+            ]);
+            //Log::info("request's userId: $userId");
+        }
+        $post = $query->first();
+
         if (!$post) 
         {
             return response()->json(['error' => 'No such post found.'], 404);
         }
+        
+        $post->load('comments.user');
+        // $comments = $post->comments()->with('user:id,username,avatar')->get();
+
+        // $comments->transform(function ($comment) {
+        //     $comment->content = nl2br(e($comment->content)); // also escape HTML for safety
+        //     return $comment;
+        // });
+
+        // $post->setRelation('comments', $comments);
+
         return response()->json($post);
     }
 

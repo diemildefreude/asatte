@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\ActivityController;
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\SocialiteController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
@@ -13,6 +15,8 @@ Route::get('/user/{username}', [UserController::class, 'user']);
 Route::get('/posts', [PostController::class, 'index']);
 Route::get('/user/{username}/post/{post_url}', [PostController::class, 'show']);
 
+Route::get('/{post}/comments', [CommentController::class, 'index']);
+
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 
@@ -20,11 +24,7 @@ Route::post('/request-recovery', [AuthController::class, 'sendRecoveryLink']);
 
 Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
-Route::middleware('web')->group(function ()
-{
-    Route::get('/auth/{provider}/redirect', [SocialiteController::class, 'redirectToProvider']);
-    Route::get('/auth/{provider}/callback', [SocialiteController::class, 'handleProviderCallback']);
-});
+Route::post('/posts/{post}/record-view', [ActivityController::class, 'recordView']);
 
 Route::middleware('auth:api')->group(function ()
 {
@@ -32,6 +32,18 @@ Route::middleware('auth:api')->group(function ()
     Route::resource('posts', PostController::class)->except([
         'index', 'show'
     ]);
+    Route::resource('comments', CommentController::class)->except([
+        'index', 'store'
+    ]);
+    Route::post('/posts/{post}/comments', [CommentController::class, 'store'])
+        ->name('posts.comments.store');
+    Route::put('/posts/{post}/comments/{comment}', [CommentController::class, 'update'])
+        ->name('posts.comments.update');
+    Route::delete('/posts/{post}/comments/{comment}', [CommentController::class, 'destroy'])
+        ->name('posts.comments.destroy');
+
+    Route::post('/posts/{post}/like', [ActivityController::class, 'toggleLike']);
+
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/resend-verification', [AuthController::class, 'sendVerifyLink']);//, 'throttle:6,1']); // Auth for logged-in user, throttle to prevent abuse
     Route::post('/change-password', [AuthController::class, 'changePassword']);
@@ -43,4 +55,10 @@ Route::middleware('auth:api')->group(function ()
     {
         return $request->user();
     });
+});
+
+Route::middleware('web')->group(function ()
+{
+    Route::get('/auth/{provider}/redirect', [SocialiteController::class, 'redirectToProvider']);
+    Route::get('/auth/{provider}/callback', [SocialiteController::class, 'handleProviderCallback']);
 });

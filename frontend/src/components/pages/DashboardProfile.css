@@ -4,14 +4,8 @@
     flex-direction: column;
     gap: 2rem;    
     box-sizing: border-box;
-}
-.dashboard-container
-{
     margin: 2rem 0rem 1rem;
     width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
 }
 .dashboard-nav-content-container
 {
@@ -32,6 +26,11 @@
     flex-direction: column;
     gap: 2rem;
 }
+.profile-boxes-container .main-info-box.sticky
+{
+    /* margin: 0 auto; */
+    width: 100%;
+}
 .dashboard-tab.link-button
 {
     border: 2px solid var(--grey-yellow);
@@ -50,10 +49,6 @@
 {
     text-decoration: none;
 }
-.dashboard-tab.link-button:hover
-{
-    border-right: none;
-}
 .dashboard-tab i
 {
     color: var(--grey-yellow);
@@ -62,9 +57,14 @@
 {
     font-size: 0.8em;
 }
-.dashboard-tab.link-button:hover
+.content:not(.touch-device) .dashboard-tab.link-button:hover
 {
     border-color: var(--grey-yellow);
+    border-right: none;
+}
+.content:not(.touch-device) .dashboard-tab.link-button:hover i
+{
+    color: var(--pale-yellow);
 }
 .dashboard-tab.selected
 {
@@ -73,7 +73,7 @@
     background: var(--lavender-gradient);
     pointer-events: none;
 }
-.dashboard-tabs-container .dashboard-tab.link-button:last-of-type
+.content .dashboard-tabs-container .dashboard-tab.link-button:last-of-type
 {
     border-right: 2px solid var(--grey-yellow);;
 }
@@ -96,11 +96,11 @@
 {
     background: var(--red-gradient);
 }
-.main-info-box
+/* .dashboard-container .main-info-box
 {
-    margin: 0rem;
-    width: 100%;
-}
+    flex-grow: 2;
+    flex-basis: 50%;
+} */
 .main-info-box.stretch
 {
     justify-content: center;
@@ -131,13 +131,30 @@
     color: var(--pale-yellow);
     font-size: 1.2rem;
 }
-.avatar-change-button, .avatar-change-button:hover
+.content:not(.touch-device) .avatar-change-button, .content:not(.touch-device) .avatar-change-button:hover
 {    
     border: none;
+}
+.content:not(.touch-device) .avatar-change-button
+{
+    opacity: 0;
+}
+.content:not(.touch-device) .avatar-change-button:hover
+{
+    opacity: 1;
 }
 .heading-profile-container.public-profile
 {
     margin: 2rem 0 0;
+}
+.public-profile .info-section
+{
+    flex-grow: 2;
+    width: clamp(1px, 100%, 300px);
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
 }
 @media (min-width: 450px)
 {
@@ -147,15 +164,7 @@
     }
 }
 @media (min-width: 700px)
-{
-    .avatar-change-button
-    {
-        opacity: 0;
-    }
-    .avatar-change-button:hover
-    {
-        opacity: 1;
-    }
+{    
     .heading-profile-container
     {
         max-width: calc(100svw - 80px - 4rem);
@@ -173,7 +182,6 @@
         display: flex;
         flex-direction: column;
         justify-content: center;
-        gap: 1rem;
     }
     .public-profile .main-info-box
     {
@@ -230,7 +238,7 @@
     height: 100svh;
     top: 0;
     left: 0;
-    z-index: 99;
+    z-index: 1;
     display: flex;
     flex-direction: column;
     gap: 1rem;
@@ -443,24 +451,28 @@
         border-bottom: none;
         background: var(--lavender-gradient);
     }
-    .dashboard-tab.link-button:hover
+    .content:not(.touch-device) .dashboard-tab.link-button:hover
     {
         border: 2px solid var(--grey-yellow);
         border-bottom: none;
     }
-    .dashboard-tabs-container .dashboard-tab.link-button:last-of-type
+    .content .dashboard-tabs-container .dashboard-tab.link-button:last-of-type
     {
         border-bottom: 2px solid var(--grey-yellow);;
     }
 
 }
-@media (min-width: 950px)
+@media (min-width: 800px)
 {
     .main-info-box
     {
         flex-direction: column;
-        flex-basis: clamp(20px, 50%, 400px);
+        /* flex-basis: clamp(20px, 50%, 500px); */
         height: fit-content;
+    }
+    .public-profile .main-info-box
+    {
+        max-width: 400px;
     }
     .main-info-box.sticky
     {        
@@ -494,5 +506,29 @@
     .text-fields-container
     {
         max-width: calc((100svw - 80px - 8rem) * 0.5);        
+    }
+    .dashboard-container .profile-boxes-container
+    {
+        flex-direction: column;
+    }
+    .dashboard-container .main-info-box.sticky
+    {
+        flex-direction: row;
+        max-width: none;
+        position: relative;
+        justify-content: space-between;
+    }
+}
+@media (min-width: 1050px)
+{
+    .dashboard-container .profile-boxes-container
+    {
+        flex-direction: row;
+    }
+    .dashboard-container .main-info-box.sticky
+    {
+        flex-direction: column;
+        max-width: 400px;
+        position: sticky;
     }
 }

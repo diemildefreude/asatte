@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\URL;
 use Laravel\Passport\Contracts\OAuthenticatable;
 use Laravel\Passport\HasApiTokens;
 use Illuminate\Auth\Notifications\ResetPassword as ResetPasswordNotificationBase; // <--- Import base notification
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Password;
 
@@ -22,6 +23,10 @@ class User extends Authenticatable implements OAuthenticatable, MustVerifyEmail
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
 
+    public function likedPosts(): BelongsToMany
+    {
+        return $this->belongsToMany(Post::class, 'post_user');
+    }
     public function hasVerifiedEmail()
     {
         return $this->email_verified_at !== null;
