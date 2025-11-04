@@ -101,23 +101,27 @@ function Header()
                 </button>
             </div>
             <nav className={navClasses}>
-                <Link to={`/`} className="nav-item">home</Link>
-                <a className="nav-item" href="#">browse</a>
-                <a className="nav-item" href="#">news</a>
-                <a className="nav-item" href="#">contact</a>
-                <a className="nav-item" href="#">about</a>
-                {
-                    (isAuthenticated && user.profile_completed) ?
-                    (
-                        <UserLink user={user}
-                            additionalClasses="nav-item"
-                            url="/dashboard"
-                        />
-                    ): 
-                    (
-                        <Link to="/login" className="nav-item">log in</Link>
-                    )
-                }                
+                <div className="nav-half first">
+                    <Link to={`/`} className="nav-item">home</Link>
+                    <a className="nav-item" href="#">browse</a>
+                    <a className="nav-item" href="#">news</a>
+                </div>
+                <div className="nav-half second">
+                    <a className="nav-item" href="#">contact</a>
+                    <a className="nav-item" href="#">about</a>
+                    {
+                        (isAuthenticated && user.profile_completed) ?
+                        (
+                            <UserLink user={user}
+                                additionalClasses="nav-item"
+                                url="/dashboard/profile"
+                            />
+                        ): 
+                        (
+                            <Link to="/login" className="nav-item">log in</Link>
+                        )
+                    }
+                </div>                                
             </nav>
         </header>
 

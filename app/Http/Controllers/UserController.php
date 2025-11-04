@@ -9,17 +9,74 @@ use Symfony\Component\HttpFoundation\Response;
 
 class UserController extends Controller
 {
-    public function user($userName)
+    public function user(string $userName)
     {
         $user = User::where('username', $userName)
-            ->select('avatar', 'bio', 'location', 'website', /*'email',*/ /*'member_type'*/)
+            ->select('id', 'avatar', 'bio', 'location', 'website', /*'email',*/ /*'member_type'*/)
             ->first();
-
+        //Log::info("toggling follow for user", $user->toArray());
+        
         if (!$user) 
         {
              return response()->json(['error' => 'No user by that name found.'], 404);
         }
 
+        $user->is_following = false;
+
+         /** @var \App\Models\User $authUser */
+        $authUser = auth('api')->user();
+        //Log::info("auth?", $authUser->toArray());
+        // If the request is authenticated, check if the current user follows this one
+        if ($authUser) 
+        {
+            $user->is_following = $authUser
+                ->following()
+                ->where('followed_id', $user->id)
+                ->exists();
+        }
         return response()->json($user);
+    }
+    public function following(Request $request, User $user)
+    {
+        $request->validate([
+            'items_per_page' => ['required', 'integer'],
+            'current_page' => ['required', 'integer'],
+        ]);
+        $itemsPerPage = $request->items_per_page;
+        $currentPage = $request->current_page - 1;
+        $user ??= auth('api')->user();
+        /** @var \App\Models\User $user */
+        $query = $user->following()
+            ->select('users.id', 'users.avatar', 'users.username')
+            ->get();
+        
+        $totalCount = $query->count();
+        $following = $query
+        ->slice($itemsPerPage * $currentPage, $itemsPerPage);
+        Log::info("$user->id is following", $following->toArray());
+        return response()->json([
+            "users" => $following->values(),
+            "total" => $totalCount], 200);
+    }
+    public function followers(Request $request, User $user)
+    {
+        $request->validate([
+            'items_per_page' => ['required', 'integer'],
+            'current_page' => ['required', 'integer'],
+        ]);
+        $itemsPerPage = $request->items_per_page;
+        $currentPage = $request->current_page - 1;
+        $user = $user ?? auth('api')->user();
+        /** @var \App\Models\User $user */
+        $query = $user->followers()        
+            ->select('users.id', 'users.avatar', 'users.username')
+            ->get();
+        
+        $totalCount = $query->count();
+        $followers = $query
+        ->slice($itemsPerPage * $currentPage, $itemsPerPage);
+        return response()->json([
+            "users" => $followers->values(),
+            "total" => $totalCount], 200);
     }
 }

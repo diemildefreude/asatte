@@ -501,8 +501,8 @@ export const AuthProvider = ({ children }) =>
 
   const fetchPosts = async (params) => 
   {
-    //console.log("fetching INDEX...");
-      const fetchFn = async () => 
+     //console.log("params?!", Object.fromEntries(params));
+     const fetchFn = async () => 
       {
         const response = await api.get('/posts', {params:params});
         //console.log("response", response, "response.data", response.data);
@@ -520,7 +520,7 @@ export const AuthProvider = ({ children }) =>
 
   const fetchMyPosts = async (params) =>
   {
-    //console.log("fetching my posts...", Object.fromEntries(params));
+    console.log("fetching my posts...", Object.fromEntries(params));
     const fetchFn = async () => 
     {
       const response = await api.get('/my-posts', {params:params});
@@ -606,12 +606,15 @@ export const AuthProvider = ({ children }) =>
     }
   }
 
-  const fetchUserComments = (fetchLimit=null) =>
+  const fetchUserComments = (itemsPerPage, currentPage) =>
   {
-    const fetchFn = async () => 
+      console.log("fUC", itemsPerPage, currentPage);
+      const fetchFn = async () => 
       {
         const params = new URLSearchParams();
-        fetchLimit && params.append('amount', fetchLimit);
+        params.append('items_per_page', itemsPerPage);
+        params.append('current_page', currentPage);
+        //fetchLimit && params.append('amount', fetchLimit);
         const response = await api.get(`/comments`,{params:params});
         return response.data;
       };
@@ -673,7 +676,7 @@ export const AuthProvider = ({ children }) =>
   }
   const deleteComment = async (commentId, postId) =>
   {
-    console.log("sending comment api delete call");
+    console.log("sending comment api delete call", commentId, postId);
     try
     {
       setIsLoading(true);
@@ -690,6 +693,107 @@ export const AuthProvider = ({ children }) =>
       setIsLoading(false);
     }
   }
+  const fetchNotifications = async (itemsPerPage, currentPage, unreadOnly=false) =>
+  {
+    console.log("fetching page:", currentPage);
+      const fetchFn = async () => 
+      {
+        const params = new URLSearchParams();
+        params.append('items_per_page', itemsPerPage);
+        params.append('current_page', currentPage);
+        if(unreadOnly)
+        {
+          params.append('unread_only', true);
+        }
+        const response = await api.get(`/notifications`,{params:params});
+        return response.data;
+      };
+
+      // Use the retryOperation for fetchPosts
+      return retryOperation(
+          fetchFn,
+          3, // Number of retries (e.g., 3 attempts total)
+          500, // Delay in milliseconds between retries (1.5 seconds)
+          'Failed to fetch notifications after multiple attempts.'
+      );
+  }
+  const getUnreadNoticeCounts = async () =>
+  {
+    const fetchFn = async () => 
+      {
+        const response = await api.get('/unread-notice-counts');
+        return response.data;
+      };
+
+      // Use the retryOperation for fetchPosts
+      return retryOperation(
+          fetchFn,
+          3, // Number of retries (e.g., 3 attempts total)
+          500, // Delay in milliseconds between retries (1.5 seconds)
+          'Failed to fetch notice counts after multiple attempts.'
+      );
+  }
+
+  const toggleFollow = async (userId) =>
+  {
+    //console.log("toggling like for user " + userId);
+    setIsLoading(true);    
+    try
+    {
+      const response = await api.post(`/${userId}/follow`);
+      return response.data;
+    }
+    catch(error)
+    {
+      throw error;
+    }
+    finally
+    {
+      setIsLoading(false);
+    }
+  }
+  const fetchFollowing = async (userId, itemsPerPage, currentPage) =>
+  {    
+    setIsLoading(true);
+    const params = new URLSearchParams();
+    params.append('items_per_page', itemsPerPage);
+    params.append('current_page', currentPage);
+    
+    console.log("fetching following of user:", userId, currentPage, Object.fromEntries(params)); 
+    try
+    {
+      const response = await api.get(`${userId}/following`, {params: params});
+      return response.data;
+    }
+    catch(error)
+    {
+      throw error;
+    }
+    finally
+    {
+      setIsLoading(false);
+    }
+  }
+  const fetchFollowers = async (userId, itemsPerPage, currentPage) =>
+  {
+    setIsLoading(true);
+    const params = new URLSearchParams();
+    params.append('items_per_page', itemsPerPage);
+    params.append('current_page', currentPage);
+    try
+    {
+      const response = await api.get(`${userId}/followers`, {params: params});
+      return response.data;
+    }
+    catch(error)
+    {
+      throw error;
+    }
+    finally
+    {
+      setIsLoading(false);
+    }
+  }
   return (
     <AuthContext.Provider value={{ isAuthenticated, user, login, logout, 
       changePassword, registerWithEmail, sendVerificationEmail, refreshUser,
@@ -697,7 +801,8 @@ export const AuthProvider = ({ children }) =>
       updateProfileInfo, isLoading, updateBio, updateAvatar, createPost, updatePost,
       fetchSinglePost, fetchPosts, fetchMyPosts, deletePost, fetchUser, toggleLike,
       recordView, createComment, fetchUserComments, updateComment, deleteComment,
-      fetchLikedPosts}}>
+      fetchLikedPosts, fetchNotifications, getUnreadNoticeCounts, toggleFollow,
+      fetchFollowing, fetchFollowers}}>
       {children}
     </AuthContext.Provider>
   );

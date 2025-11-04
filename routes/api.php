@@ -11,6 +11,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/user/{username}', [UserController::class, 'user']);
+Route::get('/{user}/following', [UserController::class, 'following']);
+Route::get('/{user}/followers', [UserController::class, 'followers']);
 
 Route::get('/posts', [PostController::class, 'index']);
 Route::get('/user/{username}/post/{post_url}', [PostController::class, 'show']);
@@ -43,10 +45,10 @@ Route::middleware('auth:api')->group(function ()
         ->name('posts.comments.update');
     Route::delete('/posts/{post}/comments/{comment}', [CommentController::class, 'destroy'])
         ->name('posts.comments.destroy');
-    // Route::get('/users/{user}/comments', [CommentController::class, 'index'])
-    //     ->name('posts.comments.index');
 
     Route::post('/posts/{post}/like', [ActivityController::class, 'toggleLike']);
+    Route::post('/{user}/follow', [ActivityController::class, 'toggleFollow']);
+    Route::get('/notifications', [ActivityController::class, 'notifications']);
 
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/resend-verification', [AuthController::class, 'sendVerifyLink']);//, 'throttle:6,1']); // Auth for logged-in user, throttle to prevent abuse
@@ -55,10 +57,11 @@ Route::middleware('auth:api')->group(function ()
     Route::post('/update-profile', [DashboardController::class, 'updateProfile']);
     Route::post('/update-bio', [DashboardController::class, 'updateBio']);
     Route::post('/update-avatar', [DashboardController::class, 'updateAvatar']);
+    Route::get('/unread-notice-counts', [DashboardController::class, 'unreadNoticeCounts']);
     Route::get('/user', function (Request $request) 
     {
         return $request->user();
-    });
+    });    
 });
 
 Route::middleware('web')->group(function ()

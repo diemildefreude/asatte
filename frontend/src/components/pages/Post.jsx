@@ -60,16 +60,16 @@
                 setPost(data); 
                 setIsLiked(!!data.have_liked);
                 setLikeCount(data.users_who_liked_count);
-                window.scrollTo(0,0);
+                //window.scrollTo(0,0);
             })
             .catch((err) =>
             {
                 const status = err.response?.status || err.status;
-                console.log("err", status);
+                console.log("err", err);
                 if(status === 404)
                 {
                     console.log("navigating away...");
-                    navigate('/not-found');
+                    navigate('/not-found', {replace:true});
                 }
             });  
         }, [username, post_url, setPost, setIsLiked, setLikeCount]);

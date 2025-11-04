@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\NotificationType;
 use App\Models\Comment;
+use App\Models\Notification;
 use App\Models\Post;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -15,19 +17,30 @@ class CommentController extends Controller
      */
     public function index(Request $request)
     {
+        $request->validate([
+            'items_per_page' => ['required', 'integer'],
+            'current_page' => ['required', 'integer'],
+        ]);
+        
         $user = $request->user();
+        $itemsPerPage = $request->items_per_page; //5
+        $currentPage = $request->current_page - 1; //2 - 1 = 1
+
         $query = Comment::with([
             'post:id,post_url,title,user_id',
             'post.user:id,username'
         ])
-        ->where('user_id', $user->id);
-        //Log::info("amount")
-        $comments = isset($request['amount']) ? 
-            $query->limit($request['amount'])->latest()->get() 
-            : $query->latest()->get();
+        ->where('user_id', $user->id)
+        ->latest();
+
+        $totalCount = $query->count();
+
+        $comments = $query->skip($itemsPerPage * $currentPage)
+        ->take($itemsPerPage)
+        ->get();
         //Log::info("$user->id's comments", $comments);
         
-        return response()->json(['comments' => $comments], 200);
+        return response()->json(['comments' => $comments, 'total' => $totalCount], 200);
     }
 
     /**
@@ -48,13 +61,35 @@ class CommentController extends Controller
             'content' => ['required', 'string', 'max:5000'],
             'parent_id' => ['nullable', 'exists:comments,id'], 
         ]);
+        Log::info("parent id is $request->parent_id");
 
         $userId = $request->user()->id;
-        $fields = [
+        $commentFields = [
             ...$validatedFields,
             'user_id' => $userId
         ];
-        $post->comments()->create($fields);
+        $comment = $post->comments()->create($commentFields);
+
+        $repliedToUser = isset($request->parent_id) ? 
+            Comment::where('id', $request->parent_id)->first()->user_id
+            : null;
+
+        if($userId == $repliedToUser) //don't notify users if they reply to themselves
+        {} 
+        else if(!$repliedToUser && $userId == $post->user_id)
+        {} //don't notify users if they comment on their own posts
+        else 
+        {
+            $userToNotify = $repliedToUser ?? $post->user_id;
+            $notificationType = $repliedToUser ? NotificationType::Reply : NotificationType::Comment;
+
+            $notificationFields = [
+                'user_id' => $userToNotify,
+                'type' => $notificationType,
+                'data' => ['post_id' => $post->id, 'comment_id' => $comment->id]
+            ];
+            Notification::create($notificationFields);
+        }
 
         $comments = $post->comments()->with('user:id,username,avatar')->get();
 
@@ -108,6 +143,7 @@ class CommentController extends Controller
      */
     public function destroy(Post $post, Comment $comment)
     {
+        Log::info("Deleting comment $comment->id");
         $comment->delete();
 
         $comments = $post->comments()->with('user:id,username,avatar')->get();

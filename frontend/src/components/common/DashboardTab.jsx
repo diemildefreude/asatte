@@ -1,8 +1,12 @@
 import { Link } from "react-router-dom";
 
-function DashboardTab({iconClasses, tabName, currentTab, targetPath})
+function DashboardTab({iconClasses, tabName, currentTab, targetPath, noticeLight=null})
 {
     let tabClasses = "dashboard-tab link-button";
+    if(tabName === 'activity' || tabName === 'mail')
+    {
+        tabClasses += ` ${tabName}`
+    }
     const isSelected = tabName === currentTab;
     if(isSelected)
     {
@@ -12,7 +16,14 @@ function DashboardTab({iconClasses, tabName, currentTab, targetPath})
         <Link className={tabClasses}
             to={targetPath}
         >
-            <i className={iconClasses}></i>
+            <i className={iconClasses}>
+            {
+                (tabName === 'activity' || tabName === 'mail') && (
+                    <div className="notice-light">
+                    </div>
+                )
+            }
+            </i>
             <p>{tabName}</p>
         </Link>
     )

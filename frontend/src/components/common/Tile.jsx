@@ -28,7 +28,7 @@ function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false})
     }
     function handleLinkClick(e)
     {
-        console.log("Clicking link to post", post?.id);
+        //console.log("Clicking link to post", post?.id);
 
         if(isSliderDraggedPointerUp?.current)
         {

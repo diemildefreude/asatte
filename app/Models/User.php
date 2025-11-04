@@ -23,6 +23,15 @@ class User extends Authenticatable implements OAuthenticatable, MustVerifyEmail
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
 
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class);
+    }
+    public function unreadNotifications()
+    {
+        return $this->hasMany(Notification::class)->where('is_read', false);
+    }
+
     public function likedPosts(): BelongsToMany
     {
         return $this->belongsToMany(Post::class, 'post_user');
@@ -57,6 +66,26 @@ class User extends Authenticatable implements OAuthenticatable, MustVerifyEmail
     {
         Log::info("User::sendPasswordResetNotification called");
         $this->notify(new ResetPasswordNotification($token));
+    }
+    public function followers()
+    {
+        return $this->belongsToMany(
+            User::class,
+            'follows', 
+            'followed_id', 
+            'follower_id'
+        )->withPivot('created_at')
+        ->orderByDesc('follows.created_at');
+    }
+    public function following()
+    {
+        return $this->belongsToMany(
+            User::class,
+            'follows', 
+            'follower_id', 
+            'followed_id'
+        )->withPivot('created_at')
+        ->orderByDesc('follows.created_at');
     }
     /**
      * The attributes that are mass assignable.

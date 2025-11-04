@@ -1,0 +1,49 @@
+.users-container
+{
+    display: grid;
+    gap: 1rem;
+    --circles-per-row: 3;
+    grid-template-columns: repeat(var(--circles-per-row), minmax(60px,1fr));
+}
+.user-circle
+{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+.user-circle span 
+{
+  display: block;
+  max-width: 100%;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.75em;
+}
+.user-circle span:has(+ .round-image),
+.user-circle span:has(overflow) 
+{
+  text-align: left;
+}
+@media (min-width: 500px)
+{
+  .users-container
+  {
+      --circles-per-row: 6;
+  }
+}
+@media (min-width: 900px)
+{
+  .users-container
+  {
+    --circles-per-row: 3;
+  }
+}
+@media (min-width: 1200px)
+{
+  .users-container
+  {
+    --circles-per-row: 6;
+  }
+}

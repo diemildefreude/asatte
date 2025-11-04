@@ -46,20 +46,11 @@
 {
     opacity: 1;     
 }
-/* .touch-device .info-panel
-{        
-    background-color: rgba(0, 0, 0, 0.0);
-    opacity: 1;
-} */
-/* .touch-device .panel-top, .touch-device .panel-bottom
-{    
-    background-color: var(--transparent-black);
-} */
 .info-item
 {
     font-size: 1.1em;
     font-weight: 300;
-    /* width: fit-content; */
+    width: 100%;
 }
 .info-item.title
 {
@@ -105,4 +96,9 @@
 .post-link span
 {
     text-decoration: underline;
+}
+.work-tile .user-link > span.username 
+{
+    font-size: 0.9em;
+    max-width: 300px;
 }

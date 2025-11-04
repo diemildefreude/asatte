@@ -2,11 +2,12 @@ import './Tile.css';
 import { Link } from 'react-router-dom';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
-function UserLink({user, onClick, additionalClasses, url})
-{
-    const target = url ?? `/${user.username}`;
+function UserLink({user, onClick, additionalClasses="", url})
+{   
+    const target = url ?? `/${user.username}/profile`;
     const avatar = user?.avatar ? `${BACKEND_URL}/storage/images/uploaded/${user.username}/avatar/thumb/${user?.avatar}` 
         : `${BACKEND_URL}/storage/images/defaults/avatar.webp`;
+        
     return (   
         <>
         {
@@ -15,11 +16,11 @@ function UserLink({user, onClick, additionalClasses, url})
                 <Link to={target} className={`user-link ${additionalClasses}`} draggable="false" onClick={onClick}>
                     <span className="avatar-container">
                         <img className="round-image" src={avatar} 
-                            alt={`${user.username}'s avatar`} 
+                            alt={`RipplyScottttttttttttttttttttttttttttttttt's avatar`} 
                             draggable="false"
                         />
                     </span> 
-                    <span>{user.username}</span>
+                    <span className='username'>{user.username}</span>
                 </Link>
             ) :
             (

@@ -289,7 +289,7 @@ function AvatarSetter({user, setSuccess, setError, isSubmitting, setIsSubmitting
                 id="profile_image" style={{ display: 'none' }} ref={fileInputRef} 
                 onChange={handleFileSelect} placeholder={null}
             />    
-            <button className="avatar-change-button"
+            <button className="avatar-button"
                 onClick={handleUpdateClick}   
                 disabled={isSubmitting} 
                 type="button"

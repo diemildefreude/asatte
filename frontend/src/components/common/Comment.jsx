@@ -4,6 +4,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import EditButton from "./EditButton";
 import { useCallback, useState } from "react";
 import { Link } from "react-router-dom";
+import "./CommentsNotifications.css";
 
 function Comment({comment, isDashboard=false, onReply=null, id, parentLocalId=null, currentUrl=null, setComments=null})
 {
@@ -72,11 +73,11 @@ function Comment({comment, isDashboard=false, onReply=null, id, parentLocalId=nu
             console.error(msg);            
             setIsSubmitting(false);
         });
-    },[])
+    },[comment, setIsSubmitting, setIsEditing, setComments, deleteComment])
 
     return (
     <div className="comment" id={elementId}>
-        <p className="post-info">
+        <p>
         {
             isDashboard && comment.post ? (<>
                 in <Link
@@ -101,7 +102,7 @@ function Comment({comment, isDashboard=false, onReply=null, id, parentLocalId=nu
             )
         }
         {
-            comment.parent_id && parentLocalId && currentUrl ? (
+            comment.parent_id && (parentLocalId != null) && currentUrl ? (
                 <span className="notice small"> replied to <a 
                     href={`${currentUrl}/comment-${parentLocalId}`}
                     onClick={(e) => {e.preventDefault(); scrollToElement(currentUrl, parentElementId)}}
@@ -113,7 +114,7 @@ function Comment({comment, isDashboard=false, onReply=null, id, parentLocalId=nu
         {
             isDashboard && comment.post && ( //post is only included when using fetchUserComments
                 <Link
-                    to={`/${comment.post.user.username}/${comment.post.post_url}`} //+#comment-0
+                    to={`/${comment.post.user.username}/${comment.post.post_url}?comment_id=${comment.id}`}
                     className="notice small"
                 >
                     <i className="fa-solid fa-arrow-up-right-from-square"></i> go to comment

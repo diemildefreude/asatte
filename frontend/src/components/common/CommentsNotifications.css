@@ -33,6 +33,10 @@
     margin: 0 0 0rem;
     width: 100%;
 }
+.comments-container, .notifications-container
+{
+    flex-grow: 1;
+}
 @media (min-width:700px)
 {
     .page-section.comment-section
@@ -50,10 +54,10 @@
         top: 1.5rem;
         align-self: flex-start;
     }
-    .comments-container
+    .comments-container, .notifications-container
     {
-        flex: 1;    
-        min-width: 0;
+        min-width: 0;        
+        flex: 1;
     }
 }
 .page-section.comment-section textarea

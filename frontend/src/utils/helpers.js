@@ -1,7 +1,47 @@
-export function scrollToElement (currentUrl, id)
+export function addFetchedPostsToExcludes(posts, previous)
+{
+    const excludes = previous;
+    posts.forEach((post) =>
+    {
+        excludes.push(post.id); 
+    })
+    return excludes;
+}
+export function getPostsFetchParams(amount, category, fetchOrder, 
+    fetchIndexRef=null, fetchExcludesRef=null, userId=null, username=null)
+{
+    const params = new URLSearchParams();     
+    params.append('amount', amount);
+    params.append('fetch_order', fetchOrder); 
+    params.append('category', category);
+
+    if(fetchOrder == FetchOrder.Random)
+    {
+        params.append('excludes', fetchExcludesRef.current);
+    }
+    else if(fetchIndexRef.current)
+    {
+        params.append('start_id', fetchIndexRef.current);
+    } 
+
+    if(userId) 
+    {
+        params.append('user_id', userId);
+    }    
+    else if(username)
+    {
+        params.append('username', username);
+    }    
+    return params;
+}
+
+export function scrollToElement (currentUrl, id, replaceState=true)
 {
     const newUrl = `${currentUrl}#${id}`;
-    window.history.replaceState(null, "", newUrl); // updates URL hash without reloading
+    if(replaceState)
+    {
+        window.history.replaceState(null, "", newUrl); // updates URL hash without reloading
+    }
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
 };
 
@@ -523,15 +563,33 @@ export const FetchOrder =
     Descending: 'descending',
     Random: 'random'
 }
-export function getNextFetchIndex(fetchedPosts, fetchOrder) 
+
+export const NotificationType =
 {
+    Comment: 'comment',
+    Reply: 'reply',
+    Follower: 'follower'
+}
+
+export const HistoryEntryType =
+{
+    Push: 'push',
+    Replace: 'replace',
+    Nothing: 'nothing'
+}
+export function getNextFetchIndex(fetchedPosts, fetchOrder) 
+{    
+    const post = fetchedPosts[fetchedPosts.length - 1];
+    const id = post.pivot_id ?? post.id;
+    //console.log(post, id);
     if(fetchOrder === FetchOrder.Ascending)
     {
-        return fetchedPosts[fetchedPosts.length - 1].id + 1;
+        return id + 1;
     }
     if(fetchOrder === FetchOrder.Descending)
     {
-        return fetchedPosts[fetchedPosts.length - 1].id - 1;
+        //console.log(`setting fetchIndex: ${id - 1}`);
+        return id - 1;
     }
     if(fetchOrder === FetchOrder.Random)
     {
@@ -541,7 +599,7 @@ export function getNextFetchIndex(fetchedPosts, fetchOrder)
 export function getScreenSize()
 {    
     const NARROW_SCREEN_BREAKPOINT = 1;
-    const SMALL_SCREEN_BREAKPOINT = 700;
+    const SMALL_SCREEN_BREAKPOINT = 600;
     const MID_SCREEN_BREAKPOINT = 950;
     const WIDE_SCREEN_BREAKPOINT = 1200;
 
@@ -670,6 +728,10 @@ export const retryOperation = async (fn, retries = 3, delay = 1000, errorMessage
         } 
         catch (error) 
         {
+            if(error.status === 404) //maybe add other cases..?
+            {
+                throw error;
+            }
             attempts++;
             console.warn(`Attempt ${attempts} failed:`, error.message || error);
             if (attempts < retries) 

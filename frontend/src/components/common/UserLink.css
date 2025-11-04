@@ -1,21 +1,52 @@
 .user-link
 {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin: 0.2rem 0 0;
-    color: white;
-    vertical-align: -45%;
+    display: inline-flex;            /* keep it inline with text, but use flex for children */
+    align-items: center;             /* vertically center avatar and text inside the link */
+    gap: 0.8rem;
+    margin: 0rem 0 0;
+    position:relative;
+    bottom: 0;
+    vertical-align: -28%;        /* align the whole inline-flex element with surrounding text */
+    line-height: inherit;                  /* ensure internal height is predictable relative to font-size */
+    font-weight: 300;
+    color: inherit;
+    max-width: 100%;
+    /* max-width: 80%; */
 }
 .avatar-container
 {
-    display: inline-block;
-    height: 2rem;
-    width: 2rem;
+    display: inline-flex;            /* shrinkwrap to the avatar size */
+    align-items: center;
+    justify-content: center;
+    width: 1em;                      /* 1em so avatar scales with text size */
+    height: 1em;
     flex-shrink: 0;
+    /* overflow: hidden;                */
+    line-height: 0;    
 }
-.user-link span
+/* make .round-image fill the avatar container */
+.user-link .avatar-container .round-image 
+{
+    width: 150%;
+    height: 150%;
+    display: block;
+    object-fit: cover;
+    object-position: center;
+    border-radius: 50%;
+}
+
+/* text inside the link */
+.user-link > span.username 
 {
     text-decoration: underline;
     font-weight: 300;
+    line-height: inherit;
+    display: inline-block;
+
+    width: 100%;
+    white-space: nowrap; /*not doing anything*/
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-basis: 100%;
+    max-width: 200px;
 }

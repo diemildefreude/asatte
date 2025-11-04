@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './TilesContainer.css';
 import Tile from './Tile';
-import { ScreenSize, checkIfFetchNeeded, Category, FetchOrder, getNextFetchIndex } from '../../utils/helpers';
-import { useAuth } from '../../contexts/AuthContext';
+import { ScreenSize, checkIfFetchNeeded, Category, FetchOrder, getNextFetchIndex, getPostsFetchParams, addFetchedPostsToExcludes } from '../../utils/helpers';
+//import { useAuth } from '../../contexts/AuthContext';
 const postsPerRow = {
     [ScreenSize.Nothing]: 0,
     [ScreenSize.Narrow]: 1, 
@@ -11,7 +12,7 @@ const postsPerRow = {
     [ScreenSize.Wide]: 4
 };
 function AutoloadTilesContainer({screenSize, fetchMethod, category=Category.Archive, 
-    userId=null, isDashboard=false, fetchOrder=FetchOrder.Ascending})
+    userId=null, username=null, isDashboard=false, fetchOrder=FetchOrder.Ascending})
 {    
     const [posts, setPosts] = useState([]);
     const [areNoMorePosts, setAreNoMorePosts] = useState(false);
@@ -20,26 +21,11 @@ function AutoloadTilesContainer({screenSize, fetchMethod, category=Category.Arch
     const prevScreenSizeRef = useRef(ScreenSize.Nothing);
     const fetchedScreenSizeRef = useRef(ScreenSize.Nothing);
     const fetchIndexRef = useRef(fetchOrder === FetchOrder.Ascending ? 1 : null);//index of next post to fetch
+    const fetchExcludesRef = useRef([]);
     const isFetchingOnScroll = useRef(false);
     const isFetchingOnWidthChange = useRef(false);
+    const navigate = useNavigate();
     //const userField = isDashboard ? user : null;
-
-    
-    const getParams = useCallback((amount) =>
-    {        
-        const params = new URLSearchParams();     
-        params.append('amount', amount);
-        if(fetchIndexRef.current)
-        {
-            params.append('start_id', fetchIndexRef.current);
-        }
-        params.append('category', category);
-        if(!isDashboard && userId)
-        {
-            params.append('user_id', userId);
-        }        
-        return params;
-    },[isDashboard, userId, fetchIndexRef, category]);
 
     const scrollFetch = useCallback(() =>
     {                 
@@ -48,27 +34,49 @@ function AutoloadTilesContainer({screenSize, fetchMethod, category=Category.Arch
         {
             return;
         }
+        if(isFetchingOnScroll.current || isFetchingOnWidthChange.current)
+        {
+            return;
+        } 
         const amount = getPostAmount(screenSize);    
-        const params =  getParams(amount);   
+        const params =  getPostsFetchParams(amount, category, fetchOrder, 
+            fetchIndexRef, fetchExcludesRef, userId, username);   
         isFetchingOnScroll.current = true;
         fetchMethod(params).then((data) =>
         {
             if(data.status === 'no_more_posts')
             {
+                //console.log("no more posts");
                 setAreNoMorePosts(true);
                 return;
             }
-            fetchIndexRef.current = getNextFetchIndex(data, fetchOrder);
+            //console.log("fetchedPosts", data);
+            if(fetchOrder === FetchOrder.Random)
+            {
+                fetchExcludesRef.current = addFetchedPostsToExcludes(data, fetchExcludesRef.current);
+            }
+            else
+            {
+                fetchIndexRef.current = getNextFetchIndex(data, fetchOrder);
+            }
+            //console.log("scroll:newIndex", fetchIndexRef.current);
             setPosts(prev => [...prev, ...data]);    
         }).catch((err) =>
         {
-            console.error("fetch failed", err);
-            //fetchIndexRef.current -= amount;
+            const status = err.response?.status || err.status;
+            console.log("err", err);
+            if(status === 404)
+            {
+                console.log("navigating away...");
+                navigate('/not-found', {replace:true});
+            }
         }).finally(() =>
         {
             isFetchingOnScroll.current = false;
         });
-    },[getPostAmount, category, screenSize, areNoMorePosts, setAreNoMorePosts]);
+    },[getPostAmount, category, screenSize, areNoMorePosts, setAreNoMorePosts,
+        fetchOrder, userId, username
+    ]);
 
     const handleScroll = useCallback(() =>
     {
@@ -93,7 +101,7 @@ function AutoloadTilesContainer({screenSize, fetchMethod, category=Category.Arch
     useEffect(() =>
     {
         //---
-        if(isFetchingOnScroll.current)
+        if(isFetchingOnScroll.current || isFetchingOnWidthChange.current)
         {
             return;
         } 
@@ -108,10 +116,12 @@ function AutoloadTilesContainer({screenSize, fetchMethod, category=Category.Arch
         }
         const ppr = getPostAmount(screenSize);
         const amount = ppr - (posts.length % ppr);
-        const params = getParams(amount);
+         const params =  getPostsFetchParams(amount, category, fetchOrder,
+            fetchIndexRef, fetchExcludesRef,  userId, username);
         const fetchedSize = fetchedScreenSizeRef.current;
         isFetchingOnWidthChange.current = true;
-        //fetchIndexRef.current += amount;
+        
+        const previousIndex = fetchIndexRef.current;
         fetchMethod(params).then((data) =>
         {
             if(data.status === 'no_more_posts')
@@ -119,22 +129,32 @@ function AutoloadTilesContainer({screenSize, fetchMethod, category=Category.Arch
                 //console.log(data.status);
                 setAreNoMorePosts(true);
                 return;
+            }            
+            //console.log("fetchedPosts", data);
+            if(fetchOrder === FetchOrder.Random)
+            {
+                fetchExcludesRef.current = addFetchedPostsToExcludes(data, fetchExcludesRef.current);
             }
-            
-            fetchIndexRef.current = getNextFetchIndex(data, fetchOrder);
+            else
+            {
+                fetchIndexRef.current = getNextFetchIndex(data, fetchOrder);
+            }
+            //console.log("screen:newIndex", fetchIndexRef.current);
             setPosts(prev => [...prev, ...data]);
             fetchedScreenSizeRef.current = screenSize > fetchedSize ? screenSize : fetchedSize;            
             
         }).catch((err) =>
         {
             console.error("fetch failed", err);
-            fetchIndexRef.current -= amount;
+            fetchIndexRef.current = previousIndex;
         }).finally(() =>
         {
-            isFetchingOnWidthChange.current = false;isFetchingOnScroll.current = false;
+            isFetchingOnWidthChange.current = false;
+            isFetchingOnScroll.current = false;
         });
         ;
-    }, [screenSize, category, posts, getPostAmount, areNoMorePosts, setAreNoMorePosts]);
+    }, [screenSize, category, posts, getPostAmount, areNoMorePosts, 
+        fetchOrder, , userId, username, setAreNoMorePosts]);
     
     const ppr = getPostAmount(screenSize);
     let displayAmount = Math.floor(posts.length / ppr) * ppr; //28 -> 27 | 28 / 3 = 9 * 3 = 27

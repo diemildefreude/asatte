@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\FetchOrder;
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -20,17 +21,64 @@ class PostController extends Controller
         $limit = $request->query('amount');
         $startId = $request->query('start_id');
         $userId = $request->query('user_id');
-        $rawPosts = Post::with(relations: 'user:id,username,avatar,member_type')
-            ->where('id', '>=', $startId) //uncomment this for real implementation
-            ->where('is_private', '==', false)
-            ->limit($limit)
-            ->get();
+        $username = $request->query('username');
+        $fetchOrderString = $request->query('fetch_order');
+        $fetchOrderEnum = FetchOrder::tryFrom($fetchOrderString);
+        $fetchOrder = $fetchOrderEnum ?? FetchOrder::Ascending;
+        $user = (!isset($userId) && isset($username) ? 
+            User::where('username', $username)
+            : User::where('id', $userId))
+            ->first();
+        $userId = $user ? $user->id : null;
+        //Log::info("user info for user, id $userId or name $username", $user->toArray());
+                    
+        if((isset($userId) || isset($username)) && !$user)
+        {//user was given, but not found
+            return response() ->json([
+                'status' => 'user_not_found',
+                'message' => 'No such user.'
+            ], 404);
+        }
+    
+        $query = Post::with(relations: 'user:id,username,avatar,member_type')
+            ->where('is_private', false);
+        
+        $query = $userId ? $query->where('user_id', $userId) : $query;
+        $posts = [];
 
-        $posts = $userId ? $rawPosts->filter(function ($post) use ($userId) 
+        switch($fetchOrder)
         {
-            return $post['user_id'] == $userId;
-        })
-        : $rawPosts;
+            case FetchOrder::Ascending:
+                $query = $startId ? $query->where('id', '>=', $startId) : $query;
+                $posts = $query
+                ->limit($limit)
+                ->get();
+                break;
+            case FetchOrder::Descending:
+                $query = $startId ? $query->where('id', '<=', $startId) : $query;
+                $posts = $query
+                ->limit($limit)
+                ->latest()
+                ->get();
+                break;
+            case FetchOrder::Random:
+                $excludes = collect(explode(',', $request->excludes ?? ''))
+                    ->filter(fn ($id) => is_numeric($id)) // only keep valid numbers
+                    ->values()
+                    ->toArray();
+
+                if (!empty($excludes)) 
+                {
+                    $query->whereNotIn('id', $excludes);
+                }
+
+                $posts = $query
+                    ->inRandomOrder()
+                    ->limit($limit)
+                    ->get();
+                break;
+        }        
+
         if(sizeof($posts) == 0)
         {
             return response() ->json([
@@ -63,11 +111,14 @@ class PostController extends Controller
         $limit = $request->query('amount');
         $startId = $request->query('start_id');
         Log::info($startId);
-        $rawPosts = Post::with(relations: 'user:id,username')
-            ->where('user_id', '=', $userId)
-            ->where('id', '>=', $startId) //uncomment this for real implementation
+        $query = Post::with(relations: 'user:id,username')
+            ->where('user_id', '=', $userId);
+        $rawPosts = ($startId ? $query->where('id', '<=', $startId) ://uncomment this for real implementation
+            $query)
+            ->latest()
             ->limit($limit)
             ->get();
+            
         $posts = $rawPosts;
         // $posts = $rawPosts->filter(function ($post) use ($startId) 
         // {
@@ -97,26 +148,30 @@ class PostController extends Controller
     {
         $userId = $request->user()->id;
         $limit = $request->query('amount');
-        $startId = $request->query('start_id');
-        $queryA = Post::whereHas('usersWhoLiked', function ($q) use ($userId)
-        {
-            $q->where('users.id', $userId);
-        });
-        $queryB = (isset($startId) ? $queryA->where('id', '<=',$startId)
-            : $queryA)
-            ->with(relations: 'user:id,username,avatar');
+        $pivotId = $request->query('start_id'); // We'll use this later
 
-        $posts = $limit ? $queryB->latest()->limit($limit)->get()
-            : $queryB->latest()->get();
-        
-        if(sizeof($posts) == 0)
+        $query = Post::select('posts.*', 'post_user.id as pivot_id', 'post_user.created_at as liked_at')
+            ->join('post_user', 'posts.id', '=', 'post_user.post_id')
+            ->where('post_user.user_id', $userId)
+            ->with('user:id,username,avatar');
+
+        if ($pivotId) 
         {
-            return response() ->json([
+            $query->where('post_user.id', '<=', $pivotId);
+        }
+
+        $posts = $query
+            ->orderBy('post_user.created_at', 'desc')
+            ->limit($limit ?? 10)
+            ->get();
+
+        if ($posts->isEmpty()) {
+            return response()->json([
                 'status' => 'no_more_posts',
-                'message' => 'No more posts available with the given parameters.'
+                'message' => 'No more liked posts.'
             ], 200);
         }
-        //remove the above part once testing is done
+
         return response()->json($posts);
     }
     /**
@@ -234,7 +289,6 @@ class PostController extends Controller
         {
             return response()->json(['error' => 'No user by that name found.'], 404);
         }
-
 
         $query = Post::with([
             'user:id,username,avatar,member_type',

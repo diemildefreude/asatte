@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './TilesContainer.css';
 import Tile from './Tile';
-import { ScreenSize, checkIfFetchNeeded } from '../../utils/helpers';
+import { FetchOrder, ScreenSize, addFetchedPostsToExcludes, checkIfFetchNeeded, getNextFetchIndex, getPostsFetchParams } from '../../utils/helpers';
 import { useAuth } from '../../contexts/AuthContext';
 
 const gridPostCounts = {
@@ -12,7 +12,7 @@ const gridPostCounts = {
     [ScreenSize.Wide]: 11
 };
 
-function HeroTilesContainer({screenSize, category})
+function HeroTilesContainer({screenSize, category, fetchOrder=FetchOrder.Ascending})
 {    
     const [posts, setPosts] = useState([]);
     const { fetchPosts } = useAuth();
@@ -20,6 +20,7 @@ function HeroTilesContainer({screenSize, category})
     const prevScreenSizeRef = useRef(ScreenSize.Nothing);
     const fetchedScreenSize = useRef(ScreenSize.Nothing);
     const fetchIndexRef = useRef(1);
+    const fetchExcludesRef = useRef([]);
     const [areNoMorePosts, setAreNoMorePosts] = useState(false);
 
     useEffect(() =>
@@ -33,25 +34,30 @@ function HeroTilesContainer({screenSize, category})
         {
             return;
         }
-        const params = new URLSearchParams();
         const amount = getPostAmount(screenSize) - posts.length;
-        params.append('amount', amount);
-        params.append('start_id', fetchIndexRef.current);
-        params.append('category', category);
+        const params = getPostsFetchParams(amount, category, fetchOrder,
+            fetchIndexRef, fetchExcludesRef);
         const fetchedSize = fetchedScreenSize.current;
         fetchPosts(params).then((data) =>
         {
             if(data.status === 'no_more_posts')
             {
+                console.log("no more posts");
                 setAreNoMorePosts(true);
                 return;
             }
             setPosts(prev => [...prev, ...data]);
-            //fetchIndex += data.length;
-            fetchIndexRef.current = data[data.length - 1].id + 1;
+            if(fetchOrder === FetchOrder.Random)
+            {
+                fetchExcludesRef.current = addFetchedPostsToExcludes(data, fetchExcludesRef.current);
+            }
+            else
+            {
+                fetchIndexRef.current = getNextFetchIndex(data, fetchOrder);
+            }
             fetchedScreenSize.current = screenSize > fetchedSize ? screenSize : fetchedSize;
         });
-    }, [screenSize, category, posts, areNoMorePosts, setAreNoMorePosts]);
+    }, [screenSize, category, posts, areNoMorePosts, setAreNoMorePosts, fetchOrder]);
     
     const postsToDisplay = posts.length > 0 ? posts.slice(0, getPostAmount(screenSize)) : posts;
 

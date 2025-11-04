@@ -2,33 +2,38 @@ import { useState, useEffect } from 'react';
 import DashboardTab from "../../common/DashboardTab";
 import { useAuth } from "../../../contexts/AuthContext";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { getErrorMessage } from '../../../utils/helpers';
 
 function DashboardLayout({ currentTab, headerText, children })
 {
-    const { user, isAuthenticated, logout,
+    const { user, isAuthenticated, logout, getUnreadNoticeCounts,
         sendVerificationEmail, refreshUser } = useAuth();
     const location = useLocation();
     const navigate = useNavigate();
     const [success, setSuccess] = useState('');
     const [error, setError] = useState('');
+    const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
+    const [hasUnreadMail, setHasUnreadMail] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);    
+
+    let containerClasses = "dashboard-container";
+    if(hasUnreadNotifications) { containerClasses += ' has-new-notifications'};
+    if(hasUnreadMail){containerClasses += ' has-new-mail'};
 
     useEffect(() =>
     {
-        if(isAuthenticated)
+        if(isAuthenticated && !user.profile_completed)
         {
-            if(!user.profile_completed)
+            navigate('/register', 
             {
-                navigate('/register', 
-                {
-                    replace: true, 
-                    state: { 
-                        status: 'social_registration_incomplete',
-                        message: 'Welcome! Please complete your profile:'
-                    } 
-                });
-                return;
-            }
+                replace: true, 
+                state: { 
+                    status: 'social_registration_incomplete',
+                    message: 'Welcome! Please complete your profile:'
+                } 
+            });
+            return;
+        
         }                
     }, [isAuthenticated, user, navigate]);
 
@@ -37,9 +42,24 @@ function DashboardLayout({ currentTab, headerText, children })
         if (location.state && location.state.message) 
         {
             setSuccess(location.state.message);
+            console.log()
             navigate(location.pathname, { replace: true, state: {} });
         }
     }, [location.state, location.pathname, navigate]);
+
+    useEffect(() =>
+    {
+        getUnreadNoticeCounts()
+        .then((data) => 
+        {
+          setHasUnreadMail(data.unread_mail_count > 1);
+          setHasUnreadNotifications(data.unread_notification_count > 1);  
+        })
+        .catch((err) =>
+        {
+            console.err(getErrorMessage(err));
+        });
+    },[setHasUnreadMail, setHasUnreadNotifications]);
 
     const handleResendVerificationEmail = async (e) =>
     {
@@ -154,7 +174,7 @@ function DashboardLayout({ currentTab, headerText, children })
     }, [location, logout, navigate, isAuthenticated, user, refreshUser]);
 
     return (
-    <div className="dashboard-container">
+    <div className={containerClasses}>
     {
         isAuthenticated ?
         (
@@ -183,7 +203,7 @@ function DashboardLayout({ currentTab, headerText, children })
                     <DashboardTab 
                         tabName="profile"
                         iconClasses="fa-regular fa-user"
-                        targetPath="/dashboard"
+                        targetPath="/dashboard/profile"
                         currentTab={currentTab}
                     />
                     <DashboardTab 

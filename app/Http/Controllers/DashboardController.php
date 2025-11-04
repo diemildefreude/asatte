@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
@@ -105,5 +106,18 @@ class DashboardController extends Controller
             'status' => 'profile_updated',
             'message' => 'Your profile has been successfully updated.'
         ], 200);
+    }
+    public function unreadNoticeCounts(Request $request)
+    {
+        $user = $request->user();
+        $unreadNotificationCount = Notification::where('user_id', $user->id)
+        ->where('is_read', false)->get()->count();
+
+        $unreadMailCount = 0; //add this later
+        
+        return response()->json([
+            'unread_notification_count' => $unreadNotificationCount,
+            'unread_mail_count' => $unreadMailCount
+        ],200);
     }
 }

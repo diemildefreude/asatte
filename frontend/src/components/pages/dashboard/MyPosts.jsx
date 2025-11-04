@@ -2,11 +2,11 @@ import Layout from "../../layout/Layout";
 import DashboardLayout from "./DashboardLayout";
 import "../DashboardProfile.css";
 import AutoloadTilesContainer from "../../common/AutoloadTilesContainer";
-import { getScreenSize, monitorScreenSize } from "../../../utils/helpers";
+import { FetchOrder, getScreenSize, monitorScreenSize } from "../../../utils/helpers";
 import { useState, useEffect } from "react";
 import { useAuth } from "../../../contexts/AuthContext";
 
-function Posts()
+function MyPosts()
 {
     const [screenSize, setScreenSize] = useState(getScreenSize());
     const {fetchMyPosts} = useAuth();
@@ -24,9 +24,10 @@ function Posts()
                 screenSize={screenSize}
                 isDashboard={true}
                 fetchMethod={fetchMyPosts}
+                fetchOrder={FetchOrder.Descending}
             />
         </DashboardLayout>
     </Layout>
     );
 }
-export default Posts;
+export default MyPosts;

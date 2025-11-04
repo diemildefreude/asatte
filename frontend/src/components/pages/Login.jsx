@@ -19,7 +19,7 @@ function Login()
     const navigate = useNavigate(); // Hook for navigation
     const location = useLocation(); // Hook to get current location state
 
-    const from = location.state?.from?.pathname || '/dashboard';
+    const from = location.state?.from?.pathname || '/dashboard/profile';
 
     useEffect(() => 
     {
@@ -61,7 +61,7 @@ function Login()
         {
             const userData = await login(usernameOrEmail, password);
             setSuccess(`Login successful! Welcome, ${userData.username || userData.email}.`);
-            console.log(`login successful. redirecting to ${from}`);
+            console.log(`login successful for ${userData.username}. redirecting to ${from}`);
             navigate(from, { replace: true });
         } 
         catch (err) 
