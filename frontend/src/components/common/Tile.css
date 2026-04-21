@@ -7,7 +7,7 @@
 {
     font-size: 1.1em;
 }
-.work-tile img
+.work-tile .tile-image
 {
     height: 100%;
     aspect-ratio: 16/9;
@@ -50,7 +50,6 @@
 {
     font-size: 1.1em;
     font-weight: 300;
-    width: 100%;
 }
 .info-item.title
 {

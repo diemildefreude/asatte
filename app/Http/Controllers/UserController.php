@@ -9,6 +9,15 @@ use Symfony\Component\HttpFoundation\Response;
 
 class UserController extends Controller
 {
+    public function userSearch(string $searchTerm)
+    {
+        $users = User::where('username', 'LIKE', '%' . $searchTerm . '%')
+        ->select('username', 'id', 'avatar')
+        ->take(8)
+        ->get();
+        //Log::info("users?", $users->toArray());
+        return response()->json($users);
+    }
     public function user(string $userName)
     {
         $user = User::where('username', $userName)

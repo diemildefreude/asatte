@@ -4,7 +4,7 @@ import DashboardLayout from "./DashboardLayout";
 import LoadItems from "../../common/LoadItems";
 import Notification from "./common/Notification";
 import { useAuth } from "../../../contexts/AuthContext";
-const FETCH_AMOUNT = 3;
+const FETCH_AMOUNT = 10;
 function Notifications ()
 {
     const { fetchNotifications } = useAuth();

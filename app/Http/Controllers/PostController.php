@@ -223,7 +223,7 @@ class PostController extends Controller
         $sourceCode = $request->input('source_code') ? addHttpProtocol($request->input('source_code', '')) : null;
 
         $editorImageArray = [];
-        $statementImageFolder = "$userName/posts/$postUrl/statement";
+        $statementImageFolder = "users/$userName/posts/$postUrl/statement";
         $statementArray = json_decode($request->input('statement'));
         
         $statement = saveEditorImages($statementArray,
@@ -231,7 +231,7 @@ class PostController extends Controller
         
         $galleryArray = [];
         $galleryAltArray = [];
-        $galleryImageFolder = "$userName/posts/$postUrl/gallery";
+        $galleryImageFolder = "users/$userName/posts/$postUrl/gallery";
         $galleryImagesInput = $request->input('gallery_images', []);
         $uploadedFiles = $request->file('gallery_images', []);
         
@@ -387,7 +387,7 @@ class PostController extends Controller
         ]);       
         
         $userName = $request->user()->username;         
-        $galleryImageFolder = "$userName/posts/$postUrl/gallery";
+        $galleryImageFolder = "users/$userName/posts/$postUrl/gallery";
         $website = $request->input('website') ? addHttpProtocol($request->input('website', '')) : null;
         
         $galleryImagesInput = $request->input('gallery_images', []);
@@ -444,7 +444,7 @@ class PostController extends Controller
         }
         $editorImageArray = $post->statement_image_urls;
 
-        $statementImageFolder = "$userName/posts/$postUrl/statement";
+        $statementImageFolder = "users/$userName/posts/$postUrl/statement";
         $statementArray = json_decode($request->input('statement'));
         $statement = saveEditorImages($statementArray,
             $editorImageArray, $statementImageFolder);
@@ -476,7 +476,7 @@ class PostController extends Controller
         $user = $request->user();
         $userName = $user->username;
         $postUrl = $post->post_url;
-        $postFolder = "images/uploaded/$userName/posts/$postUrl";
+        $postFolder = "images/uploaded/users/$userName/posts/$postUrl";
         Storage::disk('public')->deleteDirectory($postFolder);
 
         $post->delete();
@@ -485,5 +485,69 @@ class PostController extends Controller
             'status' => 'post_updated',
             'message' => 'Post successfully deleted.'
         ], 200);
+    }
+
+    public function postSearch(Request $request)
+    {
+        //amount, category, fetch_order, search_term
+        $validated = $request->validate([            
+            'search_term' => 'required|string|min:2|max:100',
+            'amount' => 'required|integer'
+        ]);
+        $searchTerm = $validated['search_term'];
+        $limit = $validated['amount'];
+        // $startId = $request->query('start_id');
+
+        $query = Post::with(relations: 'user:id,username,avatar,member_type')
+        ->where(function ($query) use ($searchTerm) 
+        {
+            $query->where('title', 'LIKE', "%{$searchTerm}%")
+                    ->orWhere('post_url', 'LIKE', "%{$searchTerm}%")
+                    ->orWhere('subtitle', 'LIKE', "%{$searchTerm}%")
+                    ->orWhere('website', 'LIKE', "%{$searchTerm}%")
+                    ->orWhere('statement', 'LIKE', "%{$searchTerm}%");
+        })
+        ->orderByRaw("
+            CASE 
+                WHEN title LIKE ? THEN 1
+                WHEN post_url LIKE ? THEN 2
+                WHEN subtitle LIKE ? THEN 3
+                WHEN website LIKE ? THEN 4
+                WHEN statement LIKE ? THEN 5
+                ELSE 6
+            END ASC
+        ", [
+            "%{$searchTerm}%", 
+            "%{$searchTerm}%", 
+            "%{$searchTerm}%", 
+            "%{$searchTerm}%", 
+            "%{$searchTerm}%"
+        ]);
+
+        $excludes = collect(explode(',', $request->excludes ?? ''))
+        ->filter(fn ($id) => is_numeric($id))
+        ->values()
+        ->toArray();
+
+        Log::info("excludes?", $excludes);
+
+        if (!empty($excludes)) 
+        {
+            $query->whereNotIn('id', $excludes);
+        }
+
+        $posts = $query
+            ->limit($limit)
+            ->get();
+
+        if(sizeof($posts) == 0)
+        {
+            return response() ->json([
+            'status' => 'no_more_posts',
+            'message' => 'No more posts available with the given parameters.'
+        ], 200);
+        }
+
+        return response()->json($posts->values(), 200);
     }
 }

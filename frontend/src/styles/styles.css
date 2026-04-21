@@ -3,6 +3,7 @@
     --pale-yellow: rgb(249, 251, 210);
     --grey-yellow: rgb(201, 201, 175);
     --blue: #1177c0;
+    --indigo-gradient: linear-gradient(45deg, #0000ff 0%, #330055 60%);
     --blue-gradient: linear-gradient(45deg, #88CDFFCC 0%, #1177c0cc 60%);    
     --lavender-gradient: linear-gradient(45deg, #505193cc 0%, #c1b7fdcc 60%);
     --red-gradient: linear-gradient(45deg, #6c0746 0%, #ff4574 70%);
@@ -21,9 +22,7 @@ body::before
   right: 0;
   height: 150vh;
   z-index: -1;
-  background: linear-gradient(45deg, #0000ff 0%, #330055 60%);
-  background: -webkit-linear-gradient(45deg, #0000ff 0%, #330055 60%); /* Chrome10-25,Safari5.1-6 */
-  background: linear-gradient(45deg, #0000ff 0%, #330055 60%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */        
+  background: var(--indigo-gradient);
 }
 html, body
 {
@@ -55,15 +54,28 @@ h2
     gap: 1rem;
     justify-content: space-between;
 }
-.centered-content
+/* .centered-content
 {
     width: 100%;
-}
-.centered-content, .centered-content h2, .notice-container
+} */
+/* .centered-content, .centered-content h2, .notice-container
 {
-    width: fit-content;
-    margin: 0 auto;
-}
+    width: fit-content;    
+    display: flex;
+    justify-content: center;
+} */
+ .centered-content
+ {
+    width: 100%;
+    /* height: 100%; */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+ }
+ .centered-content h2
+ {
+    justify-content: center;
+ }
 .bold
 {
     font-weight: 900;
@@ -125,6 +137,27 @@ h2
 {
     font-weight: 350;
     margin: 0 0 0.5rem;
+}
+.margined-content
+{
+    margin: 3rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    position: relative;
+    top: 0;
+    left: 0;
+}
+@media (min-width: 700px)
+{
+    .margined-content
+    {
+        margin: 3rem;
+    }
+}
+.borderless, .rte-container.borderless
+{
+    border: none;
 }
 .loading
 {

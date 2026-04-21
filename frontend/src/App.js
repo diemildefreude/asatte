@@ -26,6 +26,9 @@ import PasswordReset from './components/pages/PasswordReset';
 import Following from './components/pages/Following';
 import Followers from './components/pages/Followers';
 import NotFound from './components/pages/NotFound';
+import Conversation from './components/pages/dashboard/common/Conversation';
+import SearchResults from './components/pages/SearchResults';
+import About from './components/pages/About';
 
 function App() 
 {
@@ -34,6 +37,7 @@ function App()
       <AuthProvider>
         <Routes>
           <Route path="/" element={<Home />}/>
+          <Route path="/search" element={<SearchResults/>}/>
           <Route path="/dashboard/" element={<Dashboard />}/>
           <Route path="/dashboard/profile" element={<Dashboard />}/>
           <Route path="/dashboard/new-post" element={<NewPost />}/>
@@ -46,8 +50,11 @@ function App()
           <Route path="/dashboard/following" element={<Following />}/>
           <Route path="/dashboard/followers" element={<Followers />}/>
           <Route path="/dashboard/mail" element={<Mail />}/>
+          <Route path="/dashboard/mail/new" element={<Conversation />}/>
+          <Route path="/dashboard/mail/:conversation_id" element={<Conversation />}/>
           <Route path="/login" element={<Login />}/>
           <Route path="/register" element={<Registration />}/>
+          <Route path="/about" element={<About />}/>
           <Route path="/password-change" element={<PasswordChange />}/>
           <Route path="/password-recovery" element={<PasswordRecovery />}/>
           <Route path="/password-reset" element={<PasswordReset />}/>

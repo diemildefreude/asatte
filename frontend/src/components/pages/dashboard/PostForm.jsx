@@ -21,7 +21,7 @@ const createInitialImageFields = (post=null, user, postUrl) =>
         const alts = post.gallery_alts;//JSON.parse(post.gallery_alts);
         return images.map((image, i) => ({
             index: i,
-            image: `${BACKEND_URL}/storage/images/uploaded/${user.username}/posts/${postUrl}/gallery/thumb/${image}`,
+            image: `${BACKEND_URL}/storage/images/uploaded/users/${user.username}/posts/${postUrl}/gallery/thumb/${image}`,
             alt: alts[i] == "null" ? "" : alts[i],
             value: image,
             type: 'old'

@@ -20,7 +20,7 @@ function LoadItems({
   itemString,
   isFullPage = false,
   classes = "",
-  fetchAmount = 3,
+  fetchAmount = 10, // Ensure this matches Laravel $itemsPerPage
   user = null,
   headingText = "",
   viewAllLink = ""
@@ -33,110 +33,157 @@ function LoadItems({
   const isNavigatingInternally = useRef(false);
   const lastFetchedPage = useRef(null);
 
-  // 🔹 Core fetcher
-  const loadItems = useCallback(
-    async (page, historyType = HistoryEntryType.Nothing) => {
-      if (page === lastFetchedPage.current) return; // Prevent duplicate fetches
+  // 🔹 Core fetcher with integrated Clamping
+  const loadItems = useCallback(async (page, historyType = HistoryEntryType.Nothing) => 
+  {
+    try 
+    {
+      const f = user
+        ? async () => await fetchMethod(page, user.id)
+        : async () => await fetchMethod(page);
+      
+      const data = await f();
+      //console.log("loaded data", data);
+      const total = data.total || 0;
+      const fetchedItems = data[itemString] || [];
+
+      // 1. Calculate the real max page
+      const maxPage = Math.max(1, Math.ceil(total / fetchAmount));
+      
+      // 2. Clamp Logic
+      let pageClamped = page;
+      if (page < 1) pageClamped = 1;
+      if (page > maxPage && total > 0) pageClamped = maxPage;
+
+      // 3. If correction needed, sync State + URL and re-fetch
+      if (page !== pageClamped) 
+      {
+        //console.log(`Syncing ${page} -> ${pageClamped}`);
+        setCurrentPage(pageClamped);
+        lastFetchedPage.current = pageClamped;
+
+        if (isFullPage) 
+        {
+          const params = new URLSearchParams(window.location.search);
+          params.set("page", pageClamped);
+          window.history.replaceState({ page: pageClamped }, "", `${window.location.pathname}?${params.toString()}`);
+        }
+
+        // Recursive call to get the actual data for the corrected page
+        loadItems(pageClamped, HistoryEntryType.Replace);
+        return;
+      }
+      //console.log("errthing", fetchedItems, total, page);
+      // 4. Commit data to state
+      setItems(fetchedItems);
+      setTotalCount(total);
       lastFetchedPage.current = page;
 
-      //console.log(` Fetching ${itemString} for page ${page}`);
-      try {
-        const f = user
-          ? async () => await fetchMethod(page, user.id)
-          : async () => await fetchMethod(page);
-        const data = await f();
-        console.log("dataa?", data);
-        setItems(data[itemString]);
-        setTotalCount(data.total);
-
-        if (!isFullPage) return;
-
+      // 5. Update URL history if needed
+      if (isFullPage) 
+      {
         const params = new URLSearchParams(window.location.search);
-        params.set("page", page);
-        const newUrl = `${window.location.pathname}?${params.toString()}`;
-
-        if (historyType === HistoryEntryType.Push) {
-          window.history.pushState({ page }, "", newUrl);
-        } 
-        else if (historyType === HistoryEntryType.Replace) 
+        if (parseInt(params.get("page") || "1", 10) !== page) 
         {
-          window.history.replaceState({ page }, "", newUrl);
+          params.set("page", page);
+          const newUrl = `${window.location.pathname}?${params.toString()}`;
+          if (historyType === HistoryEntryType.Push) 
+          {
+            window.history.pushState({ page }, "", newUrl);
+          } 
+          else if (historyType === HistoryEntryType.Replace) 
+          {
+            window.history.replaceState({ page }, "", newUrl);
+          }
         }
-      } catch (err) {
-        console.error(err);
-        setItems([]);
-        setTotalCount(0);
       }
-    },
-    [fetchMethod, isFullPage, itemString, user]
-  );
+    } 
+    catch (err) 
+    {
+      console.error(err);
+      setItems([]);
+      setTotalCount(0);
+    }
+  }, [fetchMethod, isFullPage, itemString, user, fetchAmount]);
 
-  // 🔹 Initial load or manual URL typing
-  useEffect(() => {
-    if (!isFullPage) {
+  // 🔹 Effect 1: Handle Initial URL / Page Load
+  useEffect(() => 
+  {
+    if (!isFullPage) 
+    {
+      //console.log("not full page load");
       loadItems(1, HistoryEntryType.Nothing);
       return;
     }
 
-    const params = new URLSearchParams(window.location.search);
-    const pageParam = parseInt(params.get("page") || "1", 10);
-
-    if (isInitialLoad.current) {
-      console.log("Setting initial page from URL:", pageParam);
+    if (isInitialLoad.current) 
+    {
       isInitialLoad.current = false;
+      const params = new URLSearchParams(window.location.search);
+      let pageParam = parseInt(params.get("page") || "1", 10);
+
+      // Immediate fix for sub-zero values to avoid Page 0 flash
+      if (pageParam < 1) {
+        pageParam = 1;
+      }
+
       setCurrentPage(pageParam);
       loadItems(pageParam, HistoryEntryType.Replace);
     }
-  }, [isFullPage, loadItems]);
+  }, [isFullPage]);
 
-  // 🔹 When page changes via internal click
-  useEffect(() => {
+  // 🔹 Effect 2: Handle Internal State Changes (Paginator clicks)
+  useEffect(() => 
+  {
     if (isInitialLoad.current) return;
-    if (!isFullPage) {
-      loadItems(currentPage, HistoryEntryType.Nothing);
-      return;
+
+    if (!isFullPage) 
+    {
+        loadItems(currentPage, HistoryEntryType.Nothing);
+        console.log("internal, !isFullPage");
+        return;
     }
 
-    if (isNavigatingInternally.current) {
-      isNavigatingInternally.current = false;
-      loadItems(currentPage, HistoryEntryType.Push);
-    } else {
-      loadItems(currentPage, HistoryEntryType.Replace);
+    // Only fetch if state changed from what we last loaded
+    if (currentPage !== lastFetchedPage.current) 
+    {
+      const type = isNavigatingInternally.current 
+        ? HistoryEntryType.Push 
+        : HistoryEntryType.Replace;
+      
+      isNavigatingInternally.current = false; // Reset flag
+      console.log("internal", "currentPage !== lastFetchedPage.current");
+      loadItems(currentPage, type);
     }
   }, [currentPage, isFullPage, loadItems]);
 
-  // 🔹 Browser Back/Forward buttons
-  useEffect(() => {
+  // 🔹 Effect 3: Browser Back/Forward buttons
+  useEffect(() => 
+  {
     if (!isFullPage) return;
 
-    const handlePop = (event) => {
+    const handlePop = () => 
+    {
       const params = new URLSearchParams(window.location.search);
       const pageParam = parseInt(params.get("page") || "1", 10);
-
-      // ✅ Ignore if already on this page to avoid race
-      if (pageParam === currentPage) return;
-
-      console.log("Back/Forward detected →", pageParam);
-      isNavigatingInternally.current = false;
-      setCurrentPage(pageParam);
+      if (pageParam !== currentPage) {
+        isNavigatingInternally.current = false;
+        setCurrentPage(pageParam);
+      }
     };
 
     window.addEventListener("popstate", handlePop);
     return () => window.removeEventListener("popstate", handlePop);
   }, [isFullPage, currentPage]);
 
-  // 🔹 When user clicks a paginator number
-  const onNumberClick = useCallback(
-    (pageNum) => {
-      if (pageNum !== currentPage) {
-        isNavigatingInternally.current = true;
-        setCurrentPage(pageNum);
-      }
-    },
-    [currentPage]
-  );
+  const onNumberClick = useCallback((pageNum) => 
+  {
+    if (pageNum !== currentPage) {
+      isNavigatingInternally.current = true;
+      setCurrentPage(pageNum);
+    }
+  }, [currentPage]);
 
-  // 🔹 Render
   return (
     <div className="items-heading-container">
       {isFullPage && (
@@ -147,15 +194,13 @@ function LoadItems({
           onNumberClick={onNumberClick}
         />
       )}
-      {headingText && (
-        <h3 className="centered-content">{headingText}</h3>
-      )}
+      {headingText && <h3 className="centered-content">{headingText}</h3>}
+      
       <div className={`${itemString}-container ${classes}`}>
-        {items ? (
+        {/* Only show items if the current state matches the last successful fetch */}
+        {items && currentPage === lastFetchedPage.current ? (
           items.length === 0 ? (
-            <p className="centered-content">
-              {isFullPage || itemString !== "notifications" ? `no ${itemString}` : `no new ${itemString}`}
-            </p>
+            <p className="centered-content">no {itemString}</p>
           ) : (
             <ItemList
               items={items}
@@ -176,13 +221,9 @@ function LoadItems({
           onNumberClick={onNumberClick}
         />
       )}
-      {(!isFullPage && viewAllLink) && (
-        <Link
-            to={viewAllLink}
-            className="centered-content"
-        >
-            view all
-        </Link>
+
+      {!isFullPage && viewAllLink && (
+        <Link to={viewAllLink} className="centered-content">view all</Link>
       )}
     </div>
   );

@@ -18,7 +18,7 @@ function EditBio()
     {        
         //const bioParsed = JSON.parse(user.bio);
         setBio(user.bio);
-        //console.log("bio", user.bio);
+        console.log("bio", user.bio);
     },[user]);
     
     const handleBioChange = (newBio) =>

@@ -9,12 +9,13 @@ const FRONTEND_URL = process.env.REACT_APP_FRONTEND_URL;
 
 function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false}) 
 {
+    // console.log("tile check images", post.gallery_image_urls);
     if (!post || (!user && !post.user)) return null;
 
     const author = user ?? post.user;
     const viewText = isDashboard ? "preview" : "info";
 
-    const directory = `${BACKEND_URL}/storage/images/uploaded/${author.username}/posts/${post.post_url}/gallery/small`;
+    const directory = `${BACKEND_URL}/storage/images/uploaded/users/${author.username}/posts/${post.post_url}/gallery/small`;
 
     let imageUrls = [];
     try 
@@ -26,6 +27,7 @@ function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false})
         console.error("Invalid gallery_image_urls JSON", err);
         imageUrls = [];
     }
+    
     function handleLinkClick(e)
     {
         //console.log("Clicking link to post", post?.id);
@@ -42,7 +44,8 @@ function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false})
         { 
             imageUrls && imageUrls.length > 0 && 
             (
-                <img src={`${directory}/${imageUrls[0]}`} 
+                <img className='tile-image'
+                    src={`${directory}/${imageUrls[0]}`} 
                     alt={post.title} 
                     draggable="false"
                 />

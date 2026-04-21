@@ -87,6 +87,16 @@ class User extends Authenticatable implements OAuthenticatable, MustVerifyEmail
         )->withPivot('created_at')
         ->orderByDesc('follows.created_at');
     }
+    public function conversations()
+    {
+        return $this->belongsToMany(Conversation::class)
+                    ->withPivot("last_read_at")
+                    ->withTimestamps();
+    }
+    public function messages()
+    {
+        return $this->hasMany(Message::class, 'sender_id');
+    }
     /**
      * The attributes that are mass assignable.
      *
@@ -106,7 +116,8 @@ class User extends Authenticatable implements OAuthenticatable, MustVerifyEmail
      *
      * @var list<string>
      */
-    protected $hidden = [
+    protected $hidden = 
+    [
         'password',
         'remember_token',
     ];

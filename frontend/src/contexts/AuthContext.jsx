@@ -186,7 +186,7 @@ export const AuthProvider = ({ children }) =>
           const response = await api.get('/user'); // Call your /api/user endpoint
           setUser(response.data); // Update the user state with fresh data
           localStorage.setItem('user', JSON.stringify(response.data)); // Update localStorage
-          console.log("user refreshed?", user);
+          console.log("user refreshed?",response.data);
         } 
       catch (error) 
       {
@@ -230,6 +230,43 @@ export const AuthProvider = ({ children }) =>
     finally 
     {
         setIsLoading(false);
+    }
+  }
+  const fetchAbout = async () =>
+  {
+    try
+    {
+      setIsLoading(true);
+      const response = await api.get('/about');
+      return response.data;
+    }
+    catch(error)
+    {
+      throw error;
+    }
+    finally
+    {
+      setIsLoading(false);
+    }
+  }
+  const updateAbout = async (statement) =>
+  {
+    try
+    {
+      setIsLoading(true);
+      const formData = new FormData();    
+      formData.append('_method', 'PUT');
+      formData.append('statement', statement);
+      const response = await api.post('/update-about', formData);
+      return response.data;
+    }
+    catch(error)
+    {
+      throw error;
+    }
+    finally
+    {
+      setIsLoading(false);
     }
   }
   const updateBio = async (bio) =>
@@ -605,7 +642,26 @@ export const AuthProvider = ({ children }) =>
       setIsLoading(false);
     }
   }
+  const fetchConversations = (itemsPerPage, currentPage) =>
+  {
+    const fetchFn = async () => 
+    {
+      const params = new URLSearchParams();
+      params.append('items_per_page', itemsPerPage);
+      params.append('current_page', currentPage);
+      //fetchLimit && params.append('amount', fetchLimit);
+      const response = await api.get(`/direct-mails`,{params:params});
+      return response.data;
+    };
 
+    // Use the retryOperation for fetchPosts
+    return retryOperation(
+        fetchFn,
+        3, // Number of retries (e.g., 3 attempts total)
+        500, // Delay in milliseconds between retries (1.5 seconds)
+        'Failed to fetch comments after multiple attempts.'
+    );
+  }
   const fetchUserComments = (itemsPerPage, currentPage) =>
   {
       console.log("fUC", itemsPerPage, currentPage);
@@ -717,11 +773,11 @@ export const AuthProvider = ({ children }) =>
           'Failed to fetch notifications after multiple attempts.'
       );
   }
-  const getUnreadNoticeCounts = async () =>
+  const getUnreadStatus = async () =>
   {
     const fetchFn = async () => 
       {
-        const response = await api.get('/unread-notice-counts');
+        const response = await api.get('/unread-status');
         return response.data;
       };
 
@@ -794,6 +850,138 @@ export const AuthProvider = ({ children }) =>
       setIsLoading(false);
     }
   }
+  const userSearch = async (searchTerm) =>
+  {
+    setIsLoading(true);
+    try
+    {
+      const response = await api.get(`usersearch/${searchTerm}`);
+      return response.data;
+    }
+    catch(error)
+    {
+      throw error;
+    }
+    finally
+    {
+      setIsLoading(false);
+    }
+  }
+  const createDM = async (conversationID=null, content, parentID=null, recipients=null, subject="") =>
+  {
+    console.log("sending DM api post call");
+    try
+    {
+      setIsLoading(true);
+      const formData = new FormData();
+      formData.append('content', content);
+      if(parentID)
+      {
+        formData.append('parent_id', parentID);
+      }
+      if(conversationID)
+      {
+        formData.append('conversation_id', conversationID);
+      }
+      else
+      {
+        formData.append('subject', subject);
+        recipients.forEach((user, index) =>
+        {
+          formData.append(`recipients[${index}]`, user.id);
+        });
+      }
+      console.log("createDM", content, recipients, subject);
+      const response = await api.post(`/direct-mails`, formData);
+      return response.data;
+    }
+    catch (error)
+    {
+      throw error;
+    }
+    finally
+    {
+      setIsLoading(false);
+    }
+  }
+  const deleteDM = async (messageID) =>
+  {
+    console.log("sending DM api delete call");
+    try
+    {
+      setIsLoading(true);
+      const response = await api.delete(`/direct-mails/${messageID}`);
+      return response.data;
+    }
+    catch (error)
+    {
+      throw error;
+    }
+    finally
+    {
+      setIsLoading(false);
+    }
+  }
+  const fetchConversation = useCallback(async (conversationID) =>
+  {
+    setIsLoading(true);
+    try
+    {
+      console.log("fetching conversation " + conversationID);
+      const response = await api.get(`/direct-mails/${conversationID}`);
+      return response.data;
+    }
+    catch(err)
+    {
+      throw err;
+    }
+    finally
+    {
+      setIsLoading(false);
+    }
+  },[]);
+
+  const updateDM = useCallback(async (messageID, content) =>
+  {
+    setIsLoading(true);
+    try
+    {
+      const formData = new FormData();
+      formData.append('content', content);
+      formData.append('_method', 'PUT');
+      const response = await api.post(`/direct-mails/${messageID}`, formData);
+      return response.data;
+    }
+    catch (error)
+    {
+      throw error;
+    }
+    finally
+    {
+      setIsLoading(false);
+    }
+  },[]);
+
+  const searchPosts = useCallback(async (params) =>
+  {
+    setIsLoading(true);
+    try
+    {
+      const response = await api.get(`/post-search`, 
+      {
+          params: params
+      });
+      return response.data;
+    }
+    catch (err)
+    {
+      throw err;
+    }
+    finally
+    {
+      setIsLoading(false);
+    }
+  },[])
   return (
     <AuthContext.Provider value={{ isAuthenticated, user, login, logout, 
       changePassword, registerWithEmail, sendVerificationEmail, refreshUser,
@@ -801,8 +989,9 @@ export const AuthProvider = ({ children }) =>
       updateProfileInfo, isLoading, updateBio, updateAvatar, createPost, updatePost,
       fetchSinglePost, fetchPosts, fetchMyPosts, deletePost, fetchUser, toggleLike,
       recordView, createComment, fetchUserComments, updateComment, deleteComment,
-      fetchLikedPosts, fetchNotifications, getUnreadNoticeCounts, toggleFollow,
-      fetchFollowing, fetchFollowers}}>
+      fetchLikedPosts, fetchNotifications, getUnreadStatus, toggleFollow,
+      fetchFollowing, fetchFollowers, userSearch, createDM, updateDM, deleteDM,
+      fetchConversation, fetchConversations, searchPosts, updateAbout, fetchAbout}}>
       {children}
     </AuthContext.Provider>
   );

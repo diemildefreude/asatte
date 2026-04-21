@@ -6,7 +6,7 @@ import { getErrorMessage } from '../../../utils/helpers';
 
 function DashboardLayout({ currentTab, headerText, children })
 {
-    const { user, isAuthenticated, logout, getUnreadNoticeCounts,
+    const { user, isAuthenticated, logout, getUnreadStatus,
         sendVerificationEmail, refreshUser } = useAuth();
     const location = useLocation();
     const navigate = useNavigate();
@@ -49,11 +49,11 @@ function DashboardLayout({ currentTab, headerText, children })
 
     useEffect(() =>
     {
-        getUnreadNoticeCounts()
+        getUnreadStatus()
         .then((data) => 
         {
-          setHasUnreadMail(data.unread_mail_count > 1);
-          setHasUnreadNotifications(data.unread_notification_count > 1);  
+          setHasUnreadMail(data.has_unread_mail);
+          setHasUnreadNotifications(data.has_unread_notifications);  
         })
         .catch((err) =>
         {

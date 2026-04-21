@@ -109,7 +109,7 @@
                         <div className="image-info-container">
                             <div className="main-image-container">
                                 <div className="image-link-subcontainer">
-                                    <img className="main-image" src={`${BACKEND_URL}/storage/images/uploaded/${post.user.username}/posts/${post.post_url}/gallery/large/${imageUrls[0]}`} alt="" />
+                                    <img className="main-image" src={`${BACKEND_URL}/storage/images/uploaded/users/${post.user.username}/posts/${post.post_url}/gallery/large/${imageUrls[0]}`} alt="" />
                                     <div className="main-image-link-container">
                                         <div className="info-panel">                        
                                         { 

@@ -4,7 +4,7 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
 function UserCircle({user})
 {
-    const avatar = user?.avatar ? `${BACKEND_URL}/storage/images/uploaded/${user.username}/avatar/small/${user?.avatar}` 
+    const avatar = user?.avatar ? `${BACKEND_URL}/storage/images/uploaded/users/${user.username}/avatar/small/${user?.avatar}` 
         : `${BACKEND_URL}/storage/images/defaults/avatar.webp`;
 
         //console.log("userCircle?!", user);

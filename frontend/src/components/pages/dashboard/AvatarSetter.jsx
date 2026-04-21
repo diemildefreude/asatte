@@ -89,7 +89,7 @@ function AvatarSetter({user, setSuccess, setError, isSubmitting, setIsSubmitting
     const imageCropButtonRef = useRef(null);
     const avatarContainerRef = useRef(null);
 
-    const avatar = user?.avatar ? `${BACKEND_URL}/storage/images/uploaded/${user.username}/avatar/small/${user?.avatar}` 
+    const avatar = user?.avatar ? `${BACKEND_URL}/storage/images/uploaded/users/${user.username}/avatar/small/${user?.avatar}` 
         : `${BACKEND_URL}/storage/images/defaults/avatar.webp`;
     const { updateAvatar, refreshUser } = useAuth();
 

@@ -9,7 +9,7 @@ function ImageCarousel({size, post, title=""})
     const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
     const [isZoomed, setIsZoomed] = useState(false); 
     const slideRefs = useRef([]);
-    const IMAGE_ROOT = `${BACKEND_URL}/storage/images/uploaded/${post.user.username}/posts/${post.post_url}/gallery`;
+    const IMAGE_ROOT = `${BACKEND_URL}/storage/images/uploaded/users/${post.user.username}/posts/${post.post_url}/gallery`;
 
     slideRefs.current = [];
     const imageUrls = useMemo(() =>

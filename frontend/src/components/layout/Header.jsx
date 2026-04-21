@@ -1,13 +1,15 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './Header.css';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import UserLink from '../common/UserLink';
+import { getErrorMessage } from '../../utils/helpers';
 
 function Header()
 {
-    const { isAuthenticated, user } = useAuth();
+    const { isAuthenticated, user, searchPosts } = useAuth();
     const [isNavOpen, setIsNavOpen] = useState(false);
+    //const [isSearchOpen, setIsSearchOpen] = useState(false);
     const headerRef = useRef(null);
     const buttonClasses = isNavOpen ? "nav-button-container open"
         : "nav-button-container";
@@ -15,6 +17,10 @@ function Header()
     const lastScrollTopRef = useRef(window.scrollY);
     const didScrollRef = useRef(false);
     const scrollDeltaThreshold = 5;
+    const navigate = useNavigate();
+    const location = useLocation();
+    const [searchTerm, setSearchTerm] = useState("");
+    //const [isSearching, setIsSearching] = useState(false);
 
     const toggleMenu = () =>
     {
@@ -82,6 +88,26 @@ function Header()
         }
     }, []);
 
+    const handleSearch = useCallback(/*async*/ (e) =>
+    {
+        e.preventDefault();
+        if(!searchTerm || searchTerm.length < 2)
+        {
+            return;
+        }
+        const encodedQuery = encodeURIComponent(searchTerm);
+        navigate(`/search?q=${encodedQuery}`);
+        //setIsSearching(true);
+        // const oldPath = location.pathname;
+        
+        // navigate('/search', { state: { query: searchTerm}});
+
+        // if(oldPath == '/search')
+        // {
+        //     window.location.reload();
+        // }
+    },[searchTerm]);
+
     return (
         <header ref={headerRef}>
             <div className={buttonClasses}>
@@ -102,13 +128,22 @@ function Header()
             </div>
             <nav className={navClasses}>
                 <div className="nav-half first">
+                    <form
+                        onSubmit={handleSearch} 
+                        className='nav-item nav-search-container'>
+                        <input id="search" name="search" className="nav-search" type="text" placeholder=" search" 
+                            onChange={e => setSearchTerm(e.target.value)} value={searchTerm}
+                        />
+                        <button type="submit">
+                            <i className="fa-solid fa-magnifying-glass"></i>
+                        </button>
+                    </form>
                     <Link to={`/`} className="nav-item">home</Link>
-                    <a className="nav-item" href="#">browse</a>
                     <a className="nav-item" href="#">news</a>
                 </div>
                 <div className="nav-half second">
                     <a className="nav-item" href="#">contact</a>
-                    <a className="nav-item" href="#">about</a>
+                    <Link to="/about" className="nav-item">about</Link>
                     {
                         (isAuthenticated && user.profile_completed) ?
                         (

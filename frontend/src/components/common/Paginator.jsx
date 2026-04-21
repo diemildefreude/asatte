@@ -39,7 +39,7 @@ function getPageNumbers(currentPage, pageCount)
 function Paginator({itemsPerPage, totalCount, currentPage, onNumberClick})
 {
     const pageCount = Math.ceil(totalCount / itemsPerPage); 
-    //console.log("totalCount, itemsPerPage, pageCount", totalCount, itemsPerPage, pageCount);
+    //console.log("totalCount, itemsPerPage, pageCount, currentPage", totalCount, itemsPerPage, pageCount, currentPage);
 
     const pageNumbers = getPageNumbers(currentPage, pageCount);
 

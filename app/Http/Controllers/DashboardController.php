@@ -67,8 +67,9 @@ class DashboardController extends Controller
         //Log::info($user);
         //Log::info("bio_image_urls:" . $editorImageArray);
         $bioArray = json_decode($request->input('bio'));
+        Log::info("bio:", $bioArray);
         $newBio = saveEditorImages($bioArray, 
-            $editorImageArray, "/$userName/bio");
+            $editorImageArray, "users/$userName/bio");
         $user->bio_image_urls = $editorImageArray; //RIGHT?!
         $user->bio = $newBio;
         $user->save();
@@ -107,17 +108,22 @@ class DashboardController extends Controller
             'message' => 'Your profile has been successfully updated.'
         ], 200);
     }
-    public function unreadNoticeCounts(Request $request)
+    public function unreadStatus(Request $request)
     {
         $user = $request->user();
-        $unreadNotificationCount = Notification::where('user_id', $user->id)
-        ->where('is_read', false)->get()->count();
+        $hasUnreadNotifications = Notification::where('user_id', $user->id)
+        ->where('is_read', false)->exists();//get()->count() > 0;
 
-        $unreadMailCount = 0; //add this later
+        $hasUnreadMail = $user->conversations()
+            ->where(function ($query) 
+            {
+                $query->whereColumn('conversations.updated_at', '>', 'conversation_user.last_read_at')
+                  ->orWhereNull('conversation_user.last_read_at');
+            })->exists();
         
         return response()->json([
-            'unread_notification_count' => $unreadNotificationCount,
-            'unread_mail_count' => $unreadMailCount
+            'has_unread_notifications' => $hasUnreadNotifications,
+            'has_unread_mail' => $hasUnreadMail
         ],200);
     }
 }

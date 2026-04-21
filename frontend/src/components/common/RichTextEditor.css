@@ -1,10 +1,35 @@
-.ql-align-center img
-{
-    margin: 0 auto;
+.ql-editor p {
+    display: flow-root; /* Prevents margin collapsing issues */
 }
-.ql-align-right img
+.ql-editor img[style*="display: block"] {
+    display: block !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    float: none !important; /* The resizer UI might be leaving float: left behind */
+    clear: both !important;
+}
+.ql-editor img 
 {
-    margin: 0 0 0 auto;
+    max-width: 100%;
+    height: auto;
+}
+.ql-editor img[width], .ql-editor img[style*="width"] {
+    height: auto; /* Allow height to scale naturally unless explicitly dragged */
+}
+/*.ql-editor img,*/ .ql-align-left
+{
+    margin: 0 1em 0 0;
+    float: left;
+}
+.ql-align-center
+{
+    text-align: center;
+}
+.ql-align-right
+{
+    margin: 0 0 0 1em;
+    float: right;
+    /* margin: 0 0 0 auto; */
 }
 .ql-toolbar.ql-snow .ql-picker-label,
 .ql-toolbar.ql-snow .ql-stroke,
@@ -52,7 +77,7 @@
     border: none;    
 }
 .editor-container p, .ql-picker-label::before, .editor-container li, .editor-container h1,
-.editor-container h2, .editor-container h3
+.editor-container h2, .editor-container h3, blockquote
 {    
     font-family: "Cascadia Code", sans-serif !important;
     font-optical-sizing: auto;
@@ -72,6 +97,7 @@
     width: 100%;
     z-index: 0; /* bit of a hack so the avatar cropper appears in front*/
     /*otherwise, I'd have to move it outside of its component...*/
+    overflow: visible;
 }
 .editor-container
 {
@@ -87,11 +113,11 @@
     background-color: white;
     max-height: calc(100svh - 180px);
     color: black;         
-    overflow-y: scroll;/*I'm not sure why this is needed here*/
+    overflow-y: auto;/*I'm not sure why this is needed here*/
 }
 .read-only .editor-container .ql-container
 {
-    max-height: none;
+    min-height: 0;
     overflow-y: auto;
 }
 .ql-editor, .ql-editor * 
@@ -132,3 +158,43 @@
 {
     display: none;
 }
+
+.rte-container-container /*not sure why, but this is needed for tool-tip to appear correctly*/
+{            /* OR the .main-info-box.stretch>form>.rte-container structure from DashboardProfile.css */
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    position: relative;
+    top: 0;
+    left: 0;
+    margin: 3rem 0 0;
+    /* width: 100%; */
+}
+@media (min-width: 700px)
+{
+    .rte-container-container
+    {
+        width: 100%;
+    }
+}
+@media (min-width: 800px)
+{
+    .rte-container-container
+    {
+        flex-direction: row;
+    }
+}
+/* Ensure the tooltip stays contained within the editor bounds */
+/* .ql-container 
+{
+    position: relative !important;
+} */
+/* Ensure the tooltip itself is positioned relative to the container */
+/* .ql-snow .ql-tooltip 
+{ */
+    /* position: absolute; This makes it look at the .ql-container above */
+    /* top: 20px; */
+    /* right: 100px; */
+    /* z-index: 1000; */
+    /* margin-top: 5px; Gives it a little breathing room */
+/* } */

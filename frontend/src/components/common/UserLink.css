@@ -18,17 +18,18 @@
     display: inline-flex;            /* shrinkwrap to the avatar size */
     align-items: center;
     justify-content: center;
-    width: 1em;                      /* 1em so avatar scales with text size */
-    height: 1em;
-    flex-shrink: 0;
+    width: 2.0em;                      /* 1em so avatar scales with text size */
+    height: 2.0em;
+    /* flex-shrink: 0; */
     /* overflow: hidden;                */
     line-height: 0;    
 }
 /* make .round-image fill the avatar container */
 .user-link .avatar-container .round-image 
 {
-    width: 150%;
+    /* width: 150%;
     height: 150%;
+    aspect-ratio: 1/1; */
     display: block;
     object-fit: cover;
     object-position: center;
@@ -49,4 +50,8 @@
     text-overflow: ellipsis;
     flex-basis: 100%;
     max-width: 200px;
+}
+.user-link.read-only
+{
+    pointer-events: none;
 }

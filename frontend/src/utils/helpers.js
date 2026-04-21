@@ -1,19 +1,22 @@
 export function addFetchedPostsToExcludes(posts, previous)
 {
+    console.log("afpte: posts, previous", posts, previous);
     const excludes = previous;
     posts.forEach((post) =>
     {
+        console.log("post?", post);
         excludes.push(post.id); 
     })
     return excludes;
 }
 export function getPostsFetchParams(amount, category, fetchOrder, 
-    fetchIndexRef=null, fetchExcludesRef=null, userId=null, username=null)
+    fetchIndexRef=null, fetchExcludesRef=null, userId=null, username=null, searchTerm="")
 {
     const params = new URLSearchParams();     
     params.append('amount', amount);
     params.append('fetch_order', fetchOrder); 
     params.append('category', category);
+    params.append('search_term', searchTerm);
 
     if(fetchOrder == FetchOrder.Random)
     {
@@ -47,25 +50,27 @@ export function scrollToElement (currentUrl, id, replaceState=true)
 
 export function getDateAsYYYYMMDD(dateTimeString)
 {
-    const commentDate = new Date(dateTimeString);
+    const dateObj = new Date(dateTimeString);
 
-    const year = commentDate.getFullYear();
-    const month = (commentDate.getMonth() + 1).toString().padStart(2, '0'); 
-    const day = commentDate.getDate().toString().padStart(2, '0');    
+    const offsetDate = new Intl.DateTimeFormat('en-CA', { // 'en-CA' uses YYYY-MM-DD format!
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        }).format(dateObj);  
 
-    const formattedDate = `${year}-${month}-${day}`;   
-    return formattedDate;
+    return offsetDate
 }
 export function getTimeAsHHMM(dateTimeString)
 {
-    const date = new Date(dateTimeString);
+    const dateObj = new Date(dateTimeString);
 
     // toLocaleTimeString respects the user's local time zone automatically
-    const timeString = date.toLocaleTimeString([], {
+    const timeString = new Intl.DateTimeFormat('en-CA', {
         hour: '2-digit',
         minute: '2-digit',
         //hour12: false // 24-hour (military) format
-    });
+    }).format(dateObj); 
+    
     return timeString.replace(' AM', 'am').replace(' PM', 'pm');
 }
 function blobToBase64(blob) 
@@ -203,7 +208,7 @@ export async function processQuillImages(deltaOps)
                         return { type: 'error', data: imageUrl };
                     });
                 imagePromises.push(imagePromise);
-                processedOps.push({ insert: { image: 'IMAGE_PLACEHOLDER_' + (imagePromises.length - 1) } });
+                processedOps.push({ ...op, insert: { image: 'IMAGE_PLACEHOLDER_' + (imagePromises.length - 1) } });
             } 
             else 
             {
@@ -237,6 +242,8 @@ export async function processQuillImages(deltaOps)
             }
         }
     }
+
+    console.log(deltaOps, "processing to:", processedOps);
 
     return processedOps;
 }
@@ -542,6 +549,13 @@ export function openPopup(url, windowName, left, top, width, height)
     return window.open(url, windowName, features);
 }
 
+export const MemberType = 
+{
+    Standard: 'standard',
+    Pro: 'pro',
+    Admin: 'admin',
+    Webmaster: 'web_master'
+}
 export const ScreenSize = 
 {
     Nothing: 0,

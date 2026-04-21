@@ -30,7 +30,13 @@ function saveEditorImages($contentArray, &$oldImgArr, $folderPath)
         return $op->insert->image;
     }, $contentWithImg);
 
-    $contentImgs = array_values($contentImgs);
+    //$contentImgs = array_values($contentImgs);
+    $contentImgs = array_map(function($op) 
+    {
+        $imgData = $op->insert->image;
+        // If it's an object, get the 'image' property; otherwise use it as is
+        return is_object($imgData) ? $imgData->image : $imgData;
+    }, $contentWithImg);
 
     foreach($oldImgArr as $i => $oldImg)
     {  
@@ -39,6 +45,7 @@ function saveEditorImages($contentArray, &$oldImgArr, $folderPath)
 
         //Log::info("old image: $oldImgAbsPath");
         //Log::info("contentImgs", $contentImgs);
+        Log::info("looking for $relativePath:", $contentImgs);
         $isFound = array_search($relativePath, $contentImgs) !== false;
         if(!$isFound)
         {
@@ -56,19 +63,25 @@ function saveEditorImages($contentArray, &$oldImgArr, $folderPath)
     {
         if (isset($op->insert->image)) 
         {
-            $imageData = $op->insert->image;
+            $imageValue = $op->insert->image;
             
-            if (preg_match($pattern, $imageData, $matches)) 
+            // Determine if it's a string or object
+            $currentPath = is_object($imageValue) ? ($imageValue->image ?? '') : $imageValue;
+            Log::info("checking if string: $currentPath");
+            if (is_string($currentPath) && preg_match($pattern, $currentPath, $matches)) 
             {
-                $imageType = $matches[1];
-                $imageBase64 = $matches[2];
-                $image = base64_decode($imageBase64);
-                $imageName = uniqid() . '.' . $imageType;
-                $path = "images/uploaded/$folderPath/$imageName";         
-                Log::info("saving to " . $path);
-                Storage::disk('public')->put($path, $image);
-                //$op->insert->image = asset('storage/' . $path);
-                $op->insert->image = $path;
+                $cleanFolder = trim($folderPath, '/');
+                $imageName = uniqid() . '.' . $matches[1];
+                $relativePath = "images/uploaded/$cleanFolder/$imageName";
+                
+                Log::info("making imageName: $relativePath");
+
+                Storage::disk('public')->put($relativePath, base64_decode($matches[2]));
+
+                // FORCE it back to a string. 
+                // This fixes the "Missing URL" issue in your console.
+                $op->insert->image = $relativePath;
+                
                 array_push($oldImgArr, $imageName);
             }
         }
@@ -89,7 +102,7 @@ function saveAvatarImage($file, $userName)
     $small->scaleDown(height: avatarSmall());
 
     // Save the resized image to the public disk
-    $imageRoot = "images/uploaded/$userName/avatar/";
+    $imageRoot = "images/uploaded/users/$userName/avatar/";
     Storage::disk('public')->put($imageRoot . 'thumb/' . $imageName, (string) $thumb->encode());
     Storage::disk('public')->put($imageRoot . 'small/' . $imageName, (string) $small->encode());
 
@@ -122,7 +135,7 @@ function storeImageFile($file, $folder)
 }
 function deleteAvatar($imageName, $userName)
 {
-    $imageRoot = "images/uploaded/$userName/avatar/";   
+    $imageRoot = "images/uploaded/users/$userName/avatar/";   
     Storage::disk('public')->delete($imageRoot . 'thumb/' . $imageName);
     Storage::disk('public')->delete($imageRoot . 'small/' . $imageName);
 }
