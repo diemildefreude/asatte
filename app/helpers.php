@@ -15,7 +15,81 @@ function addHttpProtocol(string $url): string
 
     return $url;
 }
-function saveEditorImages($contentArray, &$oldImgArr, $folderPath)
+
+/**
+ * Processes HTML content to save Base64 images and delete removed ones.
+ * * @param string $contentHtml The raw HTML string from TinyMCE.
+ * @param array $oldImgArr Reference to the array of filenames currently on disk.
+ * @param string $folderPath The subfolder name within images/uploaded/.
+ * @return string The updated HTML with Base64 replaced by relative paths.
+ */
+function saveEditorImages(string $contentHtml, array &$oldImgArr, string $folderPath)
+{
+    $newImgArr = [];
+    $cleanFolder = trim($folderPath, '/');
+    $storageBase = "images/uploaded/$cleanFolder";
+
+    // 1. IDENTIFY EXISTING IMAGES
+    // We look for filenames currently in the HTML that match our storage pattern.
+    // Pattern matches: src="images/uploaded/folder/filename.ext"
+    $quotedPath = preg_quote($storageBase, '/');
+    $patternExisting = '/src="' . $quotedPath . '\/([^"]+)"/i';
+    
+    preg_match_all($patternExisting, $contentHtml, $matchesExisting);
+    $currentImagesInHtml = $matchesExisting[1]; // e.g., ["65f123.jpg", "65f456.png"]
+
+    // 2. CLEANUP: Delete files from disk that were removed in the editor
+    foreach ($oldImgArr as $oldImg) 
+    {
+        Log::info($contentHtml);
+        Log::info("$oldImg found?", $matchesExisting);//$currentImagesInHtml);
+        if (!in_array($oldImg, $currentImagesInHtml)) 
+        {
+            $pathToDelete = "$storageBase/$oldImg";
+            if (Storage::disk('public')->exists($pathToDelete)) 
+            {
+                Storage::disk('public')->delete($pathToDelete);
+                Log::info("Deleted removed image: $pathToDelete");
+            }
+        } 
+        else 
+        {
+            // If it's still in the HTML, keep it in our tracking array
+            $newImgArr[] = $oldImg;
+        }
+    }
+
+    // 3. STORAGE: Process new Base64 images
+    // Pattern matches: src="data:image/png;base64,iVBORw..."
+    $patternBase64 = '/src="data:image\/([a-zA-Z]*);base64,([^"]*)"/i';
+
+    $contentHtml = preg_replace_callback($patternBase64, function($matches) use ($storageBase, &$newImgArr) {
+        $extension = $matches[1];
+        $base64Data = $matches[2];
+
+        // Generate a unique filename
+        $imageName = uniqid() . '.' . $extension;
+        $relativePath = "$storageBase/$imageName";
+
+        Log::info("Saving new Base64 image: $relativePath");
+
+        // Save to the public disk
+        Storage::disk('public')->put($relativePath, base64_decode($base64Data));
+
+        // Add the new filename to our tracking array
+        $newImgArr[] = $imageName;
+
+        // Replace the Base64 string with the new relative path in the HTML
+        return 'src="' . $relativePath . '"';
+    }, $contentHtml);
+
+    // Update the reference variable for the parent record
+    $oldImgArr = $newImgArr;
+
+    return $contentHtml;
+}
+
+function saveEditorImagesFromDelta($contentArray, &$oldImgArr, $folderPath)
 {    
     //$contentArray = json_decode($contentJson);
 

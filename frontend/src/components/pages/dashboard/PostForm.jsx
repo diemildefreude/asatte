@@ -6,9 +6,10 @@ import CheckboxField from "../../common/CheckboxField";
 import RichTextEditor from "../../common/RichTextEditor";
 import VideoIframe from "../../common/VideoIframe";
 import ImageField from "./ImageField";
-import { addImageDragListeners, getErrorMessage, getImageFilesFromInput, 
-    getImageUrlFromFile, getVideoEmbedUrl, isAlphaDash, isUrl, 
-    processQuillImages, resizeImage } from "../../../utils/helpers";
+import { addImageDragListeners, Category, dehydrateEditorImagePaths, getErrorMessage, getImageFilesFromInput, 
+    getImageUrlFromFile, getVideoEmbedUrl, hydrateEditorImagePaths, isAlphaDash, isUrl, 
+    MemberType, 
+    processEditorImages, resizeImage } from "../../../utils/helpers";
 import "../DashboardProfile.css";
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -53,7 +54,7 @@ function hasImages(fields)
     return hasImg;
 }
 
-function PostForm({isCreateForm=true, post=null, user})
+function PostForm({isCreateForm=true, post=null, user, category=Category.Archive})
 {
     const navigate = useNavigate();
     const { createPost, updatePost, deletePost } = useAuth();
@@ -63,13 +64,15 @@ function PostForm({isCreateForm=true, post=null, user})
 
     const [title, setTitle] = useState("");
     const [isPrivate, setIsPrivate] = useState(false);
+    const [isNews, setIsNews] = useState(category == Category.News);
     const [postUrl, setPostUrl] = useState("");
     const [subtitle, setSubtitle] = useState("");
     const [website, setWebsite] = useState("");
     const [sourceCode, setSourceCode] = useState("");
     const [mainVideoRawUrl, setMainVideoRawUrl] = useState("");
     const [mainVideo, setMainVideo] = useState("");
-    const [statement, setStatement] = useState([]);    
+    const [statement, setStatement] = useState(null);
+    const [initialStatement, setInitialStatement] = useState(null);    
 
     const [isTitleValid, setIsTitleValid] = useState(false);
     const [isPostUrlValid, setIsPostUrlValid] = useState(false);
@@ -103,6 +106,7 @@ function PostForm({isCreateForm=true, post=null, user})
         setIsTitleValid(true);
         //console.log("private?!", post.is_private);
         setIsPrivate(post.is_private);
+        setIsNews(post.is_news);
         setPostUrl(post.post_url);
         setIsPostUrlValid(true);
         setSubtitle(post.subtitle);
@@ -122,7 +126,9 @@ function PostForm({isCreateForm=true, post=null, user})
             setMainVideo(post.main_video);
             setIsMainVideoValid(true);
         }
-        setStatement(post.statement);
+        const hydratedStatement = hydrateEditorImagePaths(post.statement);
+        setStatement(hydratedStatement);
+        setInitialStatement(hydratedStatement);
         setImageFields(createInitialImageFields(post, user, post.post_url))
         setHasChanged(false);   
     },[post, setTitle, setIsPrivate, setPostUrl, setSubtitle, setWebsite, 
@@ -149,21 +155,21 @@ function PostForm({isCreateForm=true, post=null, user})
             resizedGalleryImages.push(newField);
         };
         //RESIZE STATEMENT IMAGES
-        const statementWithResizedImages = await processQuillImages(statement);
-        const statementJson = JSON.stringify(statementWithResizedImages);
+        const dehydratedStatement = dehydrateEditorImagePaths(statement);
+        const statementWithResizedImages = await processEditorImages(dehydratedStatement);
         try
         {
             const message = isCreateForm ? 'Post successfully created.' : 'Post successfully updated.';
             if(isCreateForm)
             {
                 await createPost(postUrl, title, subtitle, website, sourceCode, mainVideo, 
-                    isPrivate, statementJson, resizedGalleryImages);
+                    isPrivate, statementWithResizedImages, resizedGalleryImages, isNews);
                 setSuccess('Post successfully created.');
             }
             else
             {
                 await updatePost(post.id, postUrl, title, subtitle, website, sourceCode,
-                    mainVideo, isPrivate, statementJson, resizedGalleryImages);                
+                    mainVideo, isPrivate, statementWithResizedImages, resizedGalleryImages, isNews);                
                 setSuccess('Post successfully updated.');
             }
             navigate('/dashboard/posts', { state:{message:message}});
@@ -176,9 +182,10 @@ function PostForm({isCreateForm=true, post=null, user})
         }
         finally
         {
+            setHasChanged(false);
             setIsSubmitting(false);
         }
-    },[setSuccess, setError, imageFields, isCreateForm, post, postUrl, 
+    },[setSuccess, setError, imageFields, isNews, isCreateForm, post, postUrl, 
         title, subtitle, website, mainVideo, isPrivate, statement, 
         setIsSubmitting, createPost, updatePost]);
 
@@ -527,13 +534,22 @@ function PostForm({isCreateForm=true, post=null, user})
                             disabled={isSubmitting}
                             value={isPrivate}
                         />   
+                        {
+                            (user.member_type == MemberType.Webmaster) && (
+                            <CheckboxField name="is-news"
+                                label="is news"
+                                onChange={(e) => {setHasChanged(true); setIsNews(e.target.checked)}}
+                                disabled={isSubmitting}
+                                value={isNews}
+                            />   )
+                        }
                         <div className="rte-container">
                             <div className="centered-content">
                                 <h3>artist statement</h3>
                             </div>
                             <RichTextEditor placeholder="description of the work"
-                                readOnly={isSubmitting}
-                                onChange={(newStatement) => {setHasChanged(true); setStatement(newStatement)}}
+                                isReadOnly={isSubmitting}
+                                onChange={(newStatement) => {setStatement(newStatement); setHasChanged(newStatement != initialStatement);}}
                                 value={statement}
                             />
                         </div>

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import DashboardTab from "../../common/DashboardTab";
 import { useAuth } from "../../../contexts/AuthContext";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { getErrorMessage } from '../../../utils/helpers';
+import { getErrorMessage, MemberType } from '../../../utils/helpers';
 
 function DashboardLayout({ currentTab, headerText, children })
 {
@@ -194,7 +194,7 @@ function DashboardLayout({ currentTab, headerText, children })
             </div>
             )}
             {success && (
-            <div className="notice centered-content">
+            <div className="notice">
                 {success}
             </div>
             )}           
@@ -206,12 +206,15 @@ function DashboardLayout({ currentTab, headerText, children })
                         targetPath="/dashboard/profile"
                         currentTab={currentTab}
                     />
-                    <DashboardTab 
-                        tabName="post"
-                        iconClasses="fa-regular fa-square-plus"
-                        targetPath="/dashboard/new-post"
-                        currentTab={currentTab}
-                    />
+                    {
+                        (user.member_type == MemberType.Webmaster) && (
+                        <DashboardTab 
+                            tabName="news"
+                            iconClasses="fa-regular fa-newspaper"
+                            targetPath="/dashboard/news-posts"
+                            currentTab={currentTab}
+                        />)
+                    }
                     <DashboardTab 
                         tabName="posts"
                         iconClasses="fa-solid fa-images"
@@ -232,9 +235,13 @@ function DashboardLayout({ currentTab, headerText, children })
                     />    
                 </div>                        
                 <div className="heading-profile-container">
-                <div className="centered-content">
-                    <h2>{headerText}</h2>   
-                </div>
+                {
+                    headerText && (    
+                        <div className="centered-content no-margin">
+                            <h2>{headerText}</h2>   
+                        </div>
+                    )
+                }
                 { children}
                 </div>
             </div>

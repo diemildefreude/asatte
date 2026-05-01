@@ -4,6 +4,7 @@ import PostForm from "./PostForm"
 import { useAuth } from "../../../contexts/AuthContext"
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import HiddenPostNotice from "../../common/HiddenPostNotice";
 
 function EditPost()
 {
@@ -26,6 +27,11 @@ function EditPost()
                 currentTab=""
                 headerText="edit post"
             >
+                {
+                    post?.is_hidden_by_admin && (                
+                    <HiddenPostNotice classes="no-margin"/>
+                    )
+                }
                 <PostForm
                     isCreateForm={false}
                     user={user}

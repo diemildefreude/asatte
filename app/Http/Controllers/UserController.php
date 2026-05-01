@@ -62,7 +62,7 @@ class UserController extends Controller
         $totalCount = $query->count();
         $following = $query
         ->slice($itemsPerPage * $currentPage, $itemsPerPage);
-        Log::info("$user->id is following", $following->toArray());
+        //Log::info("$user->id is following", $following->toArray());
         return response()->json([
             "users" => $following->values(),
             "total" => $totalCount], 200);

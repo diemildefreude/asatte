@@ -1,17 +1,18 @@
     import React, { useCallback, useEffect, useMemo, useState } from 'react';
     import { useParams, useNavigate } from 'react-router-dom';
-    import { getDateAsYYYYMMDD, getErrorMessage, openPopup } from '../../utils/helpers';
+    import { getDateAsYYYYMMDD, getErrorMessage, hydrateEditorImagePaths, MemberType, openPopup, processEditorImages } from '../../utils/helpers';
     import { useAuth } from '../../contexts/AuthContext';
     import Layout from '../layout/Layout';
     import './Post.css';
     import '../common/Tile.css';
     import './DashboardProfile.css';
     import UserLink from '../common/UserLink';
-    import RichTextEditor from '../common/RichTextEditor';
     import ImageCarousel from '../common/ImageCarousel';
     import TileCarousel from '../common/TileCarousel';
     import CommentSection from '../common/CommentSection';
     import VideoIframe from '../common/VideoIframe';
+    import HiddenPostNotice from '../common/HiddenPostNotice';
+    import RichTextEditor from '../common/RichTextEditor';
     const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
     function Post()
@@ -20,8 +21,19 @@
         const [post, setPost] = useState(null);
         const [isLiked, setIsLiked] = useState(false);
         const [likeCount, setLikeCount] = useState(0);
-        const {fetchSinglePost, toggleLike, recordView, isAuthenticated } = useAuth();
+        
+        const [adminMessageIsVisible, setAdminMessageIsVisible] = useState(false);
+        const [adminMessage, setAdminMessage] = useState("");
+        const [isSubmitting, setIsSubmitting] = useState(false);
+        const [success, setSuccess] = useState("");
+        const [error, setError] = useState("");
+
+        const {fetchSinglePost, toggleLike, toggleAdminPostHide,
+            recordView, isAuthenticated, user } = useAuth();
         const navigate = useNavigate();
+
+        const isAdmin = (user?.member_type == MemberType.Webmaster 
+                            || user?.member_type == MemberType.Admin);
         
         useEffect(() =>
         {
@@ -99,13 +111,67 @@
             });
         },[post, isLiked, setIsLiked, likeCount, setLikeCount]);
 
+        const handleHideSubmit = useCallback(async (e, hide) =>
+        {
+            e.preventDefault();
+            setSuccess("");
+            setError("");
+            if(!hide)
+            {
+                const isConfirmed = window.confirm("Make post visible?");
+                if(!isConfirmed)
+                {
+                    return;
+                }
+            }
+            try
+            {
+                setIsSubmitting(true);
+                const messageWithProcessedPhotos = await processEditorImages(adminMessage);
+                const data = await toggleAdminPostHide(hide, post.id, messageWithProcessedPhotos);
+                setAdminMessage("");
+                setSuccess(data.message);
+                setAdminMessageIsVisible(false);
+                setPost(data.post);
+            }
+            catch(err)
+            {
+                const msg = getErrorMessage(err);
+                setError(msg);
+            }
+            finally
+            {
+                setIsSubmitting(false);
+            }
+        },[adminMessage, post]);
+
+        const handleHideClick = useCallback(() =>
+        {
+            const adminStarterText = `<p>Your post, <a href="/${post.user.username}/${post.post_url}"><em>${post.title}</em></a> has been hidden.</p>
+            <p> reason: </p>    
+            <p> If you wish to dispute this decision, please reply to this message.</p>
+            `;
+            setAdminMessage(adminStarterText);
+            setAdminMessageIsVisible(true); 
+            setSuccess(""); 
+            setError("");
+        },[post]);
+
         return (
         <Layout>
             <div className="post">       
             { 
                 post ? (
-                <>                    
+                <>    
                     <div className="image-info-statement-container">
+                        {
+                            post.is_hidden_by_admin && (                
+                            <HiddenPostNotice 
+                                classes="top-3rem"
+                                isAdmin={true}
+                            />
+                            )
+                        }
                         <div className="image-info-container">
                             <div className="main-image-container">
                                 <div className="image-link-subcontainer">
@@ -152,7 +218,7 @@
                             </div>
                             <div className="page-section main-info-container top-version">
                                 <div className="main-info-box">
-                                    <div><h2>{post.title}</h2></div>
+                                    <div className='centered-content'><h1>{post.title}</h1></div>
                                         <div><p><em>{post.subtitle}</em></p></div>   
                                         <div><p className="post-date"> posted by <UserLink user={post.user}/> <em>on {getDateAsYYYYMMDD(post.created_at)}</em></p></div> 
                                         {
@@ -167,7 +233,7 @@
                         <div className="main-info-statement-container">
                             <div className="page-section main-info-container sticky-version">
                                 <div className="main-info-box">
-                                    <div><h2>{post.title}</h2></div>
+                                    <div><h1>{post.title}</h1></div>
                                     <div><p><em>{post.subtitle}</em></p></div>   
                                     <div><p className="post-date"> posted by <UserLink user={post.user}/> on 2025.5.12</p></div>    
                                     {
@@ -179,10 +245,9 @@
                                 </div>
                             </div>
                             <div className="page-section statement rte-container">
-                                <RichTextEditor
-                                    readOnly={true}
-                                    value={post.statement}  
-                                    key={post.id}                              />
+                                <div
+                                    dangerouslySetInnerHTML={{ __html: hydrateEditorImagePaths(post.statement)}}
+                                />
                             </div>
                         </div>
                     </div>     
@@ -199,6 +264,69 @@
                     <div className="page-section comment-section">
                         <CommentSection post={post} likeCount={likeCount}/>
                     </div>
+                    {
+                        isAdmin &&
+                        (<>
+                            <h3 className='centered-content'>admin:</h3>
+                            {<>
+                                {error && (
+                                <div className="error">
+                                    {error}
+                                </div>
+                                )}
+                                {success && (
+                                <div className="notice">
+                                    {success}
+                                </div>
+                                )}
+                                {post.is_hidden_by_admin ? (
+                                    <div className="centered-content">
+                                        <button 
+                                            onClick={(e) => handleHideSubmit(e, false)}
+                                            className='red-button'
+                                        >
+                                            show post
+                                        </button>                                        
+                                    </div> 
+                                ):(
+                                    <div className="centered-content">
+                                        {          
+                                            !adminMessageIsVisible ? (                                  
+                                            <button className='red-button'
+                                                onClick={handleHideClick}
+                                            >
+                                                hide post
+                                            </button>):(<form onSubmit={(e) => handleHideSubmit(e, true)}>
+                                                <div className='notice'>
+                                                    <em>Let the user know why you're hiding their post.</em>
+                                                </div>
+                                                <RichTextEditor
+                                                    placeholder="Let the user know why you're hiding their post."
+                                                    readOnly={isSubmitting}
+                                                    onChange={(m) => setAdminMessage(m)}
+                                                    value={adminMessage}
+                                                />
+                                                <div className="horizontal-buttons-container">
+                                                    <button 
+                                                        className='red-button'
+                                                        type='submit'
+                                                    >
+                                                        confirm
+                                                    </button>
+                                                    <button onClick={() => setAdminMessageIsVisible(false)}>
+                                                        cancel
+                                                    </button>
+                                                </div>
+                                            </form>)
+                                        }
+                                    </div> 
+                                )}
+                            </>}
+                        </>)
+                    }
+                    
+                    
+                    
                     <div className="page-section carousel">                        
                         <TileCarousel 
                             size="small" 
@@ -207,7 +335,7 @@
                             excludePostId={post.id}
                             key={post.user.id}
                         />
-                    </div> 
+                    </div>                    
                 </>
             ) :
             (

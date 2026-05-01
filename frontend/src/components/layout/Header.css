@@ -180,7 +180,8 @@ nav.open
         top: 0;
         left: -70px; */
     }
-    .nav-search-container:hover .nav-search
+    .nav-search-container:hover .nav-search,
+    .nav-search-container.always-open .nav-search
     {
         display: block;
     }

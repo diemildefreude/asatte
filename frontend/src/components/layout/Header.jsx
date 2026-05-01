@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './Header.css';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import UserLink from '../common/UserLink';
 import { getErrorMessage } from '../../utils/helpers';
@@ -19,13 +19,27 @@ function Header()
     const scrollDeltaThreshold = 5;
     const navigate = useNavigate();
     const location = useLocation();
+    const [searchParams] = useSearchParams();
+    const currentSearchTerm = searchParams.get('q')
     const [searchTerm, setSearchTerm] = useState("");
+    const isSearchPage = location.pathname == "/search";
+    let searchClasses = 'nav-item nav-search-container'
+    searchClasses = isSearchPage ? searchClasses + ' always-open' : searchClasses;
     //const [isSearching, setIsSearching] = useState(false);
 
     const toggleMenu = () =>
     {
         setIsNavOpen(prev => !prev);
     }
+
+    useEffect(() =>
+    {
+        const currentPath = location.pathname;
+        if(currentPath == "/search" && currentSearchTerm)
+        {
+            setSearchTerm(currentSearchTerm);
+        }
+    },[]);
 
     useEffect(() =>
     {
@@ -130,7 +144,7 @@ function Header()
                 <div className="nav-half first">
                     <form
                         onSubmit={handleSearch} 
-                        className='nav-item nav-search-container'>
+                        className={searchClasses}>
                         <input id="search" name="search" className="nav-search" type="text" placeholder=" search" 
                             onChange={e => setSearchTerm(e.target.value)} value={searchTerm}
                         />
@@ -138,8 +152,8 @@ function Header()
                             <i className="fa-solid fa-magnifying-glass"></i>
                         </button>
                     </form>
-                    <Link to={`/`} className="nav-item">home</Link>
-                    <a className="nav-item" href="#">news</a>
+                    <Link to="/" className="nav-item">home</Link>
+                    <Link to="/news" className="nav-item">news</Link>
                 </div>
                 <div className="nav-half second">
                     <a className="nav-item" href="#">contact</a>

@@ -403,7 +403,7 @@ export const AuthProvider = ({ children }) =>
       }
   };
 
-  const createPost = async ( postUrl, title, subtitle, website, sourceCode, mainVideo, isPrivate, statement, imageFields) =>
+  const createPost = async ( postUrl, title, subtitle, website, sourceCode, mainVideo, isPrivate, statement, imageFields, isNews=false) =>
   {
     try
     {
@@ -418,6 +418,10 @@ export const AuthProvider = ({ children }) =>
       if(isPrivate)
       {
         formData.append('is_private', isPrivate);
+      }
+      if(isNews)
+      {
+        formData.append('is_news', isNews);
       }
       formData.append('statement', statement);
       
@@ -452,7 +456,7 @@ export const AuthProvider = ({ children }) =>
     }
   }
 
-  const updatePost = async ( postId, postUrl, title, subtitle, website, sourceCode, mainVideo, isPrivate, statement, imageFields) =>
+  const updatePost = async ( postId, postUrl, title, subtitle, website, sourceCode, mainVideo, isPrivate, statement, imageFields, isNews=false) =>
   {
     console.log(imageFields);
     try
@@ -469,6 +473,10 @@ export const AuthProvider = ({ children }) =>
       if(isPrivate)
       {
         formData.append('is_private', isPrivate);
+      }
+      if(isNews)
+      {
+        formData.append('is_news', isNews);
       }
       formData.append('statement', statement);
 
@@ -867,6 +875,31 @@ export const AuthProvider = ({ children }) =>
       setIsLoading(false);
     }
   }
+  const toggleAdminPostHide = async (isHidden, postId, message="") =>
+  {
+    try
+    {
+      setIsLoading(true);
+      const formData = new FormData();
+      formData.append('is_hidden_by_admin', isHidden);
+      if(isHidden && message)
+      {
+        formData.append('message_to_user', message);
+      }
+      formData.append('_method', 'PUT');
+      const response = await api.post(`/set-admin-hide/${postId}`, formData);
+      return response.data;
+    }
+    catch(err)
+    {
+      throw err;
+    }
+    finally
+    {
+      setIsLoading(false);
+    }
+  }
+
   const createDM = async (conversationID=null, content, parentID=null, recipients=null, subject="") =>
   {
     console.log("sending DM api post call");
@@ -991,7 +1024,8 @@ export const AuthProvider = ({ children }) =>
       recordView, createComment, fetchUserComments, updateComment, deleteComment,
       fetchLikedPosts, fetchNotifications, getUnreadStatus, toggleFollow,
       fetchFollowing, fetchFollowers, userSearch, createDM, updateDM, deleteDM,
-      fetchConversation, fetchConversations, searchPosts, updateAbout, fetchAbout}}>
+      fetchConversation, fetchConversations, searchPosts, updateAbout, fetchAbout,
+      toggleAdminPostHide}}>
       {children}
     </AuthContext.Provider>
   );

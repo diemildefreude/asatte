@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import RichTextEditor from '../../common/RichTextEditor';
 import EditButton from '../../common/EditButton';
 import { useAuth } from '../../../contexts/AuthContext';
-import { getErrorMessage, getImageUrlsFromDelta, processQuillImages } from '../../../utils/helpers';
+import { dehydrateEditorImagePaths, getErrorMessage, getImageUrlsFromDelta, hydrateEditorImagePaths, processEditorImages } from '../../../utils/helpers';
 
 function EditBio()
 {
@@ -10,6 +10,7 @@ function EditBio()
     const [isInEditMode, setIsInEditMode] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [bio, setBio] = useState(null);
+    const [initialBio, setInitialBio] = useState(null);
     const [hasBioChanged, setHasBioChanged] = useState(false);
     const [success, setSuccess] = useState("");
     const [error, setError] = useState("");
@@ -17,33 +18,33 @@ function EditBio()
     useEffect(() =>
     {        
         //const bioParsed = JSON.parse(user.bio);
-        setBio(user.bio);
-        console.log("bio", user.bio);
+        const hydratedBio = hydrateEditorImagePaths(user.bio);
+        setBio(hydratedBio);
+        setInitialBio(hydratedBio);
+        //console.log("bio", user.bio);
     },[user]);
     
-    const handleBioChange = (newBio) =>
+    const handleBioChange = useCallback((newBio) =>
     {
         setBio(newBio);
-        setHasBioChanged(true);
-    }
+        setHasBioChanged(initialBio != newBio);
+    },[initialBio]);
 
     const handleBioSubmit = async (e) =>
     {
         e.preventDefault();
         setError('');
-        setSuccess('');
-        let bioJson = JSON.stringify(bio);
-        if(bioJson === user.bio)
-        {
-            setError('No changes to submit');
-            return;
-        }
+        setSuccess('');        
         setIsSubmitting(true);
-        const bioWithResizedImages = await processQuillImages(bio);
-        bioJson = JSON.stringify(bioWithResizedImages);
+        const dehydratedBio = dehydrateEditorImagePaths(bio);
+        const bioWithResizedImages = await processEditorImages(dehydratedBio);
+        //bioJson = JSON.stringify(bioWithResizedImages);
         try
         {
-            await updateBio(bioJson);
+            const data = await updateBio(bioWithResizedImages);
+            const hydratedBio = hydrateEditorImagePaths(data.bio);
+            setInitialBio(hydratedBio);
+            setBio(hydratedBio);
             setSuccess(`Bio successfully updated.`); 
             setHasBioChanged(false);  
             setIsInEditMode(false);
@@ -75,8 +76,8 @@ function EditBio()
                         </button>
                     </div>)
                 }
-                <div className="centered-item">
-                    <h3>bio</h3>                    
+                <div className="centered-content">
+                    <h2>bio</h2>                    
                 </div>
                 <div className="right-item">
                     {!isInEditMode && (
@@ -95,12 +96,19 @@ function EditBio()
                 {success}
             </div>
             )}
+            {
+            isInEditMode ? (
             <RichTextEditor
-                readOnly={!isInEditMode || isSubmitting}
+                isReadOnly={!isInEditMode || isSubmitting}
                 onChange={handleBioChange}
                 value={bio}
-            />                
-            
+            />):(
+            <div
+                className='padded article-text'
+                dangerouslySetInnerHTML={{ __html: bio }}
+            />
+            )                
+            }
         </div>
     );
 }

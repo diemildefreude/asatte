@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import { getErrorMessage } from "../../../utils/helpers";
 import LoadItems from "../../common/LoadItems";
 import ConversationPreview from "./common/ConversationPreview";
+import DashboardCreateHeader from "./common/DashboardCreateHeader";
 const FETCH_AMOUNT = 10;
 
 function Mail()
@@ -40,19 +41,17 @@ function Mail()
 
     return ( 
     <Layout>
-        <DashboardLayout currentTab="mail" headerText="mailbox">
+        <DashboardLayout currentTab="mail">
             {
                 error && (<div className="error">{error}</div>)
             }
             {                
                 user && user.is_email_verified ?
                 (<>
-                    <Link 
-                        to="/dashboard/mail/new" 
-                        className="link-button"
-                    >
-                        new conversation
-                    </Link>
+                    <DashboardCreateHeader
+                        headerText="mailbox"
+                        createLink="/dashboard/mail/new"
+                    />
                     <LoadItems
                         fetchMethod={async (page) => await fetchConversations(FETCH_AMOUNT, page)}
                         renderMethod={(item) =>({

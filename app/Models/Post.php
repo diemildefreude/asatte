@@ -19,6 +19,8 @@ class Post extends Model
         'source_code',
         'main_video',
         'is_private',
+        'is_hidden_by_admin',
+        'is_news',
         'gallery_image_urls',
         'gallery_alts',
         'statement',
@@ -27,9 +29,10 @@ class Post extends Model
 
     protected $casts = 
     [
+        'is_hidden_by_admin' => 'bool',
         'gallery_image_urls' => 'array',
         'gallery_alts' => 'array',
-        'statement' => 'array',
+        // 'statement' => 'array',
         'statement_image_urls' => 'array',
     ];
     protected $appends = ['have_liked', 'users_who_liked_count'];

@@ -1,3 +1,5 @@
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+
 export function addFetchedPostsToExcludes(posts, previous)
 {
     console.log("afpte: posts, previous", posts, previous);
@@ -184,68 +186,140 @@ export function resizeImage(source)
     }
 }
 
-export async function processQuillImages(deltaOps) 
+// export async function processQuillImages(deltaOps) 
+// {
+//     const processedOps = [];
+//     const imagePromises = [];
+
+//     // First, identify all images and start the async processing
+//     for (const op of deltaOps) 
+//     {
+//         if (op.insert && typeof op.insert.image === 'string') 
+//         {
+//             const imageUrl = op.insert.image;
+//             if (imageUrl.startsWith('data:image/')) //is a new image blob
+//             {
+//                 const imagePromise = resizeImage(imageUrl)
+//                     .then(blob => 
+//                     {
+//                         return { type: 'blob', data: blob };
+//                     })
+//                     .catch(error => 
+//                     {
+//                         console.error('Error resizing image:', error);
+//                         return { type: 'error', data: imageUrl };
+//                     });
+//                 imagePromises.push(imagePromise);
+//                 processedOps.push({ ...op, insert: { image: 'IMAGE_PLACEHOLDER_' + (imagePromises.length - 1) } });
+//             } 
+//             else 
+//             {
+//                 // It's an existing URL, just keep it as is.
+//                 processedOps.push(op);
+//             }
+//         } else {
+//             // Not an image, just add it to the new array.
+//             processedOps.push(op);
+//         }
+//     }
+
+//     // Await all image resizing promises
+//     const processedImages = await Promise.all(imagePromises);
+
+//     // Replace the placeholders with the actual processed image data
+//     for (let i = 0; i < processedOps.length; i++) 
+//     {
+//         const op = processedOps[i];
+//         if (op.insert && typeof op.insert.image === 'string' && op.insert.image.startsWith('IMAGE_PLACEHOLDER_')) 
+//         {
+//             const index = parseInt(op.insert.image.split('_')[2], 10);
+//             const imageData = processedImages[index];
+//             if (imageData.type === 'blob') 
+//             {
+//                 op.insert.image = await blobToBase64(imageData.data);
+//             } 
+//             else if (imageData.type === 'error') 
+//             {
+//                 op.insert.image = imageData.data; // Keep original URL
+//             }
+//         }
+//     }
+
+//     console.log(deltaOps, "processing to:", processedOps);
+
+//     return processedOps;
+// }
+export function dehydrateEditorImagePaths(htmlString) 
 {
-    const processedOps = [];
-    const imagePromises = [];
+    const STORAGE_BASE_URL = `${BACKEND_URL.replace(/\/$/, '')}/storage`;
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlString, 'text/html');
+    const images = doc.querySelectorAll('img');
 
-    // First, identify all images and start the async processing
-    for (const op of deltaOps) 
-    {
-        if (op.insert && typeof op.insert.image === 'string') 
-        {
-            const imageUrl = op.insert.image;
-            if (imageUrl.startsWith('data:image/')) //is a new image blob
-            {
-                const imagePromise = resizeImage(imageUrl)
-                    .then(blob => 
-                    {
-                        return { type: 'blob', data: blob };
-                    })
-                    .catch(error => 
-                    {
-                        console.error('Error resizing image:', error);
-                        return { type: 'error', data: imageUrl };
-                    });
-                imagePromises.push(imagePromise);
-                processedOps.push({ ...op, insert: { image: 'IMAGE_PLACEHOLDER_' + (imagePromises.length - 1) } });
-            } 
-            else 
-            {
-                // It's an existing URL, just keep it as is.
-                processedOps.push(op);
-            }
-        } else {
-            // Not an image, just add it to the new array.
-            processedOps.push(op);
+    for (const img of images) {
+        const currentSrc = img.getAttribute('src');
+
+        // If the image points to our storage, strip the base URL
+        if (currentSrc && currentSrc.startsWith(STORAGE_BASE_URL)) {
+            // Remove the base URL and any leading slashes
+            const relativePath = currentSrc
+                .replace(STORAGE_BASE_URL, '')
+                .replace(/^\/+/, '');
+            
+            img.setAttribute('src', relativePath);
         }
     }
+    return doc.body.innerHTML;
+}
+export function hydrateEditorImagePaths(htmlString)
+{
+    const STORAGE_BASE_URL = `${BACKEND_URL.replace(/\/$/, '')}/storage`;
+    const parser = new DOMParser();
+    // Parse the string into a temporary DOM tree
+    const doc = parser.parseFromString(htmlString, 'text/html');
+    const images = doc.querySelectorAll('img');
 
-    // Await all image resizing promises
-    const processedImages = await Promise.all(imagePromises);
-
-    // Replace the placeholders with the actual processed image data
-    for (let i = 0; i < processedOps.length; i++) 
+    for (const img of images)
     {
-        const op = processedOps[i];
-        if (op.insert && typeof op.insert.image === 'string' && op.insert.image.startsWith('IMAGE_PLACEHOLDER_')) 
-        {
-            const index = parseInt(op.insert.image.split('_')[2], 10);
-            const imageData = processedImages[index];
-            if (imageData.type === 'blob') 
-            {
-                op.insert.image = await blobToBase64(imageData.data);
-            } 
-            else if (imageData.type === 'error') 
-            {
-                op.insert.image = imageData.data; // Keep original URL
-            }
+        const rawPath = img.getAttribute('src');
+
+        // SKIP if: no src, starts with http, starts with www, or is a base64 blob
+        if (!rawPath || 
+            rawPath.startsWith('http') || 
+            rawPath.startsWith('www') || 
+            rawPath.startsWith('data:')) {
+            continue; 
         }
+        
+        const cleanPath = rawPath.replace(STORAGE_BASE_URL, '').replace(/^[\/]+|[\/]+$/g, '');
+        const absoluteUrl = `${STORAGE_BASE_URL}/${cleanPath}`;
+        img.src = absoluteUrl;
+        //console.log("clean path?", rawPath, cleanPath, absoluteUrl)
     }
+    return doc.body.innerHTML;
+}
+export async function processEditorImages(htmlString) 
+{
+    const parser = new DOMParser();
+    // Parse the string into a temporary DOM tree
+    const doc = parser.parseFromString(htmlString, 'text/html');
+    const images = doc.querySelectorAll('img');
 
-    console.log(deltaOps, "processing to:", processedOps);
-
-    return processedOps;
+    for (const img of images) 
+    {
+        if (img.src.startsWith('data:image/')) //is a new image blob
+        {
+            const response = await fetch(img.src);
+            const blob = await response.blob();
+            
+            // 2. Your existing Canvas Resizing logic
+            const resizedBlob = await resizeImage(blob);
+            
+            // 3. Update the attribute in our "virtual" document
+            img.src = await blobToBase64(resizedBlob);
+        } 
+    }
+    return doc.body.innerHTML;
 }
 
 function isValidImageType(file)
@@ -582,7 +656,8 @@ export const NotificationType =
 {
     Comment: 'comment',
     Reply: 'reply',
-    Follower: 'follower'
+    Follower: 'follower',
+    Unhidden: 'unhidden'
 }
 
 export const HistoryEntryType =

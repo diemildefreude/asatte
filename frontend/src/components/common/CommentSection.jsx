@@ -130,7 +130,7 @@ function CommentSection({post, likeCount})
         setOriginalCommentElement(null);
     },[setOriginalComment, setOriginalCommentElement]);
 
-    return (
+    return ((post || comments) &&
     <>
         <div className="icons-leave-comment-container">
             <div className="icon-group">

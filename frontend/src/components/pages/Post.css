@@ -83,6 +83,14 @@
     width: auto;
     max-width: 100%;
 }
+.post .main-info-box h1
+{
+    font-size: 2em;
+}
+.post .main-info-box .centered-content
+{
+    margin: 0;
+}
 .source-link
 {
     margin: 0 auto;
@@ -280,4 +288,14 @@
     border: 2px solid white;
     box-sizing: border-box;
 }
-/*-------ICONS---------*/
+/*-------ADMIN HIDE FORM---------*/
+.post form 
+{
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+.post form textarea
+{
+    height: 200px;
+}

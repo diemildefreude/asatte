@@ -58,7 +58,7 @@ class DashboardController extends Controller
 
         $request->validate
         ([
-            'bio' => ['required', 'json']           
+            'bio' => ['required', 'string']           
         ]);
         $user = $request->user();
         $userName = $user->username;
@@ -66,9 +66,9 @@ class DashboardController extends Controller
         $editorImageArray = $user->bio_image_urls ?? [];
         //Log::info($user);
         //Log::info("bio_image_urls:" . $editorImageArray);
-        $bioArray = json_decode($request->input('bio'));
-        Log::info("bio:", $bioArray);
-        $newBio = saveEditorImages($bioArray, 
+        $bioStatementRaw = $request->input('bio');
+        //Log::info("bio:", $bioArray);
+        $newBio = saveEditorImages($bioStatementRaw, 
             $editorImageArray, "users/$userName/bio");
         $user->bio_image_urls = $editorImageArray; //RIGHT?!
         $user->bio = $newBio;
@@ -76,7 +76,8 @@ class DashboardController extends Controller
         
         return response() ->json([
             'status' => 'bio_updated',
-            'message' => 'Your bio has been successfully updated.'
+            'message' => 'Your bio has been successfully updated.',
+            'bio' => $newBio
         ], 200);
         
     }

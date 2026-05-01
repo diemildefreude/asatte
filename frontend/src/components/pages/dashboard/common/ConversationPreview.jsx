@@ -20,8 +20,10 @@ function ConversationPreview({conversation})
     avatarClasses += conversation.is_unread ? " has-new-mail" : "";
 
     //console.log("conversation.is_unread", conversation.is_unread);
+    console.log("convo?!", conversation);
 
     return (
+        conversation ? (
         <Link
             to={convoLink} 
             className={"convo-preview"}>
@@ -36,10 +38,10 @@ function ConversationPreview({conversation})
                 </div>
             </div>
             <div className="convo-latest-info">
-                <div className="convo-latest-date">{getDateAsYYYYMMDD(conversation.latest_message_at)}</div>
+                <div className="convo-latest-date">{getDateAsYYYYMMDD(conversation.latest_message.created_at)}</div>
                 <div className="convo-latest-sender subtext">{conversation.latest_message.sender.username}</div>
             </div>
-        </Link>
+        </Link>):(<p>loading...</p>)
     );
 }
 

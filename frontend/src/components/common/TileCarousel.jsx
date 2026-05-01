@@ -3,8 +3,9 @@ import './Carousel.css';
 import CarouselContainer from './CarouselContainer';
 import Tile from './Tile';
 import { useAuth } from '../../contexts/AuthContext';
+import { Category } from '../../utils/helpers';
 
-function TileCarousel({size, category=null, userId=null, title="", excludePostId=null})
+function TileCarousel({size, category=Category.Archive, userId=null, title="", excludePostId=null})
 {
     const carouselPostCount = 6;
     const [posts, setPosts] = useState([]);

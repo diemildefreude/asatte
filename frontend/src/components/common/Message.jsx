@@ -1,4 +1,4 @@
-import { getDateAsYYYYMMDD, getErrorMessage, getTimeAsHHMM, processQuillImages, scrollToElement } from "../../utils/helpers";
+import { dehydrateEditorImagePaths, getDateAsYYYYMMDD, getErrorMessage, getTimeAsHHMM, hydrateEditorImagePaths, processEditorImages, scrollToElement } from "../../utils/helpers";
 import UserLink from "./UserLink";
 import { useAuth } from "../../contexts/AuthContext";
 import EditButton from "./EditButton";
@@ -13,7 +13,8 @@ function Message({message, onReply=null, onDelete=null, id, parentLocalId=null,
     const {user, updateDM} = useAuth();
     const [isEditing, setIsEditing] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [content, setContent] = useState(message.content);
+    const [content, setContent] = useState(null);
+    const [initialContent, setInitialContent] = useState(null);
     const elementId = `message-${id}`;
     const parentElementId = parentLocalId ? `message-${parentLocalId}` : null;
     const [hasChanged, setHasChanged] = useState(false);
@@ -27,23 +28,26 @@ function Message({message, onReply=null, onDelete=null, id, parentLocalId=null,
 
     const handleEditCancel = useCallback(() =>
     {
-        const isConfirmed = window.confirm("Revert changes?");
-        if(!isConfirmed)
+        if(hasChanged)
         {
-            return;
+            const isConfirmed = window.confirm("Revert changes?");
+            if(!isConfirmed)
+            {
+                return;
+            }
         }
         setIsEditing(false);
-        console.log("m.c", message.content);
-        setContent(message.content);　//reset ??
+        console.log("m.c", initialContent);
+        setContent(initialContent);　//reset ??
         setResetKey(k => k + 1);
-    },[message.content]);
+    },[initialContent]);
 
     const handleMessageUpdate = useCallback(async () =>
     {
         setIsSubmitting(true);
-        const newContentWithResizedImages = await processQuillImages(content);
-        const newContentJson = JSON.stringify(newContentWithResizedImages);
-        updateDM(message.id, newContentJson)
+        const dehydratedContent = dehydrateEditorImagePaths(content);
+        const newContentWithResizedImages = await processEditorImages(dehydratedContent);
+        updateDM(message.id, newContentWithResizedImages)
         .then((data) =>
         {
             //console.log(data.message);
@@ -62,10 +66,12 @@ function Message({message, onReply=null, onDelete=null, id, parentLocalId=null,
 
     useEffect(() => 
     {
-        setContent(message.content);
+        const hydratedMessage = hydrateEditorImagePaths(message.content);
+        setContent(hydratedMessage);
+        setInitialContent(hydratedMessage);
         setHasChanged(false);
-        setResetKey(k => k + 1); // force Quill rehydrate
-    }, [message.content]);
+        setResetKey(k => k + 1); // force Editor rehydrate
+    }, [message]);
 
     return (
     <div className="comment" id={elementId}>
@@ -92,73 +98,82 @@ function Message({message, onReply=null, onDelete=null, id, parentLocalId=null,
             ) : null
         }
         </div>
-        <RichTextEditor
-            id={id}
-            readOnly={!isEditing || isSubmitting}
-            onChange={(editedMessage) => {setHasChanged(true); setContent(editedMessage)}}
-            value={content}
-            quoteText={quoteText}
-            resetKey={resetKey}
-        />
-            <div className="comment-buttons-container">
+        {
+            isEditing ? (
+                <RichTextEditor
+                    id={id}
+                    readOnly={!isEditing || isSubmitting}
+                    onChange={(editedMessage) => {console.log("initial", initialContent); console.log("edited", editedMessage); setHasChanged(editedMessage != initialContent); setContent(editedMessage)}}
+                    value={content}
+                    quotedMessage={quoteText}
+                    resetKey={resetKey}
+                />):(
+                <div
+                    dangerouslySetInnerHTML={{ __html: content }}
+                    className="article-text"
+                />
+            )
+        }
+        
+        <div className="comment-buttons-container">
+        {
+            !isEditing && onReply && (<>                        
+            <button 
+                onClick={() => onReply(message, elementId, true)}
+                className="small-button"
+                title="quote reply"
+                disabled={isSubmitting}
+            >
+                <i className="fa-solid fa-quote-left"></i>
+            </button>
+            {/* <button 
+                onClick={() => onReply(message, elementId)}
+                className="small-button"
+                title="reply"
+                disabled={isSubmitting}
+            >
+                <i className="fa-solid fa-reply"></i>
+            </button> */}
+        </>)
+        }
+        {
+            (user.id === message.sender.id) && (<>
             {
-                !isEditing && onReply && (<>                        
-                <button 
-                    onClick={() => onReply(message, elementId, true)}
-                    className="small-button"
-                    title="quote reply"
-                    disabled={isSubmitting}
-                >
-                    <i className="fa-solid fa-quote-left"></i>
-                </button>
-                {/* <button 
-                    onClick={() => onReply(message, elementId)}
-                    className="small-button"
-                    title="reply"
-                    disabled={isSubmitting}
-                >
-                    <i className="fa-solid fa-reply"></i>
-                </button> */}
-            </>)
-            }
-            {
-                (user.id === message.sender.id) && (<>
-                {
-                    isEditing ? (<>
-                        <button
-                            className="small-button"
-                            onClick={handleMessageUpdate}
-                            title="save"
-                            disabled={isSubmitting || !hasChanged}
-                        >
-                            <i className="fa-solid fa-floppy-disk"></i>
-                        </button>  
-                        <button
-                            className="small-button"
-                            onClick={handleEditCancel}
-                            title="cancel"
-                            disabled={isSubmitting}
-                        >
-                            <i className="fa-solid fa-arrow-rotate-left"></i>
-                        </button> 
-                    </>):(
-                    <EditButton
+                isEditing ? (<>
+                    <button
                         className="small-button"
-                        onClick={handleMessageEdit}
+                        onClick={handleMessageUpdate}
+                        title="save"
+                        disabled={isSubmitting || !hasChanged}
+                    >
+                        <i className="fa-solid fa-floppy-disk"></i>
+                    </button>  
+                    <button
+                        className="small-button"
+                        onClick={handleEditCancel}
+                        title="cancel"
                         disabled={isSubmitting}
-                    />)
-                }                
-                <button 
-                    onClick={() => onDelete(message.id)}
+                    >
+                        <i className="fa-solid fa-arrow-rotate-left"></i>
+                    </button> 
+                </>):(
+                <EditButton
                     className="small-button"
-                    title="delete"
+                    onClick={handleMessageEdit}
                     disabled={isSubmitting}
-                >
-                    <i className="fa-regular fa-trash-can"></i>
-                </button>
-                </>)
-            }
-            </div>
+                />)
+            }                
+            <button 
+                onClick={() => onDelete(message.id)}
+                className="small-button"
+                title="delete"
+                disabled={isSubmitting}
+            >
+                <i className="fa-regular fa-trash-can"></i>
+            </button>
+            </>)
+        }
+        </div>
     </div>
     )
 }

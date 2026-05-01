@@ -7,7 +7,7 @@ import "../../DashboardProfile.css";
 import { useCallback, useEffect, useRef, useState } from "react";
 import UserLink from "../../../common/UserLink";
 import FormField from "../../../common/FormField";
-import { getErrorMessage, processQuillImages } from "../../../../utils/helpers";
+import { dehydrateEditorImagePaths, getErrorMessage, hydrateEditorImagePaths, processEditorImages } from "../../../../utils/helpers";
 import { useNavigate, useLocation, useParams, redirect } from "react-router-dom";
 import Message from "../../../common/Message";
 
@@ -45,7 +45,7 @@ function Conversation()
     const [doesMessageExist, setDoesMessageExist] = useState(false);
     const isNew = !conversation_id;
     const canSubmit = (!isNew || recipients?.length > 0) && doesMessageExist;
-    console.log(recipients?.length, isNew, doesMessageExist);
+    //console.log(recipients?.length, isNew, doesMessageExist);
 
     const [error, setError] = useState("");
     const headerText = isNew ? "new conversation" : setHeader(conversation);
@@ -54,8 +54,23 @@ function Conversation()
     const [quotedMessage, setQuotedMessage] = useState('');
     const [originalMessage, setOriginalMessage] = useState(null);
     const [originalMessageElement, setOriginalMessageElement] = useState(null);
+    const [pendingScrollId, setPendingScrollId] = useState(null);
 
-    console.log("convo", conversation);
+    //console.log("convo", conversation);
+
+    useEffect(() => 
+    {
+        if (pendingScrollId) 
+        {
+            const element = document.getElementById(`message-${pendingScrollId}`);
+            if (element) 
+            {
+                element.scrollIntoView({ behavior: "smooth", block: "center" });
+                setPendingScrollId(null); // Reset the flag
+            }
+        }
+    }, [conversation, pendingScrollId]);
+
     useEffect(() =>
     {
         let canceled = false;
@@ -93,11 +108,12 @@ function Conversation()
         };
     },[conversation_id, fetchConversation]);
 
-    const handleRTEChange = useCallback((ops) =>
+    const handleRTEChange = useCallback((editedMessage) =>
     {
-        setDoesMessageExist(ops[0].insert.trim().length > 0);
-        setMessage(ops);
-    }, [setDoesMessageExist, setMessage]);
+        //console.log("edited message?", editedMessage);
+        setDoesMessageExist(editedMessage.length > 0);
+        setMessage(editedMessage);
+    }, []);
 
     const handleCandidateHover = useCallback((i) =>
     {
@@ -268,8 +284,8 @@ function Conversation()
     {
         e.preventDefault();
         console.log("submit", message, recipients, subject);
-        const messageWithResizedImages = await processQuillImages(message);
-        const messageJson = JSON.stringify(messageWithResizedImages);
+        const dehydratedMessage = dehydrateEditorImagePaths(message);
+        const messageWithResizedImages = await processEditorImages(dehydratedMessage);
         
         setError('');
         setIsSubmitting(true);
@@ -278,13 +294,15 @@ function Conversation()
             let data;
             if(!isNew && conversation)
             {
-                data = await createDM(conversation.id, messageJson, originalMessage?.id);
+                data = await createDM(conversation.id, messageWithResizedImages, originalMessage?.id);
                 setConversation(data.conversation);
-                setMessage([]);
+                setMessage("");
+                console.log("new id", data.new_message_id);
+                setPendingScrollId(data.new_message_id);
             }
             else
             {
-                data = await createDM(null, messageJson, originalMessage?.id, recipients, subject);
+                data = await createDM(null, messageWithResizedImages, originalMessage?.id, recipients, subject);
                 navigate(`/dashboard/mail/${data.conversation.id}`,
                     { state: { data } }
                 )
@@ -303,6 +321,11 @@ function Conversation()
 
     const handleDelete = useCallback(async id =>
     {
+        const isConfirmed = window.confirm("Delete message?");
+        if(!isConfirmed)
+        {
+            return;
+        }
         setError('');
         let data;
         try
@@ -329,6 +352,18 @@ function Conversation()
         }
     },[]);
 
+    // const handleReply = useCallback((message, elementID, isQuote=false) =>
+    // {
+    //     setOriginalMessage(message);
+    //     setOriginalMessageElement(elementID);
+        
+    //     if(isQuote)
+    //     {
+    //         console.log("mesCon", message.content);
+    //         setQuotedMessage(message);
+    //     }
+    // },[])
+
     const handleReply = useCallback((message, elementID, isQuote=false) =>
     {
         setOriginalMessage(message);
@@ -336,14 +371,26 @@ function Conversation()
         
         if(isQuote)
         {
-            console.log("mesCon", message.content);
-            setQuotedMessage(message);
+            const hydrated = hydrateEditorImagePaths(message.content);
+            //console.log("hydrated?!", hydrated);
+            
+            setQuotedMessage({
+                ...message, 
+                content: hydrated
+            });
         }
     },[])
 
+    const handleClearQuote = useCallback(() => 
+    {
+        setQuotedMessage(null);
+    }, []);
     return ( 
     <Layout>
-        <DashboardLayout currentTab="mail" headerText={headerText}>
+        <DashboardLayout currentTab="mail">
+        <div className="centered-content no-margin">            
+            <h2 dangerouslySetInnerHTML={{__html: headerText}}></h2>
+        </div>
         <div className="footnote">
         {
             conversation?.name != null && ( 
@@ -449,7 +496,7 @@ function Conversation()
                     onChange={handleRTEChange}
                     value={message}
                     quotedMessage={quotedMessage}
-                    setQuotedMessage={setQuotedMessage}
+                    onQuoteApplied={handleClearQuote}
                 />
                 <button
                     type="submit"

@@ -36,6 +36,8 @@ Route::get('/about', [AboutController::class, 'show']);
 Route::middleware('auth:api')->group(function ()
 {
     Route::put('/update-about', [AboutController::class, 'update']);
+    Route::put('set-admin-hide/{post}', [PostController::class, 'toggleAdminHide']);
+ 
     Route::get('/my-posts', [PostController::class, 'myPosts']);
     Route::get('/my-liked-posts', [PostController::class, 'myLikedPosts']);
     Route::get('/post-search', [PostController::class, 'postSearch']);

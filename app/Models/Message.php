@@ -12,7 +12,7 @@ class Message extends Model
 
     protected $casts = 
     [
-        'content' => 'array', // auto decode JSON delta
+        //'content' => 'array', // auto decode JSON delta
         'image_urls' => 'array'
     ];
 

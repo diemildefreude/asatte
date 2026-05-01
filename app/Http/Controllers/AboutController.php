@@ -30,7 +30,7 @@ class AboutController extends Controller
     public function update(Request $request)
     {
         $validatedFields = $request->validate([
-            'statement' => ['required', 'json']
+            'statement' => ['required', 'string']
         ]);
 
         $user = auth('api')->user();
@@ -46,13 +46,14 @@ class AboutController extends Controller
         $about = About::first();
         $imageArray = $about->statement_image_urls ?? [];
         $imageFolder = "about";
-        $newStatementArray = json_decode($validatedFields['statement']);
+        //$newStatementArray = json_decode($validatedFields['statement']);
+        $newStatementRaw = $validatedFields['statement'];
         Log::info("saveEditorArgs", [
-            "newStatementArray" => gettype($newStatementArray),
+            "newStatementArray" => gettype($newStatementRaw),
             "imageArray" => gettype($imageArray),
             "imageFolder" => gettype($imageFolder)
         ]);
-        $newStatement = saveEditorImages($newStatementArray, $imageArray, $imageFolder);
+        $newStatement = saveEditorImages($newStatementRaw, $imageArray, $imageFolder);
 
         if($about)
         {

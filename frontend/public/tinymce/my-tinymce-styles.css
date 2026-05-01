@@ -1,0 +1,33 @@
+body 
+{ 
+    font-family: 'Cascadia Code', sans-serif; 
+    font-size: 1rem; 
+    font-weight: 1;
+    line-height: 1.8rem; 
+    color: #000; 
+    /* background: linear-gradient(45deg, #0000ff 0%, #330055 60%); */
+}
+p 
+{ 
+    line-height: 1.6; 
+}
+img 
+{ 
+    border: 2px solid #eee; 
+}
+blockquote
+{
+    border-left: 3px solid #666 !important; 
+    padding-left: 10px !important; 
+    margin-inline-start: 10px;
+    margin-inline-end: 10px;
+    color: #666 !important;
+}
+/* If you are trying to remove the default rounded corners on focus */
+.tox.tox-tinymce--focused,
+.tox.tox-tinymce {
+    border-radius: 0px !important;
+}
+.tox .tox-edit-area__inner {
+    border-radius: 0px !important;
+}

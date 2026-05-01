@@ -109,7 +109,7 @@ function Login()
                 onChange={(e) => setUsernameOrEmail(e.target.value)}
                 disabled={isSubmitting}
                 type="text"
-                classes="centered-content vertical-field"
+                classes="centered-content no-margin vertical-field"
               />
               <FormField
                 id="password"
@@ -119,7 +119,7 @@ function Login()
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={isSubmitting}
                 type="password"
-                classes="centered-content vertical-field"
+                classes="centered-content no-margin vertical-field"
               />
               <button type="submit" disabled={!canLogInWithEmail}>
                 {isSubmitting ? 'logging in...' : 'log in'}

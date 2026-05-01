@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\NotificationType;
 use App\Models\Comment;
 use App\Models\Notification;
 use App\Models\Post;
@@ -95,8 +96,10 @@ class ActivityController extends Controller
         ->get()
         ->map(function ($notification) 
         {
+            $type = $notification->type;
             $data = $notification->data; // JSON → array
-            if (isset($data['comment_id'])) 
+            if (($type == NotificationType::Comment || $type == NotificationType::Reply)
+                && ($data['comment_id'])) 
             {
                 $comment = Comment::with([
                     'user:id,username,avatar',
@@ -106,10 +109,26 @@ class ActivityController extends Controller
 
                 //$notification->comment = $comment;
                 $notification->setRelation('comment', $comment);
+            }            
+            else if($type == NotificationType::Unhidden && $data['post_id'])
+            {
+                $post = Post::with([
+                    'user:id,username'
+                ])->find($data['post_id'])->select(['id', 'post_url', 'title']);
+                $notification->setRelation('post', $post);
+                $notification->unhidden_at = Carbon::now()->toDateTimeString();
+            }
+            else if($type == NotificationType::Follower && $data['follower_id']) //for followers
+            {
+                $follower = User::select(['id', 'username', 'avatar'])->find($data['follower_id']);
+                //Log::info("follower", $follower->toArray());
+                $notification->setRelation('follower', $follower);
             }
             //else if(isset($data['user_id'])) //for followers
+            $notification->makeHidden('data');
             return $notification;
         });
+        
         $totalCount = $query->count();
 
         $notifications = $query
@@ -144,6 +163,13 @@ class ActivityController extends Controller
         $result = $authUser->following()->toggle($user->id);
         $isFollowing = !empty($result['attached']);
         
+        $notificationFields = [
+            'user_id' => $user->id,
+            'type' => NotificationType::Follower,
+            'data' => ['follower_id' => $authUser->id]
+        ];
+        Notification::create($notificationFields);
+
         return response()->json([
             'is_following' => $isFollowing,
             'message' => $isFollowing ? 'Followed successfully.' : 'Unfollowed successfully.',

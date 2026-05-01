@@ -133,7 +133,7 @@ class User extends Authenticatable implements OAuthenticatable, MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'birthdate' => 'date:Y-m-d',
-            'bio' => 'array',
+            // 'bio' => 'array',
             'bio_image_urls' => 'array',
             'member_type' => MemberType::class
         ];

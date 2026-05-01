@@ -13,7 +13,15 @@ function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false})
     if (!post || (!user && !post.user)) return null;
 
     const author = user ?? post.user;
-    const viewText = isDashboard ? "preview" : "info";
+    let viewText = "info";
+    if(isDashboard)
+    {
+        viewText = "preview";
+    } 
+    else if(post.is_news)
+    {
+        viewText = "read";
+    }
 
     const directory = `${BACKEND_URL}/storage/images/uploaded/users/${author.username}/posts/${post.post_url}/gallery/small`;
 
@@ -31,7 +39,7 @@ function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false})
     function handleLinkClick(e)
     {
         //console.log("Clicking link to post", post?.id);
-
+        console.log("clicking link", e);
         if(isSliderDraggedPointerUp?.current)
         {
             e.preventDefault(); // Stop the link from navigating if it was a drag
@@ -51,15 +59,51 @@ function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false})
                 />
             )                            
         }
-            <div className="info-panel">
+            <div className="info-panel">                
+                {
+                    post?.is_hidden_by_admin && (
+                        <div className="centered-icon red">
+                            <i 
+                                title="hidden"
+                                className="fa-regular fa-eye-slash"
+                            />
+                        </div>
+                    )
+                }
+                {
+                    (isDashboard && !post?.is_hidden && post?.is_private ) ?
+                    (
+                        <div className="centered-icon blue">
+                            <i 
+                                title="private"
+                                className="fa-regular fa-eye-slash"
+                            />
+                        </div>
+                    ):(null)
+                }      
                 <div className="panel-top">
-                    <div className="info-item title">{post.title}</div>
+                    {
+                        post.is_news ? (
+                            <div className="tile-title-news-icon-container">
+                                <div className="info-item title">{post.title}</div>
+                                <div className="icon-container">
+                                    <i 
+                                        className="fa-regular fa-newspaper"
+                                        title="news post"
+                                    />
+                                </div>
+                            </div>
+                        ):(
+                            <div className="info-item title">{post.title}</div>
+                        )
+
+                    }
                     <div className="info-item subtitle">{post.subtitle}</div>
                     {
                         !isDashboard && (
                             <div className="info-item link-container">
                                 <UserLink user={author}
-                                    onClick={handleLinkClick}
+                                    
                                     />
                             </div>
                         )
@@ -91,19 +135,16 @@ function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false})
                             onClick={handleLinkClick} 
                             draggable="false"
                         >
-                            <i className="fa-solid fa-magnifying-glass"></i>
+                            {
+                                post.is_news ? (
+                                    <i className="fa-brands fa-readme"></i>
+                                ):(
+                                    <i className="fa-solid fa-magnifying-glass"></i>
+                                )
+                            }
                             <span>{viewText}</span>                                            
                         </Link>
-                    </div>
-                    {
-                        (isDashboard && post.is_private) ?
-                        (
-                            <div className="info-item">
-                                <i className="fa-solid fa-eye-slash"></i>
-                            </div>
-                        ):
-                        (null)
-                    }                    
+                    </div>                                  
                     {
                         post.website && !isDashboard && 
                         (

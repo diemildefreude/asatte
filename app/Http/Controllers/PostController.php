@@ -3,9 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Enums\FetchOrder;
+use App\Enums\MemberType;
+use App\Enums\NotificationType;
+use App\Enums\PostType;
+use App\Models\Conversation;
+use App\Models\Notification;
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -18,10 +24,27 @@ class PostController extends Controller
      */
     public function index(Request $request)
     {
+       //ADD CHECK FOR 'category'
+
+        $request->validate([
+            'amount' => ['integer', 'required'],
+            'category' => ['string', 'required'],
+            'user_id' => ['integer', 'nullable'],
+            'start_id' => ['integer', 'nullable'], //<--422
+            'username' => ['string', 'nullable'],
+            'fetch_order' => ['string', 'nullable']
+        ]);
+        
         $limit = $request->query('amount');
         $startId = $request->query('start_id');
+        $postTypeString = $request->query('category');
+        $postType = PostType::tryFrom($postTypeString);
+        $isNews = $postType == PostType::News;
+        
+        //Log::info("Is news? $postTypeString , $isNews");
+
         $userId = $request->query('user_id');
-        $username = $request->query('username');
+        $username = $request->query('username');        
         $fetchOrderString = $request->query('fetch_order');
         $fetchOrderEnum = FetchOrder::tryFrom($fetchOrderString);
         $fetchOrder = $fetchOrderEnum ?? FetchOrder::Ascending;
@@ -41,9 +64,24 @@ class PostController extends Controller
         }
     
         $query = Post::with(relations: 'user:id,username,avatar,member_type')
+            ->where('is_news', $isNews)
             ->where('is_private', false);
         
         $query = $userId ? $query->where('user_id', $userId) : $query;
+
+        $requestingUser = auth('api')->user();
+        
+        $isAdminRequest = false;
+        if($requestingUser)
+        {
+            $isAdminRequest = $requestingUser->member_type == MemberType::Webmaster 
+                || $requestingUser->member_type == MemberType::Admin;
+        }
+        if(!$userId || !$isAdminRequest) //only show admin-hidden posts to admins on the user's profile
+        {
+            $query = $query->where('is_hidden_by_admin', false);
+        }
+
         $posts = [];
 
         switch($fetchOrder)
@@ -108,11 +146,25 @@ class PostController extends Controller
     public function myPosts(Request $request)
     {
         $userId = $request->user()->id;
+
+        $request->validate([
+            'amount' => ['integer', 'required'],
+            'category' => ['string', 'required'],
+            'user_id' => ['integer', 'nullable'],
+            'start_id' => ['integer', 'nullable'], 
+            //'fetch_order' => ['string', 'nullable']
+        ]);
+
         $limit = $request->query('amount');
         $startId = $request->query('start_id');
+        $postTypeString = $request->query('category');
+        $postType = PostType::tryFrom($postTypeString);
+        $isNews = $postType == PostType::News;
+
         Log::info($startId);
         $query = Post::with(relations: 'user:id,username')
-            ->where('user_id', '=', $userId);
+            ->where('user_id', '=', $userId)
+            ->where('is_news', $isNews);
         $rawPosts = ($startId ? $query->where('id', '<=', $startId) ://uncomment this for real implementation
             $query)
             ->latest()
@@ -124,15 +176,15 @@ class PostController extends Controller
         // {
         //     return $post['id'] >= $startId;
         // });
-        $requestData = [
-        'url' => $request->fullUrl(),
-        'method' => $request->method(),
-        'headers' => $request->headers->all(),
-        'body' => $request->all(), // This includes both query string and POST data
-        'files' => $request->files->all(),
-        'ip' => $request->ip(),
-        'user_agent' => $request->header('User-Agent'),
-    ];
+        // $requestData = [
+        //     'url' => $request->fullUrl(),
+        //     'method' => $request->method(),
+        //     'headers' => $request->headers->all(),
+        //     'body' => $request->all(), // This includes both query string and POST data
+        //     'files' => $request->files->all(),
+        //     'ip' => $request->ip(),
+        //     'user_agent' => $request->header('User-Agent'),
+        // ];
         if(sizeof($posts) == 0)
         {
             return response() ->json([
@@ -191,9 +243,17 @@ class PostController extends Controller
         ([
             'title' => ['string', 'required', 'max:255'],
             'subtitle' => ['string', 'required', 'max:255'],
-            'main_video' => ['max:255', 'url', 'nullable'],     
+            'main_video' => ['max:255', 'url', 'nullable'],
         ]); 
         $isPrivate = $request->input('is_private') ? true : false;        
+        $isNews = $request->input('is_news') ? true : false;    
+        $user = $request->user();
+
+        if($isNews && $user->member_type != MemberType::Webmaster)
+        {
+            return response()->json(["error" => "Only webmasters can make news posts."], 403);   
+        }
+        
         $validatedPostUrlArray = $request->validate //should be unique among this user's posts
         ([            
             'post_url' => ['alpha_dash:ascii', 'max:255',
@@ -206,7 +266,7 @@ class PostController extends Controller
 
         $request->validate
         ([            
-            'statement' => ['required', 'json'],//'json'],
+            'statement' => ['required', 'string'],//'json'],
             'gallery_images' => ['array'], // must be an array
             'gallery_images.*.alt' => ['nullable', 'string', 'max:255'],
             'gallery_images.*.file' => ['nullable', 'file', 'image', 'mimes:png,jpeg,jpg,webp,bmp', 'max:2048'], // 2MB limit
@@ -218,15 +278,15 @@ class PostController extends Controller
             'gallery_images.*.file.image' => 'Each uploaded file must be an image.',
         ]);
 
-        $userName = $request->user()->username;        
+        $userName = $user->username;        
         $website = $request->input('website') ? addHttpProtocol($request->input('website', '')) : null;
         $sourceCode = $request->input('source_code') ? addHttpProtocol($request->input('source_code', '')) : null;
 
         $editorImageArray = [];
         $statementImageFolder = "users/$userName/posts/$postUrl/statement";
-        $statementArray = json_decode($request->input('statement'));
+        $newStatementRaw = $request->input('statement');
         
-        $statement = saveEditorImages($statementArray,
+        $statement = saveEditorImages($newStatementRaw,
             $editorImageArray, $statementImageFolder);
         
         $galleryArray = [];
@@ -266,6 +326,7 @@ class PostController extends Controller
             'website' => $website,
             'source_code' => $sourceCode,
             'is_private' => $isPrivate,
+            'is_news' => $isNews,
             'gallery_image_urls' => $galleryArray,
             'gallery_alts' => $galleryAltArray,
             'statement' => $statement,
@@ -302,11 +363,11 @@ class PostController extends Controller
             ->where('post_url', $post_url)
             ->where('user_id', $user->id);
 
+        // The auth() helper works whether the route is protected or not.
         $authenticatedUser = auth('api')->user();
         //Log::info("authd?!: $authenticatedUser");
         if ($authenticatedUser) 
-        {
-            // The auth() helper works whether the route is protected or not.
+        {            
             $userId = $authenticatedUser->id;
             $query->withExists([
                 'usersWhoLiked as have_liked' => function ($query) use ($userId) 
@@ -322,6 +383,18 @@ class PostController extends Controller
         {
             return response()->json(['error' => 'No such post found.'], 404);
         }
+
+        $isHidden = $post->is_hidden_by_admin;
+        $isAdminRequest = $authenticatedUser && 
+            ($authenticatedUser->member_type == MemberType::Webmaster 
+            || $authenticatedUser->member_type == MemberType::Webmaster);
+        $isPostCreatorRequest = $authenticatedUser && 
+            ($authenticatedUser->id == $post->user_id);
+
+        if($isHidden && !$isAdminRequest && !$isPostCreatorRequest)
+        {
+            return response()->json(['error' => 'No such post found.'], 404);
+        }        
         
         $post->load('comments.user');
 
@@ -370,12 +443,13 @@ class PostController extends Controller
             'main_video' => ['max:255'],     
         ]); 
         $isPrivate = $request->input('is_private') ? true : false; 
+        $isNews = $request->input('is_news') ? true : false;
         Log::info("isPrivate? $isPrivate _ $request->input('is_private')");       
 
         $post = Post::findOrFail($id);
         $postUrl = $post->post_url;        
         $request->validate([
-            'statement' => ['required', 'json'],
+            'statement' => ['required', 'string'],
             'gallery_images' => ['array'], // must be an array
             'gallery_images.*.alt' => ['nullable', 'string', 'max:255'],
             'gallery_images.*.file' => ['nullable', 'file', 'image', 'mimes:png,jpeg,jpg,webp,bmp', 'max:2048'], // 2MB limit
@@ -445,15 +519,17 @@ class PostController extends Controller
         $editorImageArray = $post->statement_image_urls;
 
         $statementImageFolder = "users/$userName/posts/$postUrl/statement";
-        $statementArray = json_decode($request->input('statement'));
-        $statement = saveEditorImages($statementArray,
+        $rawStatement = $request->input('statement');
+        $statement = saveEditorImages($rawStatement,
             $editorImageArray, $statementImageFolder);
                 
+        Log::info("updating post. is_news: $isNews");
         $postFields = 
         [
             ...$basicFields,
             'website' => $website,
             'is_private' => $isPrivate,
+            'is_news' => $isNews,
             'gallery_image_urls' => $updatedGalleryUrls,//$galleryJson,
             'gallery_alts' => $updatedGalleryAlts,//$galleryAltsJson,
             'statement' => $statement,//$statementJson,
@@ -549,5 +625,92 @@ class PostController extends Controller
         }
 
         return response()->json($posts->values(), 200);
+    }
+    public function toggleAdminHide(Request $request, Post $post)
+    {        
+        $request->merge([
+            'is_hidden_by_admin' => $request->boolean('is_hidden_by_admin'),
+        ]);
+
+        $request->validate([
+            "is_hidden_by_admin" => "nullable|boolean",
+            "message_to_user" => "nullable|string"
+        ]);
+        
+        $user = $request->user();
+        if($user->member_type != MemberType::Webmaster
+         && $user->member_type != MemberType::Admin)
+        {
+            return response()->json([
+                "message" => "Only the webmaster and admins can hide posts."
+            ], 401);
+        }
+        if($user->member_type != MemberType::Webmaster
+         && $post->user->member_type == MemberType::Webmaster)
+        {
+            return response()->json([
+                "message" => "An admin cannot hide the webmaster's posts."
+            ], 401);
+        }
+        
+        $hideIt = isset($request["is_hidden_by_admin"]) && $request["is_hidden_by_admin"];
+        $messageToUser = $request["message_to_user"] ?? null;
+        
+        if($hideIt && $messageToUser)
+        {
+            //send a DM
+            $postTitle = $post->title;
+            $name = "Your post, <em>$postTitle</em>, has been hidden";
+            $conversation = Conversation::create([
+                'is_group' => false,
+                'name' => $name
+            ]);
+            $conversation->users()->attach([
+                $user->id,
+                $post->user->id
+            ]);
+
+            $editorImageArray = [];
+            $userName = $user->username;
+            $messageImageFolder = "users/$userName/messages";
+            $newContentRaw = $messageToUser;
+            
+            $messageToUser = saveEditorImages($newContentRaw,
+                $editorImageArray, $messageImageFolder);
+                
+            $conversation->messages()->create([
+                'sender_id' => $user->id,
+                'content' => $messageToUser
+            ]);
+            //send an e-mail
+        }
+        else if(!$hideIt)
+        {
+            Notification::create([
+                'user_id' => $post->user->id,
+                'type' => NotificationType::Unhidden,
+                'data' => ['post_id' => $post->id]
+            ]);
+        }
+        
+        $post->is_hidden_by_admin = $hideIt;
+        $post->save();
+
+        $responseMsg = $hideIt ? "Post successfully hidden" : "Post successfully unhidden";
+        
+        $post->load([
+            'user' => function ($query) 
+            {
+                $query->select('id', 'username', 'avatar', 'member_type');
+            },
+            'comments' => function ($query) {
+                // Nested eager load the user for every comment
+                $query->with('user:id,username,avatar')->latest();
+            }]);
+
+        return response()->json([
+            "message" => $responseMsg,
+            "post" => $post
+        ], 200);
     }
 }

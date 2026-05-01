@@ -102,7 +102,7 @@ function EditProfile()
                 {success}
             </div>
             )}
-            <h3 className="centered-content">avatar:</h3>
+            <h3 className="centered-content no-margin">avatar:</h3>
             <AvatarSetter user={user} setError={setError} setSuccess={setSuccess}
                 isSubmitting={isSubmitting} setIsSubmitting={setIsSubmitting}
         />
@@ -142,10 +142,10 @@ function EditProfile()
                 {
                     user.is_email_verified &&
                     (
-                        <Link to="/password-change" className="centered-content">change password</Link>
+                        <Link to="/password-change" className="centered-content no-margin">change password</Link>
                     )
                 }
-                <Link to={`/${user.username}`} className="centered-content">
+                <Link to={`/${user.username}`} className="centered-content no-margin">
                     preview profile
                 </Link>
             </form>            

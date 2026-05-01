@@ -1,4 +1,4 @@
-function EditButton({onClick, disabled=false, className})
+function EditButton({onClick, disabled=false, className=""})
 {
     return (
     <button onClick={onClick}

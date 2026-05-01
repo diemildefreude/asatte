@@ -3,7 +3,8 @@ import RichTextEditor from "../common/RichTextEditor";
 import EditButton from "../common/EditButton";
 import Layout from "../layout/Layout";
 import { useAuth } from "../../contexts/AuthContext";
-import { getErrorMessage, MemberType, processQuillImages } from "../../utils/helpers";
+import { getErrorMessage, MemberType, processEditorImages, 
+    hydrateEditorImagePaths, dehydrateEditorImagePaths } from "../../utils/helpers";
 // import "./DashboardProfile.css"; //TEMP
 import "../common/RichTextEditor.css";
 
@@ -15,6 +16,7 @@ function About()
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
     const [statement, setStatement] = useState(null);
+    const [initialStatement, setInitialStatement] = useState(null);
     const [dataLoaded, setDataLoaded] = useState(false);
     const {user, fetchAbout, updateAbout} = useAuth();
     const isWebmaster = user ? user.member_type == MemberType.Webmaster : false;
@@ -28,7 +30,9 @@ function About()
             console.log("about-data", data);
             if(data.status == "about_fetched")
             {
-                setStatement(data.about.statement);
+                const hydratedStatement = hydrateEditorImagePaths(data.about.statement);
+                setInitialStatement(hydratedStatement);
+                setStatement(hydratedStatement);
                 setDataLoaded(true);
             }
         })
@@ -42,8 +46,10 @@ function About()
     const handleStatementChange = useCallback((newStatement) =>
     {
         setStatement(newStatement);
-        setHasStatementChanged(true);
-    },[]);
+        //console.log("new Statement", newStatement);
+        setHasStatementChanged(initialStatement != newStatement);
+
+    },[initialStatement]);
 
     const handleStatementUpdate = useCallback(async (e) =>
     {
@@ -52,13 +58,18 @@ function About()
         setSuccess('');
         setIsSubmitting(true);
         //setDataLoaded(false);
-        const statementWithResizedImages = await processQuillImages(statement);
-        const statementJson = JSON.stringify(statementWithResizedImages);
+        const dehydratedStatement = dehydrateEditorImagePaths(statement);
+        const statementWithResizedImages = await processEditorImages(dehydratedStatement);
+        //console.log("swri?", statementWithResizedImages);
+        //return;
+        //const statementJson = JSON.stringify(statementWithResizedImages);
         
-        updateAbout(statementJson)
+        updateAbout(statementWithResizedImages)
         .then((data) => 
         {
-            setStatement(data.about.statement);
+            const hydratedStatement = hydrateEditorImagePaths(data.about.statement);
+            setInitialStatement(hydratedStatement);
+            setStatement(hydratedStatement);
             setSuccess(data.message);
             setHasStatementChanged(false);
             setIsInEditMode(false);
@@ -75,50 +86,61 @@ function About()
 
     return (
     <Layout>
-        <div className="rte-container-container">
-            {/* <div className="rte-form"> */}
-                <div className="rte-container borderless">
-                    <div className="centered-header-box">            
-                        {
-                            (isInEditMode && hasStatementChanged) && (
-                            <div className="left-item">
-                                <button className="save-button" 
-                                    type="submit" 
-                                    disabled={isSubmitting}
-                                    onClick={handleStatementUpdate}
-                                >
-                                    save
-                                </button>
-                            </div>)
-                        }
-                        <div className="centered-content">
-                            <h2>about</h2>                    
-                        </div>
-                        <div className="right-item">
-                            {!isInEditMode && isWebmaster && (
-                            <EditButton
-                                onClick={(e) => {e.preventDefault(); setIsInEditMode(true)}}
-                            />)}
-                        </div>
+        <div className="rte-container borderless double-padded">
+        {
+            dataLoaded ? (
+            <>
+                <div className="centered-header-box">            
+                {
+                    (isInEditMode && hasStatementChanged) && (
+                    <div className="left-item">
+                        <button className="save-button" 
+                            type="submit" 
+                            disabled={isSubmitting}
+                            onClick={handleStatementUpdate}
+                        >
+                            save
+                        </button>
+                    </div>)
+                }
+                    <div className="centered-content">
+                        <h1>about</h1>                    
                     </div>
-                    {error && (
-                    <div className="error">
-                        {error}
+                    <div className="right-item">
+                        {!isInEditMode && isWebmaster && (
+                        <EditButton
+                            onClick={(e) => {e.preventDefault(); setIsInEditMode(true)}}
+                        />)}
                     </div>
-                    )}
-                    {success && (
-                    <div className="notice">
-                        {success}
-                    </div>
-                    )}
-                    <RichTextEditor
-                        readOnly={!isInEditMode || isSubmitting}
-                        onChange={handleStatementChange}
-                        key={dataLoaded ? "loaded" : "loading"}
-                        value={statement}
-                    />       
                 </div>
-            {/* </div> */}
+                {error && (
+                <div className="error">
+                    {error}
+                </div>
+                )}
+                {success && (
+                <div className="notice">
+                    {success}
+                </div>
+                )}
+                {
+                    isInEditMode ? (
+                    <RichTextEditor
+                        isReadOnly={!isInEditMode || isSubmitting}
+                        onChange={handleStatementChange}
+                        value={statement}
+                    />  
+                    ):(
+                        <div
+                            dangerouslySetInnerHTML={{ __html: statement }}
+                            className="article-text"
+                        />
+                    )
+                }    
+            </>):(
+                <p className="centered-content">loading...</p>
+            )
+        }
         </div>
     </Layout>
     );

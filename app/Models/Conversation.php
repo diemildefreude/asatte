@@ -9,7 +9,7 @@ class Conversation extends Model
     use HasFactory;
 
     protected $fillable = ['name', 'is_group'];
-    protected $appends = ['other_users', 'is_unread', 'latest_message_at'];
+    protected $appends = ['other_users', 'is_unread'];//, 'latest_message_at'];
 
     public function users()
     {

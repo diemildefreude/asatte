@@ -17,7 +17,7 @@ class About extends Model
 
     protected $casts =
     [
-        'statement' => 'array',
+        // 'statement' => 'array',
         'statement_image_urls' => 'array'
     ];
 }

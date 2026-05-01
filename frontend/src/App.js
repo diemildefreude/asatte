@@ -3,6 +3,7 @@ import { AuthProvider } from './contexts/AuthContext'; // Your AuthContext provi
 import './services/api'; // <--- THIS LINE IS CRUCIAL
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './components/pages/Home';
+import News from './components/pages/News';
 import Post from './components/pages/Post';
 import Login from './components/pages/Login';
 import Registration from './components/pages/Registration';
@@ -16,6 +17,7 @@ import Dashboard from './components/pages/Dashboard';
 import NewPost from './components/pages/dashboard/NewPost';
 import MyPosts from './components/pages/dashboard/MyPosts';
 import Posts from './components/pages/Posts';
+import NewsPosts from './components/pages/dashboard/NewsPosts';
 import EditPost from './components/pages/dashboard/EditPost';
 import Activity from './components/pages/dashboard/Activity';
 import UserComments from './components/pages/dashboard/UserComments';
@@ -29,6 +31,7 @@ import NotFound from './components/pages/NotFound';
 import Conversation from './components/pages/dashboard/common/Conversation';
 import SearchResults from './components/pages/SearchResults';
 import About from './components/pages/About';
+import NewNewsPost from './components/pages/dashboard/NewNewsPost';
 
 function App() 
 {
@@ -38,11 +41,14 @@ function App()
         <Routes>
           <Route path="/" element={<Home />}/>
           <Route path="/search" element={<SearchResults/>}/>
+          <Route path="/news" element={<News/>}/>
           <Route path="/dashboard/" element={<Dashboard />}/>
           <Route path="/dashboard/profile" element={<Dashboard />}/>
           <Route path="/dashboard/new-post" element={<NewPost />}/>
+          <Route path="/dashboard/new-news-post" element={<NewNewsPost />}/>
           <Route path="/dashboard/edit-post/:post_url" element={<EditPost />}/>
           <Route path="/dashboard/posts" element={<MyPosts />}/>
+          <Route path="/dashboard/news-posts" element={<NewsPosts />}/>
           <Route path="/dashboard/activity" element={<Activity />}/>
           <Route path="/dashboard/notifications" element={<Notifications />}/>
           <Route path="/dashboard/liked-posts" element={<LikedPosts />}/>

@@ -24,7 +24,7 @@ function UserProfile()
 
     //console.log("profileUser?", profileUser);
 
-    const avatar = profileUser?.avatar ? `${BACKEND_URL}/storage/images/uploaded/${username}/avatar/small/${profileUser?.avatar}` 
+    const avatar = profileUser?.avatar ? `${BACKEND_URL}/storage/images/uploaded/users/${username}/avatar/small/${profileUser?.avatar}` 
         : `${BACKEND_URL}/storage/images/defaults/avatar.webp`;
 
     useEffect(() => //check screen size at regular intervals.
@@ -84,7 +84,7 @@ function UserProfile()
     return (
     <Layout>        
         <div className="heading-profile-container public-profile">
-            <h2 className='centered-content'>{username}</h2>
+            <h2 className='centered-content no-margin'>{username}</h2>
             {
                 profileUser ? (
                     <div className="profile-boxes-container">
@@ -162,14 +162,14 @@ function UserProfile()
                         </div>
                         <div className="rte-container">
                             <div className="centered-header-box">       
-                                <div className="centered-item">
-                                    <h3>bio</h3>                    
+                                <div className="centered-content">
+                                    <h2>bio</h2>                    
                                 </div>
-                            </div>                
-                            <RichTextEditor
-                                readOnly={true}
-                                value={profileUser.bio}
-                            />           
+                            </div>       
+                            <div
+                                className="article-text"
+                                dangerouslySetInnerHTML={{ __html: profileUser.bio}}
+                            />                
                         </div>
                     </div>
                 ):
@@ -178,28 +178,26 @@ function UserProfile()
                 )
             }
         </div>
-        {<>
-            <h2 className='centered-content padded'>{`${username}'s posts`}</h2>
-            {
-                profileUser?.id && (<>
-                    <LimitedTilesContainer
-                        screenSize={screenSize}
-                        arePrivatePosts={false}
-                        fetchMethod={fetchPosts}
-                        userId={profileUser?.id}
-                        fetchOrder={FetchOrder.Descending}
-                        key={profileUser?.id}
-                    />            
-                    <div className='centered-content'>
-                        <Link
-                            to={`/${username}/posts`}
-                        >
-                            view all
-                        </Link>
-                    </div>    
-                </>)
-            }
-        </>}
+        {
+            profileUser ? (<>
+                <h2 className='centered-content padded'>{`${username}'s posts`}</h2>
+                <LimitedTilesContainer
+                    screenSize={screenSize}
+                    arePrivatePosts={false}
+                    fetchMethod={fetchPosts}
+                    userId={profileUser?.id}
+                    fetchOrder={FetchOrder.Descending}
+                    key={profileUser?.id}
+                />            
+                <div className='centered-content'>
+                    <Link
+                        to={`/${username}/posts`}
+                    >
+                        view all
+                    </Link>
+                </div>    
+            </>):(null)
+        }
     </Layout>);
 }
 

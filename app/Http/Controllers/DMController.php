@@ -27,13 +27,14 @@ class DMController extends Controller
         ->whereHas('users', function($q) use ($user)
         {
             $q->where('users.id', $user->id);
-        })->addSelect(['last_message_at' => Message::select('created_at')
+        })->orderBy(Message::select('created_at')
             ->whereColumn('conversation_id', 'conversations.id')
             ->latest()
-            ->take(1)
-        ])
+            ->take(1),
+            'desc'
+        );
         // Sort by the subquery result, fallback to conversation created_at if no messages exist
-        ->orderByRaw('COALESCE(last_message_at, conversations.created_at) DESC');
+        //->orderByRaw('COALESCE(last_message_at, conversations.created_at) DESC');
 
         $totalCount = $query->count();
 
@@ -52,11 +53,11 @@ class DMController extends Controller
      */
     public function store(Request $request)
     {
-        //Log::info("DM", $request->toArray());
+        Log::info("DM", $request->toArray());
         //return;
         $request->validate([
             'subject' => ['string', 'max:255'],
-            'content' => ['required', 'json'],
+            'content' => ['required', 'string'],
             'recipients'   => ['array', 'min:1'],
             'recipients.*' => ['integer', 'exists:users,id'],
             'conversation_id' => ['integer', 'exists:conversations,id']
@@ -88,9 +89,9 @@ class DMController extends Controller
         }
         $editorImageArray = [];
         $messageImageFolder = "users/$userName/messages";
-        $contentArray = json_decode($request->input('content'));
+        $newContentRaw = $request->input('content');
         
-        $content = saveEditorImages($contentArray,
+        $content = saveEditorImages($newContentRaw,
             $editorImageArray, $messageImageFolder);
 
 
@@ -98,17 +99,21 @@ class DMController extends Controller
             'sender_id' => $userId,
             'content' => $content
         ]);
+
+        $newestMessageID = $conversation->messages()->count() - 1;
         
         // $conversationMessages = $conversation->messages()
         // ->with('sender:id,username,avatar')->get();
 
         $conversation->load([
+            'users',
             'messages.sender:id,username,avatar',
         ]);
         return response()->json([
             'status' => 'message sent',
             'message' => 'Your message has been sent.',
-            'conversation' => $conversation
+            'conversation' => $conversation,
+            'new_message_id' => $newestMessageID
         ], 200);
     }
 
@@ -151,7 +156,7 @@ class DMController extends Controller
     public function update(Request $request, string $id)
     {
         $request->validate([
-            'content' => ['required', 'json']
+            'content' => ['required', 'string']
         ]);
         $userId = $request->user()->id;
         $userName = $request->user()->username;
@@ -160,8 +165,8 @@ class DMController extends Controller
             ->firstOrFail();
         $editorImageArray = $message->image_urls; 
         $messageImageFolder = "users/$userName/messages";
-        $newMessageContentArray = json_decode($request->input('content'));
-        $newContent = saveEditorImages($newMessageContentArray, 
+        $newContentRaw = $request->input('content');
+        $newContent = saveEditorImages($newContentRaw, 
             $editorImageArray, $messageImageFolder);
         
         $message->update([
@@ -170,12 +175,12 @@ class DMController extends Controller
         ]);
 
         $conversation = Conversation::findOrFail($message->conversation_id);
-        $conversation->load(['messages.sender:id,username,avatar']);
+        $conversation->load(['users', 'messages.sender:id,username,avatar']);
         return response()->json([
             'status' => 'message_updated',
             'message' => 'Your message has been successfully updated.',
             'conversation' => $conversation
-        ]);
+        ], 200);
     }
 
     /**
