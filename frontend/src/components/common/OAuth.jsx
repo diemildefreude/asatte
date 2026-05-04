@@ -18,13 +18,13 @@ function OAuth({headerText, onClick, originPage, isSubmittingForm, setIsSubmitti
     }, [originPage, setIsSubmittingForm]);
 
     return (
-        <div className="social-login-options">
+        <div className="field-group social-login-options">
             <h3>{headerText}</h3>
             <button
                 onClick={() => { onClick(); handleSocialLogin(LoginType.Google);}}
                 disabled={isSubmitting || isSubmittingForm || isLoading}
             >
-                <div className='buttonContent'>continue with google</div><div><img src="/google.png" alt="google icon"/></div>
+                <div className='button-content'>continue with google</div><div><img src="/google.png" alt="google icon"/></div>
             </button>
             <button
                 onClick={() => { onClick(); handleSocialLogin(LoginType.Github);}}

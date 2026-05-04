@@ -1,15 +1,14 @@
-import Layout from "../../../layout/Layout";
-import DashboardLayout from "../DashboardLayout";
-import RichTextEditor from "../../../common/RichTextEditor";
-import "../TagsMail.css";
-import { useAuth } from "../../../../contexts/AuthContext";
-import "../../DashboardProfile.css";
+import DashboardLayout from "./DashboardLayout";
+import RichTextEditor from "../../common/RichTextEditor";
+import "./TagsMail.css";
+import { useAuth } from "../../../contexts/AuthContext";
+import "../DashboardProfile.css";
 import { useCallback, useEffect, useRef, useState } from "react";
-import UserLink from "../../../common/UserLink";
-import FormField from "../../../common/FormField";
-import { dehydrateEditorImagePaths, getErrorMessage, hydrateEditorImagePaths, processEditorImages } from "../../../../utils/helpers";
+import UserLink from "../../common/UserLink";
+import FormField from "../../common/FormField";
+import { dehydrateEditorImagePaths, getErrorMessage, hydrateEditorImagePaths, processEditorImages } from "../../../utils/helpers";
 import { useNavigate, useLocation, useParams, redirect } from "react-router-dom";
-import Message from "../../../common/Message";
+import Message from "../../common/Message";
 
 function setHeader(conversation)
 {
@@ -386,131 +385,129 @@ function Conversation()
         setQuotedMessage(null);
     }, []);
     return ( 
-    <Layout>
-        <DashboardLayout currentTab="mail">
-        <div className="centered-content no-margin">            
-            <h2 dangerouslySetInnerHTML={{__html: headerText}}></h2>
-        </div>
-        <div className="footnote">
+    <DashboardLayout currentTab="mail">
+    <div className="centered-content no-margin">            
+        <h2 dangerouslySetInnerHTML={{__html: headerText}}></h2>
+    </div>
+    <div className="footnote">
+    {
+        conversation?.name != null && ( 
+            "with " + conversation.other_users.map(u => u.username).join(", ")
+        )
+    }
+    </div>
+    {
+        user && user.is_email_verified ?
+        ( (!isNew && !conversation) ? (
+            <p className="centered-content padding-1rem">
+                Loading conversation...
+            </p>
+        ):(<>{              
+        conversation && conversation?.messages?.map((message, i) => 
         {
-            conversation?.name != null && ( 
-                "with " + conversation.other_users.map(u => u.username).join(", ")
-            )
+            //console.log("rerender conversation?", conversation);
+            let parentElement = conversation.messages.findIndex(m => m.id === message.parent_id);
+            parentElement = parentElement === -1 ? null : parentElement; 
+            
+            return <Message
+                        message={message}
+                        id={i}
+                        key={message.id}
+                        onReply={handleReply}
+                        onDelete={handleDelete}
+                        setConversation={setConversation}
+                        parentLocalId={parentElement}
+                    />
+        }) 
         }
-        </div>
-        {
-            user && user.is_email_verified ?
-            ( (!isNew && !conversation) ? (
-                <p className="centered-content padding-1rem">
-                    Loading conversation...
-                </p>
-            ):(<>{              
-            conversation && conversation?.messages?.map((message, i) => 
-            {
-                //console.log("rerender conversation?", conversation);
-                let parentElement = conversation.messages.findIndex(m => m.id === message.parent_id);
-                parentElement = parentElement === -1 ? null : parentElement; 
-                
-                return <Message
-                            message={message}
-                            id={i}
-                            key={message.id}
-                            onReply={handleReply}
-                            onDelete={handleDelete}
-                            setConversation={setConversation}
-                            parentLocalId={parentElement}
-                        />
-            }) 
-            }
-            <form className="message-form" onSubmit={handleSubmit}>
-                {error && (
-                <div className="error">
-                    {error}
-                </div>
-                )}
-                {isNew && (
-                <dl>
-                    <dt>
-                        <label className="main-label" htmlFor="">recipients</label>
-                    </dt>
-                    <dd>
-                        <div className="tags-container">
-                        {
-                            recipients.map((r,i) => (
-                                <div className="tag" key={i}>
-                                    <UserLink
-                                        user={r} 
-                                        readOnly={true}                               
-                                    /> <span><button 
-                                        onClick={(e) => handleXButton(e, i)}
-                                        className="x-button">x</button></span>
-                                </div>
-                            ))
-                        }
-                            <span
-                                contentEditable
-                                ref={recipientSpanRef}
-                                tabIndex="0"
-                            >
-                            </span>
-                        </div>
-                    </dd>
-                </dl>)
-                }
-                {
-                    isNew && searchResults && (
-                    <div className="results-container" ref={resultsContainer}>
-                    {                                    
-                        searchResults.map((r,i) => (
-                            <div 
-                                className={`tag ${searchResultSelection === i ? 'selected' : ''}`}
-                                key={i} 
-                                onMouseOver={() => handleCandidateHover(i)}
-                            >
+        <form className="message-form" onSubmit={handleSubmit}>
+            {error && (
+            <div className="error">
+                {error}
+            </div>
+            )}
+            {isNew && (
+            <dl>
+                <dt>
+                    <label className="main-label" htmlFor="">recipients</label>
+                </dt>
+                <dd>
+                    <div className="tags-container">
+                    {
+                        recipients.map((r,i) => (
+                            <div className="tag" key={i}>
                                 <UserLink
-                                    user={r}             
-                                    onClick={handleRecipientSelect}                           
-                                />
+                                    user={r} 
+                                    readOnly={true}                               
+                                /> <span><button 
+                                    onClick={(e) => handleXButton(e, i)}
+                                    className="x-button">x</button></span>
                             </div>
                         ))
                     }
+                        <span
+                            contentEditable
+                            ref={recipientSpanRef}
+                            tabIndex="0"
+                        >
+                        </span>
                     </div>
-                    )
+                </dd>
+            </dl>)
+            }
+            {
+                isNew && searchResults && (
+                <div className="results-container" ref={resultsContainer}>
+                {                                    
+                    searchResults.map((r,i) => (
+                        <div 
+                            className={`tag ${searchResultSelection === i ? 'selected' : ''}`}
+                            key={i} 
+                            onMouseOver={() => handleCandidateHover(i)}
+                        >
+                            <UserLink
+                                user={r}             
+                                onClick={handleRecipientSelect}                           
+                            />
+                        </div>
+                    ))
                 }
-                {isNew && (
-                <FormField
-                    id="subject"
-                    label="subject"
-                    placeholder="(optional)"
-                    value={subject}
-                    onChange={(e) => setSubject(e.target.value)}
-                    disabled={isSubmitting}
-                    type="text"
-                    isInline={false}
-                    classes="form-field"
-                />
-                )}
-                <RichTextEditor
-                    placeholder="your message"
-                    readOnly={isSubmitting}
-                    onChange={handleRTEChange}
-                    value={message}
-                    quotedMessage={quotedMessage}
-                    onQuoteApplied={handleClearQuote}
-                />
-                <button
-                    type="submit"
-                    disabled={isSubmitting || !canSubmit}
-                >
-                    send
-                </button>
-            </form></>))
-            :(<p className="centered-content padding-1rem">
-                    Please verify your e-mail to begin mailing other users.
-            </p>)
-        }
-        </DashboardLayout>
-    </Layout>
+                </div>
+                )
+            }
+            {isNew && (
+            <FormField
+                id="subject"
+                label="subject"
+                placeholder="(optional)"
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+                disabled={isSubmitting}
+                type="text"
+                isInline={false}
+                classes="form-field"
+            />
+            )}
+            <RichTextEditor
+                placeholder="your message"
+                readOnly={isSubmitting}
+                onChange={handleRTEChange}
+                value={message}
+                quotedMessage={quotedMessage}
+                onQuoteApplied={handleClearQuote}
+            />
+            <button
+                type="submit"
+                disabled={isSubmitting || !canSubmit}
+            >
+                send
+            </button>
+        </form></>))
+        :(<p className="centered-content padding-1rem">
+                Please verify your e-mail to begin mailing other users.
+        </p>)
+    }
+    </DashboardLayout>
     );
 }
 export default Conversation;

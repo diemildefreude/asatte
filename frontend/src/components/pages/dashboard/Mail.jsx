@@ -1,4 +1,3 @@
-import Layout from "../../layout/Layout";
 import DashboardLayout from "./DashboardLayout";
 import { useAuth } from "../../../contexts/AuthContext";
 import "../DashboardProfile.css";
@@ -40,36 +39,34 @@ function Mail()
     // },[user]);
 
     return ( 
-    <Layout>
-        <DashboardLayout currentTab="mail">
-            {
-                error && (<div className="error">{error}</div>)
-            }
-            {                
-                user && user.is_email_verified ?
-                (<>
-                    <DashboardCreateHeader
-                        headerText="mailbox"
-                        createLink="/dashboard/mail/new"
-                    />
-                    <LoadItems
-                        fetchMethod={async (page) => await fetchConversations(FETCH_AMOUNT, page)}
-                        renderMethod={(item) =>({
-                            conversation: item
-                        })}
-                        fetchAmount={FETCH_AMOUNT}
-                        Component={ConversationPreview}
-                        itemString="conversations"
-                        isFullPage={true}
-                        classes=""
-                    />
-                </>)
-                :(<p className="centered-content padding-1rem">
-                        Please verify your e-mail to begin mailing other users.
-                </p>)
-            }
-        </DashboardLayout>
-    </Layout>
+    <DashboardLayout currentTab="mail">
+        {
+            error && (<div className="error">{error}</div>)
+        }
+        {                
+            user && user.is_email_verified ?
+            (<>
+                <DashboardCreateHeader
+                    headerText="mailbox"
+                    createLink="/dashboard/mail/new"
+                />
+                <LoadItems
+                    fetchMethod={async (page) => await fetchConversations(FETCH_AMOUNT, page)}
+                    renderMethod={(item) =>({
+                        conversation: item
+                    })}
+                    fetchAmount={FETCH_AMOUNT}
+                    Component={ConversationPreview}
+                    itemString="conversations"
+                    isFullPage={true}
+                    classes=""
+                />
+            </>)
+            :(<p className="centered-content padding-1rem">
+                    Please verify your e-mail to begin mailing other users.
+            </p>)
+        }
+    </DashboardLayout>
     );
 }
 export default Mail;

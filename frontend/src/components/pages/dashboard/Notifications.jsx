@@ -1,4 +1,3 @@
-import Layout from "../../layout/Layout";
 import DashboardLayout from "./DashboardLayout";
 // import LoadNotifications from "./common/LoadNotifications";
 import LoadItems from "../../common/LoadItems";
@@ -9,21 +8,19 @@ function Notifications ()
 {
     const { fetchNotifications } = useAuth();
     return (
-    <Layout>
-        <DashboardLayout currentTab="activity" headerText="notifications">
-            <LoadItems
-                fetchMethod={async (page) => await fetchNotifications(FETCH_AMOUNT, page, false)}
-                renderMethod={(notification) =>({
-                    notification
-                })}
-                fetchAmount={FETCH_AMOUNT}
-                Component={Notification}
-                itemString="notifications"
-                isFullPage={true}
-                classes="side-padded"
-            />
-        </DashboardLayout>
-    </Layout>    
+    <DashboardLayout currentTab="activity" headerText="notifications">
+        <LoadItems
+            fetchMethod={async (page) => await fetchNotifications(FETCH_AMOUNT, page, false)}
+            renderMethod={(notification) =>({
+                notification
+            })}
+            fetchAmount={FETCH_AMOUNT}
+            Component={Notification}
+            itemString="notifications"
+            isFullPage={true}
+            classes="side-padded"
+        />
+    </DashboardLayout>
     )
 }
 export default Notifications;

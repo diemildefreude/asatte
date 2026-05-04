@@ -1015,6 +1015,33 @@ export const AuthProvider = ({ children }) =>
       setIsLoading(false);
     }
   },[])
+
+  const sendContactMail = useCallback(async (sender, email, subject, website, content) =>
+  {
+    setIsLoading(true);
+    try
+    {
+      const formData = new FormData();
+      formData.append('name', sender);
+      formData.append('email', email);
+      formData.append('subject', subject);
+      if(website)
+      {        
+        formData.append('website', website);
+      }
+      formData.append('content', content);
+      const response = await api.post(`/send-contact-mail`, formData);
+      return response.data;
+    }
+    catch(err)
+    {
+      throw err;
+    }
+    finally
+    {
+      setIsLoading(false);
+    }
+  },[]);
   return (
     <AuthContext.Provider value={{ isAuthenticated, user, login, logout, 
       changePassword, registerWithEmail, sendVerificationEmail, refreshUser,
@@ -1025,7 +1052,7 @@ export const AuthProvider = ({ children }) =>
       fetchLikedPosts, fetchNotifications, getUnreadStatus, toggleFollow,
       fetchFollowing, fetchFollowers, userSearch, createDM, updateDM, deleteDM,
       fetchConversation, fetchConversations, searchPosts, updateAbout, fetchAbout,
-      toggleAdminPostHide}}>
+      toggleAdminPostHide, sendContactMail}}>
       {children}
     </AuthContext.Provider>
   );

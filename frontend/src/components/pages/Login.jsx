@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import FormField from "../common/FormField";
-import "../common/LoginRegistration.css";
+import "../common/Form.css";
 import Layout from "../layout/Layout";
 import OAuth from "../common/OAuth";
 import { useAuth } from "../../contexts/AuthContext";
@@ -87,7 +87,7 @@ function Login()
         <div className="sub-form-text">
           <p>New? <Link to="/register">Click here to join.</Link></p>
         </div>
-        <h2>log in</h2>
+        <h1 className="centered-content no-margin">log in</h1>
         {error && (
           <div className="error">
             {error}
@@ -98,9 +98,9 @@ function Login()
             {success}
           </div>
         )}
-        <div className="email-oauth-container">
-          <div className="email-form-container">
+        <div className="field-groups-container">
             <form onSubmit={handleLoginSubmit}>
+          <div className="field-group">
               <FormField
                 id="usernameOrEmail"
                 label="username or e-mail"
@@ -125,8 +125,9 @@ function Login()
                 {isSubmitting ? 'logging in...' : 'log in'}
               </button>
               <Link to="/password-recovery" className="sub-field-link">Forgot your password?</Link>
-            </form>            
+                 
           </div>
+           </form>      
           <OAuth headerText="or:"
               onClick={handleSocialLoginSubmit}
               setError={setError}

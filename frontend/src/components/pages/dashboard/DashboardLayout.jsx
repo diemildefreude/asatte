@@ -3,6 +3,7 @@ import DashboardTab from "../../common/DashboardTab";
 import { useAuth } from "../../../contexts/AuthContext";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { getErrorMessage, MemberType } from '../../../utils/helpers';
+import Layout from '../../layout/Layout';
 
 function DashboardLayout({ currentTab, headerText, children })
 {
@@ -19,6 +20,11 @@ function DashboardLayout({ currentTab, headerText, children })
     let containerClasses = "dashboard-container";
     if(hasUnreadNotifications) { containerClasses += ' has-new-notifications'};
     if(hasUnreadMail){containerClasses += ' has-new-mail'};
+
+    
+    console.log("hasUnreadMail", hasUnreadMail);
+    console.log("containerClasses", containerClasses);
+    //console.log("children?", children);
 
     useEffect(() =>
     {
@@ -174,7 +180,7 @@ function DashboardLayout({ currentTab, headerText, children })
     }, [location, logout, navigate, isAuthenticated, user, refreshUser]);
 
     return (
-    <div className={containerClasses}>
+    <Layout classes={containerClasses} isDashboard={true}>
     {
         isAuthenticated ?
         (
@@ -233,17 +239,18 @@ function DashboardLayout({ currentTab, headerText, children })
                         targetPath="/dashboard/mail"
                         currentTab={currentTab}
                     />    
-                </div>                        
-                <div className="heading-profile-container">
-                {
-                    headerText && (    
+                </div>                           
+                <main>             
+                    <div className="heading-profile-container">
+                    {
+                        headerText && (    
                         <div className="centered-content no-margin">
                             <h2>{headerText}</h2>   
-                        </div>
-                    )
-                }
-                { children}
-                </div>
+                        </div>)
+                    }
+                        {children}
+                    </div>                
+                </main>
             </div>
         </>):
         (
@@ -264,7 +271,7 @@ function DashboardLayout({ currentTab, headerText, children })
             </div>
             </>
         )}
-        </div>
+        </Layout>
     );
 }
 

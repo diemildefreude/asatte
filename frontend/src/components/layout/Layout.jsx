@@ -2,10 +2,12 @@ import React, { useEffect, useState } from 'react';
 import './Layout.css';
 import Header from './Header';
 
-function Layout({children})
+function Layout({children, isDashboard=false, classes=""})
 {
+    console.log("classes?", classes);
     const [isTouchDevice, setIsTouchDevice] = useState();
-    const classes = isTouchDevice ? "touch-device content" : "content";
+    let classNames = isTouchDevice ? "touch-device content" : "content";
+    classNames += ` ${classes}`;
 
     useEffect(() =>
     {
@@ -24,13 +26,19 @@ function Layout({children})
         {
             window.removeEventListener('resize', handleResize);
         };
-    },[setIsTouchDevice]);
+    },[]);
 
     return (
     <>
         <Header></Header>
-        <div className={classes}>
-            {children}
+        <div className={classNames}>
+        {
+            isDashboard ? (
+                children
+            ):(
+                <main>{children}</main>
+            )
+        }
         </div>
         </>
     );

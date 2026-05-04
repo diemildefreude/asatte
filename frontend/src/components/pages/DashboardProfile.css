@@ -4,7 +4,7 @@
     flex-direction: column;
     gap: 2rem;    
     box-sizing: border-box;
-    margin: 2rem 0rem 1rem;
+    margin: var(--header-height-narrow) 0rem 1rem;
     width: 100%;
 }
 .dashboard-nav-content-container
@@ -18,7 +18,7 @@
     display: flex;
     flex-direction: row;
     justify-content: stretch;
-    margin-top: 1rem;
+    margin-top: var(--header-height);
 }
 .profile-boxes-container
 {
@@ -441,7 +441,7 @@
 {    
     .dashboard-container
     {
-        margin: 2rem 1rem 1rem;
+        margin: var(--header-height-narrow) 1rem 1rem;
         width: calc(100% - 2rem);
     }
     .main-label-container p
@@ -465,6 +465,11 @@
         flex-direction: row;
         justify-content: stretch;
         gap: 1rem;
+        margin: 2rem 0 0;
+    }
+    .dashboard-container
+    {
+        margin: var(--header-height-wide) 1rem 1rem;
     }
     .dashboard-container .tiles-container
     {

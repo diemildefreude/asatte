@@ -1,11 +1,16 @@
 import { useState } from 'react';
-import './LoginRegistration.css';
+import './Form.css';
 
-function FormField({ classes='', id, label, placeholder, value="", onChange, disabled, min, max, type = "text", onValidate }) 
+function FormField({ classes='', id, label, placeholder, value="", 
+    onChange, disabled, min, max, type = "text", onValidate, isTextArea=false }) 
 {
     const [error, setError] = useState(''); // This is FormField's local error state
 
-    let fieldClasses = classes;
+    let fieldClasses = 'form-field ';
+    fieldClasses = isTextArea ? fieldClasses + "text-area " : fieldClasses;
+    fieldClasses += classes;
+
+    let labelClasses = isTextArea ? 'main-label centered-content no-margin' : 'main-label';
 
     // Internal handler that calls both the parent's onChange and the validation function
     const handleInternalChange = (e) => 
@@ -25,37 +30,51 @@ function FormField({ classes='', id, label, placeholder, value="", onChange, dis
         // The error will be displayed by this FormField component.
     };
     return (
-        <>
-            <div className={fieldClasses}>
-            {
-                label && (
-                    <label 
-                        htmlFor={id}
-                        className='main-label'
-                    >
-                        {label}
-                    </label>
-                )
-            }
-                <input type={type} 
-                    placeholder={placeholder}
-                    name={id}
-                    value={value}
-                    min={min}
-                    max={max}
-                    id={id}
-                    onChange={handleInternalChange}
-                    disabled={disabled}
-                />
-            </div>
-            
-            {
-                error && (
-                <div className="error small">
-                    {error}
-                </div>
-        )}
-        </>
+    <div className={fieldClasses}>
+        <div className="label-input-container">
+        {
+        label && (
+            <label 
+                htmlFor={id}
+                className={labelClasses}
+            >
+                {label}
+            </label>
+        )
+    }
+    {
+        isTextArea ? (
+        <textarea 
+            name={id} 
+            id={id}
+            value={value}
+            min={min}
+            max={max}
+            onChange={handleInternalChange}
+            disabled={disabled}
+            placeholder={placeholder}
+        />
+        ):(
+        <input type={type} 
+            placeholder={placeholder}
+            name={id}
+            value={value}
+            min={min}
+            max={max}
+            id={id}
+            onChange={handleInternalChange}
+            disabled={disabled}
+        />
+        )
+    }            
+        </div>
+    {
+        error && (
+        <div className="error small">
+            {error}
+        </div>
+    )}                
+    </div>
     );
 }
 

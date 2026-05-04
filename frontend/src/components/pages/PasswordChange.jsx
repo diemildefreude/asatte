@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import "../common/LoginRegistration.css";
+import "../common/Form.css";
 import FormField from "../common/FormField";
 import Layout from "../layout/Layout";
 import { useAuth } from "../../contexts/AuthContext";

@@ -14,6 +14,7 @@
 .image-link-subcontainer
 {   
     position: relative;
+    border: 2px solid var(--grey-yellow);
 }
 .main-image-link-container
 {

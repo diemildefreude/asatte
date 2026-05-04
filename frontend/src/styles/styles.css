@@ -10,7 +10,8 @@
     --lavender-gradient: linear-gradient(45deg, #505193cc 0%, #c1b7fdcc 60%);
     --red-gradient: linear-gradient(45deg, #ff4574 0%, #6c0746 70%);
     --transparent-black: rgba(0, 0, 0, 0.5);
-    --header-height: 60px;
+    --header-height-wide: 60px;
+    --header-height-narrow: 50px;
     --default-button-border: 2px solid white;
     --hover-button-border: 2px solid var(--pale-yellow);    
     --disabled-button-border: 2px solid gray;
@@ -50,6 +51,7 @@ h1, h2, h3
 {
     max-width: 100%;
     overflow-wrap: break-word;
+    width: fit-content;
 }
 h1
 {
@@ -82,6 +84,10 @@ h2
 .centered-content.top-3rem
 {
     margin: 3rem 0 0;
+}
+.centered-content.top-2rem
+{
+    margin: 2rem 0 0;
 }
 .centered-content h1
 {

@@ -3,11 +3,10 @@ import './Header.css';
 import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import UserLink from '../common/UserLink';
-import { getErrorMessage } from '../../utils/helpers';
 
 function Header()
 {
-    const { isAuthenticated, user, searchPosts } = useAuth();
+    const { isAuthenticated, user} = useAuth();
     const [isNavOpen, setIsNavOpen] = useState(false);
     //const [isSearchOpen, setIsSearchOpen] = useState(false);
     const headerRef = useRef(null);
@@ -23,9 +22,11 @@ function Header()
     const currentSearchTerm = searchParams.get('q')
     const [searchTerm, setSearchTerm] = useState("");
     const isSearchPage = location.pathname == "/search";
+    const searchInputRef = useRef(null);
     let searchClasses = 'nav-item nav-search-container'
-    searchClasses = isSearchPage ? searchClasses + ' always-open' : searchClasses;
+    searchClasses = isSearchPage || searchTerm.length > 0 ? searchClasses + ' always-open' : searchClasses;
     //const [isSearching, setIsSearching] = useState(false);
+    
 
     const toggleMenu = () =>
     {
@@ -143,12 +144,15 @@ function Header()
             <nav className={navClasses}>
                 <div className="nav-half first">
                     <form
+                        tabIndex="0"
+                        onFocus={() => searchInputRef.current?.focus()}
                         onSubmit={handleSearch} 
                         className={searchClasses}>
                         <input id="search" name="search" className="nav-search" type="text" placeholder=" search" 
                             onChange={e => setSearchTerm(e.target.value)} value={searchTerm}
+                            ref={searchInputRef}
                         />
-                        <button type="submit">
+                        <button type="submit" tabIndex="-1">
                             <i className="fa-solid fa-magnifying-glass"></i>
                         </button>
                     </form>
@@ -156,7 +160,7 @@ function Header()
                     <Link to="/news" className="nav-item">news</Link>
                 </div>
                 <div className="nav-half second">
-                    <a className="nav-item" href="#">contact</a>
+                    <Link to="/contact" className="nav-item">contact</Link>
                     <Link to="/about" className="nav-item">about</Link>
                     {
                         (isAuthenticated && user.profile_completed) ?

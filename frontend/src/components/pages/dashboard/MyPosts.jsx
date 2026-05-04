@@ -1,4 +1,3 @@
-import Layout from "../../layout/Layout";
 import DashboardLayout from "./DashboardLayout";
 import "../DashboardProfile.css";
 import AutoloadTilesContainer from "../../common/AutoloadTilesContainer";
@@ -20,21 +19,19 @@ function MyPosts()
     }, [setScreenSize]);
 
     return ( 
-    <Layout>
-        <DashboardLayout currentTab="posts">
-            <DashboardCreateHeader
-                headerText="your posts"
-                createLink="/dashboard/new-post"
-            />
-            <AutoloadTilesContainer 
-                screenSize={screenSize}
-                isDashboard={true}
-                fetchMethod={fetchMyPosts}
-                fetchOrder={FetchOrder.Descending}
-                category={Category.Archive}
-            />
-        </DashboardLayout>
-    </Layout>
+    <DashboardLayout currentTab="posts">
+        <DashboardCreateHeader
+            headerText="your posts"
+            createLink="/dashboard/new-post"
+        />
+        <AutoloadTilesContainer 
+            screenSize={screenSize}
+            isDashboard={true}
+            fetchMethod={fetchMyPosts}
+            fetchOrder={FetchOrder.Descending}
+            category={Category.Archive}
+        />
+    </DashboardLayout>
     );
 }
 export default MyPosts;

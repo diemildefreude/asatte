@@ -1,4 +1,3 @@
-import Layout from "../../layout/Layout";
 import DashboardLayout from "./DashboardLayout";
 import "../DashboardProfile.css";
 import AutoloadTilesContainer from "../../common/AutoloadTilesContainer";
@@ -20,7 +19,6 @@ function NewsPosts()
     }, [setScreenSize]);
 
     return ( 
-    <Layout>
         <DashboardLayout currentTab="posts">
             <DashboardCreateHeader
                 headerText="news posts"
@@ -34,7 +32,6 @@ function NewsPosts()
                 category={Category.News}
             />
         </DashboardLayout>
-    </Layout>
     );
 }
 export default NewsPosts;

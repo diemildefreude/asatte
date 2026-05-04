@@ -1,7 +1,7 @@
 import { useState } from "react";
 import FormField from "../common/FormField";
 import Layout from "../layout/Layout";
-import "../common/LoginRegistration.css";
+import "../common/Form.css";
 import { getErrorMessage } from "../../utils/helpers";
 import { useAuth } from "../../contexts/AuthContext";
 

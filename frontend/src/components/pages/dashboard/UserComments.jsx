@@ -1,4 +1,3 @@
-import Layout from "../../layout/Layout";
 import DashboardLayout from "./DashboardLayout";
 import LoadItems from "../../common/LoadItems";
 import Comment from "../../common/Comment";
@@ -9,23 +8,21 @@ function UserComments ()
 {
     const { fetchUserComments } = useAuth();
     return (
-    <Layout>
-        <DashboardLayout currentTab="activity" headerText="your comments">
-            <LoadItems
-                fetchMethod={async (page) => await fetchUserComments(ITEMS_PER_PAGE, page)}
-                renderMethod={(comment, i) =>({
-                    comment,
-                    id: i,
-                    isDashboard:true
-                })}
-                Component={Comment}
-                itemString="comments"
-                isFullPage={true}
-                classes="side-padded"
-                fetchAmount={ITEMS_PER_PAGE}
-            />
-        </DashboardLayout> 
-    </Layout>    
+    <DashboardLayout currentTab="activity" headerText="your comments">
+        <LoadItems
+            fetchMethod={async (page) => await fetchUserComments(ITEMS_PER_PAGE, page)}
+            renderMethod={(comment, i) =>({
+                comment,
+                id: i,
+                isDashboard:true
+            })}
+            Component={Comment}
+            itemString="comments"
+            isFullPage={true}
+            classes="side-padded"
+            fetchAmount={ITEMS_PER_PAGE}
+        />
+    </DashboardLayout> 
     )
 }
 export default UserComments;

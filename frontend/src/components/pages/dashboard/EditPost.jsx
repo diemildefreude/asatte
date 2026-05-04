@@ -1,4 +1,3 @@
-import Layout from "../../layout/Layout";
 import DashboardLayout from "./DashboardLayout"
 import PostForm from "./PostForm"
 import { useAuth } from "../../../contexts/AuthContext"
@@ -22,23 +21,21 @@ function EditPost()
     }, [user, post_url]);
 
     return (
-        <Layout>
-            <DashboardLayout
-                currentTab=""
-                headerText="edit post"
-            >
-                {
-                    post?.is_hidden_by_admin && (                
-                    <HiddenPostNotice classes="no-margin"/>
-                    )
-                }
-                <PostForm
-                    isCreateForm={false}
-                    user={user}
-                    post={post}
-                />
-            </DashboardLayout>
-        </Layout>
+    <DashboardLayout
+        currentTab=""
+        headerText="edit post"
+    >
+        {
+            post?.is_hidden_by_admin && (                
+            <HiddenPostNotice classes="no-margin"/>
+            )
+        }
+        <PostForm
+            isCreateForm={false}
+            user={user}
+            post={post}
+        />
+    </DashboardLayout>
     )
 }
 

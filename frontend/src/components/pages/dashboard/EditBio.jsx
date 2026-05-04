@@ -77,7 +77,7 @@ function EditBio()
                     </div>)
                 }
                 <div className="centered-content">
-                    <h2>bio</h2>                    
+                    <h3>bio</h3>                    
                 </div>
                 <div className="right-item">
                     {!isInEditMode && (

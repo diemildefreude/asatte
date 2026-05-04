@@ -5,6 +5,7 @@ use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\SocialiteController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DMController;
 use App\Http\Controllers\PostController;
@@ -21,6 +22,8 @@ Route::get('/posts', [PostController::class, 'index']);
 Route::get('/user/{username}/post/{post_url}', [PostController::class, 'show']);
 
 Route::get('/{post}/comments', [CommentController::class, 'index']);
+
+Route::post('/send-contact-mail', [ContactController::class, 'sendContactMail']);
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);

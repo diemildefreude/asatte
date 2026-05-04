@@ -12,9 +12,9 @@ use Illuminate\Queue\SerializesModels;
 class VerifyEmail extends Mailable
 {
     use Queueable, SerializesModels;
-    public $verificationUrl;
-    public $cancelRegistrationUrl;
-    public $username;
+    public string $verificationUrl;
+    public string $cancelRegistrationUrl;
+    public string $username;
 
     /**
      * Create a new message instance.

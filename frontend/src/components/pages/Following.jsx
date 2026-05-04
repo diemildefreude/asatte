@@ -1,4 +1,3 @@
-import Layout from "../layout/Layout";
 import DashboardLayout from "./dashboard/DashboardLayout";
 import { useAuth } from "../../contexts/AuthContext";
 import LoadItems from "../common/LoadItems";
@@ -62,12 +61,10 @@ function Following()
 
     return (
         member && (
-        <Layout>
-            { user ? <DashboardLayout headerText={ isDashboardUrl ? HEADER_TEXT : ""}>
-                        {content}
-                </DashboardLayout> : content
-            }
-        </Layout>)
+        user ? <DashboardLayout headerText={ isDashboardUrl ? HEADER_TEXT : ""}>
+                    {content}
+            </DashboardLayout> : content
+        )
     )
 }
 

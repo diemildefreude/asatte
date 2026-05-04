@@ -1,4 +1,3 @@
-import Layout from "../../layout/Layout";
 import DashboardLayout from "./DashboardLayout";
 import AutoloadTilesContainer from "../../common/AutoloadTilesContainer";
 import { useAuth } from "../../../contexts/AuthContext";
@@ -9,7 +8,6 @@ function LikedPosts()
     const [screenSize, setScreenSize] = useState(getScreenSize());
     const {fetchLikedPosts} = useAuth();
     return(
-    <Layout>
         <DashboardLayout currentTab="activity" headerText="liked posts">
             <AutoloadTilesContainer
                 screenSize={screenSize}
@@ -18,7 +16,6 @@ function LikedPosts()
                 fetchOrder={FetchOrder.Descending}
             />
         </DashboardLayout>
-    </Layout>
     )
 }
 export default LikedPosts;

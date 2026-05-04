@@ -233,7 +233,7 @@ function Registration()
     return (
     <Layout>
         <div className="form-container">
-            <h2>join netart.io</h2>
+            <h1 className='centered-content no-margin'>join netart.io</h1>
         {error && (
           <div className="error">
             {error}
@@ -248,21 +248,28 @@ function Registration()
             formPage === 0 ?
             (
                 <>
-                    <div className="email-oauth-container">
+                    <div className="field-groups-container">
                         <form onSubmit={handleEmailSubmit}>    
-                            <h3>type your e-mail:</h3>                
-                            <FormField
-                                id="email"
-                                placeholder="valid@email.address"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                onValidate={handleEmailFormatValidation}
-                                disabled={isSubmitting}
-                                type="email"
-                            />
-                            <button type="submit" disabled={!canContinueWithEmail}>
-                                continue with e-mail
-                            </button>
+                            <h3>type your e-mail:</h3>            
+                            <div className="field-group">
+                                <FormField
+                                    id="email"
+                                    placeholder="valid@email.address"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    onValidate={handleEmailFormatValidation}
+                                    disabled={isSubmitting}
+                                    type="email"
+                                />
+                                <button 
+                                    type="submit" 
+                                    disabled={!canContinueWithEmail}
+                                >
+                                    <div className="button-content">
+                                        continue with e-mail
+                                    </div>
+                                </button>
+                            </div>    
                         </form>
                         <OAuth headerText="or:"
                             onClick={handleSocialRegistrationSubmit}
@@ -286,8 +293,7 @@ function Registration()
                             onChange={(e) => setEmail(e.target.value.trimEnd())}
                             onValidate={handleEmailFormatValidation}
                             disabled={isSubmitting}
-                            type="email"                            
-                            classes="form-field"
+                            type="email"                
                         />
                         <FormField
                             id="username"
@@ -297,8 +303,7 @@ function Registration()
                             onChange={(e) => setUsername(e.target.value.trimEnd())}
                             onValidate={handleUsernameFormatValidation}
                             disabled={isSubmitting}
-                            type="text"                            
-                            classes="form-field"
+                            type="text"                  
                         />
                         <FormField 
                             id="password"
@@ -308,8 +313,7 @@ function Registration()
                             onChange={(e) => setPassword(e.target.value.trimEnd())}
                             onValidate={handlePasswordFormatValidation}
                             disabled={isSubmitting}
-                            type="password"                            
-                            classes="form-field"
+                            type="password"         
                         />
                         <FormField 
                             id="password-confirm"
@@ -318,8 +322,7 @@ function Registration()
                             value={passwordConfirmation}
                             onChange={(e) => setPasswordConfirmation(e.target.value.trimEnd())}
                             disabled={isSubmitting}
-                            type="password"                            
-                            classes="form-field"
+                            type="password"           
                         />
                         <FormField 
                             id="birthdate"
@@ -330,14 +333,13 @@ function Registration()
                             onValidate={handleBirthdateFormatValidation}
                             onChange={(e) => setBirthdate(e.target.value.trimEnd())}
                             disabled={isSubmitting}
-                            type="date"                            
-                            classes="form-field"
+                            type="date"              
                         />
                         <FormField 
                             id="website"
                             label="your website url"
                             placeholder="www.yoursite.com"
-                            classes="form-field bonus"
+                            classes="bonus"
                         />
                         <button type="submit" disabled={!canRegisterWithEmail}>
                             {isSubmitting ? 'registering...' : 'register'}

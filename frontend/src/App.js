@@ -6,6 +6,7 @@ import Home from './components/pages/Home';
 import News from './components/pages/News';
 import Post from './components/pages/Post';
 import Login from './components/pages/Login';
+import Contact from './components/pages/Contact';
 import Registration from './components/pages/Registration';
 import PasswordChange from './components/pages/PasswordChange';
 import PasswordRecovery from './components/pages/PasswordRecovery';
@@ -28,7 +29,7 @@ import PasswordReset from './components/pages/PasswordReset';
 import Following from './components/pages/Following';
 import Followers from './components/pages/Followers';
 import NotFound from './components/pages/NotFound';
-import Conversation from './components/pages/dashboard/common/Conversation';
+import Conversation from './components/pages/dashboard/Conversation';
 import SearchResults from './components/pages/SearchResults';
 import About from './components/pages/About';
 import NewNewsPost from './components/pages/dashboard/NewNewsPost';
@@ -42,6 +43,7 @@ function App()
           <Route path="/" element={<Home />}/>
           <Route path="/search" element={<SearchResults/>}/>
           <Route path="/news" element={<News/>}/>
+          <Route path="/contact" element={<Contact/>}/>
           <Route path="/dashboard/" element={<Dashboard />}/>
           <Route path="/dashboard/profile" element={<Dashboard />}/>
           <Route path="/dashboard/new-post" element={<NewPost />}/>

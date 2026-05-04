@@ -15,10 +15,14 @@ header
     z-index: 99;
     opacity: 1.0;
     transition: opacity 0.5s;
-    height: var(--header-height);
+    height: var(--header-height-narrow);
 }
 @media (min-width: 700px)
 {
+    header
+    {
+        height: var(--header-height-wide);
+    }
     .header-out
     {
         /* top: -100px; */
@@ -181,7 +185,8 @@ nav.open
         left: -70px; */
     }
     .nav-search-container:hover .nav-search,
-    .nav-search-container.always-open .nav-search
+    .nav-search-container.always-open .nav-search,
+    .nav-search-container:focus-within .nav-search
     {
         display: block;
     }
@@ -284,7 +289,7 @@ nav.open
 .user-link.nav-item
 {
     margin: 0;
-    height: var(--header-height);
+    height: var(--header-height-narrow);
     padding: 2.5rem 1rem 2.5rem 1rem;
     flex-grow: 2;
 }
@@ -299,5 +304,6 @@ nav.open
         padding: 0 1rem 0;
         margin: 0 0 0 -0.5rem; /*because of the avatar*/
         box-sizing:border-box;
+        height: var(--header-height-wide);
     }
 }
