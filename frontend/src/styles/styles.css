@@ -89,6 +89,10 @@ h2
 {
     margin: 2rem 0 0;
 }
+.centered-content.bottom-1rem
+{
+    margin: 0 0 1rem;
+}
 .centered-content h1
 {
     justify-content: center;

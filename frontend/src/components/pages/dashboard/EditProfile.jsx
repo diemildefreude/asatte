@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { useAuth } from "../../../contexts/AuthContext";
+import { LoginType, useAuth } from "../../../contexts/AuthContext";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { getErrorMessage } from "../../../utils/helpers";
 import AvatarSetter from "./AvatarSetter";
@@ -21,6 +21,7 @@ function EditProfile()
     const [locationField, setLocationField] = useState('');
     const [editingField, setEditingField] = useState(null);
 
+    //console.log("user",user);
     useEffect(() =>
     {
         if(!user)
@@ -140,7 +141,7 @@ function EditProfile()
                     }
                 </div>
                 {
-                    user.is_email_verified &&
+                    (user.is_email_verified && user.login_type == LoginType.Email) &&
                     (
                         <Link to="/password-change" className="centered-content no-margin">change password</Link>
                     )

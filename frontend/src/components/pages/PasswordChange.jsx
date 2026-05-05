@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import "../common/Form.css";
 import FormField from "../common/FormField";
 import Layout from "../layout/Layout";
-import { useAuth } from "../../contexts/AuthContext";
+import { LoginType, useAuth } from "../../contexts/AuthContext";
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getErrorMessage, isValidPassword } from "../../utils/helpers";
 import { Link } from "react-router-dom";
@@ -18,7 +18,7 @@ function PasswordChange()
     const [isOldPasswordFieldValid, setIsOldPasswordFieldValid] = useState(false);
     const [isNewPasswordFieldValid, setIsNewPasswordFieldValid] = useState(false);
     const [arePasswordsMatching, setArePasswordsMatching] = useState(false);
-    const { isAuthenticated, isLoading, changePassword } = useAuth();
+    const { user, isAuthenticated, isLoading, changePassword } = useAuth();
     const navigate = useNavigate(); // Hook for navigation
     const location = useLocation();
     const from = location.state?.from?.pathname || '/';
@@ -108,7 +108,9 @@ function PasswordChange()
 
     return (
     <Layout>
-        <div className="form-container">
+    {
+        (user.is_email_verified && user.login_type == LoginType.Email) ? (
+            <div className="form-container limited-width">
             <h2>change password</h2>
             {error && (
             <div className="error">
@@ -130,7 +132,6 @@ function PasswordChange()
                     onValidate={handleOldPasswordFormatValidation}
                     disabled={isSubmitting}
                     type="password"
-                    classes="form-field"
                 />
                 <FormField 
                     id="newPassword"
@@ -141,7 +142,6 @@ function PasswordChange()
                     onValidate={handleNewPasswordFormatValidation}
                     disabled={isSubmitting}
                     type="password"
-                    classes="form-field"
                 />
                 <FormField 
                     id="password-confirm"
@@ -151,7 +151,6 @@ function PasswordChange()
                     onChange={(e) => setPasswordConfirmation(e.target.value.trimEnd())}
                     disabled={isSubmitting}
                     type="password"
-                    classes="form-field"
                 />
                 <div className="horizontal-buttons-container">
                     <button type="submit" disabled={!canChangePassword}>
@@ -161,6 +160,11 @@ function PasswordChange()
                 </div>
             </form>
         </div>
+        ):(
+            <div className="notice centered-content"><p>You cannot change your password as your login type is <em className="bold">{user.login_type}</em></p></div>
+        )
+    }
+        
     </Layout>
     );
 }

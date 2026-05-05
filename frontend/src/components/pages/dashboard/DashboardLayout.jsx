@@ -239,17 +239,17 @@ function DashboardLayout({ currentTab, headerText, children })
                         targetPath="/dashboard/mail"
                         currentTab={currentTab}
                     />    
-                </div>                           
-                <main>             
-                    <div className="heading-profile-container">
+                </div>                        
+                <main className="heading-profile-container">
+                    
                     {
                         headerText && (    
-                        <div className="centered-content no-margin">
-                            <h2>{headerText}</h2>   
-                        </div>)
+                            <div className="centered-content bottom-1rem">
+                                <h2>{headerText}</h2>   
+                            </div>
+                        )
                     }
-                        {children}
-                    </div>                
+                    {children}
                 </main>
             </div>
         </>):

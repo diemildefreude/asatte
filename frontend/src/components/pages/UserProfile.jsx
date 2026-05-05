@@ -84,7 +84,7 @@ function UserProfile()
     return (
     <Layout>        
         <div className="heading-profile-container public-profile">
-            <h2 className='centered-content no-margin'>{username}</h2>
+            <div className='centered-content bottom-1rem'><h2>{username}</h2></div>
             {
                 profileUser ? (
                     <div className="profile-boxes-container">

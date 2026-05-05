@@ -15,6 +15,10 @@
 {   
     position: relative;
     border: 2px solid var(--grey-yellow);
+    width: fit-content;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    box-sizing: border-box;
 }
 .main-image-link-container
 {
@@ -110,13 +114,6 @@
 .source-link i
 {
     align-self: center;
-}
-@media (min-width:700px)
-{
-    .content
-    {
-        top: var(--header-height);
-    }
 }
 .page-section.main-info-container
 {
@@ -220,8 +217,7 @@
     .main-image
     {
         max-height: 70svh;
-        width: auto;
-        margin: 0 auto;
+        object-position: center;
     }
     .main-info-statement-container
     {

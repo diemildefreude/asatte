@@ -233,7 +233,7 @@
                         <div className="main-info-statement-container">
                             <div className="page-section main-info-container sticky-version">
                                 <div className="main-info-box">
-                                    <div><h1>{post.title}</h1></div>
+                                    <div className='centered-content no-margin'><h1>{post.title}</h1></div>
                                     <div><p><em>{post.subtitle}</em></p></div>   
                                     <div><p className="post-date"> posted by <UserLink user={post.user}/> on 2025.5.12</p></div>    
                                     {

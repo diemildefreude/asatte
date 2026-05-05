@@ -4,8 +4,17 @@
     font-weight: 1;
     font-style: normal;
     color: white;
+    top: var(--header-height-narrow);
     padding: 0 0 1rem;
 }
+@media (min-width:700px)
+    {
+        .content
+        {
+            top: var(--header-height-wide);
+            margin: 1rem 0 0;
+        }
+    }
 body.no-scroll
 {
   overflow: hidden;
