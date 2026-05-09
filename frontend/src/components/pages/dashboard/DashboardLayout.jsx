@@ -41,14 +41,16 @@ function DashboardLayout({ currentTab, headerText, children })
             return;
         
         }                
-    }, [isAuthenticated, user, navigate]);
+    }, [isAuthenticated, user, navigate, location]);
 
     useEffect(() =>
     {
-        if (location.state && location.state.message) 
+        const msg = sessionStorage.getItem('completion_message'); //location.state?.message || 
+        console.log("msg", msg);
+        if (msg) 
         {
-            setSuccess(location.state.message);
-            console.log()
+            setSuccess(msg);
+            sessionStorage.removeItem('completion_message');
             navigate(location.pathname, { replace: true, state: {} });
         }
     }, [location.state, location.pathname, navigate]);
@@ -120,6 +122,8 @@ function DashboardLayout({ currentTab, headerText, children })
     {
         const params = new URLSearchParams(location.search);
         const status = params.get('status'); // Get the 'status' query parameter
+
+        if (!status) return;
 
         async function logoutOnCancel()
         {

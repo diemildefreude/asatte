@@ -279,7 +279,8 @@ class AuthController extends Controller
             'login_type' => LoginType::Email,
             'provider_id' => null, // Will be null for email registration
             'profile_completed' => true,
-            'show_email_in_profile' => $showEmailInProfile
+            'show_email_in_profile' => $showEmailInProfile,
+            'accepted_terms_version' => config('app.user_agreement_version')
         ]);
 
         $user = User::find($user->id);        

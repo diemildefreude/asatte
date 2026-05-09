@@ -435,6 +435,10 @@ button:disabled, button:disabled:hover
 {
     justify-content: start;
 }
+.inline-form-field.checkbox.centered
+{
+    justify-content: center;
+}
 .inline-form-field.checkbox input
 {
     flex-basis: auto;
@@ -499,6 +503,10 @@ button:disabled, button:disabled:hover
     line-height: 1.8em;
     padding: 0 1em 1em;
     overflow-wrap: break-word;
+}
+.article-text p, .article-text ol
+{
+    margin-bottom: 1.5em;
 }
 .article-text img
 {

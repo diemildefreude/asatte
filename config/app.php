@@ -123,4 +123,14 @@ return [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | User Agreement Version
+    |--------------------------------------------------------------------------
+    |
+    |Latest version of the user agreement.
+    |
+    */
+    'user_agreement_version' => '1.0'
 ];

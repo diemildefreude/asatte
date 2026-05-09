@@ -125,6 +125,7 @@ class SocialiteController extends Controller
                         'provider_id' => $socialiteUser->id,
                         'email_verified_at' => $now, // Email is typically verified by social provider
                         'profile_completed' => false,
+                        'accepted_terms_version' => null
                         //'avatar' => $socialiteUser->avatar, // Optional: store avatar URL
                     ]);
                     $status = 'social_registration_incomplete';
@@ -194,6 +195,7 @@ class SocialiteController extends Controller
         $user->birthdate = $request->birthdate; // Assuming birthdate is also being set here
         $user->show_email_in_profile = $showEmail;
         $user->profile_completed = true; // <--- Mark profile as completed
+        $user->accepted_terms_version = config('app.user_agreement_version');
         $user->save();
         //Log::info("User profile completed for: " . $user->email);
         //$reactAppUrl = config('app.react_app_url', 'http://localhost:3000');

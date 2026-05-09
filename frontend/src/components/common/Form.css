@@ -11,6 +11,10 @@
 {
     width: clamp(1px, 100%, 400px);
 }
+.form-field.limited-width
+{
+    width: clamp(1px, 100%, 400px);
+}
 .field-groups-container
 {
     display:flex;
@@ -117,6 +121,7 @@
 {
     display: flex;
     flex-direction: column;
+    align-items: center;
     gap: 1em;
 }
 /* main
@@ -168,4 +173,16 @@
         font-size: 0.9rem;
         padding-bottom: 1.5rem;
     }
+}
+/*~~~~~~~~~~~USER AGREEMENT~~~~~~~~~~~~*/
+.user-agreement
+{
+    height: 300px;
+    max-width: 600px; 
+    margin: 0 auto;
+    padding: 1em;
+    border: 2px solid cyan;
+    overflow-y: scroll;
+    scrollbar-width: thin;
+    scrollbar-color: var(--transparent-black) var(--bright-blue);  
 }

@@ -5,6 +5,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import FormField from '../common/FormField';
 import CheckboxField from '../common/CheckboxField'
 import OAuth from '../common/OAuth';
+import UserAgreement from '../common/UserAgreement';
 import { getDateString, isAlphaDash, isValidPassword, isValidEmail, getErrorMessage } from '../../utils/helpers';
 
 function Registration()
@@ -17,10 +18,15 @@ function Registration()
     const [passwordConfirmation, setPasswordConfirmation] = useState('');
     const [username, setUsername] = useState('');
     const [birthdate, setBirthdate] = useState('');
+    const [userAgrees, setUserAgrees] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [formPage, setFormPage] = useState(0); 
+    //0: start 
+    //1: e-mail reg details 
+    //2: e-mail: user-agreement
+    //3: social-reg completion (including user-agreement)
     const [loginType, setLoginType] = useState(null);
 
     const [isEmailFieldValid, setIsEmailFieldValid] = useState(false);
@@ -33,13 +39,17 @@ function Registration()
     const location = useLocation(); // Hook to get current location state
     const from = location.state?.from?.pathname || '/dashboard';
     
+    let formContainerClasses = "form-container";
+    formContainerClasses = formPage === 1 ? formContainerClasses + " limited-width" : formContainerClasses;
+
     const canContinueWithEmail = email && isEmailFieldValid && !isSubmitting;
-    const canRegisterWithEmail = ((formPage === 1) && (loginType === LoginType.Email) 
+    const canRegisterWithEmail = (loginType === LoginType.Email 
         && email && username && birthdate && password && passwordConfirmation 
         && isEmailFieldValid && isUsernameFieldValid && isPasswordFieldValid 
         && arePasswordsMatching && isBirthdateFieldValid && !isSubmitting) ? true : false;
-    const canCompleteSocialRegistration = (formPage === 2) && username && isUsernameFieldValid 
+    const canCompleteSocialRegistration = username && isUsernameFieldValid && userAgrees
         && birthdate && isBirthdateFieldValid && isAuthenticated && !isSubmitting;
+
 
     // console.log("row 1:", formPage, loginType, 
     //     "row 2:", email, username, birthdate, password, passwordConfirmation,
@@ -61,7 +71,7 @@ function Registration()
             const message = location?.state?.message;
             if(status === 'social_registration_incomplete')
             {
-                setFormPage(2); //social registration completion page
+                setFormPage(3); //social registration completion page
                 setSuccess(message);
             }
             else
@@ -179,6 +189,11 @@ function Registration()
         }
     },[password, passwordConfirmation]);
 
+    const handleDetailsSubmit = (e) =>
+    {
+        e.preventDefault();
+        setFormPage(2)
+    }
     const handleEmailRegistrationSubmit = async (e) => 
     {
         e.preventDefault();
@@ -191,7 +206,7 @@ function Registration()
                 passwordConfirmation, birthdate, showEmailInProfile);
             
             setSuccess(`Registration successful. please check your e-mail and validate your address`);
-            setFormPage(2);
+            setFormPage(3);
         }
         catch(err)
         {
@@ -211,7 +226,7 @@ function Registration()
     //the rest is handled in OAuth.jsx
     }
 
-    const handleSocialUsernameBirthdateSubmit = async (e) =>
+    const handleSocialCompletionSubmit = async (e) =>
     {
         e.preventDefault();
         setIsSubmitting(true);
@@ -219,7 +234,10 @@ function Registration()
         {
             const data = await completeSocialProfile(username, birthdate, showEmailInProfile);
             await refreshUser();
-            navigate('/dashboard', { replace: true, state: { status: data.status, message: data.message} });
+            console.log("reg-page: data", data);
+            sessionStorage.setItem('completion_message', data.message);
+            sessionStorage.setItem('completion_status', data.status);
+            navigate('/dashboard', { replace: true, /*state: { status: data.status, message: data.message}*/ });
         }
         catch(err)
         {
@@ -235,7 +253,7 @@ function Registration()
 
     return (
     <Layout>
-        <div className="form-container limited-width">
+        <div className={formContainerClasses}>
             <h1 className='centered-content no-margin'>join netart.io</h1>
         {error && (
           <div className="error">
@@ -249,45 +267,44 @@ function Registration()
         )}
         {
             formPage === 0 ?
-            (
-                <>
-                    <div className="field-groups-container">
-                        <form onSubmit={handleEmailSubmit}>    
-                            <h3>type your e-mail:</h3>            
-                            <div className="field-group">
-                                <FormField
-                                    id="email"
-                                    placeholder="valid@email.address"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    onValidate={handleEmailFormatValidation}
-                                    disabled={isSubmitting}
-                                    type="email"
-                                />
-                                <button 
-                                    type="submit" 
-                                    disabled={!canContinueWithEmail}
-                                >
-                                    <div className="button-content">
-                                        continue with e-mail
-                                    </div>
-                                </button>
-                            </div>    
-                        </form>
-                        <OAuth headerText="or:"
-                            onClick={handleSocialRegistrationSubmit}
-                            setOnError={setError}
-                            isSubmittingForm={isSubmitting}
-                            setIsSubmittingForm={setIsSubmitting}
-                        />
-                    </div>
-                </>
+            (<>
+                <div className="field-groups-container">
+                    <form onSubmit={handleEmailSubmit}>    
+                        <h3>type your e-mail:</h3>            
+                        <div className="field-group">
+                            <FormField
+                                id="email"
+                                placeholder="valid@email.address"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                onValidate={handleEmailFormatValidation}
+                                disabled={isSubmitting}
+                                type="email"
+                            />
+                            <button 
+                                type="submit" 
+                                disabled={!canContinueWithEmail}
+                            >
+                                <div className="button-content">
+                                    continue with e-mail
+                                </div>
+                            </button>
+                        </div>    
+                    </form>
+                    <OAuth headerText="or:"
+                        onClick={handleSocialRegistrationSubmit}
+                        setOnError={setError}
+                        isSubmittingForm={isSubmitting}
+                        setIsSubmittingForm={setIsSubmitting}
+                    />
+                </div>
+            </>
             )
             : 
             (
                 formPage === 1 ?
                 (
-                    <form onSubmit={handleEmailRegistrationSubmit}>
+                    <form onSubmit={handleDetailsSubmit}>
                         <FormField
                             id="email"
                             label="type your e-mail address"
@@ -304,6 +321,7 @@ function Registration()
                             value={showEmailInProfile}
                             onChange={(e) => setShowEmailInProfile(e.target.checked)}
                             disabled={isSubmitting}
+                            classes="centered"
                         />
                         <FormField
                             id="username"
@@ -351,49 +369,88 @@ function Registration()
                             placeholder="www.yoursite.com"
                             classes="bonus"
                         />
-                        <button type="submit" disabled={!canRegisterWithEmail}>
-                            {isSubmitting ? 'registering...' : 'register'}
-                        </button>
+                        <div className="flex-row">
+                            <button type="button"
+                                    disabled={isSubmitting}
+                                    onClick={(e) => {e.preventDefault(); setFormPage(0);}}
+                                >
+                                    back
+                                </button>
+                            <button type="submit" disabled={!canRegisterWithEmail}>
+                                continue
+                            </button>
+                        </div>
                     </form>      
-                ) : //page 2, for completing social registration:
-                (
-                    <form onSubmit={handleSocialUsernameBirthdateSubmit}>
-                        <FormField
-                            id="username"
-                            placeholder="a-z, A-Z, 0-9, -, _"
-                            label="pick a username"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value.trimEnd())}
-                            onValidate={handleUsernameFormatValidation}
-                            disabled={isSubmitting}
-                            type="text"                            
-                            classes="form-field"
-                        />
-                        <FormField 
-                            id="birthdate"
-                            label="date of birth"
-                            min="1920-01-01"
-                            max={getDateString()}
-                            value={birthdate}
-                            onValidate={handleBirthdateFormatValidation}
-                            onChange={(e) => setBirthdate(e.target.value.trimEnd())}
-                            disabled={isSubmitting}
-                            type="date"                            
-                            classes="form-field"
-                        />
-                        <CheckboxField
-                            name="show-email"
-                            label="show e-mail address in profile?"
-                            value={showEmailInProfile}
-                            onChange={(e) => setShowEmailInProfile(e.target.checked)}
-                            disabled={isSubmitting}
-                        />
-                        <button type="submit" disabled={!canCompleteSocialRegistration}>
-                            {isSubmitting ? 'submitting...' : 'submit'}
-                        </button>
-                    </form>
-                )
-                
+                ) : (
+                    formPage === 2 ? (
+                        <form onSubmit={handleEmailRegistrationSubmit}>
+                            <UserAgreement/>
+                            <CheckboxField name="user-agree"
+                                label="I agree to the above terms."
+                                value={userAgrees}
+                                onChange={(e) => setUserAgrees(e.target.checked)}
+                                disabled={isSubmitting}
+                            />
+                            <div className="flex-row">
+                                <button type="button"
+                                    disabled={isSubmitting}
+                                    onClick={(e) => {e.preventDefault(); setFormPage(1);}}
+                                >
+                                    back
+                                </button>
+                                <button type="submit" 
+                                    disabled={!canRegisterWithEmail || !userAgrees || isSubmitting}
+                                >
+                                    {isSubmitting ? 'registering...' : 'register'}
+                                </button>
+                            </div>
+                        </form>
+                    ):( //page 3!
+                        <form onSubmit={handleSocialCompletionSubmit}>
+                            <FormField
+                                id="username"
+                                placeholder="a-z, A-Z, 0-9, -, _"
+                                label="pick a username"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value.trimEnd())}
+                                onValidate={handleUsernameFormatValidation}
+                                disabled={isSubmitting}
+                                type="text"                            
+                                classes="limited-width"
+                            />
+                            <FormField 
+                                id="birthdate"
+                                label="date of birth"
+                                min="1920-01-01"
+                                max={getDateString()}
+                                value={birthdate}
+                                onValidate={handleBirthdateFormatValidation}
+                                onChange={(e) => setBirthdate(e.target.value.trimEnd())}
+                                disabled={isSubmitting}
+                                type="date"                            
+                                classes="limited-width"
+                            />
+                            <CheckboxField
+                                name="show-email"
+                                label="show e-mail address in profile?"
+                                value={showEmailInProfile}
+                                onChange={(e) => setShowEmailInProfile(e.target.checked)}
+                                disabled={isSubmitting}
+                                classes="centered"
+                            />
+                            <UserAgreement/>
+                            <CheckboxField name="user-agree"
+                                label="I agree to the above terms."
+                                value={userAgrees}
+                                onChange={(e) => setUserAgrees(e.target.checked)}
+                                disabled={isSubmitting}
+                            />
+                            <button type="submit" disabled={!canCompleteSocialRegistration}>
+                                {isSubmitting ? 'submitting...' : 'submit'}
+                            </button>
+                        </form>
+                    )
+                )                
             )
         }
         </div>

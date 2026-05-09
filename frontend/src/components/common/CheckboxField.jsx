@@ -1,7 +1,8 @@
-function CheckboxField({name, label, value, onChange, disabled})
+function CheckboxField({name, label, value, onChange, disabled, classes})
 {
+    const classNames = "inline-form-field checkbox " + classes;
     return (
-    <div className="inline-form-field checkbox">
+    <div className={classNames}>
         <label 
             htmlFor={name}
             className="main-label"

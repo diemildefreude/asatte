@@ -44,7 +44,7 @@ function App()
           <Route path="/search" element={<SearchResults/>}/>
           <Route path="/news" element={<News/>}/>
           <Route path="/contact" element={<Contact/>}/>
-          <Route path="/dashboard/" element={<Dashboard />}/>
+          <Route path="/dashboard" element={<Dashboard />}/>
           <Route path="/dashboard/profile" element={<Dashboard />}/>
           <Route path="/dashboard/new-post" element={<NewPost />}/>
           <Route path="/dashboard/new-news-post" element={<NewNewsPost />}/>
