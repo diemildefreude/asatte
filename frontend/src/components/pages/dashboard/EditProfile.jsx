@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { getErrorMessage } from "../../../utils/helpers";
 import AvatarSetter from "./AvatarSetter";
 import ProfileItem from "../../common/ProfileItem";
+import CheckboxField from "../../common/CheckboxField";
 
 function EditProfile()
 {
@@ -19,9 +20,10 @@ function EditProfile()
     const [hasChanges, setHasChanges] = useState(false);
     const [websiteField, setWebsiteField] = useState('');
     const [locationField, setLocationField] = useState('');
+    const [showEmailInProfile, setShowEmailInProfile] = useState(false);
     const [editingField, setEditingField] = useState(null);
 
-    //console.log("user",user);
+    console.log("user",user);
     useEffect(() =>
     {
         if(!user)
@@ -30,6 +32,7 @@ function EditProfile()
         }
         setWebsiteField(user.website);
         setLocationField(user.location);
+        setShowEmailInProfile(user.show_email_in_profile);
     }, [user]);
 
     const handleEditClick = useCallback((fieldName) => 
@@ -64,7 +67,8 @@ function EditProfile()
         setError('');
         setSuccess('');
         if(websiteField === user.website &&
-            locationField === user.location
+            locationField === user.location &&
+            showEmailInProfile == user.show_email_in_profile
         )
         {
             setError('No changes to submit.');
@@ -74,7 +78,7 @@ function EditProfile()
 
         try
         {
-            await updateProfileInfo(websiteField, locationField);
+            await updateProfileInfo(websiteField, locationField, showEmailInProfile);
             setSuccess(`Profile successfully updated.`);            
             setHasChanges(false);
             await refreshUser();
@@ -131,6 +135,17 @@ function EditProfile()
                     isSubmitting={isSubmitting}
                     isEditingThisField={editingField === 'location'}
                     onEditClick={() => handleEditClick('location')}
+                />
+                <ProfileItem 
+                    name="email"
+                    value={user.email}
+                />
+                <CheckboxField
+                    name="show-email"
+                    label="show e-mail in profile:"
+                    value={showEmailInProfile}
+                    onChange={(e) => {setHasChanges(e.target.checked != user.show_email_in_profile); setShowEmailInProfile(e.target.checked);}}
+                    disabled={isSubmitting}
                 />
                 <div className="button-container">
                     <button onClick={handleLogoutSubmit} disabled={isSubmitting}>log out</button>

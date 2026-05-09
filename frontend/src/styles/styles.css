@@ -9,12 +9,18 @@
     --blue-gradient: linear-gradient(45deg, #88CDFFCC 0%, #1177c0cc 60%);    
     --lavender-gradient: linear-gradient(45deg, #505193cc 0%, #c1b7fdcc 60%);
     --red-gradient: linear-gradient(45deg, #ff4574 0%, #6c0746 70%);
+    --footer-gradient: linear-gradient(10deg, #000000ff 20%, #00000000 60%);
     --transparent-black: rgba(0, 0, 0, 0.5);
     --header-height-wide: 60px;
     --header-height-narrow: 50px;
     --default-button-border: 2px solid white;
     --hover-button-border: 2px solid var(--pale-yellow);    
     --disabled-button-border: 2px solid gray;
+    --footer-height: 300px;
+}
+html, body
+{
+    overscroll-behavior: none;
 }
 body::before 
 {
@@ -24,7 +30,7 @@ body::before
   left: 0;
   right: 0;
   height: 150vh;
-  z-index: -1;
+  z-index: -2;
   background: var(--indigo-gradient);
 }
 html, body
@@ -43,7 +49,18 @@ body.modal-open
 {
   overflow: hidden;
 }
-a, a:link, a:visited
+button.button-link, button.button-link:hover
+{
+    border: none;
+    display: inline;
+    background: none;
+    padding: 0;
+}
+button.button-link span
+{
+    text-decoration: underline;
+}
+a, a:link, a:visited, .button-link
 {
     color:var(--pale-yellow);
 }
@@ -63,10 +80,10 @@ h2
 }
 .centered-header-box
 {
+    display: flex;
     position: relative;
     align-items: center;
     padding: 0;
-    height: fit-content;
 }
 .centered-content
 {
@@ -93,16 +110,20 @@ h2
 {
     margin: 0 0 1rem;
 }
+.centered-content.vert-1rem
+{
+    margin: 1rem 0;
+}
 .centered-content h1
 {
     justify-content: center;
-    font-size: 2.5rem;
+    font-size: 2rem;
     line-height: 1.3em;
 }
 .centered-content h2
 {
     justify-content: center;
-    font-size: 1.8rem;
+    font-size: 1.5rem;
     font-weight: 1;
     line-height: 1.3em;
 }
@@ -287,7 +308,7 @@ button, .link-button
     font-weight: 200;
     text-decoration: none;
 }
-.content:not(.touch-device) button:hover, .content:not(.touch-device) .link-button:hover
+.content:not(.touch-device) button:not(.button-link):hover, .content:not(.touch-device) .link-button:hover
 {
     background: var(--blue-gradient);
     border: var(--hover-button-border);
@@ -360,7 +381,7 @@ button:disabled, button:disabled:hover
 .inline-form-field
 {
     display: flex;
-    justify-content: space-around;
+    justify-content: space-between;
     /* flex-grow: 4; */
     gap: 1rem;
     width: 100%;
@@ -375,7 +396,7 @@ button:disabled, button:disabled:hover
 .inline-form-field .field-name, .main-label
 {
     color: var(--pale-yellow);
-    font-weight: 400;
+    font-weight: 300;
     align-content: center;
     text-wrap: nowrap;
 }
@@ -483,6 +504,7 @@ button:disabled, button:disabled:hover
 {
     display: inline-block;
     max-width: 100%;
+    height: auto;
 }
 .content:not(.touch-device) .red-button:hover
 {
@@ -510,4 +532,24 @@ button:disabled, button:disabled:hover
 .blue
 {
     color: var(--bright-blue);
+}
+.link-with-icon:link
+{
+    text-decoration: none;
+}
+.link-with-icon span
+{
+    text-decoration: underline;
+}
+.big-icon
+{
+    font-size: 1.5em;
+}
+.flex-row
+{
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    align-items: center;
+    justify-content: space-around;
 }

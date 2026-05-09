@@ -43,7 +43,7 @@ function UserProfile()
         {
             setProfileUser(data);
             setIsFollowing(data.is_following);
-            //console.log("data?", data);
+            console.log("data?", data);
             setSuccess(data.message);
             setIsSubmitting(false);
         })
@@ -81,12 +81,24 @@ function UserProfile()
         })
     },[profileUser, setIsSubmitting, toggleFollow, setIsFollowing, setError, setSuccess]);
 
+    const handleCopy = async () => 
+    {
+        try 
+        {
+            await navigator.clipboard.writeText(profileUser.email);
+            alert('Email copied to clipboard!'); // Replace with a toast notification if preferred
+        } catch (err) {
+            console.error('Failed to copy: ', err);
+        }
+    };
+
     return (
     <Layout>        
         <div className="heading-profile-container public-profile">
-            <div className='centered-content bottom-1rem'><h2>{username}</h2></div>
+            <div className='centered-content vert-1rem'><h1>{username}</h1></div>
             {
                 profileUser ? (
+                // false ? (
                     <div className="profile-boxes-container">
                         <div className="main-info-box sticky">
                             {error && (
@@ -140,16 +152,10 @@ function UserProfile()
                                     }
                                 </div>
                             </div>
-                            <div className="info-section">      
-                                <ProfileItem 
-                                    name="username"
-                                    value={username}
-                                    isPublic={true}                        
-                                />
+                            <div className="info-section">  
                                 <ProfileItem
                                     name="website"
                                     value={profileUser.website}
-                                    //value="mal;kjsdflkjasdlkfjlskdjfzzzw"
                                     isPublic={true}
                                     isLink={true}
                                 />
@@ -158,6 +164,39 @@ function UserProfile()
                                     value={profileUser.location}
                                     isPublic={true}
                                 />       
+                                <div className="flex-row">
+                                {
+                                    user && (user?.id != profileUser?.id) && (                                        
+                                    <div>
+                                        <Link to="/dashboard/mail/new" 
+                                            state={{addressee: { username: username, ...profileUser}}}
+                                            className='link-with-icon'
+                                            >
+                                            <i className="fa-regular fa-envelope big-icon"/> <span>send DM</span>
+                                        </Link>
+                                    </div>
+                                    )
+                                }
+                                {
+                                    !!profileUser.show_email_in_profile && (
+                                    <div>
+                                        <a href={`mailto:${profileUser.email}`}
+                                            className='link-with-icon'
+                                        >
+                                            <i className="fa-solid fa-envelopes-bulk big-icon"/> <span>e-mail</span> 
+                                        </a> 
+                                        {' '}
+                                        <button className='button-link' 
+                                            aria-label="copy to clipboard" 
+                                            title="copy to clipboard"
+                                            onClick={handleCopy}
+                                        > 
+                                            <i className="fa-regular fa-copy big-icon"/>
+                                        </button>
+                                    </div>
+                                    )
+                                }
+                                </div>
                             </div>        
                         </div>
                         <div className="rte-container">
@@ -180,6 +219,7 @@ function UserProfile()
         </div>
         {
             profileUser ? (<>
+            {/* false ? (<> */}
                 <h2 className='centered-content padded'>{`${username}'s posts`}</h2>
                 <LimitedTilesContainer
                     screenSize={screenSize}

@@ -73,19 +73,32 @@ export const AuthProvider = ({ children }) =>
    * @param {string} birthdate - The user's birthdate: yyyy-mm-dd'.
    * @returns {Promise<Object>} A promise that resolves with user data on success, or rejects with an error.
    */
-    const registerWithEmail = async (loginType, email, username, password, passwordConfirmation, birthdate) =>
+    const registerWithEmail = async (loginType, email, username, 
+      password, passwordConfirmation, birthdate, showEmailInProfile) =>
     {
       try
       {
-        const response = await api.post('/register', 
+        const formData = new FormData();
+        formData.append('login_type', loginType);
+        formData.append('email', email);
+        formData.append('username', username);
+        formData.append('password', password);
+        formData.append('password_confirmation', passwordConfirmation);
+        formData.append('birthdate', birthdate);
+        if(showEmailInProfile)
         {
-            login_type: loginType,
-            email: email,
-            username: username,
-            password: password,
-            password_confirmation: passwordConfirmation,
-            birthdate: birthdate
-        });
+          formData.append('show_email_in_profile', showEmailInProfile);
+        }
+        const response = await api.post('/register', formData);
+        
+        // {
+        //     login_type: loginType,
+        //     email: email,
+        //     username: username,
+        //     password: password,
+        //     password_confirmation: passwordConfirmation,
+        //     birthdate: birthdate
+        // }
         const { access_token, refresh_token, user: userData } = response.data;
 
             // Store tokens and user data in localStorage to log the user in immediately
@@ -211,16 +224,19 @@ export const AuthProvider = ({ children }) =>
         setIsLoading(false);
   }, []);
 
-  const completeSocialProfile = async(username, birthdate) =>
+  const completeSocialProfile = async(username, birthdate, showEmailInProfile) =>
   {
     try
     {
       setIsLoading(true);
-      const response = await api.post('/complete-social-profile',
-      {
-        username: username,
-        birthdate: birthdate
-      });
+      const formData = new FormData;
+      formData.append("username",username);
+      formData.append("birthdate",birthdate);
+      if(showEmailInProfile)
+      {        
+        formData.append("show_email_in_profile", showEmailInProfile);
+      }
+      const response = await api.post('/complete-social-profile', formData);
       return response.data;
     }
     catch(error)
@@ -313,16 +329,19 @@ export const AuthProvider = ({ children }) =>
       setIsLoading(false);
     }
   }
-  const updateProfileInfo = async (website, location) =>
+  const updateProfileInfo = async (website, location, showEmail) =>
   {
     try
     {
       setIsLoading(true);
-      const response = await api.post('/update-profile',
+      const formData = new FormData;
+      formData.append('website', website);
+      formData.append('location', location);
+      if(showEmail)
       {
-        website: website,
-        location: location
-      });
+        formData.append('show_email_in_profile', showEmail);
+      }
+      const response = await api.post('/update-profile', formData);
       return response.data;
     }
     catch (error) 

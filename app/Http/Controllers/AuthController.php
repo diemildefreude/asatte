@@ -16,6 +16,8 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\Rules\Password as PasswordRule;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Date;
 use Symfony\Component\HttpFoundation\Response;
 
 class AuthController extends Controller
@@ -240,8 +242,35 @@ class AuthController extends Controller
     }
     public function register(RegisterRequest $request)//e-mail registration
     {
+        $request->validate([
+            'username' => ['string', 'required', 'max:255'],
+            'email' => ['email', 'required', 'max:255'],
+            'password' => ['required', 'confirmed',
+                PasswordRule::min(8) // Use your aliased PasswordRule
+                ->max(255)
+                ->mixedCase()
+                ->numbers()],
+            'birthdate' => ['required', Rule::date()->beforeOrEqual(today()->subYears(13))],
+            'login_type' => [Rule::enum(LoginType::class)],
+            'provider_id' => ['string', 'nullable'] 
+        ]);
         $formattedBirthdate = Carbon::parse($request->birthdate)->format('Y-m-d');
 
+        $showEmailInProfileField = $request->input('show_email_in_profile');
+        
+        // $requestData = [
+        //     'url' => $request->fullUrl(),
+        //     'method' => $request->method(),
+        //     'headers' => $request->headers->all(),
+        //     'body' => $request->all(), // This includes both query string and POST data
+        //     'files' => $request->files->all(),
+        //     'ip' => $request->ip(),
+        //     'user_agent' => $request->header('User-Agent'),
+        // ];
+        //Log::info('Incoming request data:', $requestData);
+        //Log::info("showEmailInProfileField: $showEmailInProfileField");
+
+        $showEmailInProfile = isset($showEmailInProfileField);
         $user = User::forceCreate([
             'username' => $request->username,
             'email' => $request->email,
@@ -249,7 +278,8 @@ class AuthController extends Controller
             'birthdate' => $formattedBirthdate,
             'login_type' => LoginType::Email,
             'provider_id' => null, // Will be null for email registration
-            'profile_completed' => true
+            'profile_completed' => true,
+            'show_email_in_profile' => $showEmailInProfile
         ]);
 
         $user = User::find($user->id);        

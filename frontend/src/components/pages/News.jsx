@@ -17,7 +17,7 @@ function News()
     
     return(
         <Layout>
-            <div className="centered-content double-padded">
+            <div className="centered-content">
                 <h1>news</h1>                    
             </div>
             <AutoloadTilesContainer

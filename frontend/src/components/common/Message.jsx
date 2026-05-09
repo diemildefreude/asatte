@@ -20,6 +20,8 @@ function Message({message, onReply=null, onDelete=null, id, parentLocalId=null,
     const [hasChanged, setHasChanged] = useState(false);
     const [resetKey, setResetKey] = useState(0);
 
+    const messageSender = message.sender ?? { id: -27, username: '[deleted user]', avatar: null };
+
     const handleMessageEdit = useCallback(() =>
     {
         setIsEditing(true);
@@ -76,7 +78,7 @@ function Message({message, onReply=null, onDelete=null, id, parentLocalId=null,
     return (
     <div className="comment" id={elementId}>
         <p>
-            <UserLink user={message.sender}/> <em>on {getDateAsYYYYMMDD(message.created_at)}
+            <UserLink user={messageSender}/> <em>on {getDateAsYYYYMMDD(message.created_at)}
             <span className="notice small"> at {getTimeAsHHMM(message.created_at)}</span></em>            
         </p>
         <div className="comment-notice-container">
@@ -126,18 +128,10 @@ function Message({message, onReply=null, onDelete=null, id, parentLocalId=null,
             >
                 <i className="fa-solid fa-quote-left"></i>
             </button>
-            {/* <button 
-                onClick={() => onReply(message, elementId)}
-                className="small-button"
-                title="reply"
-                disabled={isSubmitting}
-            >
-                <i className="fa-solid fa-reply"></i>
-            </button> */}
         </>)
         }
         {
-            (user.id === message.sender.id) && (<>
+            (user.id === messageSender.id) && (<>
             {
                 isEditing ? (<>
                     <button

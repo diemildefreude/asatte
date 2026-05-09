@@ -102,9 +102,7 @@ function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false})
                     {
                         !isDashboard && (
                             <div className="info-item link-container">
-                                <UserLink user={author}
-                                    
-                                    />
+                                <UserLink user={author}/>
                             </div>
                         )
                     }

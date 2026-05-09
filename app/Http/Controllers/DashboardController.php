@@ -98,10 +98,14 @@ class DashboardController extends Controller
             'location' => ['required', 'string']            
         ]);
 
+        $showEmailInProfileField = $request->input('show_email_in_profile');
+        $showEmailInProfile = isset($showEmailInProfileField);
+
         $user = $request->user();
         $website = $request->input('website') ? addHttpProtocol($request->input('website', '')) : null;
         $user->website = $website;
         $user->location = $request->location;
+        $user->show_email_in_profile = $showEmailInProfile;
         $user->save();
         
         return response() ->json([

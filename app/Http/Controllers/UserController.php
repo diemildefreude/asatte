@@ -21,8 +21,13 @@ class UserController extends Controller
     public function user(string $userName)
     {
         $user = User::where('username', $userName)
-            ->select('id', 'avatar', 'bio', 'location', 'website', /*'email',*/ /*'member_type'*/)
+            ->select('id', 'avatar', 'bio', 'location', 'website', 'show_email_in_profile', 'email')
             ->first();
+
+        if(!$user->show_email_in_profile)
+        {   
+            $user->makeHidden('email');
+        }
         //Log::info("toggling follow for user", $user->toArray());
         
         if (!$user) 

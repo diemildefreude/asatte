@@ -186,13 +186,17 @@ class SocialiteController extends Controller
             ],
         ]);
         
-        Log::info("completing social profile with {$request->username} as username and {$request->birthdate} as birthdate");
+        $showEmailField = $request->input('show_email_in_profile');
+        $showEmail = isset($showEmailField);
+
+        //Log::info("completing social profile with {$request->username} as username and {$request->birthdate} as birthdate");
         $user->username = $request->username;
         $user->birthdate = $request->birthdate; // Assuming birthdate is also being set here
+        $user->show_email_in_profile = $showEmail;
         $user->profile_completed = true; // <--- Mark profile as completed
         $user->save();
-        Log::info("User profile completed for: " . $user->email);
-        $reactAppUrl = config('app.react_app_url', 'http://localhost:3000');
+        //Log::info("User profile completed for: " . $user->email);
+        //$reactAppUrl = config('app.react_app_url', 'http://localhost:3000');
         $status = "social_registration_complete";
 
         // return redirect($reactAppUrl . '/dashboard?' . http_build_query([

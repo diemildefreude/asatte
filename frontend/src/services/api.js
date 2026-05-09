@@ -1,7 +1,8 @@
 import axios from 'axios';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const GRANT_CLIENT_ID = process.env.PASSPORT_CLIENT_ID;
-const GRANT_CLIENT_SECRET = process.env.PASSPORT_CLIENT_SECRET;
+// const GRANT_CLIENT_ID = process.env.PASSPORT_CLIENT_ID;
+// const GRANT_CLIENT_SECRET = process.env.PASSPORT_CLIENT_SECRET;
+//console.log("GRANT_CLIENT_ID", GRANT_CLIENT_ID);
 
 const api = axios.create
 ({
@@ -49,8 +50,8 @@ api.interceptors.response.use(
           {
             grant_type: 'refresh_token',
             refresh_token: refreshToken,
-            client_id: GRANT_CLIENT_ID,
-            client_secret: GRANT_CLIENT_SECRET, 
+            // client_id: GRANT_CLIENT_ID,
+            // client_secret: GRANT_CLIENT_SECRET, 
           });
 
           localStorage.setItem('access_token', refreshResponse.data.access_token);

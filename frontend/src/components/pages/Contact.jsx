@@ -82,9 +82,9 @@ function Contact()
     return (
         <Layout isDashboard={false}>
             <div className="form-container">
-                <h1 className="centered-content no-margin">
-                    contact
-                </h1>
+                <div className="centered-content no-margin">
+                    <h1>contact</h1>
+                </div>
                 {error && (
                 <div className="error">
                     {error}

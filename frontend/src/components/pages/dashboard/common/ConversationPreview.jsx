@@ -10,6 +10,8 @@ function ConversationPreview({conversation})
     const otherUser = conversation.other_users[0];
     const avatar = otherUser?.avatar ? `${BACKEND_URL}/storage/images/uploaded/users/${otherUser.username}/avatar/small/${otherUser?.avatar}` 
         : `${BACKEND_URL}/storage/images/defaults/avatar.webp`;
+    const avatarAlt = otherUser?.username ? `${otherUser.username}'s avatar` : "Deleted user. Showing default avatar.";
+    const latestSenderName = conversation.latest_message.sender ? conversation.latest_message.sender.username : "[deleted user]";
     const usersString = conversation.users
         .map(user => user.username)
         .join(', ');
@@ -29,7 +31,7 @@ function ConversationPreview({conversation})
             className={"convo-preview"}>
             <div className="convo-avatar-key-info">
                 <div className={avatarClasses}>
-                    <img className = "round-image" src={avatar} alt={`${conversation.other_users[0].username}'s avatar`} />
+                    <img className = "round-image" src={avatar} alt={avatarAlt} />
                     <div className="notice-light"></div>
                 </div>
                 <div className="convo-key-info">
@@ -39,7 +41,7 @@ function ConversationPreview({conversation})
             </div>
             <div className="convo-latest-info">
                 <div className="convo-latest-date">{getDateAsYYYYMMDD(conversation.latest_message.created_at)}</div>
-                <div className="convo-latest-sender subtext">{conversation.latest_message.sender.username}</div>
+                <div className="convo-latest-sender subtext">{latestSenderName}</div>
             </div>
         </Link>):(<p>loading...</p>)
     );

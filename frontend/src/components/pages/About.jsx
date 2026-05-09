@@ -86,7 +86,7 @@ function About()
 
     return (
     <Layout>
-        <div className="rte-container borderless double-padded">
+        <div className="rte-container borderless">
         {
             dataLoaded ? (
             <>
@@ -113,6 +113,7 @@ function About()
                         />)}
                     </div>
                 </div>
+                
                 {error && (
                 <div className="error">
                     {error}

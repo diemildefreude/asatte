@@ -22,8 +22,8 @@ function DashboardLayout({ currentTab, headerText, children })
     if(hasUnreadMail){containerClasses += ' has-new-mail'};
 
     
-    console.log("hasUnreadMail", hasUnreadMail);
-    console.log("containerClasses", containerClasses);
+    //console.log("hasUnreadMail", hasUnreadMail);
+    //console.log("containerClasses", containerClasses);
     //console.log("children?", children);
 
     useEffect(() =>
@@ -245,7 +245,7 @@ function DashboardLayout({ currentTab, headerText, children })
                     {
                         headerText && (    
                             <div className="centered-content bottom-1rem">
-                                <h2>{headerText}</h2>   
+                                <h1>{headerText}</h1>   
                             </div>
                         )
                     }
@@ -266,7 +266,7 @@ function DashboardLayout({ currentTab, headerText, children })
             </div>
             )}
             <div className="centered-content">
-                <h2>Welcome to netart.io.</h2>
+                <h1>Welcome to netart.io.</h1>
                 <p>Click <Link to="/login">here</Link> to log in, or <Link to="/register">here</Link> to register.</p>
             </div>
             </>

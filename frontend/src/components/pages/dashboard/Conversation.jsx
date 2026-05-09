@@ -7,7 +7,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import UserLink from "../../common/UserLink";
 import FormField from "../../common/FormField";
 import { dehydrateEditorImagePaths, getErrorMessage, hydrateEditorImagePaths, processEditorImages } from "../../../utils/helpers";
-import { useNavigate, useLocation, useParams, redirect } from "react-router-dom";
+import { useNavigate, useLocation, useParams, redirect, Link } from "react-router-dom";
 import Message from "../../common/Message";
 
 function setHeader(conversation)
@@ -36,13 +36,13 @@ function Conversation()
     const [searchResultSelection, setSearchResultSelection] = useState(-1);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [subject, setSubject] = useState("");
-    const [message, setMessage] = useState([]);
+    const [message, setMessage] = useState("");
     //const [isSearching, setIsSearching] = useState(false);
     const recipientSpanRef = useRef(null);
     const searchTimeoutRef = useRef(null);
     const resultsContainer = useRef(null);
     const [doesMessageExist, setDoesMessageExist] = useState(false);
-    const isNew = !conversation_id;
+    const isNew = !conversation_id || location.pathName == "/dashboard/mail/new";
     const canSubmit = (!isNew || recipients?.length > 0) && doesMessageExist;
     //console.log(recipients?.length, isNew, doesMessageExist);
 
@@ -56,6 +56,16 @@ function Conversation()
     const [pendingScrollId, setPendingScrollId] = useState(null);
 
     //console.log("convo", conversation);
+    //console.log("recipients", recipients);
+    useEffect(() =>
+    {
+        if(!location?.state?.addressee || conversation)
+        {
+            return;
+        }
+        //console.log("location.state", location.state);
+        setRecipients([location.state.addressee]);
+    },[location, conversation]);
 
     useEffect(() => 
     {
@@ -77,6 +87,11 @@ function Conversation()
         
         const loadConversation = async () =>
         {
+            if(isNew)
+            {
+                setConversation(null);
+                return;
+            }
             if(initialRedirectConversation.current)
             {
                 setConversation(initialRedirectConversation.current);
@@ -87,7 +102,7 @@ function Conversation()
                 try
                 {
                     const data = await fetchConversation(conversation_id);
-                    console.log("convo?!", data.conversation);
+                    //console.log("convo?!", data.conversation);
                     if (!canceled) 
                     {
                         setConversation(data.conversation);
@@ -109,7 +124,7 @@ function Conversation()
 
     const handleRTEChange = useCallback((editedMessage) =>
     {
-        //console.log("edited message?", editedMessage);
+        console.log("edited message?", editedMessage);
         setDoesMessageExist(editedMessage.length > 0);
         setMessage(editedMessage);
     }, []);
@@ -295,7 +310,6 @@ function Conversation()
             {
                 data = await createDM(conversation.id, messageWithResizedImages, originalMessage?.id);
                 setConversation(data.conversation);
-                setMessage("");
                 console.log("new id", data.new_message_id);
                 setPendingScrollId(data.new_message_id);
             }
@@ -306,6 +320,7 @@ function Conversation()
                     { state: { data } }
                 )
             }
+            setMessage("");
         }
         catch(err)
         {
@@ -389,13 +404,27 @@ function Conversation()
     <div className="centered-content no-margin">            
         <h2 dangerouslySetInnerHTML={{__html: headerText}}></h2>
     </div>
-    <div className="footnote">
     {
-        conversation?.name != null && ( 
-            "with " + conversation.other_users.map(u => u.username).join(", ")
-        )
+        conversation?.name != null && (
+        <div className="footnote">
+            with{" "}
+            {
+            conversation.other_users.length < 1 ? (
+                <span>[deleted user(s)]</span>
+            ):(
+                conversation.other_users.map((u, index) => (
+                <span key={u.id}>
+                    <Link to={`/${u.username}`}>
+                        {u.username}
+                    </Link>
+                    {/* Add a comma after every user except the last one */}
+                    {index < conversation.other_users.length - 1 && ", "}
+                </span>
+                ))
+            )
+        }        
+        </div>)
     }
-    </div>
     {
         user && user.is_email_verified ?
         ( (!isNew && !conversation) ? (

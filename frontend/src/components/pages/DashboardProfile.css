@@ -4,14 +4,14 @@
     flex-direction: column;
     gap: 2rem;    
     box-sizing: border-box;
-    margin: 0 0rem 1rem;
+    /* margin: 0 0rem 1rem; */
     width: 100%;
 }
 .dashboard-nav-content-container
 {
     display: flex;
     flex-direction: column;
-    gap: 3rem;
+    gap: 2.5rem;
 }
 .dashboard-tabs-container
 {
@@ -196,7 +196,8 @@
 {
     display: none;
 }
-.content:not(.touch-device) .avatar-button, .content:not(.touch-device) .avatar-button:hover
+.content:not(.touch-device) button:not(.button-link).avatar-button,
+.content:not(.touch-device) button:not(.button-link).avatar-button:hover
 {    
     border: none;
 }
@@ -441,8 +442,9 @@
 {    
     .dashboard-container
     {
-        margin: 0 1rem 1rem;
-        width: calc(100% - 2rem);
+        /* margin: 0 1rem 1rem; */
+        /* width: calc(100% - 2rem); */
+        padding: 0 1rem 0;
     }
     .main-label-container p
     {
@@ -466,11 +468,12 @@
         justify-content: space-between;
         gap: 1rem;
         margin: 0rem 0 0;
+        padding: 1rem 0 0;
     }
-    .dashboard-container
+    /* .dashboard-container
     {
         margin: 1rem 1rem 1rem;
-    }
+    } */
     .dashboard-container .tiles-container
     {
         padding: 0;

@@ -9,7 +9,7 @@
 }
 .form-container.limited-width
 {
-    max-width: 400px;
+    width: clamp(1px, 100%, 400px);
 }
 .field-groups-container
 {

@@ -3,12 +3,16 @@ import Layout from "../layout/Layout";
 import { LoginType, useAuth } from '../../contexts/AuthContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import FormField from '../common/FormField';
+import CheckboxField from '../common/CheckboxField'
 import OAuth from '../common/OAuth';
 import { getDateString, isAlphaDash, isValidPassword, isValidEmail, getErrorMessage } from '../../utils/helpers';
 
 function Registration()
 {
+    const { isAuthenticated, isLoading, registerWithEmail, 
+        completeSocialProfile, refreshUser, user } = useAuth();
     const [email, setEmail] = useState('');
+    const [showEmailInProfile, setShowEmailInProfile] = useState(false);
     const [password, setPassword] = useState('');
     const [passwordConfirmation, setPasswordConfirmation] = useState('');
     const [username, setUsername] = useState('');
@@ -25,23 +29,22 @@ function Registration()
     const [isBirthdateFieldValid, setIsBirthdateFieldValid] = useState(false);
     const [arePasswordsMatching, setArePasswordsMatching] = useState(false);
     
-    const { isAuthenticated, isLoading, registerWithEmail, 
-        completeSocialProfile, refreshUser, user } = useAuth();
     const navigate = useNavigate(); // Hook for navigation
     const location = useLocation(); // Hook to get current location state
     const from = location.state?.from?.pathname || '/dashboard';
     
     const canContinueWithEmail = email && isEmailFieldValid && !isSubmitting;
-    const canRegisterWithEmail = (formPage === 1) && (loginType === LoginType.Email) 
+    const canRegisterWithEmail = ((formPage === 1) && (loginType === LoginType.Email) 
         && email && username && birthdate && password && passwordConfirmation 
         && isEmailFieldValid && isUsernameFieldValid && isPasswordFieldValid 
-        && arePasswordsMatching && isBirthdateFieldValid && !isSubmitting;
+        && arePasswordsMatching && isBirthdateFieldValid && !isSubmitting) ? true : false;
     const canCompleteSocialRegistration = (formPage === 2) && username && isUsernameFieldValid 
         && birthdate && isBirthdateFieldValid && isAuthenticated && !isSubmitting;
 
-    // console.log("user", user);
-    // console.log(`formPage: ${formPage}`, `loginType: "${loginType}"`, 
-    //    `username: ${username}`, `birthdate: ${birthdate}`, `isSubmitting: ${isSubmitting}`);
+    // console.log("row 1:", formPage, loginType, 
+    //     "row 2:", email, username, birthdate, password, passwordConfirmation,
+    //     "row 3:", isEmailFieldValid, isUsernameFieldValid, isPasswordFieldValid,
+    //     "row 4:", arePasswordsMatching, isBirthdateFieldValid, !isSubmitting);
     useEffect(() => 
     {
         if (!isLoading && isAuthenticated) 
@@ -185,7 +188,7 @@ function Registration()
         try
         {
             await registerWithEmail(loginType, email, username, password, 
-                passwordConfirmation, birthdate);
+                passwordConfirmation, birthdate, showEmailInProfile);
             
             setSuccess(`Registration successful. please check your e-mail and validate your address`);
             setFormPage(2);
@@ -214,7 +217,7 @@ function Registration()
         setIsSubmitting(true);
         try
         {
-            const data = await completeSocialProfile(username, birthdate);
+            const data = await completeSocialProfile(username, birthdate, showEmailInProfile);
             await refreshUser();
             navigate('/dashboard', { replace: true, state: { status: data.status, message: data.message} });
         }
@@ -232,7 +235,7 @@ function Registration()
 
     return (
     <Layout>
-        <div className="form-container">
+        <div className="form-container limited-width">
             <h1 className='centered-content no-margin'>join netart.io</h1>
         {error && (
           <div className="error">
@@ -294,6 +297,13 @@ function Registration()
                             onValidate={handleEmailFormatValidation}
                             disabled={isSubmitting}
                             type="email"                
+                        />
+                        <CheckboxField
+                            name="show-email"
+                            label="show e-mail in profile?"
+                            value={showEmailInProfile}
+                            onChange={(e) => setShowEmailInProfile(e.target.checked)}
+                            disabled={isSubmitting}
                         />
                         <FormField
                             id="username"
@@ -370,6 +380,13 @@ function Registration()
                             disabled={isSubmitting}
                             type="date"                            
                             classes="form-field"
+                        />
+                        <CheckboxField
+                            name="show-email"
+                            label="show e-mail address in profile?"
+                            value={showEmailInProfile}
+                            onChange={(e) => setShowEmailInProfile(e.target.checked)}
+                            disabled={isSubmitting}
                         />
                         <button type="submit" disabled={!canCompleteSocialRegistration}>
                             {isSubmitting ? 'submitting...' : 'submit'}
