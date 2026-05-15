@@ -89,7 +89,7 @@ function About()
         <div className="rte-container borderless">
         {
             dataLoaded ? (
-            <>
+            <article>
                 <div className="centered-header-box">            
                 {
                     (isInEditMode && hasStatementChanged) && (
@@ -138,7 +138,7 @@ function About()
                         />
                     )
                 }    
-            </>):(
+            </article>):(
                 <p className="centered-content">loading...</p>
             )
         }

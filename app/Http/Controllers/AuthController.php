@@ -242,6 +242,20 @@ class AuthController extends Controller
     }
     public function register(RegisterRequest $request)//e-mail registration
     {
+        $hasHoneypotField = $request->input('is_user_human'); //<- hidden field on frontend
+        $hasRobotField = $request->input('is_user_robot');
+
+        $isRobotInHoneypot = isset($hasHoneypotField); //<- hidden field on frontend
+        $isSelfAdmittedRobot = isset($hasRobotField);
+        
+        if($isRobotInHoneypot || $isSelfAdmittedRobot)
+        {
+            return response()->json([
+                'message' => 'Thank you for registering.', //<-- fake message
+                'status' => 'happy_landings' //status for fake registration
+            ], 200);
+        }
+
         $request->validate([
             'username' => ['string', 'required', 'max:255'],
             'email' => ['email', 'required', 'max:255'],

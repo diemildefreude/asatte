@@ -163,6 +163,7 @@
             { 
                 post ? (
                 <>    
+                    <article>
                     <div className="image-info-statement-container">
                         {
                             post.is_hidden_by_admin && (                
@@ -257,10 +258,11 @@
                                 <VideoIframe url={post.main_video}/>
                             </div>
                         )
-                    }       
+                    }    
                     <div className="page-section carousel">
                         <ImageCarousel size="small" post={post} title={"gallery:"}></ImageCarousel>
-                    </div>                    
+                    </div>       
+                    </article>                
                     <div className="page-section comment-section">
                         <CommentSection post={post} likeCount={likeCount}/>
                     </div>
@@ -324,9 +326,6 @@
                             </>}
                         </>)
                     }
-                    
-                    
-                    
                     <div className="page-section carousel">                        
                         <TileCarousel 
                             size="small" 

@@ -74,7 +74,7 @@ export const AuthProvider = ({ children }) =>
    * @returns {Promise<Object>} A promise that resolves with user data on success, or rejects with an error.
    */
     const registerWithEmail = async (loginType, email, username, 
-      password, passwordConfirmation, birthdate, showEmailInProfile) =>
+      password, passwordConfirmation, birthdate, showEmailInProfile, isUserHuman, isUserRobot) =>
     {
       try
       {
@@ -89,16 +89,20 @@ export const AuthProvider = ({ children }) =>
         {
           formData.append('show_email_in_profile', showEmailInProfile);
         }
+        if(isUserHuman)
+        {
+          formData.append('is_user_human', isUserHuman);
+        }
+        if(isUserRobot)
+        {
+          formData.append('is_user_robot', isUserRobot);
+        }
         const response = await api.post('/register', formData);
         
-        // {
-        //     login_type: loginType,
-        //     email: email,
-        //     username: username,
-        //     password: password,
-        //     password_confirmation: passwordConfirmation,
-        //     birthdate: birthdate
-        // }
+        if(response.data.status == 'happy_landings')
+        {
+          return response.data;
+        }
         const { access_token, refresh_token, user: userData } = response.data;
 
             // Store tokens and user data in localStorage to log the user in immediately
@@ -224,7 +228,7 @@ export const AuthProvider = ({ children }) =>
         setIsLoading(false);
   }, []);
 
-  const completeSocialProfile = async(username, birthdate, showEmailInProfile) =>
+  const completeSocialProfile = async(username, birthdate, showEmailInProfile, isUserHuman, isUserRobot) =>
   {
     try
     {
@@ -235,6 +239,14 @@ export const AuthProvider = ({ children }) =>
       if(showEmailInProfile)
       {        
         formData.append("show_email_in_profile", showEmailInProfile);
+      }
+      if(isUserHuman)
+      {
+        formData.append('is_user_human', isUserHuman);
+      }
+      if(isUserRobot)
+      {
+        formData.append('is_user_robot', isUserRobot);
       }
       const response = await api.post('/complete-social-profile', formData);
       return response.data;

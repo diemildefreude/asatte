@@ -34,6 +34,8 @@ function Registration()
     const [isUsernameFieldValid, setIsUsernameFieldValid] = useState(false);
     const [isBirthdateFieldValid, setIsBirthdateFieldValid] = useState(false);
     const [arePasswordsMatching, setArePasswordsMatching] = useState(false);
+    const [isUserRobot, setIsUserRobot] = useState(true);
+    const [isUserHuman, setIsUserHuman] = useState(false);
     
     const navigate = useNavigate(); // Hook for navigation
     const location = useLocation(); // Hook to get current location state
@@ -202,9 +204,14 @@ function Registration()
         setIsSubmitting(true);
         try
         {
-            await registerWithEmail(loginType, email, username, password, 
-                passwordConfirmation, birthdate, showEmailInProfile);
-            
+            const data = await registerWithEmail(loginType, email, username, password, 
+                passwordConfirmation, birthdate, showEmailInProfile, isUserHuman, isUserRobot);
+            if(data.status == 'happy_landings')
+            {
+                navigate("/");
+                return;   
+            }
+
             setSuccess(`Registration successful. please check your e-mail and validate your address`);
             setFormPage(3);
         }
@@ -232,7 +239,13 @@ function Registration()
         setIsSubmitting(true);
         try
         {
-            const data = await completeSocialProfile(username, birthdate, showEmailInProfile);
+            const data = await completeSocialProfile(username, birthdate, showEmailInProfile, isUserHuman, isUserRobot);
+            console.log("completionData", data);
+            if(data.status == 'happy_landings')
+            {
+                navigate('/');
+                return;
+            }
             await refreshUser();
             console.log("reg-page: data", data);
             sessionStorage.setItem('completion_message', data.message);
@@ -313,7 +326,8 @@ function Registration()
                             onChange={(e) => setEmail(e.target.value.trimEnd())}
                             onValidate={handleEmailFormatValidation}
                             disabled={isSubmitting}
-                            type="email"                
+                            type="email"       
+                            classes='limited-width'         
                         />
                         <CheckboxField
                             name="show-email"
@@ -331,7 +345,8 @@ function Registration()
                             onChange={(e) => setUsername(e.target.value.trimEnd())}
                             onValidate={handleUsernameFormatValidation}
                             disabled={isSubmitting}
-                            type="text"                  
+                            type="text"                 
+                            classes='limited-width'        
                         />
                         <FormField 
                             id="password"
@@ -341,7 +356,8 @@ function Registration()
                             onChange={(e) => setPassword(e.target.value.trimEnd())}
                             onValidate={handlePasswordFormatValidation}
                             disabled={isSubmitting}
-                            type="password"         
+                            type="password"                
+                            classes='limited-width'
                         />
                         <FormField 
                             id="password-confirm"
@@ -350,7 +366,8 @@ function Registration()
                             value={passwordConfirmation}
                             onChange={(e) => setPasswordConfirmation(e.target.value.trimEnd())}
                             disabled={isSubmitting}
-                            type="password"           
+                            type="password"                  
+                            classes='limited-width'
                         />
                         <FormField 
                             id="birthdate"
@@ -361,13 +378,14 @@ function Registration()
                             onValidate={handleBirthdateFormatValidation}
                             onChange={(e) => setBirthdate(e.target.value.trimEnd())}
                             disabled={isSubmitting}
-                            type="date"              
+                            type="date"                     
+                            classes='limited-width'
                         />
                         <FormField 
                             id="website"
                             label="your website url"
                             placeholder="www.yoursite.com"
-                            classes="bonus"
+                            classes="bonus limited-width"
                         />
                         <div className="flex-row">
                             <button type="button"
@@ -384,12 +402,14 @@ function Registration()
                 ) : (
                     formPage === 2 ? (
                         <form onSubmit={handleEmailRegistrationSubmit}>
-                            <UserAgreement/>
-                            <CheckboxField name="user-agree"
-                                label="I agree to the above terms."
-                                value={userAgrees}
-                                onChange={(e) => setUserAgrees(e.target.checked)}
-                                disabled={isSubmitting}
+                            <UserAgreement
+                                onAgreeChange={(e) => setUserAgrees(e.target.checked)}
+                                onHumanChange={(e) => setIsUserHuman(e.target.checked)}
+                                onRobotChange={(e) => setIsUserRobot(e.target.checked)}
+                                agreeVal={userAgrees}
+                                humanVal={isUserHuman}
+                                robotVal={isUserRobot}
+                                isSubmitting={isSubmitting}
                             />
                             <div className="flex-row">
                                 <button type="button"
@@ -438,12 +458,14 @@ function Registration()
                                 disabled={isSubmitting}
                                 classes="centered"
                             />
-                            <UserAgreement/>
-                            <CheckboxField name="user-agree"
-                                label="I agree to the above terms."
-                                value={userAgrees}
-                                onChange={(e) => setUserAgrees(e.target.checked)}
-                                disabled={isSubmitting}
+                            <UserAgreement
+                                onAgreeChange={(e) => setUserAgrees(e.target.checked)}
+                                onHumanChange={(e) => setIsUserHuman(e.target.checked)}
+                                onRobotChange={(e) => setIsUserRobot(e.target.checked)}
+                                agreeVal={userAgrees}
+                                humanVal={isUserHuman}
+                                robotVal={isUserRobot}
+                                isSubmitting={isSubmitting}
                             />
                             <button type="submit" disabled={!canCompleteSocialRegistration}>
                                 {isSubmitting ? 'submitting...' : 'submit'}

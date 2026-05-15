@@ -41,6 +41,7 @@ function Layout({children, isDashboard=false, classes=""})
         }
         </div>
         <footer>
+            <div className="footer-background"></div>
             <div className="copyright"><small>{APP_NAME} © 2026</small></div> 
         </footer>
         </>

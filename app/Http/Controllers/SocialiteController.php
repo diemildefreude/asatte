@@ -170,6 +170,23 @@ class SocialiteController extends Controller
         Log::info("starting profile completion process at {$now}");
         $user = $request->user();
         Log::info("user found when completing social profile: {$user}");
+
+        $hasHoneypotField = $request->input('is_user_human'); //<- hidden field on frontend
+        $hasRobotField = $request->input('is_user_robot');
+
+        $isRobotInHoneypot = isset($hasHoneypotField);
+        $isSelfAdmittedRobot = isset($hasRobotField);
+
+        if($isRobotInHoneypot || $isSelfAdmittedRobot)
+        {
+            $user->delete(); //delete the bot
+            auth()->logout();
+            return response()->json([
+                'message' => 'Thank you for registering.', //<-- fake message
+                'status' => 'happy_landings' //status for fake registration
+            ], 200);
+        }
+        
         $request->validate([
             'username' => [
                 'required',

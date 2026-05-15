@@ -16,7 +16,7 @@
     --default-button-border: 2px solid white;
     --hover-button-border: 2px solid var(--pale-yellow);    
     --disabled-button-border: 2px solid gray;
-    --footer-height: 300px;
+    --footer-height: 150px;
 }
 html, body
 {
@@ -114,6 +114,10 @@ h2
 {
     margin: 1rem 0;
 }
+.footnote.bottom-1rem
+{
+    margin: 0 0 1rem;
+}
 .centered-content h1
 {
     justify-content: center;
@@ -210,7 +214,7 @@ h2
     padding: 1rem;
     /* width: fit-content; */
 }
-.hidden, .form-field.bonus
+.hidden, .form-field.bonus, .checkbox.bonus
 {
     display: none;
 }
@@ -503,6 +507,10 @@ button:disabled, button:disabled:hover
     line-height: 1.8em;
     padding: 0 1em 1em;
     overflow-wrap: break-word;
+}
+.article-text h1, .article-text h2, .article-text h3, .article-text h4
+{
+    width: 100%;
 }
 .article-text p, .article-text ol
 {
