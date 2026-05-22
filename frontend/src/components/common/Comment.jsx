@@ -1,4 +1,4 @@
-import { getDateAsYYYYMMDD, getErrorMessage, getTimeAsHHMM, scrollToElement } from "../../utils/helpers";
+import { getDateAsYYYYMMDD, getErrorMessage, getTimeAsHHMM, sanitizeRichHtml, scrollToElement } from "../../utils/helpers";
 import UserLink from "./UserLink";
 import { useAuth } from "../../contexts/AuthContext";
 import EditButton from "./EditButton";
@@ -134,7 +134,7 @@ function Comment({comment, isDashboard=false, onReply=null, id, parentLocalId=nu
                 />
             ):(<p 
                 className="comment-text"
-                dangerouslySetInnerHTML={{ __html: comment.content_html }}
+                dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(comment.content_html) }}
             >    
             </p>)
         }

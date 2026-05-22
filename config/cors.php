@@ -13,7 +13,10 @@ return [
     |
     */
 
-    'paths' => ['api/*'],
+    'paths' => [
+        'api/*',
+        'oauth/token',      // <-- Add this line to allow token requests/refreshes
+        'sanctum/csrf-cookie'],
 
     'allowed_methods' => ['*'],
 

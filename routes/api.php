@@ -13,6 +13,8 @@ use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+$throttleTime = 4;
+
 Route::get('/user/{username}', [UserController::class, 'user']);
 Route::get('/{user}/following', [UserController::class, 'following']);
 Route::get('/{user}/followers', [UserController::class, 'followers']);
@@ -23,16 +25,19 @@ Route::get('/user/{username}/post/{post_url}', [PostController::class, 'show']);
 
 Route::get('/{post}/comments', [CommentController::class, 'index']);
 
-Route::post('/send-contact-mail', [ContactController::class, 'sendContactMail']);
+Route::post('/send-contact-mail', [ContactController::class, 'sendContactMail'])
+    ->middleware("throttle:$throttleTime,1");
 
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login'])
+    ->middleware("throttle:$throttleTime,1");
+Route::post('/register', [AuthController::class, 'register'])
+    ->middleware("throttle:$throttleTime,1");
+Route::post('/request-recovery', [AuthController::class, 'sendRecoveryLink'])
+    ->middleware("throttle:$throttleTime,1");
+Route::post('/reset-password', [AuthController::class, 'resetPassword'])
+    ->middleware("throttle:$throttleTime,1");
 
-Route::post('/request-recovery', [AuthController::class, 'sendRecoveryLink']);
-
-Route::post('/reset-password', [AuthController::class, 'resetPassword']);
-
-Route::post('/posts/{post}/record-view', [ActivityController::class, 'recordView']);
+Route::post('/posts/{post}/record-view', [ActivityController::class, 'recordView']); //<-- no need to throttle. Method already ignores rapid views
 
 Route::get('/about', [AboutController::class, 'show']);
 
@@ -44,8 +49,9 @@ Route::middleware('auth:api')->group(function ()
     Route::get('/my-posts', [PostController::class, 'myPosts']);
     Route::get('/my-liked-posts', [PostController::class, 'myLikedPosts']);
     Route::get('/post-search', [PostController::class, 'postSearch']);
+    Route::get('/user/{username}/post/{post_url}/edit', [PostController::class, 'edit']);
     Route::resource('posts', PostController::class)->except([
-        'index', 'show'
+        'index', 'show', 'edit'
     ]);
 //----------    
     Route::resource('comments', CommentController::class)->except([
@@ -67,7 +73,8 @@ Route::middleware('auth:api')->group(function ()
     Route::get('/notifications', [ActivityController::class, 'notifications']);
 
     Route::post('/logout', [AuthController::class, 'logout']);
-    Route::post('/resend-verification', [AuthController::class, 'sendVerifyLink']);//, 'throttle:6,1']); // Auth for logged-in user, throttle to prevent abuse
+    Route::post('/resend-verification', [AuthController::class, 'sendVerifyLink'])
+        ->middleware('throttle:3,1');
     Route::post('/change-password', [AuthController::class, 'changePassword']);
     Route::post('/complete-social-profile', [SocialiteController::class, 'completeSocialProfile']);
     Route::post('/update-profile', [DashboardController::class, 'updateProfile']);

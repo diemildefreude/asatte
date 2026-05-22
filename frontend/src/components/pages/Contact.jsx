@@ -11,7 +11,7 @@ function Contact()
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [senderEmail, setSenderEmail] = useState("");
     const [senderName, setSenderName] = useState("");
-    const [senderWebsite, setSenderWebsite] = useState(""); //It's a trap!
+    const [senderWebsite, setSenderWebsite] = useState(""); 
     const [subject, setSubject] = useState("");
     const [content, setContent] = useState("");
     const [isEmailFieldValid, setIsEmailFieldValid] = useState(false);

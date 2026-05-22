@@ -70,6 +70,7 @@ class DashboardController extends Controller
         //Log::info("bio:", $bioArray);
         $newBio = saveEditorImages($bioStatementRaw, 
             $editorImageArray, "users/$userName/bio");
+        $newBio = sanitizeRichHtml($newBio);
         $user->bio_image_urls = $editorImageArray; //RIGHT?!
         $user->bio = $newBio;
         $user->save();

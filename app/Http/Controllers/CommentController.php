@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\MemberType;
 use App\Enums\NotificationType;
 use App\Models\Comment;
 use App\Models\Notification;
@@ -121,6 +122,10 @@ class CommentController extends Controller
      */
     public function update(Request $request, Post $post, Comment $comment)
     {
+        if($comment->user_id != $request->user()->id)
+        {
+            return response()->json(['error' => "This is not your comment to edit."], 403);
+        }
         //Log::info("updating comment", ['postId' => $post->id]);
         $validatedFields = $request->validate([
             'content' => ['required', 'string', 'max:5000']
@@ -143,6 +148,13 @@ class CommentController extends Controller
      */
     public function destroy(Post $post, Comment $comment)
     {
+        $requestingUser = auth('api')->user();
+        $isAdminRequest = $requestingUser->member_type == MemberType::Webmaster 
+                || $requestingUser->member_type == MemberType::Admin;
+        if($requestingUser->id != $comment->user_id && !$isAdminRequest)
+        {
+            return response()->json([ "error" => "This is not your comment to delete."], 403);
+        }
         Log::info("Deleting comment $comment->id");
         $comment->delete();
 

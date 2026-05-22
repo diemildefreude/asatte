@@ -208,10 +208,11 @@ export const AuthProvider = ({ children }) =>
       catch (error) 
       {
           console.error("Failed to refresh user data:", error);
-          if (error.response && error.response.status === 401) 
+          // Let api.js handle the expiration routing!
+          /* if (error.response && error.response.status === 401) 
           {
               logout(); // Use your existing logout function
-          }
+          } */
       } 
       finally 
       {
@@ -558,7 +559,28 @@ export const AuthProvider = ({ children }) =>
       setIsLoading(false);
     }
   }
-
+  const fetchPostToEdit = async (username, postUrl) =>
+  {
+    setIsLoading(true);
+    const fetchFn = async () =>
+    {
+      try
+      {
+        const response = await api.get(`/user/${username}/post/${postUrl}/edit`);
+        return response.data;
+      }
+      catch(err)
+      {
+        throw err;
+      }      
+    }
+    return retryOperation(
+        fetchFn,
+        3, // Number of retries (e.g., 3 attempts total)
+        500, // Delay in milliseconds between retries (1.5 seconds)
+        'Failed to fetch post after multiple attempts.'
+    );
+  }
   const fetchSinglePost = async (username, postUrl) =>
   {
       setIsLoading(true);
@@ -814,7 +836,19 @@ export const AuthProvider = ({ children }) =>
   }
   const getUnreadStatus = async () =>
   {
-    const fetchFn = async () => 
+    try 
+    {
+      const response = await api.get('/unread-status');
+      return response.data;
+    } 
+    catch (error) 
+    {
+      // If it's a 401, the interceptor handles it. 
+      // Just log other unexpected errors so they don't crash layout components.
+      console.error("Failed to get unread status:", error);
+      return { mail: 0, notifications: 0 }; // Return a safe fallback object so the UI doesn't break
+    }
+    /* const fetchFn = async () => 
       {
         const response = await api.get('/unread-status');
         return response.data;
@@ -826,7 +860,7 @@ export const AuthProvider = ({ children }) =>
           3, // Number of retries (e.g., 3 attempts total)
           500, // Delay in milliseconds between retries (1.5 seconds)
           'Failed to fetch notice counts after multiple attempts.'
-      );
+      ); */
   }
 
   const toggleFollow = async (userId) =>
@@ -1083,7 +1117,7 @@ export const AuthProvider = ({ children }) =>
       fetchLikedPosts, fetchNotifications, getUnreadStatus, toggleFollow,
       fetchFollowing, fetchFollowers, userSearch, createDM, updateDM, deleteDM,
       fetchConversation, fetchConversations, searchPosts, updateAbout, fetchAbout,
-      toggleAdminPostHide, sendContactMail}}>
+      toggleAdminPostHide, sendContactMail, fetchPostToEdit}}>
       {children}
     </AuthContext.Provider>
   );

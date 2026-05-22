@@ -239,6 +239,12 @@ class PostController extends Controller
      */
     public function store(Request $request)
     {
+        $user = $request->user();
+        if(!$user->email_verified_at)
+        {
+            return response()->json(["error" => "Please verify your e-mail to begin posting."], 403);   
+        }
+
         $basicFields = $request->validate
         ([
             'title' => ['string', 'required', 'max:255'],
@@ -247,7 +253,6 @@ class PostController extends Controller
         ]); 
         $isPrivate = $request->input('is_private') ? true : false;        
         $isNews = $request->input('is_news') ? true : false;    
-        $user = $request->user();
 
         if($isNews && $user->member_type != MemberType::Webmaster)
         {
@@ -288,7 +293,8 @@ class PostController extends Controller
         
         $statement = saveEditorImages($newStatementRaw,
             $editorImageArray, $statementImageFolder);
-        
+        $statement = sanitizeRichHtml($statement);
+
         $galleryArray = [];
         $galleryAltArray = [];
         $galleryImageFolder = "users/$userName/posts/$postUrl/gallery";
@@ -384,6 +390,13 @@ class PostController extends Controller
             return response()->json(['error' => 'No such post found.'], 404);
         }
 
+        $isPostCreator = $authenticatedUser && $authenticatedUser->id == $post->user_id;
+
+        if ($post->is_private && !$isPostCreator)
+        {
+            return response()->json(['error' => 'No such post found.'], 404);
+        }
+
         $isHidden = $post->is_hidden_by_admin;
         $isAdminRequest = $authenticatedUser && 
             ($authenticatedUser->member_type == MemberType::Webmaster 
@@ -404,16 +417,54 @@ class PostController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(string $username, string $post_url)
     {
-        //
+        $authUser = auth('api')->user();
+        $postCreator = User::where('username', $username)->first();
+
+        if ($authUser->id != $postCreator->id)
+        {
+            return response()->json(['error' => 'No such post found.'], 404);
+        }
+
+        if (!$postCreator) 
+        {
+            return response()->json(['error' => 'No user by that name found.'], 404);
+        }
+
+        $query = Post::with([
+            'user:id,username,avatar,member_type',
+            'comments' => function ($query) 
+            {
+                // ...and for each comment, eager load its user, selecting specific fields
+                $query->with('user:id,username,avatar');
+                //    ->latest(); // Optional: order the comments by newest first
+            }])
+            ->withCount('usersWhoLiked')
+            ->where('post_url', $post_url)
+            ->where('user_id', $postCreator->id);
+
+        //Log::info("authd?!: $authenticatedUser");
+        $post = $query->first();
+
+        if (!$post) 
+        {
+            return response()->json(['error' => 'No such post found.'], 404);
+        }
+        
+        return response()->json($post);
     }
 
     /**
      * Update the specified resource in storage.
      */
     public function update(Request $request, string $id)
-    {
+    {        
+        $user = $request->user();
+        if(!$user->email_verified_at)
+        {
+            return response()->json(["error" => "Please verify your e-mail to begin posting."], 403);   
+        }
         Log::info($request->headers->get('content-type'));
         $requestData = [
             'url' => $request->fullUrl(),
@@ -447,6 +498,12 @@ class PostController extends Controller
         Log::info("isPrivate? $isPrivate _ $request->input('is_private')");       
 
         $post = Post::findOrFail($id);
+
+        if($request->user()->id != $post->user_id)
+        {
+            return response()->json([ "error" => "This is not your post to edit."], 403);
+        }
+
         $postUrl = $post->post_url;        
         $request->validate([
             'statement' => ['required', 'string'],
@@ -460,7 +517,7 @@ class PostController extends Controller
             'gallery_images.*.file.image' => 'Each uploaded file must be an image.',
         ]);       
         
-        $userName = $request->user()->username;         
+        $userName = $user->username;         
         $galleryImageFolder = "users/$userName/posts/$postUrl/gallery";
         $website = $request->input('website') ? addHttpProtocol($request->input('website', '')) : null;
         
@@ -522,6 +579,7 @@ class PostController extends Controller
         $rawStatement = $request->input('statement');
         $statement = saveEditorImages($rawStatement,
             $editorImageArray, $statementImageFolder);
+        $statement = sanitizeRichHtml($statement);
                 
         Log::info("updating post. is_news: $isNews");
         $postFields = 
@@ -549,8 +607,14 @@ class PostController extends Controller
     public function destroy(Request $request, string $id)
     {
         $post = Post::findOrFail($id);
-        $user = $request->user();
-        $userName = $user->username;
+        $requestingUser = $request->user();
+        $isAdminRequest = $requestingUser->member_type == MemberType::Webmaster 
+                || $requestingUser->member_type == MemberType::Admin;
+        if($requestingUser->id != $post->user_id && !$isAdminRequest)
+        {
+            return response()->json([ "error" => "This is not your post to delete."], 403);
+        }
+        $userName = $requestingUser->username;
         $postUrl = $post->post_url;
         $postFolder = "images/uploaded/users/$userName/posts/$postUrl";
         Storage::disk('public')->deleteDirectory($postFolder);

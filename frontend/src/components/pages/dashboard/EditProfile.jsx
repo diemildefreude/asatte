@@ -23,7 +23,7 @@ function EditProfile()
     const [showEmailInProfile, setShowEmailInProfile] = useState(false);
     const [editingField, setEditingField] = useState(null);
 
-    console.log("user",user);
+    //console.log("user",user);
     useEffect(() =>
     {
         if(!user)
@@ -147,23 +147,28 @@ function EditProfile()
                     onChange={(e) => {setHasChanges(e.target.checked != user.show_email_in_profile); setShowEmailInProfile(e.target.checked);}}
                     disabled={isSubmitting}
                 />
-                <div className="button-container">
-                    <button onClick={handleLogoutSubmit} disabled={isSubmitting}>log out</button>
+                <div className="flex-row">
+                    <div className="button-container">
+                        <button onClick={handleLogoutSubmit} disabled={isSubmitting}>log out</button>
+                        {
+                            hasChanges && (
+                                <button type="submit" disabled={isSubmitting}>save changes</button>
+                            )
+                        }
+                    </div>
+                    <div className="flex-column">
                     {
-                        hasChanges && (
-                            <button type="submit" disabled={isSubmitting}>save changes</button>
+                        (user.is_email_verified && user.login_type == LoginType.Email) &&
+                        (
+                            <Link to="/password-change" className="centered-content no-margin">change password</Link>
                         )
                     }
-                </div>
-                {
-                    (user.is_email_verified && user.login_type == LoginType.Email) &&
-                    (
-                        <Link to="/password-change" className="centered-content no-margin">change password</Link>
-                    )
-                }
-                <Link to={`/${user.username}`} className="centered-content no-margin">
-                    preview profile
-                </Link>
+                    <Link to={`/${user.username}`} className="centered-content no-margin">
+                        preview profile
+                    </Link>
+
+                    </div>
+                </div>                
             </form>            
         </div>        
     </div>

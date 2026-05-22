@@ -5,6 +5,65 @@ use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Drivers\Imagick\Driver;
 use Intervention\Image\ImageManager;
 //----HELPER FUNCTIONS----
+/**
+ * Sanitize rich HTML from TinyMCE. Allows safe formatting, images, links,
+ * and iframes only from approved video hosts.
+ */
+function sanitizeRichHtml(string $html): string
+{
+  if (trim($html) === '') {
+    return '';
+  }
+  
+  $config = \HTMLPurifier_Config::createDefault();
+  $config->set('Cache.DefinitionImpl', null); // Keep disabled for local XAMPP dev
+
+  // CRITICAL: Ensure class is explicitly allowed on spans, images, and iframes
+  $config->set('HTML.Allowed',
+    'p[style|class],br,strong,b,em,i,u,s,strike,sub,sup,blockquote[style|class],' .
+    'ul[style|class],ol[style|class],li[style|class],a[href|title|target|rel],img[src|alt|width|height|title|style|class],' .
+    'h1[style|class],h2[style|class],h3[style|class],h4[style|class],h5[style|class],h6[style|class],span[style|class],div[style|class],' .
+    'iframe[src|width|height|frameborder|allowfullscreen|title|class|style]'
+  );
+  
+  $config->set(
+    'CSS.AllowedProperties',
+    'text-align,float,display,margin,margin-left,margin-right,margin-top,margin-bottom,width,height,max-width'
+  );
+  
+  $config->set('HTML.Nofollow', true);
+  $config->set('HTML.TargetBlank', true);
+  $config->set('URI.AllowedSchemes', ['http' => true, 'https' => true]);
+  
+  $config->set('HTML.SafeIframe', true);
+  $config->set('URI.SafeIframeRegexp', getSafeVideoIframeRegexp());
+  $config->set('HTML.Trusted', true);
+  $config->set('CSS.AllowTricky', true);
+
+  $purifier = new \HTMLPurifier($config);
+  return $purifier->purify($html);
+}
+function getSafeVideoIframeRegexp(): string
+{
+  $hosts = implode('|', [
+    // YouTube
+    '(?:www\.)?youtube\.com',
+    '(?:www\.)?youtube-nocookie\.com',
+    'youtu\.be', // rare in iframe src; harmless to allow
+    // Vimeo
+    'player\.vimeo\.com',
+    '(?:www\.)?vimeo\.com',
+    // DailyMotion
+    '(?:www\.)?dailymotion\.com',
+    'geo\.dailymotion\.com',
+    // Youku
+    '(?:www\.)?youku\.com',
+    'player\.youku\.com',
+    'v\.youku\.com',
+  ]);
+  // Match from start of URL (after optional scheme)
+  return '%^(https?:)?//(' . $hosts . ')/%i';
+}
 function addHttpProtocol(string $url): string
 {
     if ($url && !str_starts_with($url, 'http://') 

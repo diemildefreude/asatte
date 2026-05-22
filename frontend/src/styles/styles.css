@@ -78,6 +78,10 @@ h2
 {
     font-weight: 350;
 }
+p iframe
+{
+    max-width: 100%;
+}
 .centered-header-box
 {
     display: flex;
@@ -561,11 +565,15 @@ button:disabled, button:disabled:hover
 {
     font-size: 1.5em;
 }
-.flex-row
+.flex-row, .flex-column
 {
     display: flex;
     flex-direction: row;
     gap: 1rem;
     align-items: center;
     justify-content: space-around;
+}
+.flex-column
+{
+    flex-direction: column;
 }

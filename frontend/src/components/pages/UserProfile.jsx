@@ -3,10 +3,11 @@ import Layout from '../layout/Layout';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import ProfileItem from '../common/ProfileItem';
-import RichTextEditor from '../common/RichTextEditor';
 import LimitedTilesContainer from '../common/LimitedTilesContainer';
 import './DashboardProfile.css';
-import { FetchOrder, getErrorMessage, getScreenSize, monitorScreenSize } from '../../utils/helpers';
+import '../common/RichTextEditor.css';
+import { FetchOrder, getErrorMessage, getScreenSize, monitorScreenSize, 
+    sanitizeRichHtml, hydrateEditorImagePaths } from '../../utils/helpers';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -206,8 +207,8 @@ function UserProfile()
                                 </div>
                             </div>       
                             <div
-                                className="article-text"
-                                dangerouslySetInnerHTML={{ __html: profileUser.bio}}
+                                className="article-text padded"
+                                dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(hydrateEditorImagePaths(profileUser.bio))}}
                             />                
                         </div>
                     </div>

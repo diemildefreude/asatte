@@ -93,7 +93,7 @@ class DMController extends Controller
         
         $content = saveEditorImages($newContentRaw,
             $editorImageArray, $messageImageFolder);
-
+        $content = sanitizeRichHtml($content);
 
         $conversation->messages()->create([
             'sender_id' => $userId,
@@ -168,6 +168,7 @@ class DMController extends Controller
         $newContentRaw = $request->input('content');
         $newContent = saveEditorImages($newContentRaw, 
             $editorImageArray, $messageImageFolder);
+        $newContent = sanitizeRichHtml($newContent);
         
         $message->update([
             'content' => $newContent,

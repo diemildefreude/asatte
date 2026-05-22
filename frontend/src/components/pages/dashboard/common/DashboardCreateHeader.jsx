@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 
-function DashboardCreateHeader({headerText, createLink})
+function DashboardCreateHeader({headerText, createLink, isVerified=true})
 {
 
     return(
@@ -8,12 +8,14 @@ function DashboardCreateHeader({headerText, createLink})
             <div className="centered-content no-margin">
                 <h1>{headerText}</h1>
             </div>
-            <Link
-                to={createLink} 
-                className="right-item link-button plus-button"
-            >                    
-                +
-            </Link>
+            {                
+                isVerified && (<Link
+                    to={createLink} 
+                    className="right-item link-button plus-button"
+                >                    
+                    +
+                </Link>)
+            }
         </div>
     );
 }

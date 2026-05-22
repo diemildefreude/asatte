@@ -11,11 +11,14 @@ class ContactController extends Controller
 {
     public function sendContactMail(Request $request)
     {
-        $website = $request->query('website');
+        $website = $request['website'];
         if(isset($website)) //Honeypot!
         {
             Log::info("Gotcha, bitch!");
-            return;
+            return response()->json([
+                "status" => "mail_sent",
+                "message" => 'Your message has been received. Thank you.'
+            ], 200);
         }
 
         //sender, email, subject, website, content

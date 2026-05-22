@@ -1,6 +1,6 @@
     import React, { useCallback, useEffect, useMemo, useState } from 'react';
     import { useParams, useNavigate } from 'react-router-dom';
-    import { getDateAsYYYYMMDD, getErrorMessage, hydrateEditorImagePaths, MemberType, openPopup, processEditorImages } from '../../utils/helpers';
+    import { getDateAsYYYYMMDD, getErrorMessage, hydrateEditorImagePaths, MemberType, openPopup, processEditorImages, sanitizeRichHtml } from '../../utils/helpers';
     import { useAuth } from '../../contexts/AuthContext';
     import Layout from '../layout/Layout';
     import './Post.css';
@@ -247,7 +247,7 @@
                             </div>
                             <div className="page-section statement rte-container">
                                 <div
-                                    dangerouslySetInnerHTML={{ __html: hydrateEditorImagePaths(post.statement)}}
+                                    dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(hydrateEditorImagePaths(post.statement))}}
                                 />
                             </div>
                         </div>

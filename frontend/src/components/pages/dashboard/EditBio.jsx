@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import RichTextEditor from '../../common/RichTextEditor';
+import '../../common/RichTextEditor.css';
 import EditButton from '../../common/EditButton';
 import { useAuth } from '../../../contexts/AuthContext';
-import { dehydrateEditorImagePaths, getErrorMessage, getImageUrlsFromDelta, hydrateEditorImagePaths, processEditorImages } from '../../../utils/helpers';
+import { dehydrateEditorImagePaths, getErrorMessage, getImageUrlsFromDelta, hydrateEditorImagePaths, processEditorImages, sanitizeRichHtml } from '../../../utils/helpers';
 
 function EditBio()
 {
@@ -105,7 +106,7 @@ function EditBio()
             />):(
             <div
                 className='padded article-text'
-                dangerouslySetInnerHTML={{ __html: bio }}
+                dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(bio) }}
             />
             )                
             }

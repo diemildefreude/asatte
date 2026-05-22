@@ -1,4 +1,63 @@
+import DOMPurify from 'dompurify';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+
+const SAFE_VIDEO_IFRAME_HOSTS = [
+  /^(?:www\.)?youtube\.com$/i,
+  /^(?:www\.)?youtube-nocookie\.com$/i,
+  /^player\.vimeo\.com$/i,
+  /^(?:www\.)?vimeo\.com$/i,
+  /^(?:www\.)?dailymotion\.com$/i,
+  /^geo\.dailymotion\.com$/i,
+  /^(?:www\.)?youku\.com$/i,
+  /^player\.youku\.com$/i,
+  /^v\.youku\.com$/i,
+];
+
+function isSafeVideoIframeSrc(src) 
+{
+  try 
+  {
+    const url = new URL(src, window.location.origin);
+    if (url.protocol !== 'https:' && url.protocol !== 'http:') return false;
+    return SAFE_VIDEO_IFRAME_HOSTS.some((re) => re.test(url.hostname));
+  } 
+  catch 
+  {
+    return false;
+  }
+}
+
+export function sanitizeRichHtml(html) 
+{
+  if (!html) return '';
+
+  DOMPurify.addHook('uponSanitizeElement', (node, data) => {
+    if (data.tagName === 'iframe') {
+      const src = node.getAttribute('src') || '';
+      if (!isSafeVideoIframeSrc(src)) {
+        node.parentNode?.removeChild(node);
+      }
+    }
+  });
+
+  const clean = DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: [
+      'p', 'br', 'strong', 'b', 'em', 'i', 'u', 's', 'strike', 'sub', 'sup',
+      'blockquote', 'ul', 'ol', 'li', 'a', 'img',
+      'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'span', 'div',
+      'iframe',
+    ],
+    ALLOWED_ATTR: [
+      'href', 'title', 'target', 'rel', 'src', 'alt', 'width', 'height',
+      'style', 'class', 'frameborder', 'allowfullscreen', 'allow',
+      'referrerpolicy',
+    ],
+    ALLOW_DATA_ATTR: false,
+  });
+
+  DOMPurify.removeHook('uponSanitizeElement');
+  return clean;
+}
 
 export function addFetchedPostsToExcludes(posts, previous)
 {
@@ -6,7 +65,7 @@ export function addFetchedPostsToExcludes(posts, previous)
     const excludes = previous;
     posts.forEach((post) =>
     {
-        console.log("post?", post);
+        //console.log("post?", post);
         excludes.push(post.id); 
     })
     return excludes;
@@ -807,7 +866,8 @@ export const handleSubmit = async (e, uri, data) =>
  * @param {string} errorMessage - A message to display if all retries fail.
  * @returns {Promise<any>} A promise that resolves with the result of fn, or rejects if all retries fail.
  */
-export const retryOperation = async (fn, retries = 3, delay = 1000, errorMessage = 'Operation failed after multiple retries.') => {
+export const retryOperation = async (fn, retries = 3, delay = 1000, errorMessage = 'Operation failed after multiple retries.') => 
+{
     let attempts = 0;
     while (attempts < retries) 
     {
@@ -817,12 +877,14 @@ export const retryOperation = async (fn, retries = 3, delay = 1000, errorMessage
         } 
         catch (error) 
         {
-            if(error.status === 404) //maybe add other cases..?
+            const status = error.response?.status || error.status;
+            if (status === 401 || status === 403 || status === 404) //maybe add other cases..?
             {
                 throw error;
             }
             attempts++;
             console.warn(`Attempt ${attempts} failed:`, error.message || error);
+
             if (attempts < retries) 
             {
                 console.log(`Retrying in ${delay / 1000} seconds...`);
@@ -832,7 +894,7 @@ export const retryOperation = async (fn, retries = 3, delay = 1000, errorMessage
             else 
             {
                 console.error(errorMessage, error);
-                throw new Error(errorMessage); // Throw error if all retries fail
+                throw error; // Throw error if all retries fail
             }
         }
     }

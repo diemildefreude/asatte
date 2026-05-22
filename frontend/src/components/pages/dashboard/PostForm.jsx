@@ -17,7 +17,7 @@ const createInitialImageFields = (post=null, user, postUrl) =>
 {
     if(post) 
     {
-        //console.log("poast!", post);
+        console.log("poast!", post);
         const images = post.gallery_image_urls;//JSON.parse(post.gallery_image_urls);
         const alts = post.gallery_alts;//JSON.parse(post.gallery_alts);
         return images.map((image, i) => ({
@@ -137,6 +137,7 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
     const onSubmit = useCallback(async (e) =>
     {
         e.preventDefault();
+        setIsSubmitting(true);
         setSuccess('');
         setError('');
         //RESIZE GALLERY IMAGES

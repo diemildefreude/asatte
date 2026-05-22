@@ -324,7 +324,6 @@ class AuthController extends Controller
     }
     public function login(LoginRequest $request)
     {
-        
         $fieldType = filter_var($request->login_field, FILTER_VALIDATE_EMAIL) 
             ? 'email' : 'username';
         $user = User::where($fieldType, $request->login_field)->first();
@@ -335,25 +334,32 @@ class AuthController extends Controller
                 'login_field' => ['invalid credentials provided'],
             ]);
         }
-
+        //Log::info('Checking target Client ID value:', ['client_id' => config('passport.client_id')]);
+        // Hit the token endpoint directly using your Public Client ID
         $oauthRequest = Request::create('oauth/token', 'POST', [
             'grant_type' => 'password',
-            'client_id' => config('passport.client_id'), //needed by Passport for e-mail logins
-            'client_secret' => config('passport.client_secret'), //""
+            'client_id' => config('passport.client_id'), // Make sure this matches your new public client ID
             'username' => $user->email, 
             'password' => $request->password,
-            'scope' => '', // Define custom scopes if your application uses them (e.g., 'view-profile')
+            'scope' => '', 
         ]);
+
         $response = app()->handle($oauthRequest);
-        
-        // Decode the JSON response from the Passport token endpoint
         $data = json_decode($response->getContent());
 
-        // Return the user data and the generated access token to the frontend
+        // Defensive Check: If Passport returns an error, catch it before it crashes line 355
+        if (isset($data->error) || !isset($data->access_token)) {
+            Log::error('Passport authentication sub-request failed', (array)$data);
+            return response()->json([
+                'message' => 'Authentication setup mismatch on the backend.',
+                'details' => $data->message ?? 'Check your public client configuration.'
+            ], 500);
+        }
+
         return response()->json([
-            'user' => $user->toArray(), // Optionally return relevant user data
+            'user' => $user->toArray(),
             'access_token' => $data->access_token,
-            'refresh_token' => $data->refresh_token ?? null, // Refresh token might not always be present depending on Passport setup
+            'refresh_token' => $data->refresh_token, // This will now be a genuine cryptographically signed key!
             'expires_in' => $data->expires_in,
             'token_type' => $data->token_type,
         ], $response->getStatusCode());

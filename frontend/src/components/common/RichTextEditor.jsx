@@ -58,6 +58,30 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
         // image_title: true,
         // automatic_uploads: true,
         file_picker_types: 'image',
+        media_live_embeds: true,
+        
+        media_url_resolver: (data) => {
+          return new Promise((resolve, reject) => {
+            // 1. Check if the URL is a YouTube Short
+            if (data.url && data.url.includes('youtube.com/shorts/')) {
+              const match = data.url.match(/\/shorts\/([a-zA-Z0-9_-]+)/);
+              if (match && match[1]) {
+                const videoId = match[1];
+                const embedHtml = `<iframe width="560" height="315" src="https://www.youtube.com/embed/${videoId}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`;
+                
+                // Resolve with the HTML embed string
+                resolve({ html: embedHtml });
+                return;
+              }
+            }
+            
+            // 2. If it's not a short, reject with an empty object so TinyMCE 
+            // uses its own internal regex matching for normal YouTube/Vimeo links
+            //reject({ msg: 'Not a YouTube Short' });
+            resolve({ html: '' });
+          });
+        },
+
         file_picker_callback: (cb, value, meta) => 
         {
             // Use the editor instance provided by the callback context

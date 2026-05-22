@@ -10,19 +10,21 @@ import DashboardCreateHeader from "./common/DashboardCreateHeader";
 function MyPosts()
 {
     const [screenSize, setScreenSize] = useState(getScreenSize());
-    const {fetchMyPosts} = useAuth();
+    const {user, fetchMyPosts} = useAuth();
 
     useEffect(() => //check screen size at regular intervals.
     {   
         const cleanup = monitorScreenSize(setScreenSize);
         return cleanup;
     }, [setScreenSize]);
+    //console.log("user", user);
 
     return ( 
     <DashboardLayout currentTab="posts">
         <DashboardCreateHeader
             headerText="your posts"
             createLink="/dashboard/new-post"
+            isVerified={user.is_email_verified}
         />
         <AutoloadTilesContainer 
             screenSize={screenSize}

@@ -46,7 +46,7 @@ function DashboardLayout({ currentTab, headerText, children })
     useEffect(() =>
     {
         const msg = sessionStorage.getItem('completion_message'); //location.state?.message || 
-        console.log("msg", msg);
+        //console.log("msg", msg);
         if (msg) 
         {
             setSuccess(msg);
@@ -65,7 +65,7 @@ function DashboardLayout({ currentTab, headerText, children })
         })
         .catch((err) =>
         {
-            console.err(getErrorMessage(err));
+            console.error(getErrorMessage(err));
         });
     },[setHasUnreadMail, setHasUnreadNotifications]);
 

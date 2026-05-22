@@ -6,7 +6,7 @@ import "../DashboardProfile.css";
 import { useCallback, useEffect, useRef, useState } from "react";
 import UserLink from "../../common/UserLink";
 import FormField from "../../common/FormField";
-import { dehydrateEditorImagePaths, getErrorMessage, hydrateEditorImagePaths, processEditorImages } from "../../../utils/helpers";
+import { dehydrateEditorImagePaths, getErrorMessage, hydrateEditorImagePaths, processEditorImages, sanitizeRichHtml } from "../../../utils/helpers";
 import { useNavigate, useLocation, useParams, redirect, Link } from "react-router-dom";
 import Message from "../../common/Message";
 
@@ -402,7 +402,7 @@ function Conversation()
     return ( 
     <DashboardLayout currentTab="mail">
     <div className="centered-content no-margin">            
-        <h2 dangerouslySetInnerHTML={{__html: headerText}}></h2>
+        <h2 dangerouslySetInnerHTML={{__html: sanitizeRichHtml(headerText)}}></h2>
     </div>
     {
         conversation?.name != null && (

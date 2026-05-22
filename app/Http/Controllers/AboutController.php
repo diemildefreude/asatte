@@ -54,7 +54,7 @@ class AboutController extends Controller
             "imageFolder" => gettype($imageFolder)
         ]);
         $newStatement = saveEditorImages($newStatementRaw, $imageArray, $imageFolder);
-
+        $newStatement = sanitizeRichHtml($newStatement);
         if($about)
         {
             $about->statement = $newStatement;

@@ -5,6 +5,12 @@
     width: 100%;
     z-index: 0; 
     overflow: visible; */
+    display: flow-root;
+    width: 100%;
+}
+.padded.article-text
+{
+    display: flow-root;
 }
 .rte-container p
 {
@@ -13,6 +19,52 @@
 .rte-container img
 {
     max-width: 100%;
+    aspect-ratio: auto;
+    height: auto !important;
+}
+
+.rte-container img.align-left {
+    float: left;
+    margin: 0 1rem 1rem 0;
+}
+.rte-container img.align-right {
+    float: right;
+    margin: 0 0 1rem 1rem;
+}
+.rte-container img.align-center {
+    display: block;
+    margin: 1rem auto;
+    float: none;
+}
+.rte-container iframe.align-left,
+.rte-container .mce-object-iframe.align-left {
+    display: block !important;
+    margin: 1rem auto 1rem 0 !important;
+    float: none !important;
+}
+.rte-container iframe.align-right,
+.rte-container .mce-object-iframe.align-right {
+    display: block !important;
+    margin: 1rem 0 1rem auto !important;
+    float: none !important;
+}
+.rte-container iframe.align-center,
+.rte-container .mce-object-iframe.align-center {
+    display: block !important;
+    margin: 1rem auto !important;
+    float: none !important;
+}
+
+/* 3. Text blocks */
+.rte-container .align-left { text-align: left; }
+.rte-container .align-center { text-align: center; }
+.rte-container .align-right { text-align: right; }
+.rte-container .align-justify { text-align: justify; }
+
+/* 4. Fix floating image container overflow (from previous fix) */
+.rte-container {
+    display: flow-root;
+    width: 100%;
 }
 
 .tox .tox-editor-container, .tox .tox-editor-header, .tox .tox-toolbar-overlord

@@ -1,4 +1,4 @@
-import { dehydrateEditorImagePaths, getDateAsYYYYMMDD, getErrorMessage, getTimeAsHHMM, hydrateEditorImagePaths, processEditorImages, scrollToElement } from "../../utils/helpers";
+import { dehydrateEditorImagePaths, getDateAsYYYYMMDD, getErrorMessage, getTimeAsHHMM, hydrateEditorImagePaths, processEditorImages, sanitizeRichHtml, scrollToElement } from "../../utils/helpers";
 import UserLink from "./UserLink";
 import { useAuth } from "../../contexts/AuthContext";
 import EditButton from "./EditButton";
@@ -111,7 +111,7 @@ function Message({message, onReply=null, onDelete=null, id, parentLocalId=null,
                     resetKey={resetKey}
                 />):(
                 <div
-                    dangerouslySetInnerHTML={{ __html: content }}
+                    dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(content) }}
                     className="article-text"
                 />
             )

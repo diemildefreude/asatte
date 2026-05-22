@@ -3,7 +3,7 @@ import RichTextEditor from "../common/RichTextEditor";
 import EditButton from "../common/EditButton";
 import Layout from "../layout/Layout";
 import { useAuth } from "../../contexts/AuthContext";
-import { getErrorMessage, MemberType, processEditorImages, 
+import { getErrorMessage, MemberType, processEditorImages, sanitizeRichHtml,
     hydrateEditorImagePaths, dehydrateEditorImagePaths } from "../../utils/helpers";
 // import "./DashboardProfile.css"; //TEMP
 import "../common/RichTextEditor.css";
@@ -31,6 +31,7 @@ function About()
             if(data.status == "about_fetched")
             {
                 const hydratedStatement = hydrateEditorImagePaths(data.about.statement);
+                //const sanitizedStatement = sanitizeRichHtml(hydratedStatement);
                 setInitialStatement(hydratedStatement);
                 setStatement(hydratedStatement);
                 setDataLoaded(true);
@@ -133,7 +134,7 @@ function About()
                     />  
                     ):(
                         <div
-                            dangerouslySetInnerHTML={{ __html: statement }}
+                            dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(statement) }}
                             className="article-text"
                         />
                     )

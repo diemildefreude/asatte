@@ -1,4 +1,4 @@
-import { getDateAsYYYYMMDD, getTimeAsHHMM, NotificationType } from "../../../../utils/helpers";
+import { getDateAsYYYYMMDD, getTimeAsHHMM, NotificationType, sanitizeRichHtml } from "../../../../utils/helpers";
 import { Link } from "react-router-dom";
 import UserLink from "../../../common/UserLink";
 import "../../../common/CommentsNotifications.css";
@@ -79,7 +79,7 @@ function Notification({notification})
                     </div>
                     <p 
                         className="comment-text"
-                        dangerouslySetInnerHTML={{ __html: notification.comment.content_html }}
+                        dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(notification.comment.content_html) }}
                     >    
                     </p>
                 </>)
