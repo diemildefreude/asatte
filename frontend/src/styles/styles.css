@@ -509,8 +509,10 @@ button:disabled, button:disabled:hover
 .article-text
 {    
     line-height: 1.8em;
-    padding: 0 1em 1em;
+    /* padding: 0 1em 1em; */
+    padding: 1rem;
     overflow-wrap: break-word;
+    word-break: break-all;
 }
 .article-text h1, .article-text h2, .article-text h3, .article-text h4
 {

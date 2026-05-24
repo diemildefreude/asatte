@@ -279,11 +279,12 @@
 }
 .statement
 {
-    padding: 1rem;
-    line-height: 1.8em;
+    /* padding: 1rem;
+    line-height: 1.8em; */
     background-color: rgba(0, 0, 0, 0.5);
     border: 2px solid white;
     box-sizing: border-box;
+    overflow-wrap: break-word;
 }
 /*-------ADMIN HIDE FORM---------*/
 .post form 

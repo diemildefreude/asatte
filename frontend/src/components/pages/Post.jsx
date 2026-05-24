@@ -259,10 +259,9 @@
                                     }
                                 </div>
                             </div>
-                            <div className="page-section statement rte-container">
-                                <div
-                                    dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(hydrateEditorImagePaths(post.statement))}}
-                                />
+                            <div className="page-section statement rte-container article-text"
+                                dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(hydrateEditorImagePaths(post.statement))}}
+                            >
                             </div>
                         </div>
                     </div>     
