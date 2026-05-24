@@ -37,9 +37,9 @@ function Registration()
     const [isUserRobot, setIsUserRobot] = useState(true);
     const [isUserHuman, setIsUserHuman] = useState(false);
     
-     // Hook for navigation
-    const location = useLocation(); // Hook to get current location state
-    const from = location.state?.from?.pathname || '/dashboard';
+    const { props } = usePage();
+    const from = props?.flash?.from || '/dashboard';
+    const message = props?.flash?.message;
     
     let formContainerClasses = "form-container";
     formContainerClasses = formPage === 1 ? formContainerClasses + " limited-width" : formContainerClasses;
@@ -63,14 +63,13 @@ function Registration()
         {
             router.visit(from, { replace: true });
         }
-    }, [isAuthenticated, isLoading, navigate, from]);
+    }, [isAuthenticated, isLoading, from]);
 
     useEffect(() => 
     {
-        if (location.state && location.state.message) 
+        if (message) 
         {
-            const status = location?.state?.status;
-            const message = location?.state?.message;
+            const status = props?.flash?.status;
             if(status === 'social_registration_incomplete')
             {
                 setFormPage(3); //social registration completion page
@@ -80,9 +79,8 @@ function Registration()
             {                
                 setError(message);
             }
-            router.visit(location.pathname, { replace: true, state: {} });
         }
-    }, [location.state, location.pathname, navigate, user]);
+    }, [message, props?.flash?.status, user]);
 
     const handleEmailSubmit = async (e) => 
     {
@@ -266,7 +264,7 @@ function Registration()
 
     return (
     <Layout>
-            <Head title="Registration" />
+        <Head title="Registration" />
         <div className={formContainerClasses}>
             <h1 className='centered-content no-margin'>join netart.io</h1>
         {error && (
