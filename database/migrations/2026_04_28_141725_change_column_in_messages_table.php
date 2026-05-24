@@ -24,7 +24,8 @@ return new class extends Migration
     {
         Schema::table('messages', function (Blueprint $table) 
         {
-            $table->json('statement')->default('[]')->change();
+            $table->json('statement')->change();
         });
     }
 };
+

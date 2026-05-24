@@ -1,0 +1,189 @@
+import React, { memo, useMemo } from 'react';
+import { dehydrateEditorImagePaths, getDateAsYYYYMMDD, getErrorMessage, getTimeAsHHMM, hydrateEditorImagePaths, processEditorImages, sanitizeRichHtml, scrollToElement } from "../../utils/helpers";
+import UserLink from "./UserLink";
+import { useAuth } from "../../contexts/AuthContext";
+import EditButton from "./EditButton";
+import { useCallback, useEffect, useState } from "react";
+import { Link, router, usePage } from '@inertiajs/react';
+import "./CommentsNotifications.css";
+import RichTextEditor from "./RichTextEditor";
+
+function Message({message, onReply=null, onDelete=null, id, parentLocalId=null, 
+    currentUrl=null, setConversation=null, quoteText=""})
+{
+    const {user, updateDM} = useAuth();
+    const [isEditing, setIsEditing] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const initialHydratedContent = useMemo(() => hydrateEditorImagePaths(message.content), [message.content]);
+    
+    const [content, setContent] = useState(initialHydratedContent);
+    const [initialContent, setInitialContent] = useState(initialHydratedContent);
+    const [hasChanged, setHasChanged] = useState(false);
+    const [resetKey, setResetKey] = useState(0);
+
+    const elementId = `message-${id}`;
+    const parentElementId = parentLocalId ? `message-${parentLocalId}` : null;
+    const messageSender = message.sender ?? { id: -27, username: '[deleted user]', avatar: null };
+
+    const handleMessageEdit = useCallback(() =>
+    {
+        setIsEditing(true);
+    },[]);
+
+    const handleEditCancel = useCallback(() =>
+    {
+        if(hasChanged)
+        {
+            const isConfirmed = window.confirm("Revert changes?");
+            if(!isConfirmed)
+            {
+                return;
+            }
+        }
+        setIsEditing(false);
+        console.log("m.c", initialContent);
+        setContent(initialContent);　//reset ??
+        setResetKey(k => k + 1);
+    },[initialContent]);
+
+    const handleMessageUpdate = useCallback(async () =>
+    {
+        setIsSubmitting(true);
+        const dehydratedContent = dehydrateEditorImagePaths(content);
+        const newContentWithResizedImages = await processEditorImages(dehydratedContent);
+        updateDM(message.id, newContentWithResizedImages)
+        .then((data) =>
+        {
+            //console.log(data.message);
+            setIsSubmitting(false);
+            setIsEditing(false);
+            console.log("data?", data);
+            setConversation(data.conversation);
+        })
+        .catch((err) =>
+        {
+            const msg = getErrorMessage(err);
+            console.error(msg);            
+            setIsSubmitting(false);
+        });
+    },[content, setIsSubmitting, updateDM, message, setIsEditing, setConversation]);
+
+    useEffect(() => 
+    {
+        setContent(initialHydratedContent);
+        setInitialContent(initialHydratedContent);
+        setHasChanged(false);
+        setResetKey(k => k + 1); 
+    }, [initialHydratedContent]);
+
+    return (
+    <div className="comment" id={elementId}>
+        <p>
+            <UserLink user={messageSender}/> <em>on {getDateAsYYYYMMDD(message.created_at)}
+            <span className="notice small"> at {getTimeAsHHMM(message.created_at)}</span></em>            
+        </p>
+        <div className="comment-notice-container">
+        {            
+            (message.created_at !== message.updated_at) && (
+                <span className="notice small greyed-out">
+                    (edited)
+                </span>
+            )
+        }
+        {
+            message.parent_id && (parentLocalId != null) && currentUrl ? (
+                <span className="notice small"> replied to <a 
+                    href={`${currentUrl}/message-${parentLocalId}`}
+                    onClick={(e) => {e.preventDefault(); scrollToElement(currentUrl, parentElementId)}}
+                >
+                    this</a> message
+                </span>
+            ) : null
+        }
+        </div>
+        {
+            isEditing ? (
+                <RichTextEditor
+                    id={id}
+                    readOnly={!isEditing || isSubmitting}
+                    onChange={(editedMessage) => {console.log("initial", initialContent); console.log("edited", editedMessage); setHasChanged(editedMessage != initialContent); setContent(editedMessage)}}
+                    value={content}
+                    quotedMessage={quoteText}
+                    resetKey={resetKey}
+                />):(
+                <div
+                    dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(content) }}
+                    className="article-text"
+                />
+            )
+        }
+        
+        <div className="comment-buttons-container">
+        {
+            !isEditing && onReply && (<>                        
+            <button 
+                onClick={() => onReply(message, elementId, true)}
+                className="small-button"
+                title="quote reply"
+                disabled={isSubmitting}
+            >
+                <i className="fa-solid fa-quote-left"></i>
+            </button>
+        </>)
+        }
+        {
+            (user.id === messageSender.id) && (<>
+            {
+                isEditing ? (<>
+                    <button
+                        className="small-button"
+                        onClick={handleMessageUpdate}
+                        title="save"
+                        disabled={isSubmitting || !hasChanged}
+                    >
+                        <i className="fa-solid fa-floppy-disk"></i>
+                    </button>  
+                    <button
+                        className="small-button"
+                        onClick={handleEditCancel}
+                        title="cancel"
+                        disabled={isSubmitting}
+                    >
+                        <i className="fa-solid fa-arrow-rotate-left"></i>
+                    </button> 
+                </>):(
+                <EditButton
+                    className="small-button"
+                    onClick={handleMessageEdit}
+                    disabled={isSubmitting}
+                />)
+            }                
+            <button 
+                onClick={() => onDelete(message.id)}
+                className="small-button"
+                title="delete"
+                disabled={isSubmitting}
+            >
+                <i className="fa-regular fa-trash-can"></i>
+            </button>
+            </>)
+        }
+        </div>
+    </div>
+    )
+}
+
+// Compare props safely so parent keystrokes don't trigger re-renders
+const areEqual = (prevProps, nextProps) => {
+    return (
+        prevProps.id === nextProps.id &&
+        prevProps.parentLocalId === nextProps.parentLocalId &&
+        prevProps.quoteText === nextProps.quoteText &&
+        prevProps.message.id === nextProps.message.id &&
+        prevProps.message.content === nextProps.message.content &&
+        prevProps.message.updated_at === nextProps.message.updated_at
+    );
+};
+
+export default React.memo(Message, areEqual);

@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('messages', function (Blueprint $table) {
-            $table->dropConstrainedForeignId('parent_id');
+            // $table->dropConstrainedForeignId('parent_id');
         });
     }
 
@@ -26,3 +26,4 @@ return new class extends Migration
         });
     }
 };
+

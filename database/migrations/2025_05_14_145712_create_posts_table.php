@@ -18,7 +18,7 @@ return new class extends Migration
             $table->boolean('is_web_art')->default(true);
             $table->string('web_page_url');
             $table->json('gallery_image_urls')->nullable();
-            $table->longText('statement')->nullable()->default('');
+            $table->longText('statement')->nullable();
             $table->timestamps();
         });
     }
@@ -31,3 +31,4 @@ return new class extends Migration
         Schema::dropIfExists('posts');
     }
 };
+

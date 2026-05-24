@@ -19,3 +19,4 @@ return new class extends Migration
         Schema::rename('abouts', 'about');
     }
 };
+

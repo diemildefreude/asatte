@@ -1,0 +1,581 @@
+:root
+{
+    --pale-yellow: rgb(249, 251, 210);
+    --grey-yellow: rgb(201, 201, 175);
+    --blue: #1177c0;
+    --bright-blue: #86cfff;
+    --strawberry: #ff4574;
+    --indigo-gradient: linear-gradient(45deg, #0000ff 0%, #330055 60%);
+    --blue-gradient: linear-gradient(45deg, #88CDFFCC 0%, #1177c0cc 60%);    
+    --lavender-gradient: linear-gradient(45deg, #505193cc 0%, #c1b7fdcc 60%);
+    --red-gradient: linear-gradient(45deg, #ff4574 0%, #6c0746 70%);
+    --footer-gradient: linear-gradient(10deg, #000000ff 20%, #00000000 60%);
+    --transparent-black: rgba(0, 0, 0, 0.5);
+    --header-height-wide: 60px;
+    --header-height-narrow: 50px;
+    --default-button-border: 2px solid white;
+    --hover-button-border: 2px solid var(--pale-yellow);    
+    --disabled-button-border: 2px solid gray;
+    --footer-height: 150px;
+}
+html, body
+{
+    overscroll-behavior: none;
+}
+body::before 
+{
+  content: '';
+  position: fixed;
+  top: 0; 
+  left: 0;
+  right: 0;
+  height: 150vh;
+  z-index: -2;
+  background: var(--indigo-gradient);
+}
+html, body
+{
+  font-family: "Cascadia Code", sans-serif;
+  font-optical-sizing: auto;   
+}
+blockquote
+{
+    border-left: 3px solid #ccc; 
+    padding-left: 10px; 
+    color: #CCC;
+}
+/* Hide the scrollbar without affecting the layout */
+body.modal-open 
+{
+  overflow: hidden;
+}
+button.button-link, button.button-link:hover
+{
+    border: none;
+    display: inline;
+    background: none;
+    padding: 0;
+}
+button.button-link span
+{
+    text-decoration: underline;
+}
+a, a:link, a:visited, .button-link
+{
+    color:var(--pale-yellow);
+}
+h1, h2, h3
+{
+    max-width: 100%;
+    overflow-wrap: break-word;
+    width: fit-content;
+}
+h1
+{
+    font-weight: 1;
+}
+h2
+{
+    font-weight: 350;
+}
+p iframe
+{
+    max-width: 100%;
+}
+.centered-header-box
+{
+    display: flex;
+    position: relative;
+    align-items: center;
+    padding: 0;
+}
+.centered-content
+{
+    width: 100%;
+    /* height: 100%; */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 2rem 0;
+}
+.centered-content.no-margin
+{
+    margin: 0;
+}
+.centered-content.top-3rem
+{
+    margin: 3rem 0 0;
+}
+.centered-content.top-2rem
+{
+    margin: 2rem 0 0;
+}
+.centered-content.bottom-1rem
+{
+    margin: 0 0 1rem;
+}
+.centered-content.vert-1rem
+{
+    margin: 1rem 0;
+}
+.footnote.bottom-1rem
+{
+    margin: 0 0 1rem;
+}
+.centered-content h1
+{
+    justify-content: center;
+    font-size: 2rem;
+    line-height: 1.3em;
+}
+.centered-content h2
+{
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 1;
+    line-height: 1.3em;
+}
+.centered-item
+{
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%);
+    text-align: center;
+    margin: auto;
+}
+.items-heading-container
+{
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    justify-content: space-between;
+}
+.centered-item h2, .centered-item h3
+{
+    margin: 1rem auto;
+}
+/* .centered-content
+{
+    width: 100%;
+} */
+/* .centered-content, .centered-content h2, .notice-container
+{
+    width: fit-content;    
+    display: flex;
+    justify-content: center;
+} */
+
+.bold
+{
+    font-weight: 900;
+}
+.top-offset
+{
+    padding: 10rem 1rem 0;
+}
+.vertical-field
+{
+    display: flex;
+    flex-direction: column;
+}
+.padded
+{    
+    padding: 1rem;
+}
+.padded-responsive
+{
+    padding: 2rem 1rem 1rem;
+}
+.double-padded
+{
+    padding: 2rem 1rem;
+}
+@media (min-width: 700px)
+{
+    .padded-responsive
+    {
+        padding: 1rem;
+    }
+}
+.side-padded
+{
+    padding: 0 1rem;
+}
+.notice-container
+{
+    background: var(--lavender-gradient);
+}
+.red-gradient-background
+{
+    background: var(--red-gradient);
+}
+.main-info-box
+{
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    border: 2px solid var(--grey-yellow);
+    padding: 1rem;
+    /* width: fit-content; */
+}
+.hidden, .form-field.bonus, .checkbox.bonus
+{
+    display: none;
+}
+.padding-1rem
+{
+    padding: 1rem;
+}
+.page-section
+{
+    margin: 0rem 0rem;
+}
+.page-section h2
+{
+    font-weight: 350;
+    margin: 0 0 0.5rem;
+}
+.margined-content
+{
+    margin: 3rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    position: relative;
+    top: 0;
+    left: 0;
+}
+@media (min-width: 700px)
+{
+    .margined-content
+    {
+        margin: 3rem;
+    }
+}
+.borderless, .rte-container.borderless
+{
+    border: none;
+}
+.loading
+{
+    padding: 1rem;
+    color: white;
+}
+.notice, .notice a:link, .notice a:visited
+{
+    color: var(--pale-yellow);
+    font-weight: 400;
+    text-align: center;
+}
+.error, .error a:link, .error a:visited
+{
+    color: red;
+    font-weight: 400;
+    text-align: center;
+}
+.notice.thin, .notice.thin a:link, .notice.thin a:visited,
+.error.thin, .error.thin a:link, .error.thin a:visited
+{
+    font-weight: 1;
+}
+.form-field .error, .form-field .form-notice
+{
+    font-size: 0.9em;
+}
+.error.small, .form-field .error.small, .notice.small
+{
+    margin-top: 0.4rem;
+    font-size: 0.8em;
+}
+.success
+{
+    color: cyan;
+    font-weight: 600;
+    text-align: center;
+}
+.greyed-out
+{
+    color: var(--grey-yellow);
+    opacity: 0.5;
+}
+.horizontal-buttons-container
+{
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+}
+button, .link-button
+{
+    background: transparent;
+    color: white;
+    border: var(--default-button-border);
+    cursor: pointer;
+    padding: 1rem;
+    width: fit-content;
+    margin: 0 auto;
+    font-weight: 200;
+    text-decoration: none;
+}
+.content:not(.touch-device) button:not(.button-link):hover, .content:not(.touch-device) .link-button:hover
+{
+    background: var(--blue-gradient);
+    border: var(--hover-button-border);
+    font-weight: 600;
+}
+button:disabled, button:disabled:hover
+{
+    background: transparent;
+    color: gray;
+    border: var(--disabled-button-border);
+    cursor:not-allowed;
+    font-weight: 200;
+}
+.round-image
+{
+    /* height: 100%; */
+    width: 100%;
+    object-fit: cover;
+    object-position: center;
+    aspect-ratio: 1/1;
+    border-radius: 50%;
+    display: block;
+}
+.image-drag-panel
+{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+.dragged-over .image-drag-panel
+{    
+    background-color: rgba(249, 251, 210, 0.5);
+}
+.form-field
+{
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    justify-content: space-between;
+}
+.form-field label
+{
+    font-weight: 300;
+}
+.form-container button, .form-container .link-button
+{    
+    margin: 0 auto;
+    padding: 0.5rem 1rem;
+}
+.sub-form-text
+{
+    text-align: center;
+}
+.sub-form-text a, .sub-field-link
+{
+    color:var(--pale-yellow);
+    text-align: center;
+}
+.sub-field-link
+{
+    font-size: 0.9rem;
+}
+.footnote
+{
+    font-size: 0.7rem;
+    text-align: center;
+}
+.inline-form-field
+{
+    display: flex;
+    justify-content: space-between;
+    /* flex-grow: 4; */
+    gap: 1rem;
+    width: 100%;
+}
+.inline-form-field span, .inline-form-field a
+{
+    align-content: center;
+    font-weight: 300;
+    /* overflow-wrap: break-word; */
+    word-break: break-all;
+}
+.inline-form-field .field-name, .main-label
+{
+    color: var(--pale-yellow);
+    font-weight: 300;
+    align-content: center;
+    text-wrap: nowrap;
+}
+.inline-form-field input
+{
+    width: clamp(1px, 400px, 100%);
+    flex-basis: clamp(1px, 400px, 100%);
+    padding: 0 0.5rem;
+    color: black;
+}
+.edit-button, .save-button, .small-button
+{
+    padding: 0.25rem 0.5rem;
+    margin: 0;
+}
+.plus-button
+{
+    padding: 0.5rem 0.9rem;
+    margin: 0;
+    border: 2px solid white;
+}
+.small-button, .content:not(.touch-device) .small-button:hover
+{
+    border: 1px solid white;
+}
+.inline-form-field button.invisible
+{
+    opacity: 0;
+}
+.button-container
+{
+    display: flex;
+    justify-content: space-between;
+}
+.inline-form-field.checkbox
+{
+    justify-content: start;
+}
+.inline-form-field.checkbox.centered
+{
+    justify-content: center;
+}
+.inline-form-field.checkbox input
+{
+    flex-basis: auto;
+    height: 20px;
+    width: 20px;
+}
+.iframe-container
+{
+    position: relative; /* Essential for positioning the iframe */
+    width: 100%;
+    padding-bottom: 56.25%; /* For a 16:9 aspect ratio */
+    height: 0;
+    overflow: hidden;
+    border: 2px solid var(--grey-yellow); /* Add the border here */
+}
+.iframe-container iframe
+{
+    border: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+.form-rte-container
+{
+    border: 1px solid white;
+    padding: 1rem 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+/*~~~~~~~PAGINATION~~~~~~~~~~*/
+.paginator
+{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 1rem;
+}
+.paginator span
+{
+    font-size: 1.5em;
+    display: flex;
+    flex-direction: row;
+    gap: 0.3rem;
+}
+.content:not(.touch-device) .paginator span
+{
+    font-size: 1em;
+}
+.paginator .current-page
+{
+    font-weight: 900;
+}
+.paginator a.arrow
+{
+    text-decoration: none;
+}
+.article-text
+{    
+    line-height: 1.8em;
+    /* padding: 0 1em 1em; */
+    padding: 1rem;
+    overflow-wrap: break-word;
+    word-break: break-all;
+}
+.article-text h1, .article-text h2, .article-text h3, .article-text h4
+{
+    width: 100%;
+}
+.article-text p, .article-text ol
+{
+    margin-bottom: 1.5em;
+}
+.article-text img
+{
+    display: inline-block;
+    max-width: 100%;
+    height: auto;
+}
+.content:not(.touch-device) .red-button:hover
+{
+    background: var(--red-gradient);
+}
+.centered-icon
+{
+    position: absolute;
+    width: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.centered-icon i
+{
+    font-size: 5em;
+    cursor: help;
+}
+.red
+{
+    color: var(--strawberry);
+}
+.blue
+{
+    color: var(--bright-blue);
+}
+.link-with-icon:link
+{
+    text-decoration: none;
+}
+.link-with-icon span
+{
+    text-decoration: underline;
+}
+.big-icon
+{
+    font-size: 1.5em;
+}
+.flex-row, .flex-column
+{
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    align-items: center;
+    justify-content: space-around;
+}
+.flex-column
+{
+    flex-direction: column;
+}

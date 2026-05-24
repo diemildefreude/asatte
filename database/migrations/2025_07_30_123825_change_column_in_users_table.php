@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) 
         {
-            $table->json('bio_image_urls')->nullable(false)->default("[]")->change();
+            $table->json('bio_image_urls')->nullable(false)->change();
         });
     }
 
@@ -28,3 +28,4 @@ return new class extends Migration
         });
     }
 };
+

@@ -15,13 +15,13 @@ use Illuminate\Support\Facades\Route;
 
 $throttleTime = 4;
 
-Route::get('/user/{username}', [UserController::class, 'user']);
+// Route::get('/user/{username}', [UserController::class, 'user']); // Migrated to web.php
 Route::get('/{user}/following', [UserController::class, 'following']);
 Route::get('/{user}/followers', [UserController::class, 'followers']);
 Route::get('/usersearch/{searchterm}', [UserController::class, 'userSearch']);
 
 Route::get('/posts', [PostController::class, 'index']);
-Route::get('/user/{username}/post/{post_url}', [PostController::class, 'show']);
+// Route::get('/user/{username}/post/{post_url}', [PostController::class, 'show']); // Migrated to web.php
 
 Route::get('/{post}/comments', [CommentController::class, 'index']);
 
@@ -39,7 +39,7 @@ Route::post('/reset-password', [AuthController::class, 'resetPassword'])
 
 Route::post('/posts/{post}/record-view', [ActivityController::class, 'recordView']); //<-- no need to throttle. Method already ignores rapid views
 
-Route::get('/about', [AboutController::class, 'show']);
+// Route::get('/about', [AboutController::class, 'show']); // Migrated to web.php
 
 Route::middleware('auth:api')->group(function ()
 {
@@ -49,7 +49,7 @@ Route::middleware('auth:api')->group(function ()
     Route::get('/my-posts', [PostController::class, 'myPosts']);
     Route::get('/my-liked-posts', [PostController::class, 'myLikedPosts']);
     Route::get('/post-search', [PostController::class, 'postSearch']);
-    Route::get('/user/{username}/post/{post_url}/edit', [PostController::class, 'edit']);
+    // Route::get('/user/{username}/post/{post_url}/edit', [PostController::class, 'edit']); // Migrated to web.php
     Route::resource('posts', PostController::class)->except([
         'index', 'show', 'edit'
     ]);

@@ -16,16 +16,10 @@ class AboutController extends Controller
 
         if($about)
         {
-            return response()->json([
-                "status" => "about_fetched",
-                "about" => $about
-            ]);
+            return \Inertia\Inertia::render('About', ['status' => 'about_fetched', 'about' => $about]);
         }
 
-        return response()->json([
-            "status" => "no_about_statement_found",
-            "about" => null
-        ], 200);
+        return \Inertia\Inertia::render('About', ['status' => 'no_about_statement_found', 'about' => null]);
     }
     public function update(Request $request)
     {

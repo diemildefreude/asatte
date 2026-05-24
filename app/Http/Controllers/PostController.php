@@ -412,7 +412,7 @@ class PostController extends Controller
         
         $post->load('comments.user');
 
-        return response()->json($post);
+        return \Inertia\Inertia::render('Post/Show', ['post' => $post]);
     }
 
     /**
@@ -453,7 +453,7 @@ class PostController extends Controller
             return response()->json(['error' => 'No such post found.'], 404);
         }
         
-        return response()->json($post);
+        return \Inertia\Inertia::render('Post/Show', ['post' => $post]);
     }
 
     /**

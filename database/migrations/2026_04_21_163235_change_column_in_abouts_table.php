@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('abouts', function (Blueprint $table) 
         {
-            $table->longText('statement')->default('[]')->change();
+            $table->longText('statement')->change();
         });
     }
 
@@ -24,7 +24,8 @@ return new class extends Migration
     {
         Schema::table('abouts', function (Blueprint $table) 
         {
-            $table->json('statement')->default('[]')->change();
+            $table->json('statement')->change();
         });
     }
 };
+

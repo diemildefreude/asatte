@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('messages', function (Blueprint $table) 
         {
-            $table->json('image_urls')->default("[]")->after('content');
+            $table->json('image_urls')->after('content');
         });
     }
 
@@ -27,3 +27,4 @@ return new class extends Migration
         });
     }
 };
+

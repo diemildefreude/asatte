@@ -23,7 +23,7 @@ return new class extends Migration
 
         // Step 3: Re-add the default value to the renamed column
         Schema::table('posts', function (Blueprint $table) {
-            $table->longText('gallery_alts')->default('[]')->change();
+            $table->longText('gallery_alts')->change();
         });
     }
 
@@ -44,7 +44,7 @@ return new class extends Migration
 
         // Step 3 (Reverse): Re-add the default value to the original column
         Schema::table('posts', function (Blueprint $table) {
-            $table->longText('gallery_image_alts')->default('[]')->change();
+            $table->longText('gallery_image_alts')->change();
         });
     }
 };

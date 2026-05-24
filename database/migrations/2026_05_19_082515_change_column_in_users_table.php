@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) 
         {
-            $table->longText("bio")->nullable(false)->default("")->after("show_email_in_profile");//
+            $table->longText("bio")->nullable(false)->change();
         });
     }
 
@@ -28,3 +28,4 @@ return new class extends Migration
         });
     }
 };
+

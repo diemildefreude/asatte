@@ -50,7 +50,7 @@ class UserController extends Controller
                 ->where('followed_id', $user->id)
                 ->exists();
         }
-        return response()->json($user);
+        return \Inertia\Inertia::render('Profile', ['user' => $user]);
     }
     public function following(Request $request, User $user)
     {

@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('posts', function (Blueprint $table) {
-            $table->json('gallery_image_alts')->default("[]")
+            $table->json('gallery_image_alts')->nullable()
                 ->after('gallery_image_urls');
         });
     }
@@ -27,3 +27,4 @@ return new class extends Migration
         });
     }
 };
+

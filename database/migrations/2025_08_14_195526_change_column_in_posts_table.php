@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('posts', function (Blueprint $table) {
-            $table->json('gallery_alts')->default('[]')->change();
+            $table->json('gallery_alts')->change();
         });
     }
 
@@ -22,7 +22,8 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('posts', function (Blueprint $table) {
-            $table->longText('gallery_alts')->default('[]')->change();
+            $table->longText('gallery_alts')->change();
         });
     }
 };
+
