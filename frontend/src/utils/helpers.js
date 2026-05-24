@@ -586,7 +586,7 @@ export function getErrorMessage(err)
         {
             displayErrorMessage = apiResponseData.message;
         }
-        else if (apiResponseData.errors) 
+        if (apiResponseData.errors) 
         {
             let concatenatedErrors = '';
             for (const key in apiResponseData.errors) 
@@ -594,7 +594,7 @@ export function getErrorMessage(err)
                 // Concatenate only the first message for each field, or all if preferred
                 concatenatedErrors += apiResponseData.errors[key][0] + ' ';
             }
-            displayErrorMessage = concatenatedErrors.trim();
+            displayErrorMessage += " | " + concatenatedErrors.trim();
         }
         else if (err.response.data.error)
         {

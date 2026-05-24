@@ -1,3 +1,4 @@
+import React, { memo, useMemo } from 'react';
 import { dehydrateEditorImagePaths, getDateAsYYYYMMDD, getErrorMessage, getTimeAsHHMM, hydrateEditorImagePaths, processEditorImages, sanitizeRichHtml, scrollToElement } from "../../utils/helpers";
 import UserLink from "./UserLink";
 import { useAuth } from "../../contexts/AuthContext";
@@ -13,20 +14,22 @@ function Message({message, onReply=null, onDelete=null, id, parentLocalId=null,
     const {user, updateDM} = useAuth();
     const [isEditing, setIsEditing] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [content, setContent] = useState(null);
-    const [initialContent, setInitialContent] = useState(null);
-    const elementId = `message-${id}`;
-    const parentElementId = parentLocalId ? `message-${parentLocalId}` : null;
+
+    const initialHydratedContent = useMemo(() => hydrateEditorImagePaths(message.content), [message.content]);
+    
+    const [content, setContent] = useState(initialHydratedContent);
+    const [initialContent, setInitialContent] = useState(initialHydratedContent);
     const [hasChanged, setHasChanged] = useState(false);
     const [resetKey, setResetKey] = useState(0);
 
+    const elementId = `message-${id}`;
+    const parentElementId = parentLocalId ? `message-${parentLocalId}` : null;
     const messageSender = message.sender ?? { id: -27, username: '[deleted user]', avatar: null };
 
     const handleMessageEdit = useCallback(() =>
     {
         setIsEditing(true);
-        //setContent(message.content);
-    },[]);//setIsEditing, setContent, comment]);
+    },[]);
 
     const handleEditCancel = useCallback(() =>
     {
@@ -68,12 +71,11 @@ function Message({message, onReply=null, onDelete=null, id, parentLocalId=null,
 
     useEffect(() => 
     {
-        const hydratedMessage = hydrateEditorImagePaths(message.content);
-        setContent(hydratedMessage);
-        setInitialContent(hydratedMessage);
+        setContent(initialHydratedContent);
+        setInitialContent(initialHydratedContent);
         setHasChanged(false);
-        setResetKey(k => k + 1); // force Editor rehydrate
-    }, [message]);
+        setResetKey(k => k + 1); 
+    }, [initialHydratedContent]);
 
     return (
     <div className="comment" id={elementId}>
@@ -172,4 +174,16 @@ function Message({message, onReply=null, onDelete=null, id, parentLocalId=null,
     )
 }
 
-export default Message;
+// Compare props safely so parent keystrokes don't trigger re-renders
+const areEqual = (prevProps, nextProps) => {
+    return (
+        prevProps.id === nextProps.id &&
+        prevProps.parentLocalId === nextProps.parentLocalId &&
+        prevProps.quoteText === nextProps.quoteText &&
+        prevProps.message.id === nextProps.message.id &&
+        prevProps.message.content === nextProps.message.content &&
+        prevProps.message.updated_at === nextProps.message.updated_at
+    );
+};
+
+export default React.memo(Message, areEqual);

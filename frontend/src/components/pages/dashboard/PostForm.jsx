@@ -596,6 +596,7 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
                         type="button" 
                         className="delete-button"
                         onClick={handleDelete}
+                        disabled={isSubmitting}
                     >
                         delete
                     </button>

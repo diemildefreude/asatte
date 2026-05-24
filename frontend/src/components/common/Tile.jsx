@@ -9,6 +9,7 @@ const FRONTEND_URL = process.env.REACT_APP_FRONTEND_URL;
 
 function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false}) 
 {
+    console.log("tile:post", post);
     // console.log("tile check images", post.gallery_image_urls);
     if (!post || (!user && !post.user)) return null;
 
@@ -147,7 +148,7 @@ function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false})
                         post.website && !isDashboard && 
                         (
                             <div className="info-item action-links link-container">
-                                <a href={post.web_page_url} 
+                                <a href={post.website} 
                                     className="post-link"
                                     draggable="false"
                                     onClick={(e) => 
@@ -159,7 +160,7 @@ function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false})
                                             return;
                                         }
                                         e.preventDefault();
-                                        openPopup(post.web_page_url,`${post.id} : ${post.title}`, 
+                                        openPopup(post.website,`${post.id} : ${post.title}`, 
                                             window.screen.width * 0.2, window.screen.height * 0.2,
                                             window.screen.width * 0.8, window.screen.height * 0.8);
                                     }

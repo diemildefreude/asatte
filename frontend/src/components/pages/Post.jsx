@@ -65,6 +65,20 @@
             }
         }, [post]);
 
+        const videoUrl = useMemo(() =>
+        {
+            try 
+            {
+                return post?.main_video ?? null;
+            }
+            catch(err)
+            {
+                const msg = getErrorMessage(err);
+                console.log(msg);
+                return [];                
+            }
+        }, [post]);
+
         useEffect(() =>
         {
             fetchSinglePost(username, post_url).then((data) =>
@@ -84,7 +98,7 @@
                     navigate('/not-found', {replace:true});
                 }
             });  
-        }, [username, post_url, setPost, setIsLiked, setLikeCount]);
+        }, [username, post_url]);
 
         const handleLikeToggle = useCallback(() =>
         {
@@ -253,9 +267,9 @@
                         </div>
                     </div>     
                     {
-                        post.main_video && (
+                        videoUrl && (
                             <div className="page-section video">
-                                <VideoIframe url={post.main_video}/>
+                                <VideoIframe url={videoUrl}/>
                             </div>
                         )
                     }    

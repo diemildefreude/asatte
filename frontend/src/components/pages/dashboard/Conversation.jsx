@@ -1,5 +1,6 @@
 import DashboardLayout from "./DashboardLayout";
 import RichTextEditor from "../../common/RichTextEditor";
+import "../../common/RichTextEditor.css";
 import "./TagsMail.css";
 import { useAuth } from "../../../contexts/AuthContext";
 import "../DashboardProfile.css";
@@ -55,8 +56,9 @@ function Conversation()
     const [originalMessageElement, setOriginalMessageElement] = useState(null);
     const [pendingScrollId, setPendingScrollId] = useState(null);
 
-    //console.log("convo", conversation);
-    //console.log("recipients", recipients);
+    let convoName = isNew ? "new conversation" : "conversation";
+    convoName = conversation?.name ?? convoName;
+    
     useEffect(() =>
     {
         if(!location?.state?.addressee || conversation)
@@ -124,7 +126,7 @@ function Conversation()
 
     const handleRTEChange = useCallback((editedMessage) =>
     {
-        console.log("edited message?", editedMessage);
+        //console.log("edited message?", editedMessage);
         setDoesMessageExist(editedMessage.length > 0);
         setMessage(editedMessage);
     }, []);
@@ -402,17 +404,17 @@ function Conversation()
     return ( 
     <DashboardLayout currentTab="mail">
     <div className="centered-content no-margin">            
-        <h2 dangerouslySetInnerHTML={{__html: sanitizeRichHtml(headerText)}}></h2>
-    </div>
+        <h2>{convoName}</h2>
+    </div>    
     {
-        conversation?.name != null && (
-        <div className="footnote">
+        !isNew && (
+                <div className="footnote">
             with{" "}
             {
-            conversation.other_users.length < 1 ? (
+            conversation?.other_users?.length < 1 ? (
                 <span>[deleted user(s)]</span>
             ):(
-                conversation.other_users.map((u, index) => (
+                conversation?.other_users?.map((u, index) => (
                 <span key={u.id}>
                     <Link to={`/${u.username}`}>
                         {u.username}
@@ -424,7 +426,7 @@ function Conversation()
             )
         }        
         </div>)
-    }
+    }    
     {
         user && user.is_email_verified ?
         ( (!isNew && !conversation) ? (

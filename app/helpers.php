@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Drivers\Imagick\Driver;
 use Intervention\Image\ImageManager;
+//use Intervention\Image\Drivers\Gd\Driver;
 //----HELPER FUNCTIONS----
 /**
  * Sanitize rich HTML from TinyMCE. Allows safe formatting, images, links,
@@ -82,6 +83,7 @@ function addHttpProtocol(string $url): string
  * @param string $folderPath The subfolder name within images/uploaded/.
  * @return string The updated HTML with Base64 replaced by relative paths.
  */
+
 function saveEditorImages(string $contentHtml, array &$oldImgArr, string $folderPath)
 {
     $newImgArr = [];
@@ -89,62 +91,91 @@ function saveEditorImages(string $contentHtml, array &$oldImgArr, string $folder
     $storageBase = "images/uploaded/$cleanFolder";
 
     // 1. IDENTIFY EXISTING IMAGES
-    // We look for filenames currently in the HTML that match our storage pattern.
-    // Pattern matches: src="images/uploaded/folder/filename.ext"
     $quotedPath = preg_quote($storageBase, '/');
     $patternExisting = '/src="' . $quotedPath . '\/([^"]+)"/i';
     
     preg_match_all($patternExisting, $contentHtml, $matchesExisting);
-    $currentImagesInHtml = $matchesExisting[1]; // e.g., ["65f123.jpg", "65f456.png"]
+    $currentImagesInHtml = $matchesExisting[1];
 
     // 2. CLEANUP: Delete files from disk that were removed in the editor
-    foreach ($oldImgArr as $oldImg) 
-    {
-        Log::info($contentHtml);
-        Log::info("$oldImg found?", $matchesExisting);//$currentImagesInHtml);
-        if (!in_array($oldImg, $currentImagesInHtml)) 
-        {
+    foreach ($oldImgArr as $oldImg) {
+        if (!in_array($oldImg, $currentImagesInHtml)) {
             $pathToDelete = "$storageBase/$oldImg";
-            if (Storage::disk('public')->exists($pathToDelete)) 
-            {
+            if (Storage::disk('public')->exists($pathToDelete)) {
                 Storage::disk('public')->delete($pathToDelete);
                 Log::info("Deleted removed image: $pathToDelete");
             }
-        } 
-        else 
-        {
-            // If it's still in the HTML, keep it in our tracking array
+        } else {
             $newImgArr[] = $oldImg;
         }
     }
 
-    // 3. STORAGE: Process new Base64 images
-    // Pattern matches: src="data:image/png;base64,iVBORw..."
+    // 3. STORAGE: Process new Base64 images safely
     $patternBase64 = '/src="data:image\/([a-zA-Z]*);base64,([^"]*)"/i';
 
     $contentHtml = preg_replace_callback($patternBase64, function($matches) use ($storageBase, &$newImgArr) {
-        $extension = $matches[1];
         $base64Data = $matches[2];
 
-        // Generate a unique filename
-        $imageName = uniqid() . '.' . $extension;
-        $relativePath = "$storageBase/$imageName";
+        try {
+            $decodedData = base64_decode($base64Data, true);
+            if (!$decodedData) {
+                Log::warning("Failed to decode base64 string.");
+                return $matches[0];
+            }
 
-        Log::info("Saving new Base64 image: $relativePath");
+            // Enforce size limit (5MB)
+            if (strlen($decodedData) > 5242880) {
+                Log::warning("Base64 image payload exceeded 5MB size limit.");
+                return $matches[0]; 
+            }
 
-        // Save to the public disk
-        Storage::disk('public')->put($relativePath, base64_decode($base64Data));
+            // Securely determine true type using native PHP magic bytes
+            $finfo = new \finfo(FILEINFO_MIME_TYPE);
+            $mimeType = $finfo->buffer($decodedData);
 
-        // Add the new filename to our tracking array
-        $newImgArr[] = $imageName;
+            $extension = match ($mimeType) {
+                'image/jpeg', 'image/jpg' => 'jpg',
+                'image/png'               => 'png',
+                'image/gif'               => 'gif',
+                'image/webp'              => 'webp',
+                default                   => null
+            };
 
-        // Replace the Base64 string with the new relative path in the HTML
-        return 'src="' . $relativePath . '"';
+            if (!$extension) {
+                Log::warning("Unsupported or malicious image payload type intercepted: $mimeType");
+                return $matches[0];
+            }
+
+            // Read into Intervention v3
+            $manager = new ImageManager(new Driver());
+            $image = $manager->read($decodedData);
+            
+            // Sanitize dimension extremes
+            $image->scaleDown(width: 1920);
+
+            // Encode to format matching verified extension
+            $encodedImage = $image->encodeByExtension($extension);
+
+            $imageName = uniqid() . '.' . $extension;
+            $relativePath = "$storageBase/$imageName";
+
+            Log::info("Saving verified Base64 image via Intervention: $relativePath");
+
+            // FIX: Cast the EncodedImage object directly to a string to output raw binary content
+            Storage::disk('public')->put($relativePath, (string) $encodedImage);
+
+            $newImgArr[] = $imageName;
+            return 'src="' . $relativePath . '"';
+
+        } 
+        catch (\Exception $e) 
+        {
+            Log::error("Failed to safely process Base64 image: " . $e->getMessage());
+            return $matches[0];
+        }
     }, $contentHtml);
 
-    // Update the reference variable for the parent record
     $oldImgArr = $newImgArr;
-
     return $contentHtml;
 }
 

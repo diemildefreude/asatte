@@ -120,6 +120,7 @@
 }
 .comment-buttons-container
 {
+    clear: both;
     padding: 0.5rem 0 0;
     display: flex;
     flex-direction: row;

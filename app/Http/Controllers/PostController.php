@@ -275,7 +275,7 @@ class PostController extends Controller
             'gallery_images' => ['array'], // must be an array
             'gallery_images.*.alt' => ['nullable', 'string', 'max:255'],
             'gallery_images.*.file' => ['nullable', 'file', 'image', 'mimes:png,jpeg,jpg,webp,bmp', 'max:2048'], // 2MB limit
-            'gallery_images.*.url' => ['nullable', 'string'], 
+            //'gallery_images.*.url' => ['nullable', 'string'], //<-- shouldn't exist on a new post, cf. update()
             'website' => ['string', 'max:255', 'nullable'],   
             'source_code' => ['string', 'max:255', 'nullable']
         ],
@@ -400,7 +400,8 @@ class PostController extends Controller
         $isHidden = $post->is_hidden_by_admin;
         $isAdminRequest = $authenticatedUser && 
             ($authenticatedUser->member_type == MemberType::Webmaster 
-            || $authenticatedUser->member_type == MemberType::Webmaster);
+            || $authenticatedUser->member_type == MemberType::Admin);
+            
         $isPostCreatorRequest = $authenticatedUser && 
             ($authenticatedUser->id == $post->user_id);
 
@@ -519,8 +520,8 @@ class PostController extends Controller
         
         $userName = $user->username;         
         $galleryImageFolder = "users/$userName/posts/$postUrl/gallery";
-        $website = $request->input('website') ? addHttpProtocol($request->input('website', '')) : null;
         
+        $allowedExistingUrls = $post->gallery_image_urls ?? [];
         $galleryImagesInput = $request->input('gallery_images', []);
         $uploadedFiles = $request->file('gallery_images', []);
 
@@ -543,10 +544,17 @@ class PostController extends Controller
             // Otherwise, assume it's a string URL from an existing image.
             else if (isset($item['url']) && $item['url']) 
             {
-                $url = $item['url'];
-                Log::info("Found an existing image URL: $url");
-                array_push($updatedGalleryUrls, $url);
-                $imageSet = true;
+                if (in_array($item['url'], $allowedExistingUrls)) 
+                {
+                    $url = $item['url'];
+                    Log::info("Found and verified an existing image URL: $url");
+                    array_push($updatedGalleryUrls, $url);
+                    $imageSet = true;
+                } 
+                else 
+                {
+                    Log::warning("Unauthorized or invalid URL rejected: " . $item['url']);
+                }
             } 
             else 
             {
@@ -581,7 +589,9 @@ class PostController extends Controller
             $editorImageArray, $statementImageFolder);
         $statement = sanitizeRichHtml($statement);
                 
-        Log::info("updating post. is_news: $isNews");
+        //Log::info("updating post. is_news: $isNews");
+        $website = $request->input('website') ? addHttpProtocol($request->input('website', '')) : null;
+        
         $postFields = 
         [
             ...$basicFields,

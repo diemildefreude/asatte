@@ -152,7 +152,7 @@ function LoadItems({
         : HistoryEntryType.Replace;
       
       isNavigatingInternally.current = false; // Reset flag
-      console.log("internal", "currentPage !== lastFetchedPage.current");
+      //console.log("internal", "currentPage !== lastFetchedPage.current");
       loadItems(currentPage, type);
     }
   }, [currentPage, isFullPage, loadItems]);

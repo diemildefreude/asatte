@@ -24,16 +24,18 @@ class UserController extends Controller
             ->select('id', 'avatar', 'bio', 'location', 'website', 'show_email_in_profile', 'email')
             ->first();
 
+        if (!$user) 
+        {
+             return response()->json(['error' => 'No user by that name found.'], 404);
+        }
+        
         if(!$user->show_email_in_profile)
         {   
             $user->makeHidden('email');
         }
         //Log::info("toggling follow for user", $user->toArray());
         
-        if (!$user) 
-        {
-             return response()->json(['error' => 'No user by that name found.'], 404);
-        }
+        
 
         $user->is_following = false;
 

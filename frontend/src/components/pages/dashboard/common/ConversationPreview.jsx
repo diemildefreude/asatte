@@ -21,9 +21,6 @@ function ConversationPreview({conversation})
     let avatarClasses = "convo-avatar";
     avatarClasses += conversation.is_unread ? " has-new-mail" : "";
 
-    //console.log("conversation.is_unread", conversation.is_unread);
-    console.log("convo?!", conversation);
-
     return (
         conversation ? (
         <Link

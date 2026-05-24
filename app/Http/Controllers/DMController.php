@@ -53,10 +53,10 @@ class DMController extends Controller
      */
     public function store(Request $request)
     {
-        Log::info("DM", $request->toArray());
+        //Log::info("DM", $request->toArray());
         //return;
         $request->validate([
-            'subject' => ['string', 'max:255'],
+            'subject' => ['nullable', 'string', 'max:255'],
             'content' => ['required', 'string'],
             'recipients'   => ['array', 'min:1'],
             'recipients.*' => ['integer', 'exists:users,id'],
@@ -67,26 +67,43 @@ class DMController extends Controller
         $user = $request->user();
         $userName = $user->name;
         $userId = $user->id;
-        $recipients = $request->input('recipients');
+        
+        $conversationId = $request->input('conversation_id');
 
-        $conversation = $request->input('conversation_id') ? 
-            Conversation::where('id', $request->input('conversation_id'))
-            ->firstOrFail() 
-            : null;
-        if(!$conversation)
+        if ($conversationId) 
         {
-            $recipients = $request->input('recipients') ?? null;
+            // 1. Fetch the conversation
+            $conversation = Conversation::findOrFail($conversationId);
+    
+            // 2. CONCRETE SECURITY CHECK: Verify user belongs to the conversation_user table
+            $isParticipant = $conversation->users()->where('user_id', $userId)->exists();
+    
+            if (!$isParticipant) 
+            {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'You do not have permission to post in this conversation.'
+                ], 403); // 403 Forbidden
+            }
+        }
+        else 
+        {
+            // Create a new conversation if no conversation_id was provided
+            $recipients = $request->input('recipients');
             $name = $request->input('subject') ?? null;
             $isGroup = sizeof($recipients) > 1;
+    
             $conversation = Conversation::create([
                 'is_group' => $isGroup,
                 'name' => $name
             ]);
+    
             $conversation->users()->attach([
                 $userId,
                 ...$recipients
             ]);
         }
+
         $editorImageArray = [];
         $messageImageFolder = "users/$userName/messages";
         $newContentRaw = $request->input('content');

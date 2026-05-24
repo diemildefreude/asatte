@@ -117,6 +117,13 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
         toolbar_mode: 'wrap', 
         object_resizing: true,
         content_css: localCssPath,
+        content_style: `
+          body 
+          { 
+            font-family: "Cascadia Code", sans-serif;
+            font-weight: 1
+          }
+        `,
       }}
     />
   );
