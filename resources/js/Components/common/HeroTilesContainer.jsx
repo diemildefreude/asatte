@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import './TilesContainer.css';
 import Tile from './Tile';
 import { FetchOrder, ScreenSize, addFetchedPostsToExcludes, checkIfFetchNeeded, getNextFetchIndex, getPostsFetchParams } from '../../utils/helpers';
-import { useAuth } from '../../contexts/AuthContext';
 
 const gridPostCounts = {
     [ScreenSize.Nothing]: 0,
@@ -12,10 +11,9 @@ const gridPostCounts = {
     [ScreenSize.Wide]: 11
 };
 
-function HeroTilesContainer({screenSize, category, fetchOrder=FetchOrder.Ascending})
+function HeroTilesContainer({screenSize, category, fetchOrder=FetchOrder.Ascending, initialPosts=null, fetchMethod=null})
 {    
-    const [posts, setPosts] = useState([]);
-    const { fetchPosts } = useAuth();
+    const [posts, setPosts] = useState(initialPosts || []);
     function getPostAmount(currentSize){return gridPostCounts[currentSize]};    
     const prevScreenSizeRef = useRef(ScreenSize.Nothing);
     const fetchedScreenSize = useRef(ScreenSize.Nothing);
@@ -34,11 +32,18 @@ function HeroTilesContainer({screenSize, category, fetchOrder=FetchOrder.Ascendi
         {
             return;
         }
+        // If the server provided initial posts, avoid client fetch for the first render
+        if (initialPosts && initialPosts.length > 0 && posts.length > 0) {
+            return;
+        }
         const amount = getPostAmount(screenSize) - posts.length;
         const params = getPostsFetchParams(amount, category, fetchOrder,
             fetchIndexRef, fetchExcludesRef);
         const fetchedSize = fetchedScreenSize.current;
-        fetchPosts(params).then((data) =>
+        if (!fetchMethod) {
+            return; // no client-side fetch method provided
+        }
+        fetchMethod(params).then((data) =>
         {
             if(data.status === 'no_more_posts')
             {

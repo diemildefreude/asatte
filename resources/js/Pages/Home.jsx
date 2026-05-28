@@ -6,12 +6,10 @@ import AutoloadTilesContainer from '../Components/common/AutoloadTilesContainer'
 import TileCarousel from '../Components/common/TileCarousel';
 import Layout from '../Components/layout/Layout';
 import { Category, FetchOrder, getScreenSize, monitorScreenSize } from '../utils/helpers';
-import { useAuth } from '../contexts/AuthContext';
 
-function Home()
+function Home({ heroPosts = [], carouselArchive = [], carouselNews = [], archivePosts = [] })
 {    
     const [screenSize, setScreenSize] = useState(getScreenSize());
-    const {fetchPosts} = useAuth();
 
     useEffect(() => //check screen size at regular intervals.
     {   
@@ -31,20 +29,22 @@ function Home()
                 screenSize={screenSize} 
                 category={Category.Archive}                
                 fetchOrder={FetchOrder.Random}
+                initialPosts={heroPosts}
             />
         </div>
         <div className="page-section carousel">
-            <TileCarousel size="small" category={Category.Archive} title="works from new users:"/>
+            <TileCarousel size="small" category={Category.Archive} title="works from new users:" initialPosts={carouselArchive} />
         </div>
         <div className="page-section carousel">
-            <TileCarousel size="small" category={Category.News} title="netart news:"/>
+            <TileCarousel size="small" category={Category.News} title="netart news:" initialPosts={carouselNews} />
         </div>
         <div className="page-section">
             <AutoloadTilesContainer 
                 screenSize={screenSize} 
                 category={Category.Archive}
-                fetchMethod={fetchPosts}
                 fetchOrder={FetchOrder.Random}
+                initialPosts={archivePosts}
+                partialProp={'archivePosts'}
             />
         </div>
         </Layout>

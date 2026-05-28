@@ -2,7 +2,7 @@ import axios from 'axios';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const GRANT_CLIENT_ID = process.env.REACT_APP_OAUTH_CLIENT_ID;
 // const GRANT_CLIENT_SECRET = process.env.PASSPORT_CLIENT_SECRET;
-console.log("GRANT_CLIENT_ID", GRANT_CLIENT_ID);
+//console.log("GRANT_CLIENT_ID", GRANT_CLIENT_ID);
 
 const api = axios.create
 ({

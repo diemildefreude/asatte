@@ -9,7 +9,7 @@ const FRONTEND_URL = process.env.REACT_APP_FRONTEND_URL;
 
 function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false}) 
 {
-    console.log("tile:post", post);
+    //console.log("tile:post", post);
     // console.log("tile check images", post.gallery_image_urls);
     if (!post || (!user && !post.user)) return null;
 

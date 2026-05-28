@@ -62,7 +62,6 @@ class PostController extends Controller
                 'message' => 'No such user.'
             ], 404);
         }
-    
         $query = Post::with(relations: 'user:id,username,avatar,member_type')
             ->where('is_news', $isNews)
             ->where('is_private', false);
@@ -637,69 +636,7 @@ class PostController extends Controller
         ], 200);
     }
 
-    public function postSearch(Request $request)
-    {
-        //amount, category, fetch_order, search_term
-        $validated = $request->validate([            
-            'search_term' => 'required|string|min:2|max:100',
-            'amount' => 'required|integer'
-        ]);
-        $searchTerm = $validated['search_term'];
-        $limit = $validated['amount'];
-        // $startId = $request->query('start_id');
-
-        $query = Post::with(relations: 'user:id,username,avatar,member_type')
-        ->where(function ($query) use ($searchTerm) 
-        {
-            $query->where('title', 'LIKE', "%{$searchTerm}%")
-                    ->orWhere('post_url', 'LIKE', "%{$searchTerm}%")
-                    ->orWhere('subtitle', 'LIKE', "%{$searchTerm}%")
-                    ->orWhere('website', 'LIKE', "%{$searchTerm}%")
-                    ->orWhere('statement', 'LIKE', "%{$searchTerm}%");
-        })
-        ->orderByRaw("
-            CASE 
-                WHEN title LIKE ? THEN 1
-                WHEN post_url LIKE ? THEN 2
-                WHEN subtitle LIKE ? THEN 3
-                WHEN website LIKE ? THEN 4
-                WHEN statement LIKE ? THEN 5
-                ELSE 6
-            END ASC
-        ", [
-            "%{$searchTerm}%", 
-            "%{$searchTerm}%", 
-            "%{$searchTerm}%", 
-            "%{$searchTerm}%", 
-            "%{$searchTerm}%"
-        ]);
-
-        $excludes = collect(explode(',', $request->excludes ?? ''))
-        ->filter(fn ($id) => is_numeric($id))
-        ->values()
-        ->toArray();
-
-        Log::info("excludes?", $excludes);
-
-        if (!empty($excludes)) 
-        {
-            $query->whereNotIn('id', $excludes);
-        }
-
-        $posts = $query
-            ->limit($limit)
-            ->get();
-
-        if(sizeof($posts) == 0)
-        {
-            return response() ->json([
-            'status' => 'no_more_posts',
-            'message' => 'No more posts available with the given parameters.'
-        ], 200);
-        }
-
-        return response()->json($posts->values(), 200);
-    }
+    
     public function toggleAdminHide(Request $request, Post $post)
     {        
         $request->merge([

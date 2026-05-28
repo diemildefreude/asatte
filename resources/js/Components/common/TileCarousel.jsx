@@ -2,17 +2,18 @@ import React, { useState, useEffect } from 'react';
 import './Carousel.css';
 import CarouselContainer from './CarouselContainer';
 import Tile from './Tile';
-import { useAuth } from '../../contexts/AuthContext';
 import { Category } from '../../utils/helpers';
 
-function TileCarousel({size, category=Category.Archive, userId=null, title="", excludePostId=null})
+function TileCarousel({size, category=Category.Archive, userId=null, title="", excludePostId=null, initialPosts=null, fetchMethod=null})
 {
     const carouselPostCount = 6;
-    const [posts, setPosts] = useState([]);
-    const {fetchPosts} = useAuth();
+    const [posts, setPosts] = useState(initialPosts || []);
 
     useEffect(() =>
     {
+        // If server provided initialPosts, skip client fetch
+        if (initialPosts && initialPosts.length > 0) return;
+        if (!fetchMethod) return;
         const params = new URLSearchParams();
         const amount = carouselPostCount;
         params.append('amount', amount);
@@ -22,7 +23,7 @@ function TileCarousel({size, category=Category.Archive, userId=null, title="", e
         {
             params.append('user_id', userId);
         }
-        fetchPosts(params).then((data) =>
+        fetchMethod(params).then((data) =>
         {
             if(data.status === "no_more_posts")
             {

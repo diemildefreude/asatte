@@ -2,7 +2,7 @@ import { useState } from 'react';
 import './Form.css';
 
 function FormField({ classes='', id, label, placeholder, value="", 
-    onChange, disabled, min, max, type = "text", onValidate, isTextArea=false }) 
+    onChange, disabled, min, max, type = "text", onValidate, isTextArea=false, serverError="" }) 
 {
     const [error, setError] = useState(''); // This is FormField's local error state
 
@@ -74,6 +74,12 @@ function FormField({ classes='', id, label, placeholder, value="",
             {error}
         </div>
     )}                
+    {
+        serverError && (
+        <div className="error small">
+            {serverError}
+        </div>
+    )}
     </div>
     );
 }

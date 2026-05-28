@@ -1,54 +1,36 @@
-import { Head } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
 import Layout from '../Components/layout/Layout';
 import FormField from '../Components/common/FormField';
 import '../Components/common/Form.css';
 import { useCallback, useState } from "react";
 import { getErrorMessage, isValidEmail } from '../utils/helpers';
-import { useAuth } from '../contexts/AuthContext';
 
 function Contact()
 {
-    const { sendContactMail } = useAuth();
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [senderEmail, setSenderEmail] = useState("");
-    const [senderName, setSenderName] = useState("");
-    const [senderWebsite, setSenderWebsite] = useState(""); 
-    const [subject, setSubject] = useState("");
-    const [content, setContent] = useState("");
+    const { props } = usePage();
+    const flash = props?.flash || {};
+    const form = useForm({
+        name: '',
+        email: '',
+        website: '',
+        subject: '',
+        content: ''
+    });
     const [isEmailFieldValid, setIsEmailFieldValid] = useState(false);
     const [isNameFieldValid, setIsNameFieldValid] = useState(false);
     const [isSubjectFieldValid, setIsSubjectFieldValid] = useState(false);
     const [isContentFieldValid, setIsContentFieldValid] = useState(false);
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');    
-    const [isMessageSent, setIsMessageSent] = useState(false);
-    const canSubmit = senderEmail && isEmailFieldValid
-                    && senderName && isNameFieldValid
-                    && subject && isSubjectFieldValid
-                    && content && isContentFieldValid;
-    
-    const handleSubmit = useCallback(async (e) =>
+    const [isMessageSent, setIsMessageSent] = useState(Boolean(flash.success));
+    const canSubmit = form.data.email && isEmailFieldValid
+                    && form.data.name && isNameFieldValid
+                    && form.data.subject && isSubjectFieldValid
+                    && form.data.content && isContentFieldValid;
+
+    const handleSubmit = useCallback((e) =>
     {
         e.preventDefault();
-        setSuccess('');
-        setError('');
-        try
-        {
-            setIsSubmitting(true);
-            const data = await sendContactMail(senderName, senderEmail, subject, senderWebsite, content);
-            setSuccess(data.message);
-            setIsMessageSent(true);
-        }
-        catch(err)
-        {
-            const msg = getErrorMessage(err);
-            setError(msg);
-        }
-        finally
-        {
-            setIsSubmitting(false);
-        }
-    },[senderName, senderEmail, subject, senderWebsite, content]);
+        form.post('/contact');
+    },[form]);
 
     const handleEmailFormatValidation = (proposedEmail, setFieldLocalError) => 
     {
@@ -87,14 +69,14 @@ function Contact()
                 <div className="centered-content no-margin">
                     <h1>contact</h1>
                 </div>
-                {error && (
+                {flash?.error && (
                 <div className="error">
-                    {error}
+                    {flash.error}
                 </div>
                 )}
-                {success && (
+                {flash?.success && (
                 <div className="notice">
-                    {success}
+                    {flash.success}
                 </div>
                 )}
                 {
@@ -109,10 +91,11 @@ function Contact()
                             id="name"
                             label="name"
                             placeholder="your name"
-                            value={senderName}
-                            onChange={(e) => setSenderName(e.target.value)}
+                            value={form.data.name}
+                            onChange={(e) => form.setData('name', e.target.value)}
                             onValidate={createValidationHandler(setIsNameFieldValid)}
-                            disabled={isSubmitting}
+                            disabled={form.processing}
+                            serverError={form.errors.name}
                             min={2}
                             max={25}
                             type="text"
@@ -121,10 +104,11 @@ function Contact()
                                 id="email"
                                 label="email"
                                 placeholder="your e-mail address"
-                                value={senderEmail}
-                                onChange={(e) => setSenderEmail(e.target.value)}
+                                value={form.data.email}
+                                onChange={(e) => form.setData('email', e.target.value)}
                                 onValidate={handleEmailFormatValidation}
-                                disabled={isSubmitting}
+                                disabled={form.processing}
+                                serverError={form.errors.email}
                                 min={2}
                                 max={50}
                                 type="email"
@@ -133,9 +117,10 @@ function Contact()
                                 id="website"
                                 label="website"
                                 placeholder="your website"
-                                value={senderWebsite}
-                                onChange={(e) => setSenderWebsite(e.target.value)}
-                                disabled={isSubmitting}
+                                value={form.data.website}
+                                onChange={(e) => form.setData('website', e.target.value)}
+                                disabled={form.processing}
+                                serverError={form.errors.website}
                                 min={5}
                                 max={100}
                                 type="text"
@@ -145,10 +130,11 @@ function Contact()
                                 id="subject"
                                 label="subject"
                                 placeholder="subject of inquiry"
-                                value={subject}
-                                onChange={(e) => setSubject(e.target.value)}
+                                value={form.data.subject}
+                                onChange={(e) => form.setData('subject', e.target.value)}
                                 onValidate={createValidationHandler(setIsSubjectFieldValid)}
-                                disabled={isSubmitting}
+                                disabled={form.processing}
+                                serverError={form.errors.subject}
                                 min={2}
                                 max={50}
                                 type="text"
@@ -158,16 +144,17 @@ function Contact()
                             id="content"
                             label="message"
                             placeholder='your message'
-                            value={content}
-                            onChange={(e) => setContent(e.target.value)}
+                            value={form.data.content}
+                            onChange={(e) => form.setData('content', e.target.value)}
                             onValidate={createValidationHandler(setIsContentFieldValid)}
-                            disabled={isSubmitting}
+                            disabled={form.processing}
+                            serverError={form.errors.content}
                             min={10}
                             max={1000}
                             isTextArea={true}
                         />
                     </div>
-                    <button type="submit" disabled={isSubmitting || !canSubmit}>submit</button>
+                    <button type="submit" disabled={form.processing || !canSubmit}>submit</button>
                 </form></>)
                 }
             </div>            

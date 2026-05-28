@@ -1060,26 +1060,7 @@ export const AuthProvider = ({ children }) =>
     }
   },[]);
 
-  const searchPosts = useCallback(async (params) =>
-  {
-    setIsLoading(true);
-    try
-    {
-      const response = await api.get(`/post-search`, 
-      {
-          params: params
-      });
-      return response.data;
-    }
-    catch (err)
-    {
-      throw err;
-    }
-    finally
-    {
-      setIsLoading(false);
-    }
-  },[])
+  // searchPosts removed: Search is now handled via Inertia props and SearchController
 
   const sendContactMail = useCallback(async (sender, email, subject, website, content) =>
   {
@@ -1116,7 +1097,7 @@ export const AuthProvider = ({ children }) =>
       recordView, createComment, fetchUserComments, updateComment, deleteComment,
       fetchLikedPosts, fetchNotifications, getUnreadStatus, toggleFollow,
       fetchFollowing, fetchFollowers, userSearch, createDM, updateDM, deleteDM,
-      fetchConversation, fetchConversations, searchPosts, updateAbout, fetchAbout,
+      fetchConversation, fetchConversations, updateAbout, fetchAbout,
       toggleAdminPostHide, sendContactMail, fetchPostToEdit}}>
       {children}
     </AuthContext.Provider>

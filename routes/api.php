@@ -48,7 +48,6 @@ Route::middleware('auth:api')->group(function ()
  
     Route::get('/my-posts', [PostController::class, 'myPosts']);
     Route::get('/my-liked-posts', [PostController::class, 'myLikedPosts']);
-    Route::get('/post-search', [PostController::class, 'postSearch']);
     // Route::get('/user/{username}/post/{post_url}/edit', [PostController::class, 'edit']); // Migrated to web.php
     Route::resource('posts', PostController::class)->except([
         'index', 'show', 'edit'
