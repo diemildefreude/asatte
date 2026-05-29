@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Password;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Date;
 use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
@@ -218,7 +219,7 @@ class AuthController extends Controller
             }        
 
             $user->delete(); // Delete the user record
-            Log:info("User ID {$user->id} with email {$user->email} cancelled registration.");
+            Log::info("User ID {$user->id} with email {$user->email} cancelled registration.");
             return redirect($reactAppUrl . '/dashboard?status=cancel_canceled');
         }
         catch (ModelNotFoundException $e) 
@@ -240,87 +241,39 @@ class AuthController extends Controller
             return redirect($reactAppUrl . '/dashboard?status=cancel_error');
         }
     }
-    public function register(RegisterRequest $request)//e-mail registration
+    public function register(RegisterRequest $request)
     {
-        $hasHoneypotField = $request->input('is_user_human'); //<- hidden field on frontend
+        $hasHoneypotField = $request->input('is_user_human');
         $hasRobotField = $request->input('is_user_robot');
 
-        $isRobotInHoneypot = isset($hasHoneypotField); //<- hidden field on frontend
-        $isSelfAdmittedRobot = isset($hasRobotField);
-        
-        if($isRobotInHoneypot || $isSelfAdmittedRobot)
-        {
-            return response()->json([
-                'message' => 'Thank you for registering.', //<-- fake message
-                'status' => 'happy_landings' //status for fake registration
-            ], 200);
+        if ($hasHoneypotField || $hasRobotField) {
+            return back()->with('status', 'happy_landings');
         }
 
-        $request->validate([
-            'username' => ['string', 'required', 'max:255'],
-            'email' => ['email', 'required', 'max:255'],
-            'password' => ['required', 'confirmed',
-                PasswordRule::min(8) // Use your aliased PasswordRule
-                ->max(255)
-                ->mixedCase()
-                ->numbers()],
-            'birthdate' => ['required', Rule::date()->beforeOrEqual(today()->subYears(13))],
-            'login_type' => [Rule::enum(LoginType::class)],
-            'provider_id' => ['string', 'nullable'] 
-        ]);
+        $request->validated();
+
         $formattedBirthdate = Carbon::parse($request->birthdate)->format('Y-m-d');
+        $showEmailInProfile = $request->filled('show_email_in_profile');
 
-        $showEmailInProfileField = $request->input('show_email_in_profile');
-        
-        // $requestData = [
-        //     'url' => $request->fullUrl(),
-        //     'method' => $request->method(),
-        //     'headers' => $request->headers->all(),
-        //     'body' => $request->all(), // This includes both query string and POST data
-        //     'files' => $request->files->all(),
-        //     'ip' => $request->ip(),
-        //     'user_agent' => $request->header('User-Agent'),
-        // ];
-        //Log::info('Incoming request data:', $requestData);
-        //Log::info("showEmailInProfileField: $showEmailInProfileField");
-
-        $showEmailInProfile = isset($showEmailInProfileField);
         $user = User::forceCreate([
             'username' => $request->username,
             'email' => $request->email,
-            'password' => Hash::make($request->password), // Hash the password!
+            'password' => Hash::make($request->password),
             'birthdate' => $formattedBirthdate,
             'login_type' => LoginType::Email,
-            'provider_id' => null, // Will be null for email registration
+            'provider_id' => null,
             'profile_completed' => true,
             'show_email_in_profile' => $showEmailInProfile,
             'accepted_terms_version' => config('app.user_agreement_version')
         ]);
 
-        $user = User::find($user->id);        
+        $user = User::find($user->id);
         $user->sendEmailVerificationNotification();
 
-        $oauthRequest = Request::create('oauth/token', 'POST', [
-            'grant_type' => 'password',
-            'client_id' => config('passport.client_id'),
-            'client_secret' => config('passport.client_secret'),
-            'username' => $user->email, // Passport's password grant typically expects 'username' to be the user's email
-            'password' => $request->password, // Use the original (unhashed) password for the token request
-            'scope' => '', // Define custom scopes if your application uses them
-            'profile_complete' => true
-        ]);
+        Auth::login($user);
+        $request->session()->regenerate();
 
-        $response = app()->handle($oauthRequest);
-        $data = json_decode($response->getContent());
-
-        // 3. Return the user data and the generated token
-        return response()->json([
-            'user' => $user->toArray(),
-            'access_token' => $data->access_token,
-            'refresh_token' => $data->refresh_token ?? null,
-            'expires_in' => $data->expires_in,
-            'token_type' => $data->token_type,
-        ], $response->getStatusCode());        
+        return redirect()->intended('/dashboard');
     }
     public function login(LoginRequest $request)
     {
@@ -335,45 +288,24 @@ class AuthController extends Controller
             ]);
         }
         //Log::info('Checking target Client ID value:', ['client_id' => config('passport.client_id')]);
-        // Hit the token endpoint directly using your Public Client ID
-        $oauthRequest = Request::create('oauth/token', 'POST', [
-            'grant_type' => 'password',
-            'client_id' => config('passport.client_id'), // Make sure this matches your new public client ID
-            'username' => $user->email, 
-            'password' => $request->password,
-            'scope' => '', 
-        ]);
+        $fieldType = filter_var($request->login_field, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+        $credentials = [$fieldType => $request->login_field, 'password' => $request->password];
 
-        $response = app()->handle($oauthRequest);
-        $data = json_decode($response->getContent());
-
-        // Defensive Check: If Passport returns an error, catch it before it crashes line 355
-        if (isset($data->error) || !isset($data->access_token)) {
-            Log::error('Passport authentication sub-request failed', (array)$data);
-            return response()->json([
-                'message' => 'Authentication setup mismatch on the backend.',
-                'details' => $data->message ?? 'Check your public client configuration.'
-            ], 500);
+        if (Auth::attempt($credentials, $request->filled('remember'))) {
+            $request->session()->regenerate();
+            return redirect()->intended('/dashboard');
         }
 
-        return response()->json([
-            'user' => $user->toArray(),
-            'access_token' => $data->access_token,
-            'refresh_token' => $data->refresh_token, // This will now be a genuine cryptographically signed key!
-            'expires_in' => $data->expires_in,
-            'token_type' => $data->token_type,
-        ], $response->getStatusCode());
+        return back()->withErrors(['login_field' => ['invalid credentials provided']])->withInput();
     }
+
+    // (Cookie/token refresh removed — using native web session auth)
 
     public function logout(Request $request)
     {
-        // Check if a user is authenticated via Passport
-        if ($request->user()) 
-        {
-            $request->user()->token()->revoke(); // Revoke the current access token
-            return response()->json(['message' => 'Successfully logged out.'], 200);
-        }
-
-        return response()->json(['message' => 'No user authenticated.'], 401);
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        return redirect('/');
     }
 }

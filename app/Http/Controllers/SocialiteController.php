@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Laravel\Socialite\Facades\Socialite; // Import Socialite Facade
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str; // For generating random passwords
 use Illuminate\Support\Facades\Log;
@@ -31,10 +32,10 @@ class SocialiteController extends Controller
             return redirect($reactAppUrl . '/oauth-callback?status=social_provider_not_supported');
         }
         $originPage = $request->query('origin_page', 'login');
+        // Store the origin page in session so we can validate it after callback
+        $request->session()->put('socialite_origin_page', $originPage);
 
-        return Socialite::driver($provider)
-            ->with(['origin_page' => $originPage])//should work despite Intellephense error        
-            ->redirect();
+        return Socialite::driver($provider)->redirect();
     }
 
     /**
@@ -43,41 +44,29 @@ class SocialiteController extends Controller
      * @param string $provider (e.g., 'google', 'github')
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function handleProviderCallback(string $provider)
+    public function handleProviderCallback(string $provider, Request $request)
     {
-        $reactAppUrl = config('app.frontend_url', 'http://localhost:3000');
-        $originPage = 'login'; // Default fallback
-        
+
+        // First, prefer any origin_page stored in session (we put it there before redirecting)
+        $originPage = $request->session()->pull('socialite_origin_page', 'login');
+
         // 1. Strict allowlist for frontend pages
         $allowedOriginPages = ['login', 'register'];
 
-        try 
-        {
-            // Extract and validate the state payload BEFORE Socialite consumes it.
-            // Socialite handles state verification internally on ->user(), but it can consume
-            // the state string. We check the raw query parameter securely first.
-            $rawState = request()->query('state');
-            if ($rawState) 
-            {
+        try {
+            // Also support the encoded state payload if present (legacy behavior)
+            $rawState = $request->query('state');
+            if ($rawState) {
                 $decoded = json_decode(base64_decode($rawState), true);
-                if (isset($decoded['origin_page'])) 
-                {
-                    // Validate against our allowlist
-                    if (in_array($decoded['origin_page'], $allowedOriginPages, true)) 
-                    {
-                        $originPage = $decoded['origin_page'];
-                    } 
-                    else 
-                    {
-                        Log::warning("Unauthorized origin_page attempted in Socialite state: " . $decoded['origin_page']);
-                        // Keep the default 'login' to protect the application
-                    }
+                if (isset($decoded['origin_page']) && in_array($decoded['origin_page'], $allowedOriginPages, true)) {
+                    $originPage = $decoded['origin_page'];
+                } else {
+                    Log::warning("Unauthorized origin_page attempted in Socialite state: " . ($decoded['origin_page'] ?? ''));
                 }
             }
 
-            // 2. Retrieve user via Socialite. 
-            // If the state was tampered with relative to the session, Socialite will throw 
-            // an InvalidStateException here automatically, halting the execution.
+            // Retrieve user via Socialite. If the state was tampered with relative to the session,
+            // Socialite will throw an InvalidStateException on ->user().
             $socialiteUser = Socialite::driver($provider)->user();
 
             Log::info("Socialite callback for {$provider}. Provider ID: {$socialiteUser->id}, Email: {$socialiteUser->email}. Origin: {$originPage}");
@@ -86,89 +75,57 @@ class SocialiteController extends Controller
             $user = User::where('provider_id', $socialiteUser->id)
                         ->where('login_type', $provider)
                         ->first();
+
             $status = 'social_login_success';
 
-            if ($user) 
-            {
-                if (!$user->profile_completed) 
-                {
+            if ($user) {
+                if (!$user->profile_completed) {
                     $status = 'social_registration_incomplete';
                     Log::info("Existing {$provider} user with incomplete profile logged in: {$user->email}");
-                } 
-            }
-            else 
-            {
-                // User does not exist, check if email already registered via other means
-                $user = User::where('email', $socialiteUser->email)->first();
-
-                if ($user) 
-                {
-                    return redirect($reactAppUrl . '/oauth-callback?' . http_build_query([
-                        'status' => 'email_already_registered_social',
-                        'email' => $socialiteUser->email,
-                        'origin_page' => $originPage,
-                    ]));
-                } 
-                else 
-                {
-                    // New user, create an account
-                    $now = Carbon::now();
-                    Log::info("Creating new {$provider} user: {$socialiteUser->email}.");
-
-                    $user = User::forceCreate([
-                        'email' => $socialiteUser->email,
-                        'password' => Hash::make(Str::random(24)),
-                        'login_type' => $provider,
-                        'provider_id' => $socialiteUser->id,
-                        'email_verified_at' => $now,
-                        'profile_completed' => false,
-                        'accepted_terms_version' => null
-                    ]);
-                    $status = 'social_registration_incomplete';
                 }
+            } else {
+                // User does not exist, check if email already registered via other means
+                $existing = User::where('email', $socialiteUser->email)->first();
+                if ($existing) {
+                    Log::info("Social login attempted but email already registered: {$socialiteUser->email}");
+                    return redirect('/login')->with('message', 'That email is already registered. Please login with your account.');
+                }
+
+                // New user: create account (mark profile incomplete)
+                $now = Carbon::now();
+                Log::info("Creating new {$provider} user: {$socialiteUser->email}.");
+
+                $user = User::forceCreate([
+                    'email' => $socialiteUser->email,
+                    'password' => Hash::make(Str::random(24)),
+                    'login_type' => $provider,
+                    'provider_id' => $socialiteUser->id,
+                    'email_verified_at' => $now,
+                    'profile_completed' => false,
+                    'accepted_terms_version' => null,
+                ]);
+                $status = 'social_registration_incomplete';
             }
 
-            // Generate Passport token for the user
-            $token = $user->createToken('authToken')->accessToken;
+            // Log the user into the web session (session-based auth)
+            Auth::login($user);
+            $request->session()->regenerate();
 
-            return redirect($reactAppUrl . '/oauth-callback?' . http_build_query([
-                'access_token' => $token,
-                'user' => json_encode($user->toArray()),
-                'status' => $status,
-                'origin_page' => $originPage
-            ]));
+            // Redirect to the dashboard (or dashboard with status if profile incomplete)
+            if (!$user->profile_completed) {
+                return redirect()->intended('/dashboard?status=' . $status);
+            }
+            return redirect()->intended('/dashboard');
 
-        } 
-        // Explicitly catch Socialite's built-in state validation failure
-        catch (\Laravel\Socialite\Two\InvalidStateException $e) 
-        {
+        } catch (\Laravel\Socialite\Two\InvalidStateException $e) {
             Log::error("Socialite state/CSRF validation failed for {$provider}: " . $e->getMessage());
-            
-            return redirect($reactAppUrl . '/oauth-callback?' . http_build_query([
-                'status' => 'social_login_failed',
-                'message' => 'Session expired or invalid authentication request. Please try again.',
-                'origin_page' => 'login'
-            ]));
-        }
-        catch (QueryException $e) 
-        {
+            return redirect('/login')->with('message', 'Session expired or invalid authentication request. Please try again.');
+        } catch (QueryException $e) {
             Log::error("Socialite callback QueryException for {$provider}: " . $e->getMessage());
-                        
-            return redirect($reactAppUrl . '/oauth-callback?' . http_build_query([
-                'status' => 'social_login_failed',
-                'message' => 'A database error occurred during social login.',
-                'origin_page' => $originPage
-            ]));
-        }
-        catch (\Exception $e) 
-        {
+            return redirect('/login')->with('message', 'A database error occurred during social login.');
+        } catch (\Exception $e) {
             Log::error("Socialite callback general error for {$provider}: " . $e->getMessage());
-            
-            return redirect($reactAppUrl . '/oauth-callback?' . http_build_query([
-                'status' => 'social_login_failed',
-                'message' => 'An unexpected authentication error occurred.',
-                'origin_page' => $originPage
-            ]));
+            return redirect('/login')->with('message', 'An unexpected authentication error occurred.');
         }
     }
     public function completeSocialProfile(Request $request)

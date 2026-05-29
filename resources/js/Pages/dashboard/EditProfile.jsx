@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
-import { LoginType, useAuth } from '../../contexts/AuthContext';
-import {  Link, router, usePage , Head } from '@inertiajs/react';
+import { LoginType } from '../../contexts/AuthContext';
+import {  Link, router, usePage , Head, useForm } from '@inertiajs/react';
 import { getErrorMessage } from '../../utils/helpers';
 import AvatarSetter from "./AvatarSetter";
 import ProfileItem from '../../Components/common/ProfileItem';
@@ -8,10 +8,15 @@ import CheckboxField from '../../Components/common/CheckboxField';
 
 function EditProfile()
 {
-    const { user, logout, updateProfileInfo, refreshUser } = useAuth();       
-    const location = useLocation();
-    
-    const from = location.state?.from?.pathname || '/';
+    const { props } = usePage();
+    const user = props?.auth?.user;
+    const from = props?.flash?.from || '/';
+
+    const form = useForm({
+        website: '',
+        location: '',
+        show_email_in_profile: false,
+    });
 
     const [success, setSuccess] = useState('');
     const [error, setError] = useState('');
@@ -33,6 +38,9 @@ function EditProfile()
         setWebsiteField(user.website);
         setLocationField(user.location);
         setShowEmailInProfile(user.show_email_in_profile);
+        form.setData('website', user.website || '');
+        form.setData('location', user.location || '');
+        form.setData('show_email_in_profile', !!user.show_email_in_profile);
     }, [user]);
 
     const handleEditClick = useCallback((fieldName) => 
@@ -48,7 +56,7 @@ function EditProfile()
         try
         {
             setIsSubmitting(true);
-            await logout();     
+            await router.post('/logout');     
             router.visit(from, {replace: true});       
         }
         catch (err)
@@ -76,23 +84,25 @@ function EditProfile()
         }
         setIsSubmitting(true);
 
-        try
-        {
-            await updateProfileInfo(websiteField, locationField, showEmailInProfile);
-            setSuccess(`Profile successfully updated.`);            
-            setHasChanges(false);
-            await refreshUser();
-            setEditingField(null);  
-        }
-        catch(err)
-        {
-            const displayErrorMessage = getErrorMessage(err);
-            setError(displayErrorMessage.trim());
-        }
-        finally
-        {
-            setIsSubmitting(false);
-        }
+        form.setData('website', websiteField || '');
+        form.setData('location', locationField || '');
+        form.setData('show_email_in_profile', !!showEmailInProfile);
+
+        form.post('/api/update-profile', {
+            onSuccess: () => {
+                setSuccess(`Profile successfully updated.`);
+                setHasChanges(false);
+                setEditingField(null);
+                router.reload();
+            },
+            onError: (err) => {
+                const displayErrorMessage = getErrorMessage(err);
+                setError(displayErrorMessage.trim());
+            },
+            onFinish: () => {
+                setIsSubmitting(false);
+            }
+        });
     };
     return (
     <div className="main-info-box sticky">

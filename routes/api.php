@@ -28,20 +28,13 @@ Route::get('/{post}/comments', [CommentController::class, 'index']);
 Route::post('/send-contact-mail', [ContactController::class, 'sendContactMail'])
     ->middleware("throttle:$throttleTime,1");
 
-Route::post('/login', [AuthController::class, 'login'])
-    ->middleware("throttle:$throttleTime,1");
-Route::post('/register', [AuthController::class, 'register'])
-    ->middleware("throttle:$throttleTime,1");
-Route::post('/request-recovery', [AuthController::class, 'sendRecoveryLink'])
-    ->middleware("throttle:$throttleTime,1");
-Route::post('/reset-password', [AuthController::class, 'resetPassword'])
-    ->middleware("throttle:$throttleTime,1");
+// Auth endpoints (login/register/password) moved to web.php for session-based auth
 
 Route::post('/posts/{post}/record-view', [ActivityController::class, 'recordView']); //<-- no need to throttle. Method already ignores rapid views
 
 // Route::get('/about', [AboutController::class, 'show']); // Migrated to web.php
 
-Route::middleware('auth:api')->group(function ()
+Route::middleware('auth')->group(function ()
 {
     Route::put('/update-about', [AboutController::class, 'update']);
     Route::put('set-admin-hide/{post}', [PostController::class, 'toggleAdminHide']);
@@ -71,23 +64,13 @@ Route::middleware('auth:api')->group(function ()
     Route::post('/{user}/follow', [ActivityController::class, 'toggleFollow']);
     Route::get('/notifications', [ActivityController::class, 'notifications']);
 
-    Route::post('/logout', [AuthController::class, 'logout']);
-    Route::post('/resend-verification', [AuthController::class, 'sendVerifyLink'])
-        ->middleware('throttle:3,1');
-    Route::post('/change-password', [AuthController::class, 'changePassword']);
-    Route::post('/complete-social-profile', [SocialiteController::class, 'completeSocialProfile']);
     Route::post('/update-profile', [DashboardController::class, 'updateProfile']);
     Route::post('/update-bio', [DashboardController::class, 'updateBio']);
     Route::post('/update-avatar', [DashboardController::class, 'updateAvatar']);
     Route::get('/unread-status', [DashboardController::class, 'unreadStatus']);
-    Route::get('/user', function (Request $request) 
-    {
+    Route::get('/user', function (Request $request) {
         return $request->user();
-    });    
+    });
 });
 
-Route::middleware('web')->group(function ()
-{
-    Route::get('/auth/{provider}/redirect', [SocialiteController::class, 'redirectToProvider']);
-    Route::get('/auth/{provider}/callback', [SocialiteController::class, 'handleProviderCallback']);
-});
+// Socialite endpoints moved to web.php

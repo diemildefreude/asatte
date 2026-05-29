@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
-import {  Link, router, usePage , Head } from '@inertiajs/react';
+import { Link, router, usePage, Head } from '@inertiajs/react';
 import FormField from '../Components/common/FormField';
 import '../Components/common/Form.css';
 import Layout from '../Components/layout/Layout';
 import OAuth from '../Components/common/OAuth';
-import { useAuth } from '../contexts/AuthContext';
 import { getErrorMessage } from '../utils/helpers';
 
 function Login()
@@ -14,27 +13,15 @@ function Login()
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false); // To disable button during submission
-
-    const { isAuthenticated, isLoading, login, logout, user } = useAuth(); // Get the login function from context
+    // We'll post explicitly with router.post to ensure field names match server expectations
+    // No central AuthContext: post directly to web route using Inertia
     const { props } = usePage();
     const from = props?.flash?.from || '/dashboard/profile';
     const message = props?.flash?.message;
-
-    useEffect(() => 
-    {
-        if (!isLoading && isAuthenticated) 
-        {
-          if(!user?.profile_completed)
-          {
-            logout();
-          }
-          else
-          {
-            router.visit(from, { replace: true });
-          }
-        }
-    }, [isAuthenticated, isLoading, from, user, logout]);
-
+    useEffect(() => {
+        // if backend set a flash message about successful login redirect will occur
+        // keep message handling only
+    }, []);
     useEffect(() => 
     {
         if (message) 
@@ -52,25 +39,23 @@ function Login()
         e.preventDefault();
         setError('');       // Clear previous errors
         setSuccess('');     // Clear previous success messages
-        setIsSubmitting(true); // Disable button
-
-        try 
+      setIsSubmitting(true);
+      router.post('/login',
+        { login_field: usernameOrEmail, password: password },
         {
-            const userData = await login(usernameOrEmail, password);
-            setSuccess(`Login successful! Welcome, ${userData.username || userData.email}.`);
-            console.log(`login successful for ${userData.username}. redirecting to ${from}`);
-            router.visit(from, { replace: true });
-        } 
-        catch (err) 
-        {
-            console.error('Login error in Login.jsx:', err);
-            const displayErrorMessage = getErrorMessage(err);
-            setError(displayErrorMessage.trim());            
-        } 
-        finally 
-        {
+          preserveState: false,
+          onError: (errors) => {
+            const msg = Object.values(errors).flat().join(' ');
+            setError(msg || 'Login failed');
+          },
+          onSuccess: () => {
+            // backend will redirect via session logic; Inertia handles it
+          },
+          onFinish: () => {
             setIsSubmitting(false);
+          },
         }
+      );
     };
     
     const handleSocialLoginSubmit = (type) =>

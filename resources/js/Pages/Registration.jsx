@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import Layout from '../Components/layout/Layout';
-import { LoginType, useAuth } from '../contexts/AuthContext';
-import {  Link, router, usePage , Head } from '@inertiajs/react';
+import { Link, router, usePage, Head } from '@inertiajs/react';
 import FormField from '../Components/common/FormField';
 import CheckboxField from '../Components/common/CheckboxField'
 import OAuth from '../Components/common/OAuth';
@@ -10,8 +9,17 @@ import { getDateString, isAlphaDash, isValidPassword, isValidEmail, getErrorMess
 
 function Registration()
 {
-    const { isAuthenticated, isLoading, registerWithEmail, 
-        completeSocialProfile, refreshUser, user } = useAuth();
+    const LoginType = {
+        Email: 'email',
+        Github: 'github',
+        Google: 'google'
+    };
+
+    const { props } = usePage();
+    const user = props?.auth?.user ?? null;
+    const isAuthenticated = !!user;
+    const isLoading = false;
+    // Not using Inertia `useForm` here — we'll post explicitly with `router.post`
     const [email, setEmail] = useState('');
     const [showEmailInProfile, setShowEmailInProfile] = useState(false);
     const [password, setPassword] = useState('');
@@ -37,7 +45,6 @@ function Registration()
     const [isUserRobot, setIsUserRobot] = useState(true);
     const [isUserHuman, setIsUserHuman] = useState(false);
     
-    const { props } = usePage();
     const from = props?.flash?.from || '/dashboard';
     const message = props?.flash?.message;
     
@@ -57,26 +64,19 @@ function Registration()
     //     "row 2:", email, username, birthdate, password, passwordConfirmation,
     //     "row 3:", isEmailFieldValid, isUsernameFieldValid, isPasswordFieldValid,
     //     "row 4:", arePasswordsMatching, isBirthdateFieldValid, !isSubmitting);
-    useEffect(() => 
-    {
-        if (!isLoading && isAuthenticated) 
-        {
+    useEffect(() => {
+        if (!isLoading && isAuthenticated) {
             router.visit(from, { replace: true });
         }
     }, [isAuthenticated, isLoading, from]);
 
-    useEffect(() => 
-    {
-        if (message) 
-        {
+    useEffect(() => {
+        if (message) {
             const status = props?.flash?.status;
-            if(status === 'social_registration_incomplete')
-            {
-                setFormPage(3); //social registration completion page
+            if (status === 'social_registration_incomplete') {
+                setFormPage(3); // social registration completion page
                 setSuccess(message);
-            }
-            else
-            {                
+            } else {
                 setError(message);
             }
         }
@@ -194,33 +194,39 @@ function Registration()
         e.preventDefault();
         setFormPage(2)
     }
-    const handleEmailRegistrationSubmit = async (e) => 
-    {
+    const handleEmailRegistrationSubmit = async (e) => {
         e.preventDefault();
         setError('');
         setSuccess('');
         setIsSubmitting(true);
-        try
-        {
-            const data = await registerWithEmail(loginType, email, username, password, 
-                passwordConfirmation, birthdate, showEmailInProfile, isUserHuman, isUserRobot);
-            if(data.status == 'happy_landings')
-            {
-                router.visit("/");
-                return;   
-            }
-
-            setSuccess(`Registration successful. please check your e-mail and validate your address`);
-            setFormPage(3);
-        }
-        catch(err)
-        {
-            const displayErrorMessage = getErrorMessage(err);   
-            setError(displayErrorMessage.trim()); // Set general form error
-            console.error('Password change error:', err.response?.data || err.message || err); // Log full error for debugging
-        }
-        finally
-        {
+        try {
+                router.post('/register',
+                    {
+                        login_type: loginType,
+                        email,
+                        username,
+                        password,
+                        password_confirmation: passwordConfirmation,
+                        birthdate,
+                        show_email_in_profile: showEmailInProfile,
+                        is_user_human: isUserHuman,
+                        is_user_robot: isUserRobot,
+                    },
+                    {
+                        preserveState: false,
+                        onError: (errors) => {
+                            const msg = Object.values(errors).flat().join(' ');
+                            setError(msg || 'Registration failed');
+                        },
+                        onSuccess: () => {
+                            // server will redirect to intended location via session auth
+                        }
+                    }
+                );
+        } catch (err) {
+            const displayErrorMessage = err?.message || 'Registration failed';
+            setError(displayErrorMessage);
+        } finally {
             setIsSubmitting(false);
         }
     };
@@ -231,35 +237,36 @@ function Registration()
     //the rest is handled in OAuth.jsx
     }
 
-    const handleSocialCompletionSubmit = async (e) =>
-    {
+    const handleSocialCompletionSubmit = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
-        try
-        {
-            const data = await completeSocialProfile(username, birthdate, showEmailInProfile, isUserHuman, isUserRobot);
-            console.log("completionData", data);
-            if(data.status == 'happy_landings')
-            {
-                router.visit('/');
-                return;
-            }
-            await refreshUser();
-            console.log("reg-page: data", data);
-            sessionStorage.setItem('completion_message', data.message);
-            sessionStorage.setItem('completion_status', data.status);
-            router.visit('/dashboard', { replace: true, /*state: { status: data.status, message: data.message}*/ });
-        }
-        catch(err)
-        {
-            const msg = getErrorMessage(err);
+        try {
+            await router.post('/complete-social-profile',
+                {
+                    username,
+                    birthdate,
+                    show_email_in_profile: showEmailInProfile,
+                    is_user_human: isUserHuman,
+                    is_user_robot: isUserRobot,
+                },
+                {
+                    preserveState: false,
+                    onError: (errors) => {
+                        const msg = Object.values(errors).flat().join(' ');
+                        setError(msg || 'Submission failed');
+                    },
+                    onSuccess: () => {
+                        // on success backend may redirect; otherwise navigate to dashboard
+                        router.visit('/dashboard', { replace: true });
+                    }
+                }
+            );
+        } catch (err) {
+            const msg = err?.message || 'Submission failed';
             setError(msg);
-        }
-        finally
-        {
+        } finally {
             setIsSubmitting(false);
         }
-
     }
 
     return (

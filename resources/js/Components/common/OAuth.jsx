@@ -1,19 +1,18 @@
 
 import React, { useCallback, useState } from 'react';
-import { LoginType, useAuth } from '../../contexts/AuthContext';
 import './OAuth.css';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
 function OAuth({headerText, onClick, originPage, isSubmittingForm, setIsSubmittingForm}) 
 {
-    const { isLoading } = useAuth();
+    const isLoading = false;
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleSocialLogin = useCallback((provider) => 
     {
         setIsSubmitting(true);
         setIsSubmittingForm(true);
-        const authURI = `${BACKEND_URL}/api/auth/${provider}/redirect?origin_page=${originPage}`;
+        const authURI = `/auth/${provider}/redirect?origin_page=${originPage}`;
         window.location.href = authURI;
     }, [originPage, setIsSubmittingForm]);
 
@@ -21,13 +20,13 @@ function OAuth({headerText, onClick, originPage, isSubmittingForm, setIsSubmitti
         <div className="field-group social-login-options">
             <h3>{headerText}</h3>
             <button
-                onClick={() => { onClick(); handleSocialLogin(LoginType.Google);}}
+                onClick={() => { onClick(); handleSocialLogin('google');}}
                 disabled={isSubmitting || isSubmittingForm || isLoading}
             >
                 <div className='button-content'>continue with google</div><div><img src="/google.png" alt="google icon"/></div>
             </button>
             <button
-                onClick={() => { onClick(); handleSocialLogin(LoginType.Github);}}
+                onClick={() => { onClick(); handleSocialLogin('github');}}
                 disabled={isSubmitting || isSubmittingForm || isLoading}
             >
                 <div className='buttonContent'>continue with github</div><div><img src="/github.png" alt="github icon"/></div>

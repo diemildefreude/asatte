@@ -18,9 +18,8 @@ function PasswordChange()
     const [isNewPasswordFieldValid, setIsNewPasswordFieldValid] = useState(false);
     const [arePasswordsMatching, setArePasswordsMatching] = useState(false);
     const { user, isAuthenticated, isLoading, changePassword } = useAuth();
-     // Hook for navigation
-    const location = useLocation();
-    const from = location.state?.from?.pathname || '/';
+    const { props } = usePage();
+    const from = props?.flash?.from || '/';
     const canChangePassword = oldPassword && newPassword && passwordConfirmation
         && isOldPasswordFieldValid && isNewPasswordFieldValid 
         && arePasswordsMatching && !isSubmitting;

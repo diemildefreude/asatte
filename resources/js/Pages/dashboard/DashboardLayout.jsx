@@ -1,20 +1,24 @@
 import { useState, useEffect } from 'react';
 import DashboardTab from '../../Components/common/DashboardTab';
-import { useAuth } from '../../contexts/AuthContext';
 import {  Link, router, usePage , Head } from '@inertiajs/react';
 import { getErrorMessage, MemberType } from '../../utils/helpers';
 import Layout from '../../Components/layout/Layout';
 
 function DashboardLayout({ currentTab, headerText, children })
 {
-    const { user, isAuthenticated, logout, getUnreadStatus,
-        sendVerificationEmail, refreshUser } = useAuth();
-    const location = useLocation();
+    const page = usePage();
+    const user = page.props?.auth?.user ?? null;
+    const isAuthenticated = !!user;
+    const currentUrl = page.url || window.location.pathname;
+    const parsedUrl = new URL(currentUrl, window.location.origin);
+    const pathname = parsedUrl.pathname;
+    const search = parsedUrl.search;
     
     const [success, setSuccess] = useState('');
     const [error, setError] = useState('');
-    const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
-    const [hasUnreadMail, setHasUnreadMail] = useState(false);
+    const initialUnread = page.props?.unread ?? {};
+    const [hasUnreadNotifications, setHasUnreadNotifications] = useState(!!initialUnread.has_unread_notifications);
+    const [hasUnreadMail, setHasUnreadMail] = useState(!!initialUnread.has_unread_mail);
     const [isSubmitting, setIsSubmitting] = useState(false);    
 
     let containerClasses = "dashboard-container";
@@ -32,42 +36,24 @@ function DashboardLayout({ currentTab, headerText, children })
         {
             router.visit('/register', 
             {
-                replace: true, 
-                state: { 
-                    status: 'social_registration_incomplete',
-                    message: 'Welcome! Please complete your profile:'
-                } 
+                replace: true
             });
             return;
-        
         }                
-    }, [isAuthenticated, user, navigate, location]);
+    }, [isAuthenticated, user]);
 
     useEffect(() =>
     {
-        const msg = sessionStorage.getItem('completion_message'); //location.state?.message || 
-        //console.log("msg", msg);
+        const msg = sessionStorage.getItem('completion_message');
         if (msg) 
         {
             setSuccess(msg);
             sessionStorage.removeItem('completion_message');
-            router.visit(location.pathname, { replace: true, state: {} });
+            router.visit(pathname, { replace: true });
         }
-    }, [location.state, location.pathname, navigate]);
+    }, [page.url]);
 
-    useEffect(() =>
-    {
-        getUnreadStatus()
-        .then((data) => 
-        {
-          setHasUnreadMail(data.has_unread_mail);
-          setHasUnreadNotifications(data.has_unread_notifications);  
-        })
-        .catch((err) =>
-        {
-            console.error(getErrorMessage(err));
-        });
-    },[setHasUnreadMail, setHasUnreadNotifications]);
+    // unread status is supplied from server via Inertia shared props
 
     const handleResendVerificationEmail = async (e) =>
     {
@@ -77,35 +63,27 @@ function DashboardLayout({ currentTab, headerText, children })
         setIsSubmitting(true);
         try
         {
-            let message;
-            const status = await sendVerificationEmail();
+            const res = await fetch('/resend-verification', { method: 'POST', headers: { 'Accept': 'application/json' }, credentials: 'same-origin' });
+            const payload = await res.json();
+            const status = payload?.status;
             if (status === 'send_link_already_verified')
             {
-                message = 'Your email address is already verified.';
-                setSuccess(message);
-            }
-            else if (status === 'unauthorized')
-            {
-                message = 'Please log in to perform this action.';
-                setSuccess(message);
-                
-            setSuccess(message);
+                setSuccess('Your email address is already verified.');
             }
             else if (status === 'send_link_sent')
             {
-                message = 'Verification e-mail sent. Please check your inbox.';
-                setSuccess(message);
+                setSuccess('Verification e-mail sent. Please check your inbox.');
             }
             else if (status === 'invalid_link')
             {
-                message = 'Invalid link.';
-                message = !user?.email_verified_at ? (message + ' Please click above to resend verification e-mail.') : message;
+                const message = (isAuthenticated && !user?.is_email_verified)
+                    ? 'Invalid link. Please click above to resend verification e-mail.'
+                    : 'Invalid link.';
                 setError(message);
             }
             else if (status)
             {
-                message = status;
-                setSuccess(message);
+                setSuccess(status);
             }
         }
         catch (err)
@@ -120,7 +98,7 @@ function DashboardLayout({ currentTab, headerText, children })
     
     useEffect(() => 
     {
-        const params = new URLSearchParams(location.search);
+        const params = new URLSearchParams(search);
         const status = params.get('status'); // Get the 'status' query parameter
 
         if (!status) return;
@@ -128,7 +106,7 @@ function DashboardLayout({ currentTab, headerText, children })
         async function logoutOnCancel()
         {
             setIsSubmitting(true);
-            await logout();
+            await router.post('/logout');
             const message = 'Your registration has been successfully cancelled.';
             setSuccess(message);
             setIsSubmitting(false);
@@ -142,7 +120,7 @@ function DashboardLayout({ currentTab, headerText, children })
                 if (status === 'verify_verified') 
                 {
                     message = 'Your email has been successfully verified!';
-                    await refreshUser();
+                    await router.reload();
                 } 
                 else if (status === 'verify_already_verified') 
                 {
@@ -176,12 +154,11 @@ function DashboardLayout({ currentTab, headerText, children })
                 }
 
                 setSuccess(message); // Set the message in state
-
-                router.visit(location.pathname, { replace: true });
+                router.visit(pathname, { replace: true });
             }
         }
         handleVerificationStatus();
-    }, [location, logout, navigate, isAuthenticated, user, refreshUser]);
+    }, [page.url, isAuthenticated, user]);
 
     return (
     <Layout classes={containerClasses} isDashboard={true}>

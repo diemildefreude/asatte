@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import './Layout.css';
 import Header from './Header';
+import InertiaAuthBridge from '../common/InertiaAuthBridge';
 const APP_NAME = process.env.REACT_APP_NAME;
 
 function Layout({children, isDashboard=false, classes=""})
@@ -31,6 +32,7 @@ function Layout({children, isDashboard=false, classes=""})
     return (
     <>
         <Header></Header>
+        <InertiaAuthBridge />
         <div className={classNames}>
         {
             isDashboard ? (

@@ -1,1110 +1,236 @@
-import React, { useState, useEffect, createContext, useContext, useCallback } from 'react';
-import api from '../services/api';
-import { retryOperation } from '../utils/helpers';
-const AuthContext = createContext(null);
+import React, { createContext, useContext, useState } from 'react';
+import { router } from '@inertiajs/react';
 
-export const LoginType =
-{
+export const LoginType = {
   Email: 'email',
   Github: 'github',
-  Google: 'google'
-}
+  Google: 'google',
+};
 
-export const AuthProvider = ({ children }) => 
-{
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [user, setUser] = useState(null);
-    const [isLoading, setIsLoading] = useState(true);
-    // ... login, logout functions ...
+const AuthContext = createContext(null);
 
-    // Initial check for token on app load
-    useEffect(() => 
-    {
-        const token = localStorage.getItem('access_token');
-        const storedUser = localStorage.getItem('user');
+const callApi = async (path, { method = 'GET', data = null, params = null } = {}) => {
+  const base = '/api';
+  let url = base + path;
+  if (params) url += `?${new URLSearchParams(params).toString()}`;
 
-        if (token && storedUser) 
-        {
-          setIsAuthenticated(true);
-          try 
-          {
-              setUser(JSON.parse(storedUser));
-          } 
-          catch (e) 
-          {
-              console.error("Failed to parse user data from localStorage", e);
-              localStorage.removeItem('user'); // Clear corrupted data
-              setIsAuthenticated(false); // Assume not authenticated if user data is bad
-          }
-        }
-        setIsLoading(false); // Finished initial loading check
-    }, []);
-
-    /**
-   * Handles the resending of an e-mail verification link.
-   * Makes an API call, stores tokens, and updates authentication state.
-   * @returns {Promise<Object>} A promise that resolves with user data on success, or rejects with an error.
-   */
-    const sendVerificationEmail = async () =>
-    {
-      if(!isAuthenticated)
-      {
-        return "unauthenticated";
-      }
-      try
-      {
-        const response = await api.post('/resend-verification');
-        const { status } = response.data;
-        return status;
-      }
-      catch (error) 
-      {
-          console.error('Registration failed in AuthContext:', error.response?.data || error.message);
-          throw error;
-      }
-    };
-     /**
-   * Handles the user registration process.
-   * Makes an API call, stores tokens, and updates authentication state.
-   * @param {LoginType} Email, Github or Google.
-   * @param {string} email - The email entered by the user.
-   * @param {string} username - The username entered by the user.
-   * @param {string} password - The user's password.
-   * @param {string} birthdate - The user's birthdate: yyyy-mm-dd'.
-   * @returns {Promise<Object>} A promise that resolves with user data on success, or rejects with an error.
-   */
-    const registerWithEmail = async (loginType, email, username, 
-      password, passwordConfirmation, birthdate, showEmailInProfile, isUserHuman, isUserRobot) =>
-    {
-      try
-      {
-        const formData = new FormData();
-        formData.append('login_type', loginType);
-        formData.append('email', email);
-        formData.append('username', username);
-        formData.append('password', password);
-        formData.append('password_confirmation', passwordConfirmation);
-        formData.append('birthdate', birthdate);
-        if(showEmailInProfile)
-        {
-          formData.append('show_email_in_profile', showEmailInProfile);
-        }
-        if(isUserHuman)
-        {
-          formData.append('is_user_human', isUserHuman);
-        }
-        if(isUserRobot)
-        {
-          formData.append('is_user_robot', isUserRobot);
-        }
-        const response = await api.post('/register', formData);
-        
-        if(response.data.status == 'happy_landings')
-        {
-          return response.data;
-        }
-        const { access_token, refresh_token, user: userData } = response.data;
-
-            // Store tokens and user data in localStorage to log the user in immediately
-            localStorage.setItem('access_token', access_token);
-            if (refresh_token) 
-            {
-                localStorage.setItem('refresh_token', refresh_token);
-            }
-            localStorage.setItem('user', JSON.stringify(userData));
-
-            // Update the React context state
-            setIsAuthenticated(true);
-            setUser(userData);
-
-            // Return user data to the calling component (e.g., Registration.jsx)
-            return userData;
-      }
-      catch (error) 
-      {
-          console.error('Registration failed in AuthContext:', error.response?.data || error.message);
-          // Clear any potentially lingering or invalid data on failed registration
-          localStorage.clear();
-          setIsAuthenticated(false);
-          setUser(null);
-          // Re-throw the error so the calling component can catch and display specific messages
-          throw error;
-      }
-    };
-/**
-   * Handles the user login process.
-   * Makes an API call, stores tokens, and updates authentication state.
-   * @param {string} loginField - The username or email entered by the user.
-   * @param {string} password - The user's password.
-   * @returns {Promise<Object>} A promise that resolves with user data on success, or rejects with an error.
-   */
-    const login = async (loginField, password) => 
-    {
-        try 
-        {
-            const response = await api.post('/login', 
-            {
-                login_field: loginField, // This matches your Laravel controller's expected field
-                password: password,
-            });
-
-            const { access_token, refresh_token, user: userData } = response.data;
-
-            // Store tokens and user data in localStorage
-            localStorage.setItem('access_token', access_token);
-            if (refresh_token) {
-                localStorage.setItem('refresh_token', refresh_token);
-            }
-            localStorage.setItem('user', JSON.stringify(userData));
-
-            // Update the React context state
-            setIsAuthenticated(true);
-            setUser(userData);
-
-            // Return user data or a success indicator
-            return userData; // Or { success: true, user: userData }
-        } 
-        catch (error) 
-        {
-            console.error('Login failed in AuthContext:', error.response?.data || error.message);
-            // Clear any potentially lingering or invalid tokens/user data on failed login
-            localStorage.clear();
-            setIsAuthenticated(false);
-            setUser(null);
-            // Re-throw the error to be caught by the component calling `login` (e.g., LoginPage)
-            throw error;
-        }
+  const opts = {
+    method,
+    headers: {
+      Accept: 'application/json',
+    },
+    credentials: 'same-origin',
   };
 
-  /**
-   * Handles the user logout process.
-   * Revokes token (backend), clears stored data, and updates authentication state.
-   */
-  const logout = async () => 
-  {
+  if (data) {
+    if (data instanceof FormData) {
+      opts.body = data;
+    } else {
+      opts.headers['Content-Type'] = 'application/json';
+      opts.body = JSON.stringify(data);
+    }
+  }
+
+  const res = await fetch(url, opts);
+  if (!res.ok) {
+    const text = await res.text();
+    let err;
     try {
-      // Attempt to call your backend logout endpoint to revoke the token
-      await api.post('/logout');
-      console.log('Backend token revoked successfully.');
-    } catch (error) {
-      console.error('Logout error from backend:', error.response?.data || error.message);
+      const json = JSON.parse(text || '{}');
+      err = json;
+    } catch (e) {
+      err = text || 'API error';
+    }
+    throw err;
+  }
+  try {
+    return await res.json();
+  } catch (e) {
+    return {};
+  }
+};
+
+export const AuthProvider = ({ children, initialPage = null }) => {
+  const pageProps = (initialPage && initialPage.props) || {};
+  const initialUser = pageProps?.auth?.user ?? null;
+
+  const [user, setUser] = useState(initialUser);
+  const [isAuthenticated, setIsAuthenticated] = useState(!!initialUser);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // syncInertiaUser allows an Inertia-aware child component to push the
+  // latest `props.auth.user` into this provider without calling usePage()
+  // from inside the provider (which breaks when provider wraps the Inertia app).
+  const syncInertiaUser = (u) => {
+    setUser(u ?? null);
+    setIsAuthenticated(!!u);
+  };
+
+  // Note: `login` and `registerWithEmail` removed; Login/Register pages
+  // should post directly with Inertia `useForm` or `router.post`.
+
+  const logout = () => {
+    router.post('/logout', {
+      onSuccess: () => {
+        setUser(null);
+        setIsAuthenticated(false);
+        router.visit('/');
+      },
+    });
+  };
+
+  const refreshUser = async () => {
+    try {
+      setIsLoading(true);
+      const data = await callApi('/user');
+      setUser(data ?? null);
+      setIsAuthenticated(!!data);
+      return data;
     } finally {
-      localStorage.clear(); // Clear all auth-related items from localStorage
-      setIsAuthenticated(false);
-      setUser(null);
+      setIsLoading(false);
     }
   };
 
-  const refreshUser = async () => 
-  {
-      try 
-      {
-          setIsLoading(true); // Set loading state while fetching
-          const response = await api.get('/user'); // Call your /api/user endpoint
-          setUser(response.data); // Update the user state with fresh data
-          localStorage.setItem('user', JSON.stringify(response.data)); // Update localStorage
-          console.log("user refreshed?",response.data);
-        } 
-      catch (error) 
-      {
-          console.error("Failed to refresh user data:", error);
-          // Let api.js handle the expiration routing!
-          /* if (error.response && error.response.status === 401) 
-          {
-              logout(); // Use your existing logout function
-          } */
-      } 
-      finally 
-      {
-          setIsLoading(false);
-      }
+  const sendVerificationEmail = async () => {
+    return callApi('/resend-verification', { method: 'POST' });
   };
 
-  const loginSocialUser = useCallback((accessToken, userData) => 
-  {
-        localStorage.setItem('access_token', accessToken);
-        localStorage.setItem('user', JSON.stringify(userData));
-        setIsAuthenticated(true);
-        setUser(userData);
-        setIsLoading(false);
-  }, []);
+  const requestRecoveryMail = async (loginField) => {
+    return callApi('/request-recovery', { method: 'POST', data: { login_field: loginField } });
+  };
 
-  const completeSocialProfile = async(username, birthdate, showEmailInProfile, isUserHuman, isUserRobot) =>
-  {
-    try
-    {
-      setIsLoading(true);
-      const formData = new FormData;
-      formData.append("username",username);
-      formData.append("birthdate",birthdate);
-      if(showEmailInProfile)
-      {        
-        formData.append("show_email_in_profile", showEmailInProfile);
-      }
-      if(isUserHuman)
-      {
-        formData.append('is_user_human', isUserHuman);
-      }
-      if(isUserRobot)
-      {
-        formData.append('is_user_robot', isUserRobot);
-      }
-      const response = await api.post('/complete-social-profile', formData);
-      return response.data;
-    }
-    catch(error)
-    {
-      throw error;
-    } 
-    finally 
-    {
-        setIsLoading(false);
-    }
-  }
-  const fetchAbout = async () =>
-  {
-    try
-    {
-      setIsLoading(true);
-      const response = await api.get('/about');
-      return response.data;
-    }
-    catch(error)
-    {
-      throw error;
-    }
-    finally
-    {
-      setIsLoading(false);
-    }
-  }
-  const updateAbout = async (statement) =>
-  {
-    try
-    {
-      setIsLoading(true);
-      const formData = new FormData();    
-      formData.append('_method', 'PUT');
-      formData.append('statement', statement);
-      const response = await api.post('/update-about', formData);
-      return response.data;
-    }
-    catch(error)
-    {
-      throw error;
-    }
-    finally
-    {
-      setIsLoading(false);
-    }
-  }
-  const updateBio = async (bio) =>
-  {
-    try
-    {
-      setIsLoading(true);
-      const response = await api.post('/update-bio',
-      {
-        bio: bio
-      });
-      return response.data;
-    }
-    catch(error)
-    {
-      throw error;
-    }
-    finally
-    {
-      setIsLoading(false);
-    }
-  }
-  const updateAvatar = async (avatar) => //blob
-  {    
+  const resetPassword = async (email, token, password, passwordConfirmation) => {
+    return callApi('/reset-password', { method: 'POST', data: { email, token, password, password_confirmation: passwordConfirmation } });
+  };
+
+  // Lightweight wrappers for various API methods so existing imports don't break.
+  const fetchPosts = async (params) => callApi('/posts', { method: 'GET', params });
+  const fetchMyPosts = async (params) => callApi('/my-posts', { method: 'GET', params });
+  const fetchLikedPosts = async (params) => callApi('/my-liked-posts', { method: 'GET', params });
+  const fetchPostToEdit = async (username, postUrl) => callApi(`/user/${username}/post/${postUrl}/edit`, { method: 'GET' });
+  const fetchSinglePost = async (username, postUrl) => callApi(`/user/${username}/post/${postUrl}`, { method: 'GET' });
+
+  const createPost = async (formData) => callApi('/posts', { method: 'POST', data: formData });
+  const updatePost = async (postId, formData) => callApi(`/posts/${postId}`, { method: 'POST', data: formData });
+  const deletePost = async (id) => callApi(`/posts/${id}`, { method: 'DELETE' });
+
+  const fetchUser = async (username) => callApi(`/user/${username}`, { method: 'GET' });
+
+  const toggleLike = async (postId) => callApi(`/posts/${postId}/like`, { method: 'POST' });
+  const recordView = async (postId) => callApi(`/posts/${postId}/record-view`, { method: 'POST' });
+
+  const createComment = async (content, postId, parentId = null) => {
     const formData = new FormData();
-    formData.append('avatar', avatar, 'canvas_image.webp');
-    try
-    {
-      setIsLoading(true);
-      const response = await api.post('/update-avatar', formData,
-      {
-        headers: {
-            'Content-Type': undefined // Let Axios determine the Content-Type for FormData
-        }
-      });
-      return response.data;
-    }
-    catch (error)
-    {
-      throw error;
-    }
-    finally
-    {
-      setIsLoading(false);
-    }
-  }
-  const updateProfileInfo = async (website, location, showEmail) =>
-  {
-    try
-    {
-      setIsLoading(true);
-      const formData = new FormData;
-      formData.append('website', website);
-      formData.append('location', location);
-      if(showEmail)
-      {
-        formData.append('show_email_in_profile', showEmail);
-      }
-      const response = await api.post('/update-profile', formData);
-      return response.data;
-    }
-    catch (error) 
-    {
-      throw error;
-    } 
-    finally 
-    {
-        setIsLoading(false);
-    }
-  }
-  const changePassword = async (oldPassword, newPassword, passwordConfirmation) =>
-  {
-    try
-    {
-      setIsLoading(true);
-      const response = await api.post('/change-password',
-      {
-        old_password: oldPassword,
-        new_password: newPassword,
-        new_password_confirmation: passwordConfirmation
-      }); 
-      return response.data;
-    } 
-    catch (error) 
-    {
-      throw error;
-    } 
-    finally 
-    {
-        setIsLoading(false);
-    }
-  }
+    formData.append('content', content);
+    if (parentId) formData.append('parent_id', parentId);
+    return callApi(`/posts/${postId}/comments`, { method: 'POST', data: formData });
+  };
+  const updateComment = async (commentId, postId, content) => {
+    const formData = new FormData();
+    formData.append('_method', 'PUT');
+    formData.append('content', content);
+    return callApi(`/posts/${postId}/comments/${commentId}`, { method: 'POST', data: formData });
+  };
+  const deleteComment = async (commentId, postId) => callApi(`/posts/${postId}/comments/${commentId}`, { method: 'DELETE' });
 
-  const requestRecoveryMail = async (usernameOrEmail) =>
-  {
-    try
-    {
-      setIsLoading(true);
-      const response = await api.post('/request-recovery',
-      {
-        login_field: usernameOrEmail
-      });
-      return response.data;
-    }
-    catch (error) 
-    {
-      throw error;
-    } 
-    finally 
-    {
-        setIsLoading(false);
-    }
-  }
+  const fetchNotifications = async (params) => callApi('/notifications', { method: 'GET', params });
+  const getUnreadStatus = async () => callApi('/unread-status', { method: 'GET' });
 
-  const resetPassword = async (email, token, password, passwordConfirmation) => 
-  {
-      try 
-      {
-          setIsLoading(true);
-          const response = await api.post('/reset-password', 
-          {
-              email: email,
-              token: token,
-              password: password,
-              password_confirmation: passwordConfirmation,
-          });
-          const { message, status } = response.data;
-          return { message, status }; 
-      } 
-      catch (error) 
-      {
-          throw error; // Re-throw the error for the component to handle
-      } 
-      finally 
-      {
-          setIsLoading(false);
-      }
+  const toggleFollow = async (userId) => callApi(`/${userId}/follow`, { method: 'POST' });
+  const fetchFollowing = async (userId, params) => callApi(`/${userId}/following`, { method: 'GET', params });
+  const fetchFollowers = async (userId, params) => callApi(`/${userId}/followers`, { method: 'GET', params });
+
+  const userSearch = async (searchTerm) => callApi(`/usersearch/${encodeURIComponent(searchTerm)}`, { method: 'GET' });
+
+  const createDM = async (formData) => callApi('/direct-mails', { method: 'POST', data: formData });
+  const updateDM = async (messageID, formData) => callApi(`/direct-mails/${messageID}`, { method: 'POST', data: formData });
+  const deleteDM = async (messageID) => callApi(`/direct-mails/${messageID}`, { method: 'DELETE' });
+  const fetchConversation = async (id) => callApi(`/direct-mails/${id}`, { method: 'GET' });
+  const fetchConversations = async (itemsPerPage, currentPage) => callApi('/direct-mails', { method: 'GET', params: { items_per_page: itemsPerPage, current_page: currentPage } });
+
+  const updateProfileInfo = async (website, location, showEmail) => {
+    const formData = new FormData();
+    formData.append('website', website || '');
+    formData.append('location', location || '');
+    if (showEmail) formData.append('show_email_in_profile', showEmail);
+    return callApi('/update-profile', { method: 'POST', data: formData });
   };
 
-  const createPost = async ( postUrl, title, subtitle, website, sourceCode, mainVideo, isPrivate, statement, imageFields, isNews=false) =>
-  {
-    try
-    {
-      setIsLoading(true);
-      const formData = new FormData();
-      formData.append('post_url', postUrl);
-      formData.append('title', title);
-      formData.append('subtitle', subtitle);
-      formData.append('website', website);
-      formData.append('source_code', sourceCode);
-      formData.append('main_video', mainVideo);
-      if(isPrivate)
-      {
-        formData.append('is_private', isPrivate);
-      }
-      if(isNews)
-      {
-        formData.append('is_news', isNews);
-      }
-      formData.append('statement', statement);
-      
-      imageFields.forEach((field, index) =>
-      {
-        if (field.value instanceof File) 
-        {
-          formData.append(`gallery_images[${index}][file]`, field.value);
-        } 
-        else 
-        {
-          formData.append(`gallery_images[${index}][url]`, field.value);
-        }
-        formData.append(`gallery_images[${index}][alt]`, field.alt);
-      });
+  const updateBio = async (bio) => callApi('/update-bio', { method: 'POST', data: { bio } });
+  const updateAvatar = async (formData) => callApi('/update-avatar', { method: 'POST', data: formData });
 
-      const response = await api.post('/posts', formData,
-      {
-        headers: {
-            'Content-Type': undefined // Let Axios determine the Content-Type for FormData
-        }
-      });
-      return response.data;
-    }
-    catch (error)
-    {
-      throw error;
-    }
-    finally
-    {
-      setIsLoading(false);
-    }
-  }
+  const updateAbout = async (statement) => callApi('/update-about', { method: 'POST', data: { statement } });
+  const fetchAbout = async () => callApi('/about', { method: 'GET' });
 
-  const updatePost = async ( postId, postUrl, title, subtitle, website, sourceCode, mainVideo, isPrivate, statement, imageFields, isNews=false) =>
-  {
-    console.log(imageFields);
-    try
-    {      
-      setIsLoading(true);
-      const formData = new FormData();
-      formData.append('_method', 'PUT');
-      formData.append('post_url', postUrl);
-      formData.append('title', title);
-      formData.append('subtitle', subtitle);
-      formData.append('website', website);
-      formData.append('source_code', sourceCode);
-      formData.append('main_video', mainVideo);
-      if(isPrivate)
-      {
-        formData.append('is_private', isPrivate);
-      }
-      if(isNews)
-      {
-        formData.append('is_news', isNews);
-      }
-      formData.append('statement', statement);
-
-      imageFields.forEach((field, index) =>
-      {
-        if (field.value instanceof File) 
-        {
-          formData.append(`gallery_images[${index}][file]`, field.value);
-        } 
-        else 
-        {
-          formData.append(`gallery_images[${index}][url]`, field.value);
-        }
-        formData.append(`gallery_images[${index}][alt]`, field.alt);
-      });
-      const response = await api.post(`/posts/${postId}`, formData,
-      {
-        headers: {
-            'Content-Type': undefined // Let Axios determine the Content-Type for FormData
-        }
-      });
-      return response.data;
-    }
-    catch (error)
-    {
-      throw error;
-    }
-    finally
-    {
-      setIsLoading(false);
-    }
-  }
-
-  const deletePost = async (id) =>
-  {
-    setIsLoading(true);
-    try
-    {
-      const response = await api.delete(`/posts/${id}`);
-      return response.data;
-    }
-    catch (error) 
-    {
-      throw error;
-    }
-    finally
-    {
-      setIsLoading(false);
-    }
-  }
-  const fetchPostToEdit = async (username, postUrl) =>
-  {
-    setIsLoading(true);
-    const fetchFn = async () =>
-    {
-      try
-      {
-        const response = await api.get(`/user/${username}/post/${postUrl}/edit`);
-        return response.data;
-      }
-      catch(err)
-      {
-        throw err;
-      }      
-    }
-    return retryOperation(
-        fetchFn,
-        3, // Number of retries (e.g., 3 attempts total)
-        500, // Delay in milliseconds between retries (1.5 seconds)
-        'Failed to fetch post after multiple attempts.'
-    );
-  }
-  const fetchSinglePost = async (username, postUrl) =>
-  {
-      setIsLoading(true);
-      const fetchFn = async () =>
-      {
-        const response = await api.get(`/user/${username}/post/${postUrl}`);
-        return response.data;
-      }
-      return retryOperation(
-          fetchFn,
-          3, // Number of retries (e.g., 3 attempts total)
-          500, // Delay in milliseconds between retries (1.5 seconds)
-          'Failed to fetch post after multiple attempts.'
-      );
-  }
-
-  const fetchPosts = async (params) => 
-  {
-     //console.log("params?!", Object.fromEntries(params));
-     const fetchFn = async () => 
-      {
-        const response = await api.get('/posts', {params:params});
-        //console.log("response", response, "response.data", response.data);
-        return response.data;
-      };
-
-      // Use the retryOperation for fetchPosts
-      return retryOperation(
-          fetchFn,
-          3, // Number of retries (e.g., 3 attempts total)
-          500, // Delay in milliseconds between retries (1.5 seconds)
-          'Failed to fetch posts after multiple attempts.'
-      );
+  const toggleAdminPostHide = async (isHidden, postId, message = '') => {
+    const formData = new FormData();
+    formData.append('is_hidden_by_admin', isHidden);
+    if (isHidden && message) formData.append('message_to_user', message);
+    formData.append('_method', 'PUT');
+    return callApi(`/set-admin-hide/${postId}`, { method: 'POST', data: formData });
   };
 
-  const fetchMyPosts = async (params) =>
-  {
-    console.log("fetching my posts...", Object.fromEntries(params));
-    const fetchFn = async () => 
-    {
-      const response = await api.get('/my-posts', {params:params});
-      return response.data;
-    }
-
-    return retryOperation(
-        fetchFn,
-        3, // Number of retries (e.g., 3 attempts total)
-        500, // Delay in milliseconds between retries (1.5 seconds)
-        'Failed to fetch posts after multiple attempts.'
-    );
+  const sendContactMail = async (sender, email, subject, website, content) => {
+    const formData = new FormData();
+    formData.append('name', sender);
+    formData.append('email', email);
+    formData.append('subject', subject);
+    if (website) formData.append('website', website);
+    formData.append('content', content);
+    return callApi('/send-contact-mail', { method: 'POST', data: formData });
   };
 
-  const fetchLikedPosts = async (params) =>
-  {
-    //console.log("fetching liked posts...", Object.fromEntries(params));
-    const fetchFn = async () => 
-    {
-      const response = await api.get('/my-liked-posts', {params:params});
-      return response.data;
-    }
-
-    return retryOperation(
-        fetchFn,
-        3, // Number of retries (e.g., 3 attempts total)
-        500, // Delay in milliseconds between retries (1.5 seconds)
-        'Failed to fetch posts after multiple attempts.'
-    );
-  };
-
-  const fetchUser = async (username) =>
-  {
-    setIsLoading(true);
-    try
-    {
-      const response = await api.get(`/user/${username}`);
-      return response.data;
-    }
-    catch(error)
-    {
-      throw error;
-    }
-    finally
-    {
-      setIsLoading(false);
-    }
-  }
-
-  const toggleLike = async (postId) =>
-  {
-    setIsLoading(true);
-    try
-    {
-      const response = await api.post(`/posts/${postId}/like`);
-      return response.data;
-    }
-    catch(error)
-    {
-      throw error;
-    }
-    finally
-    {
-      setIsLoading(false);
-    }
-  }
-  
-  const recordView = async (postId) =>
-  {
-     setIsLoading(true);
-    try
-    {
-      const response = await api.post(`/posts/${postId}/record-view`);
-      return response.data;
-    }
-    catch(error)
-    {
-      throw error;
-    }
-    finally
-    {
-      setIsLoading(false);
-    }
-  }
-  const fetchConversations = (itemsPerPage, currentPage) =>
-  {
-    const fetchFn = async () => 
-    {
-      const params = new URLSearchParams();
-      params.append('items_per_page', itemsPerPage);
-      params.append('current_page', currentPage);
-      //fetchLimit && params.append('amount', fetchLimit);
-      const response = await api.get(`/direct-mails`,{params:params});
-      return response.data;
-    };
-
-    // Use the retryOperation for fetchPosts
-    return retryOperation(
-        fetchFn,
-        3, // Number of retries (e.g., 3 attempts total)
-        500, // Delay in milliseconds between retries (1.5 seconds)
-        'Failed to fetch comments after multiple attempts.'
-    );
-  }
-  const fetchUserComments = (itemsPerPage, currentPage) =>
-  {
-      console.log("fUC", itemsPerPage, currentPage);
-      const fetchFn = async () => 
-      {
-        const params = new URLSearchParams();
-        params.append('items_per_page', itemsPerPage);
-        params.append('current_page', currentPage);
-        //fetchLimit && params.append('amount', fetchLimit);
-        const response = await api.get(`/comments`,{params:params});
-        return response.data;
-      };
-
-      // Use the retryOperation for fetchPosts
-      return retryOperation(
-          fetchFn,
-          3, // Number of retries (e.g., 3 attempts total)
-          500, // Delay in milliseconds between retries (1.5 seconds)
-          'Failed to fetch comments after multiple attempts.'
-      );
-  }
-  const createComment = async (content, postId, parentId=null) =>
-  {
-    console.log("sending comment api post call");
-    try
-    {
-      setIsLoading(true);
-      const formData = new FormData();
-      formData.append('content', content);
-      if(parentId)
-      {
-        formData.append('parent_id', parentId);
-      }
-
-      const response = await api.post(`/posts/${postId}/comments`, formData);
-      return response.data;
-    }
-    catch (error)
-    {
-      throw error;
-    }
-    finally
-    {
-      setIsLoading(false);
-    }
-  }
-  const updateComment = async (commentId, postId, content) =>
-  {
-    console.log("sending comment api put call");
-    try
-    {
-      setIsLoading(true);
-      const formData = new FormData();    
-      formData.append('_method', 'PUT');
-      formData.append('content', content);
-
-      const response = await api.post(`/posts/${postId}/comments/${commentId}`, formData);
-      return response.data;
-    }
-    catch (error)
-    {
-      throw error;
-    }
-    finally
-    {
-      setIsLoading(false);
-    }
-  }
-  const deleteComment = async (commentId, postId) =>
-  {
-    console.log("sending comment api delete call", commentId, postId);
-    try
-    {
-      setIsLoading(true);
-
-      const response = await api.delete(`/posts/${postId}/comments/${commentId}`);
-      return response.data;
-    }
-    catch (error)
-    {
-      throw error;
-    }
-    finally
-    {
-      setIsLoading(false);
-    }
-  }
-  const fetchNotifications = async (itemsPerPage, currentPage, unreadOnly=false) =>
-  {
-    console.log("fetching page:", currentPage);
-      const fetchFn = async () => 
-      {
-        const params = new URLSearchParams();
-        params.append('items_per_page', itemsPerPage);
-        params.append('current_page', currentPage);
-        if(unreadOnly)
-        {
-          params.append('unread_only', true);
-        }
-        const response = await api.get(`/notifications`,{params:params});
-        return response.data;
-      };
-
-      // Use the retryOperation for fetchPosts
-      return retryOperation(
-          fetchFn,
-          3, // Number of retries (e.g., 3 attempts total)
-          500, // Delay in milliseconds between retries (1.5 seconds)
-          'Failed to fetch notifications after multiple attempts.'
-      );
-  }
-  const getUnreadStatus = async () =>
-  {
-    try 
-    {
-      const response = await api.get('/unread-status');
-      return response.data;
-    } 
-    catch (error) 
-    {
-      // If it's a 401, the interceptor handles it. 
-      // Just log other unexpected errors so they don't crash layout components.
-      console.error("Failed to get unread status:", error);
-      return { mail: 0, notifications: 0 }; // Return a safe fallback object so the UI doesn't break
-    }
-    /* const fetchFn = async () => 
-      {
-        const response = await api.get('/unread-status');
-        return response.data;
-      };
-
-      // Use the retryOperation for fetchPosts
-      return retryOperation(
-          fetchFn,
-          3, // Number of retries (e.g., 3 attempts total)
-          500, // Delay in milliseconds between retries (1.5 seconds)
-          'Failed to fetch notice counts after multiple attempts.'
-      ); */
-  }
-
-  const toggleFollow = async (userId) =>
-  {
-    //console.log("toggling like for user " + userId);
-    setIsLoading(true);    
-    try
-    {
-      const response = await api.post(`/${userId}/follow`);
-      return response.data;
-    }
-    catch(error)
-    {
-      throw error;
-    }
-    finally
-    {
-      setIsLoading(false);
-    }
-  }
-  const fetchFollowing = async (userId, itemsPerPage, currentPage) =>
-  {    
-    setIsLoading(true);
-    const params = new URLSearchParams();
-    params.append('items_per_page', itemsPerPage);
-    params.append('current_page', currentPage);
-    
-    console.log("fetching following of user:", userId, currentPage, Object.fromEntries(params)); 
-    try
-    {
-      const response = await api.get(`${userId}/following`, {params: params});
-      return response.data;
-    }
-    catch(error)
-    {
-      throw error;
-    }
-    finally
-    {
-      setIsLoading(false);
-    }
-  }
-  const fetchFollowers = async (userId, itemsPerPage, currentPage) =>
-  {
-    setIsLoading(true);
-    const params = new URLSearchParams();
-    params.append('items_per_page', itemsPerPage);
-    params.append('current_page', currentPage);
-    try
-    {
-      const response = await api.get(`${userId}/followers`, {params: params});
-      return response.data;
-    }
-    catch(error)
-    {
-      throw error;
-    }
-    finally
-    {
-      setIsLoading(false);
-    }
-  }
-  const userSearch = async (searchTerm) =>
-  {
-    setIsLoading(true);
-    try
-    {
-      const response = await api.get(`usersearch/${searchTerm}`);
-      return response.data;
-    }
-    catch(error)
-    {
-      throw error;
-    }
-    finally
-    {
-      setIsLoading(false);
-    }
-  }
-  const toggleAdminPostHide = async (isHidden, postId, message="") =>
-  {
-    try
-    {
-      setIsLoading(true);
-      const formData = new FormData();
-      formData.append('is_hidden_by_admin', isHidden);
-      if(isHidden && message)
-      {
-        formData.append('message_to_user', message);
-      }
-      formData.append('_method', 'PUT');
-      const response = await api.post(`/set-admin-hide/${postId}`, formData);
-      return response.data;
-    }
-    catch(err)
-    {
-      throw err;
-    }
-    finally
-    {
-      setIsLoading(false);
-    }
-  }
-
-  const createDM = async (conversationID=null, content, parentID=null, recipients=null, subject="") =>
-  {
-    console.log("sending DM api post call");
-    try
-    {
-      setIsLoading(true);
-      const formData = new FormData();
-      formData.append('content', content);
-      if(parentID)
-      {
-        formData.append('parent_id', parentID);
-      }
-      if(conversationID)
-      {
-        formData.append('conversation_id', conversationID);
-      }
-      else
-      {
-        formData.append('subject', subject);
-        recipients.forEach((user, index) =>
-        {
-          formData.append(`recipients[${index}]`, user.id);
-        });
-      }
-      console.log("createDM", content, recipients, subject);
-      const response = await api.post(`/direct-mails`, formData);
-      return response.data;
-    }
-    catch (error)
-    {
-      throw error;
-    }
-    finally
-    {
-      setIsLoading(false);
-    }
-  }
-  const deleteDM = async (messageID) =>
-  {
-    console.log("sending DM api delete call");
-    try
-    {
-      setIsLoading(true);
-      const response = await api.delete(`/direct-mails/${messageID}`);
-      return response.data;
-    }
-    catch (error)
-    {
-      throw error;
-    }
-    finally
-    {
-      setIsLoading(false);
-    }
-  }
-  const fetchConversation = useCallback(async (conversationID) =>
-  {
-    setIsLoading(true);
-    try
-    {
-      console.log("fetching conversation " + conversationID);
-      const response = await api.get(`/direct-mails/${conversationID}`);
-      return response.data;
-    }
-    catch(err)
-    {
-      throw err;
-    }
-    finally
-    {
-      setIsLoading(false);
-    }
-  },[]);
-
-  const updateDM = useCallback(async (messageID, content) =>
-  {
-    setIsLoading(true);
-    try
-    {
-      const formData = new FormData();
-      formData.append('content', content);
-      formData.append('_method', 'PUT');
-      const response = await api.post(`/direct-mails/${messageID}`, formData);
-      return response.data;
-    }
-    catch (error)
-    {
-      throw error;
-    }
-    finally
-    {
-      setIsLoading(false);
-    }
-  },[]);
-
-  // searchPosts removed: Search is now handled via Inertia props and SearchController
-
-  const sendContactMail = useCallback(async (sender, email, subject, website, content) =>
-  {
-    setIsLoading(true);
-    try
-    {
-      const formData = new FormData();
-      formData.append('name', sender);
-      formData.append('email', email);
-      formData.append('subject', subject);
-      if(website)
-      {        
-        formData.append('website', website);
-      }
-      formData.append('content', content);
-      const response = await api.post(`/send-contact-mail`, formData);
-      return response.data;
-    }
-    catch(err)
-    {
-      throw err;
-    }
-    finally
-    {
-      setIsLoading(false);
-    }
-  },[]);
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, logout, 
-      changePassword, registerWithEmail, sendVerificationEmail, refreshUser,
-      requestRecoveryMail, resetPassword, completeSocialProfile, loginSocialUser,
-      updateProfileInfo, isLoading, updateBio, updateAvatar, createPost, updatePost,
-      fetchSinglePost, fetchPosts, fetchMyPosts, deletePost, fetchUser, toggleLike,
-      recordView, createComment, fetchUserComments, updateComment, deleteComment,
-      fetchLikedPosts, fetchNotifications, getUnreadStatus, toggleFollow,
-      fetchFollowing, fetchFollowers, userSearch, createDM, updateDM, deleteDM,
-      fetchConversation, fetchConversations, updateAbout, fetchAbout,
-      toggleAdminPostHide, sendContactMail, fetchPostToEdit}}>
+    <AuthContext.Provider
+      value={{
+        isAuthenticated,
+        user,
+        logout,
+        syncInertiaUser,
+        sendVerificationEmail,
+        refreshUser,
+        requestRecoveryMail,
+        resetPassword,
+        createPost,
+        updatePost,
+        deletePost,
+        fetchPostToEdit,
+        fetchSinglePost,
+        fetchPosts,
+        fetchMyPosts,
+        fetchLikedPosts,
+        fetchUser,
+        toggleLike,
+        recordView,
+        createComment,
+        updateComment,
+        deleteComment,
+        fetchNotifications,
+        getUnreadStatus,
+        toggleFollow,
+        fetchFollowing,
+        fetchFollowers,
+        userSearch,
+        createDM,
+        updateDM,
+        deleteDM,
+        fetchConversation,
+        fetchConversations,
+        updateProfileInfo,
+        updateBio,
+        updateAvatar,
+        updateAbout,
+        fetchAbout,
+        toggleAdminPostHide,
+        sendContactMail,
+        isLoading,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => 
-{
-  return useContext(AuthContext);
-};
+export const useAuth = () => useContext(AuthContext);
+
+export default AuthContext;

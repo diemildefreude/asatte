@@ -17,7 +17,7 @@ createInertiaApp({
         const root = createRoot(el);
 
         root.render(
-            <AuthProvider>
+            <AuthProvider initialPage={props.initialPage}>
                 <App {...props} />
             </AuthProvider>
         );

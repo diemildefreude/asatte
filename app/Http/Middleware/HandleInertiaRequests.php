@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use App\Models\Notification;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -35,14 +36,34 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $user = $request->user();
+
+        $unread = [
+            'has_unread_notifications' => false,
+            'has_unread_mail' => false,
+        ];
+
+        if ($user) {
+            $unread = [
+                'has_unread_notifications' => Notification::where('user_id', $user->id)
+                    ->where('is_read', false)->exists(),
+                'has_unread_mail' => $user->conversations()
+                    ->where(function ($query) {
+                        $query->whereColumn('conversations.updated_at', '>', 'conversation_user.last_read_at')
+                              ->orWhereNull('conversation_user.last_read_at');
+                    })->exists(),
+            ];
+        }
+
         return array_merge(parent::share($request), [
             'auth' => [
-                'user' => $request->user(),
+                'user' => $user,
             ],
             'flash' => [
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),
             ],
+            'unread' => $unread,
         ]);
     }
 }

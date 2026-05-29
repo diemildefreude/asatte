@@ -16,10 +16,10 @@ function CommentSection({post, likeCount})
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
-    const location = useLocation();
-    
-    const currentUrl = `${window.location.origin}${location.pathname}${location.search}`;
-    const queryParams = new URLSearchParams(location.search);
+    const page = usePage();
+    const parsed = new URL(page.url || window.location.href, window.location.origin);
+    const currentUrl = `${parsed.origin}${parsed.pathname}${parsed.search}`;
+    const queryParams = new URLSearchParams(parsed.search);
     const commentId = queryParams.get('comment_id');
     const testText = `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.`
     
@@ -39,13 +39,12 @@ function CommentSection({post, likeCount})
         document.getElementById(`comment-${index}`)?.scrollIntoView();
 
         // 2️⃣ Clean the URL without adding a new history entry
-        const params = new URLSearchParams(location.search);
+        const params = new URLSearchParams(parsed.search);
         params.delete("comment_id");
-
         window.history.replaceState(
             null,
             "",
-            `${location.pathname}?${params.toString()}#comment-${index}`
+            `${parsed.pathname}?${params.toString()}#comment-${index}`
         );
     }, [commentId, comments]);
 
