@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import ImageZoom from '../../Components/common/ImageZoom';
-import { useAuth } from '../../contexts/AuthContext';
+import { useForm, router } from '@inertiajs/react';
 import { getErrorMessage, getImageFileFromInput, getImageUrlFromFile } from '../../utils/helpers';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -91,7 +91,7 @@ function AvatarSetter({user, setSuccess, setError, isSubmitting, setIsSubmitting
 
     const avatar = user?.avatar ? `${BACKEND_URL}/storage/images/uploaded/users/${user.username}/avatar/small/${user?.avatar}` 
         : `${BACKEND_URL}/storage/images/defaults/avatar.webp`;
-    const { updateAvatar, refreshUser } = useAuth();
+    const form = useForm({ avatar: null });
 
     const closeCropperAndClearInput = useCallback(() => 
     {
@@ -111,26 +111,24 @@ function AvatarSetter({user, setSuccess, setError, isSubmitting, setIsSubmitting
         setSuccess('');
         setError('');
         setIsSubmitting(true);
-        try
-        {
-            await updateAvatar(resizedImage);
-            setSuccess('Avatar successfully updated.');
-            await refreshUser();
-            setSelectedAvatar(null);
-        }
-        catch(err)
-        {
-            const errMsg = getErrorMessage(err);
-            setError(errMsg.trim());
-        }
-        finally
-        {
-            setIsSubmitting(false);
-        }
+        form.setData('avatar', resizedImage);
+        form.post('/update-avatar', {
+            onSuccess: () => {
+                setSuccess('Avatar successfully updated.');
+                setSelectedAvatar(null);
+            },
+            onError: (err) => {
+                const errMsg = getErrorMessage(err);
+                setError(errMsg.trim());
+            },
+            onFinish: () => {
+                setIsSubmitting(false);
+            }
+        });
 
     },[setIsImageCropperOpen, imageCropContainerRef.current, 
-        setSuccess, setError, setIsSubmitting, updateAvatar, 
-        refreshUser, setSelectedAvatar]);
+        setSuccess, setError, setIsSubmitting,// updateAvatar, 
+        setSelectedAvatar]);
 
     const handleFileSelect = useCallback(async (e) =>
     {

@@ -1,11 +1,11 @@
-import { Head } from '@inertiajs/react';
-import { useAuth } from '../../contexts/AuthContext';
+import { Head, usePage } from '@inertiajs/react';
 import DashboardLayout from "./DashboardLayout";
 import PostForm from "./PostForm";
 
 function NewPost()
 {
-    const { user } = useAuth();
+    const { props } = usePage();
+    const user = props?.auth?.user;
 
     return ( 
     <DashboardLayout 

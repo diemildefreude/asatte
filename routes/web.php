@@ -59,8 +59,27 @@ Route::get('/email/cancel/{id}/{hash}', [App\Http\Controllers\AuthController::cl
 Route::get('/user/{username}', [UserController::class, 'user']);
 Route::get('/user/{username}/post/{post_url}', [PostController::class, 'show']);
 Route::get('/user/{username}/post/{post_url}/edit', [PostController::class, 'edit'])->middleware('auth');
-Route::get('/about', [AboutController::class, 'show']);
+Route::get('/about', [AboutController::class, 'show'])->name('about');
+// Web (Inertia) endpoint to update About (session-based)
+Route::post('/update-about', [App\Http\Controllers\AboutController::class, 'update'])->middleware('auth')->name('about.update');
 
-// Dashboard (Inertia) - session protected. Catch-all for dashboard subpaths.
+// Dashboard (Inertia) - session protected. Specific dashboard subpages first.
+Route::get('/dashboard/posts', [App\Http\Controllers\DashboardController::class, 'posts'])->middleware('auth')->name('dashboard.posts');
+Route::get('/dashboard/news-posts', [App\Http\Controllers\DashboardController::class, 'newsPosts'])->middleware('auth')->name('dashboard.news');
+// New / Edit pages for posts (Inertia)
+Route::inertia('/dashboard/new-post', 'dashboard/NewPost')->middleware('auth')->name('dashboard.newPost');
+Route::inertia('/dashboard/new-news-post', 'dashboard/NewNewsPost')->middleware('auth')->name('dashboard.newNewsPost');
+Route::get('/dashboard/edit-post/{post_url}', [App\Http\Controllers\DashboardController::class, 'editPost'])->middleware('auth')->name('dashboard.editPost');
+
+// Fallback: catch-all dashboard route
 Route::inertia('/dashboard', 'Dashboard')->middleware('auth')->name('dashboard');
 Route::inertia('/dashboard/{any}', 'Dashboard')->where('any', '.*')->middleware('auth');
+
+// Dashboard update endpoints (session-based web routes)
+Route::post('/update-profile', [App\Http\Controllers\DashboardController::class, 'updateProfile'])->middleware('auth')->name('dashboard.updateProfile');
+Route::post('/update-bio', [App\Http\Controllers\DashboardController::class, 'updateBio'])->middleware('auth')->name('dashboard.updateBio');
+Route::post('/update-avatar', [App\Http\Controllers\DashboardController::class, 'updateAvatar'])->middleware('auth')->name('dashboard.updateAvatar');
+// Web (session) post management endpoints
+Route::post('/posts', [App\Http\Controllers\PostController::class, 'store'])->middleware('auth')->name('posts.store');
+Route::put('/posts/{post}', [App\Http\Controllers\PostController::class, 'update'])->middleware('auth')->name('posts.update');
+Route::delete('/posts/{post}', [App\Http\Controllers\PostController::class, 'destroy'])->middleware('auth')->name('posts.destroy');

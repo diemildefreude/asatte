@@ -88,12 +88,11 @@ function EditProfile()
         form.setData('location', locationField || '');
         form.setData('show_email_in_profile', !!showEmailInProfile);
 
-        form.post('/api/update-profile', {
+        form.post('/update-profile', {
             onSuccess: () => {
                 setSuccess(`Profile successfully updated.`);
                 setHasChanges(false);
                 setEditingField(null);
-                router.reload();
             },
             onError: (err) => {
                 const displayErrorMessage = getErrorMessage(err);

@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {  Link, router, usePage , Head } from '@inertiajs/react';
-import { useAuth } from '../../contexts/AuthContext';
 import FormField from '../../Components/common/FormField';
 import CheckboxField from '../../Components/common/CheckboxField';
 import RichTextEditor from '../../Components/common/RichTextEditor';
@@ -17,7 +16,7 @@ const createInitialImageFields = (post=null, user, postUrl) =>
 {
     if(post) 
     {
-        console.log("poast!", post);
+        //console.log("poast!", post);
         const images = post.gallery_image_urls;//JSON.parse(post.gallery_image_urls);
         const alts = post.gallery_alts;//JSON.parse(post.gallery_alts);
         return images.map((image, i) => ({
@@ -57,7 +56,7 @@ function hasImages(fields)
 function PostForm({isCreateForm=true, post=null, user, category=Category.Archive})
 {
     
-    const { createPost, updatePost, deletePost } = useAuth();
+    // Using Inertia form submissions instead of legacy AuthContext API
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [success, setSuccess] = useState("");
     const [error, setError] = useState("");
@@ -161,18 +160,60 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
         try
         {
             const message = isCreateForm ? 'Post successfully created.' : 'Post successfully updated.';
+            // Build FormData for multipart upload (files + fields)
+            const formData = new FormData();
+            formData.append('post_url', postUrl);
+            formData.append('title', title);
+            formData.append('subtitle', subtitle);
+            formData.append('website', website || '');
+            formData.append('source_code', sourceCode || '');
+            formData.append('main_video', mainVideo || '');
+            formData.append('is_private', isPrivate ? '1' : '0');
+            formData.append('is_news', isNews ? '1' : '0');
+            formData.append('statement', statementWithResizedImages);
+
+            // Attach gallery images as gallery_images[index][file] or [url] + alt
+            resizedGalleryImages.forEach((field, idx) =>
+            {
+                if(field.type === 'new' && field.value)
+                {
+                    formData.append(`gallery_images[${idx}][file]`, field.value);
+                }
+                else if(field.type === 'old')
+                {
+                    formData.append(`gallery_images[${idx}][url]`, field.value);
+                }
+                formData.append(`gallery_images[${idx}][alt]`, field.alt || '');
+            });
+
             if(isCreateForm)
             {
-                await createPost(postUrl, title, subtitle, website, sourceCode, mainVideo, 
-                    isPrivate, statementWithResizedImages, resizedGalleryImages, isNews);
-                setSuccess('Post successfully created.');
+                await new Promise((resolve, reject) => {
+                    router.post('/posts', formData, {
+                        preserveState: false,
+                        preserveScroll: true,
+                        onSuccess: (page) => resolve(page),
+                        onError: (errors) => reject(errors),
+                        onFinish: () => setIsSubmitting(false)
+                    });
+                });
             }
             else
             {
-                await updatePost(post.id, postUrl, title, subtitle, website, sourceCode,
-                    mainVideo, isPrivate, statementWithResizedImages, resizedGalleryImages, isNews);                
-                setSuccess('Post successfully updated.');
+                // Use method override for PUT when submitting FormData via POST
+                formData.append('_method', 'PUT');
+                await new Promise((resolve, reject) => {
+                    router.post(`/posts/${post.id}`, formData, {
+                        preserveState: false,
+                        preserveScroll: true,
+                        onSuccess: (page) => resolve(page),
+                        onError: (errors) => reject(errors),
+                        onFinish: () => setIsSubmitting(false)
+                    });
+                });
             }
+
+            setSuccess(message);
             router.visit('/dashboard/posts', { state:{message:message}});
             //REDIRECT TO dashboard/posts
         }
@@ -188,7 +229,7 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
         }
     },[setSuccess, setError, imageFields, isNews, isCreateForm, post, postUrl, 
         title, subtitle, website, mainVideo, isPrivate, statement, 
-        setIsSubmitting, createPost, updatePost]);
+        setIsSubmitting]);
 
     const handleDelete = useCallback(async () =>
     {
@@ -198,11 +239,19 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
         if(!isConfirmed)
         {
             return;            
-        }        
+        }
         setIsSubmitting(true);
         try
         {
-            await deletePost(post.id);
+            await new Promise((resolve, reject) => {
+                router.delete(`/posts/${post.id}`, {}, {
+                    preserveState: false,
+                    preserveScroll: true,
+                    onSuccess: () => resolve(),
+                    onError: (errors) => reject(errors),
+                    onFinish: () => setIsSubmitting(false)
+                });
+            });
             router.visit('/dashboard/posts', { state:{message:"Post successfully deleted."}});
         }
         catch(error)
@@ -214,7 +263,7 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
         {
             setIsSubmitting(false);
         }
-    },[post, navigate, setError, setIsSubmitting]);
+    },[post, setError, setIsSubmitting]);
 
     const handleMainVideoValidation = useCallback((proposedUrl, setFieldLocalError) =>
     {

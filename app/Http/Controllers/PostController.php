@@ -68,7 +68,7 @@ class PostController extends Controller
         
         $query = $userId ? $query->where('user_id', $userId) : $query;
 
-        $requestingUser = auth('api')->user();
+        $requestingUser = $request->user();
         
         $isAdminRequest = false;
         if($requestingUser)
@@ -339,16 +339,22 @@ class PostController extends Controller
         ];
 
         Post::create($postFields);
-        return response()->json([
+        $response = [
             'status' => 'post_created',
             'message' => 'Your post has been successfully created.'
-        ], 200);
+        ];
+        if ($request->wantsJson()) {
+            return response()->json($response, 200);
+        }
+        $request->session()->flash('success', $response['message']);
+        $redirectRoute = $isNews ? 'dashboard.news' : 'dashboard.posts';
+        return redirect()->route($redirectRoute);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $username, string $post_url)
+    public function show(Request $request, string $username, string $post_url)
     {
         $user = User::where('username', $username)->first();
         if (!$user) 
@@ -369,7 +375,7 @@ class PostController extends Controller
             ->where('user_id', $user->id);
 
         // The auth() helper works whether the route is protected or not.
-        $authenticatedUser = auth('api')->user();
+        $authenticatedUser = $request->user();
         //Log::info("authd?!: $authenticatedUser");
         if ($authenticatedUser) 
         {            
@@ -417,14 +423,14 @@ class PostController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $username, string $post_url)
+    public function edit(Request $request, string $username, string $post_url)
     {
-        $authUser = auth('api')->user();
+        $authUser = $request->user();
         $postCreator = User::where('username', $username)->first();
 
-        if ($authUser->id != $postCreator->id)
+        if (!$authUser || $authUser->id != $postCreator->id)
         {
-            return response()->json(['error' => 'No such post found.'], 404);
+            abort(404);
         }
 
         if (!$postCreator) 
@@ -604,10 +610,16 @@ class PostController extends Controller
         ];
 
         $post->update($postFields);
-        return response() ->json([
+        $response = [
             'status' => 'post_updated',
             'message' => 'Your post has been successfully updated.'
-        ], 200);
+        ];
+        if ($request->wantsJson()) {
+            return response()->json($response, 200);
+        }
+        $request->session()->flash('success', $response['message']);
+        $redirectRoute = $isNews ? 'dashboard.news' : 'dashboard.posts';
+        return redirect()->route($redirectRoute);
     }
 
     /**
@@ -629,11 +641,16 @@ class PostController extends Controller
         Storage::disk('public')->deleteDirectory($postFolder);
 
         $post->delete();
-
-        return response() ->json([
-            'status' => 'post_updated',
+        $response = [
+            'status' => 'post_deleted',
             'message' => 'Post successfully deleted.'
-        ], 200);
+        ];
+        if ($request->wantsJson()) {
+            return response()->json($response, 200);
+        }
+        $request->session()->flash('success', $response['message']);
+        $redirectRoute = $post->is_news ? 'dashboard.news' : 'dashboard.posts';
+        return redirect()->route($redirectRoute);
     }
 
     

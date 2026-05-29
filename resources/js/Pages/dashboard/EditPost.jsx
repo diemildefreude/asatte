@@ -1,6 +1,5 @@
 import DashboardLayout from "./DashboardLayout"
 import PostForm from "./PostForm"
-import { useAuth } from '../../contexts/AuthContext'
 import { useEffect, useState } from "react";
 import {  Link, router, usePage , Head } from '@inertiajs/react';
 import HiddenPostNotice from '../../Components/common/HiddenPostNotice';
@@ -8,8 +7,8 @@ import { getErrorMessage } from '../../utils/helpers';
 
     function EditPost({ post: initialPost })
     {
-        
-        const { user } = useAuth();
+        const { props } = usePage();
+        const user = props?.auth?.user;
         const [post, setPost] = useState(initialPost);
 
     return (

@@ -1,16 +1,17 @@
 import DashboardLayout from "./DashboardLayout";
 import "../DashboardProfile.css";
 import AutoloadTilesContainer from '../../Components/common/AutoloadTilesContainer';
-import { Category, FetchOrder, getScreenSize, monitorScreenSize } from '../../utils/helpers';
+import { Category, FetchOrder, getScreenSize, monitorScreenSize, MemberType } from '../../utils/helpers';
 import { useState, useEffect } from "react";
-import { useAuth } from '../../contexts/AuthContext';
 import {  Link, router, usePage , Head } from '@inertiajs/react';
 import DashboardCreateHeader from "./common/DashboardCreateHeader";
 
 function NewsPosts()
 {
     const [screenSize, setScreenSize] = useState(getScreenSize());
-    const {fetchPosts} = useAuth();
+    const { props } = usePage();
+    const user = props?.auth?.user;
+    const initialPosts = props?.newsPosts ?? null;
 
     useEffect(() => //check screen size at regular intervals.
     {   
@@ -19,16 +20,18 @@ function NewsPosts()
     }, [setScreenSize]);
 
     return ( 
-        <DashboardLayout currentTab="posts">
+        <DashboardLayout currentTab="news">
             <Head title="News Posts" />
             <DashboardCreateHeader
                 headerText="news posts"
                 createLink="/dashboard/new-news-post"
+                isVerified={user?.member_type === MemberType.Webmaster || user?.member_type === MemberType.Admin}
             />
             <AutoloadTilesContainer 
                 screenSize={screenSize}
                 isDashboard={true}
-                fetchMethod={fetchPosts}
+                initialPosts={initialPosts}
+                partialProp={'newsPosts'}
                 fetchOrder={FetchOrder.Descending}
                 category={Category.News}
             />

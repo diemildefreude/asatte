@@ -92,8 +92,14 @@ function saveEditorImages(string $contentHtml, array &$oldImgArr, string $folder
 
     // 1. IDENTIFY EXISTING IMAGES
     $quotedPath = preg_quote($storageBase, '/');
-    $patternExisting = '/src="' . $quotedPath . '\/([^"]+)"/i';
-    
+    // Match src attributes in a variety of forms:
+    // - "images/uploaded/..."
+    // - "/storage/images/uploaded/..."
+    // - "storage/images/uploaded/..."
+    // - "https://host/.../storage/images/uploaded/..."
+    // Support both single and double quotes.
+    $patternExisting = "/src=[\"'](?:https?:\\/\\/[^\"']+\\/)?\\/?(?:storage\\/)?{$quotedPath}\\/([^\"']+)[\"']/i";
+
     preg_match_all($patternExisting, $contentHtml, $matchesExisting);
     $currentImagesInHtml = $matchesExisting[1];
 

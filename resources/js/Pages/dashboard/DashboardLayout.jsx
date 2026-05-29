@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import DashboardTab from '../../Components/common/DashboardTab';
 import {  Link, router, usePage , Head } from '@inertiajs/react';
-import { getErrorMessage, MemberType } from '../../utils/helpers';
+import { MemberType } from '../../utils/helpers';
 import Layout from '../../Components/layout/Layout';
 
 function DashboardLayout({ currentTab, headerText, children })
@@ -53,6 +53,13 @@ function DashboardLayout({ currentTab, headerText, children })
         }
     }, [page.url]);
 
+    useEffect(() => {
+        // sync flash messages from server-shared Inertia props
+        const flash = page.props?.flash || {};
+        setSuccess(flash.success || '');
+        setError(flash.error || '');
+    }, [page.url]);
+
     // unread status is supplied from server via Inertia shared props
 
     const handleResendVerificationEmail = async (e) =>
@@ -63,28 +70,10 @@ function DashboardLayout({ currentTab, headerText, children })
         setIsSubmitting(true);
         try
         {
-            const res = await fetch('/resend-verification', { method: 'POST', headers: { 'Accept': 'application/json' }, credentials: 'same-origin' });
-            const payload = await res.json();
-            const status = payload?.status;
-            if (status === 'send_link_already_verified')
-            {
-                setSuccess('Your email address is already verified.');
-            }
-            else if (status === 'send_link_sent')
-            {
-                setSuccess('Verification e-mail sent. Please check your inbox.');
-            }
-            else if (status === 'invalid_link')
-            {
-                const message = (isAuthenticated && !user?.is_email_verified)
-                    ? 'Invalid link. Please click above to resend verification e-mail.'
-                    : 'Invalid link.';
-                setError(message);
-            }
-            else if (status)
-            {
-                setSuccess(status);
-            }
+            router.post('/resend-verification', {}, {
+                onError: () => setError('Unable to send verification e-mail.'),
+                onFinish: () => setIsSubmitting(false),
+            });
         }
         catch (err)
         {
@@ -92,7 +81,6 @@ function DashboardLayout({ currentTab, headerText, children })
         }
         finally
         {
-            setIsSubmitting(false);
         }
     }
     

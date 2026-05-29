@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Notification;
+use App\Models\Post;
+use App\Enums\MemberType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\Response;
 
 class DashboardController extends Controller
@@ -40,10 +43,8 @@ class DashboardController extends Controller
         $user->avatar = $imgPath;
         $user->save();
 
-        return response() ->json([
-            'status' => 'bio_updated',
-            'message' => 'Your avatar has been successfully updated.'
-        ], 200);
+        $request->session()->flash('success', 'Your avatar has been successfully updated.');
+        return redirect()->back();
     }
     public function updateBio(Request $request)
     {        
@@ -75,11 +76,8 @@ class DashboardController extends Controller
         $user->bio = $newBio;
         $user->save();
         
-        return response() ->json([
-            'status' => 'bio_updated',
-            'message' => 'Your bio has been successfully updated.',
-            'bio' => $newBio
-        ], 200);
+        $request->session()->flash('success', 'Your bio has been successfully updated.');
+        return redirect()->back();
         
     }
     public function updateProfile(Request $request)
@@ -109,10 +107,8 @@ class DashboardController extends Controller
         $user->show_email_in_profile = $showEmailInProfile;
         $user->save();
         
-        return response() ->json([
-            'status' => 'profile_updated',
-            'message' => 'Your profile has been successfully updated.'
-        ], 200);
+        $request->session()->flash('success', 'Your profile has been successfully updated.');
+        return redirect()->back();
     }
     public function unreadStatus(Request $request)
     {
@@ -131,5 +127,74 @@ class DashboardController extends Controller
             'has_unread_notifications' => $hasUnreadNotifications,
             'has_unread_mail' => $hasUnreadMail
         ],200);
+    }
+
+    public function posts(Request $request)
+    {
+        $user = $request->user();
+        $amount = intval($request->query('amount', 12));
+        $page = intval($request->query('page', 1));
+
+        $query = Post::with('user:id,username,avatar,member_type')
+            ->where('user_id', $user->id)
+            ->where('is_news', false)
+            ->latest();
+
+        $posts = $query->paginate($amount, ['*'], 'page', $page);
+
+        return Inertia::render('dashboard/MyPosts', [
+            'myPosts' => $posts,
+        ]);
+    }
+
+    public function newsPosts(Request $request)
+    {
+        $user = $request->user();
+        // only webmasters/admins can manage news posts
+        if (!in_array($user->member_type, [MemberType::Webmaster, MemberType::Admin])) {
+            return redirect()->back();
+        }
+
+        $amount = intval($request->query('amount', 12));
+        $page = intval($request->query('page', 1));
+
+        $query = Post::with('user:id,username,avatar,member_type')
+            ->where('is_news', true)
+            ->latest();
+
+        $posts = $query->paginate($amount, ['*'], 'page', $page);
+
+        return Inertia::render('dashboard/NewsPosts', [
+            'newsPosts' => $posts,
+        ]);
+    }
+
+    public function newPost(Request $request)
+    {
+        return Inertia::render('dashboard/NewPost');
+    }
+
+    public function newNewsPost(Request $request)
+    {
+        $user = $request->user();
+        if (!in_array($user->member_type, [MemberType::Webmaster, MemberType::Admin])) {
+            return redirect()->back();
+        }
+
+        return Inertia::render('dashboard/NewNewsPost');
+    }
+
+    public function editPost(Request $request, $post_url)
+    {
+        $user = $request->user();
+        $post = Post::where('post_url', $post_url)->where('user_id', $user->id)->first();
+        if (!$post) {
+            abort(404);
+        }
+        $post->load(['user:id,username,avatar,member_type', 'comments.user']);
+
+        return Inertia::render('dashboard/EditPost', [
+            'post' => $post,
+        ]);
     }
 }

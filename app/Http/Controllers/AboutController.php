@@ -27,14 +27,17 @@ class AboutController extends Controller
             'statement' => ['required', 'string']
         ]);
 
-        $user = auth('api')->user();
+        $user = $request->user();
 
-        if($user->member_type != MemberType::Webmaster)
+        if(!$user || $user->member_type != MemberType::Webmaster)
         {
-            return response()->json([
-                'message' => 'Only the webmaster can make changes.',
-                'status' => 'unauthorized'
-            ], Response::HTTP_FORBIDDEN); //403
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'message' => 'Only the webmaster can make changes.',
+                    'status' => 'unauthorized'
+                ], Response::HTTP_FORBIDDEN);
+            }
+            return redirect()->back();
         }
 
         $about = About::first();
@@ -63,10 +66,15 @@ class AboutController extends Controller
             ]);
         }
 
-        return response()->json([
+        $response = [
             'status' => "about_updated",
             'message' => "About statement has been updated successfully.",
             'about' => $about
-        ], 200);
+        ];
+        if ($request->wantsJson()) {
+            return response()->json($response, 200);
+        }
+        $request->session()->flash('success', $response['message']);
+        return redirect()->route('about');
     }
 }

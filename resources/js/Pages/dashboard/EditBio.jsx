@@ -1,14 +1,13 @@
-import { Head } from '@inertiajs/react';
+import { Head, useForm, router, usePage } from '@inertiajs/react';
 import { useCallback, useEffect, useState } from 'react';
 import RichTextEditor from '../../Components/common/RichTextEditor';
-import '../../Components/common/RichTextEditor.css';
 import EditButton from '../../Components/common/EditButton';
-import { useAuth } from '../../contexts/AuthContext';
 import { dehydrateEditorImagePaths, getErrorMessage, getImageUrlsFromDelta, hydrateEditorImagePaths, processEditorImages, sanitizeRichHtml } from '../../utils/helpers';
 
 function EditBio()
 {
-    const { user, updateBio, refreshUser } = useAuth();
+    const { props } = usePage();
+    const user = props?.auth?.user;
     const [isInEditMode, setIsInEditMode] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [bio, setBio] = useState(null);
@@ -16,14 +15,14 @@ function EditBio()
     const [hasBioChanged, setHasBioChanged] = useState(false);
     const [success, setSuccess] = useState("");
     const [error, setError] = useState("");
+    const form = useForm({ bio: '' });
 
     useEffect(() =>
     {        
-        //const bioParsed = JSON.parse(user.bio);
-        const hydratedBio = hydrateEditorImagePaths(user.bio);
+        const hydratedBio = hydrateEditorImagePaths(user?.bio);
         setBio(hydratedBio);
         setInitialBio(hydratedBio);
-        //console.log("bio", user.bio);
+        form.setData('bio', hydratedBio || '');
     },[user]);
     
     const handleBioChange = useCallback((newBio) =>
@@ -40,27 +39,23 @@ function EditBio()
         setIsSubmitting(true);
         const dehydratedBio = dehydrateEditorImagePaths(bio);
         const bioWithResizedImages = await processEditorImages(dehydratedBio);
-        //bioJson = JSON.stringify(bioWithResizedImages);
-        try
-        {
-            const data = await updateBio(bioWithResizedImages);
-            const hydratedBio = hydrateEditorImagePaths(data.bio);
-            setInitialBio(hydratedBio);
-            setBio(hydratedBio);
-            setSuccess(`Bio successfully updated.`); 
-            setHasBioChanged(false);  
-            setIsInEditMode(false);
-            await refreshUser();
-        }
-        catch(err)
-        {
-            const displayErrorMessage = getErrorMessage(err);
-            setError(displayErrorMessage.trim());
-        }
-        finally
-        {
-            setIsSubmitting(false);
-        }
+
+        form.setData('bio', bioWithResizedImages);
+        form.post('/update-bio', {
+            onSuccess: (page) => {
+                const hydratedBio = hydrateEditorImagePaths(page.props?.auth?.user?.bio || bioWithResizedImages);
+                setInitialBio(hydratedBio);
+                setBio(hydratedBio);
+                setSuccess(`Bio successfully updated.`);
+                setHasBioChanged(false);
+                setIsInEditMode(false);
+            },
+            onError: (err) => {
+                const displayErrorMessage = getErrorMessage(err);
+                setError(displayErrorMessage.trim());
+            },
+            onFinish: () => setIsSubmitting(false)
+        });
     }
 
     return (

@@ -1,5 +1,6 @@
 import { Editor } from '@tinymce/tinymce-react';
 import { useEffect, useRef } from 'react';
+import './RichTextEditor.css';
 
 function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApplied, placeholder=" " }) 
 {

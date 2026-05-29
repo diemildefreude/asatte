@@ -1,5 +1,5 @@
 import DOMPurify from 'dompurify';
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const BACKEND_URL = (typeof process !== 'undefined' && process.env && process.env.REACT_APP_BACKEND_URL) ? process.env.REACT_APP_BACKEND_URL : '';
 
 const SAFE_VIDEO_IFRAME_HOSTS = [
   /^(?:www\.)?youtube\.com$/i,
@@ -310,29 +310,40 @@ export function resizeImage(source)
 // }
 export function dehydrateEditorImagePaths(htmlString) 
 {
-    const STORAGE_BASE_URL = `${BACKEND_URL.replace(/\/$/, '')}/storage`;
+    const BACKEND = BACKEND_URL ? BACKEND_URL.replace(/\/$/, '') : '';
+    const STORAGE_BASE_URL = BACKEND ? `${BACKEND}/storage` : '/storage';
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlString, 'text/html');
     const images = doc.querySelectorAll('img');
 
     for (const img of images) {
-        const currentSrc = img.getAttribute('src');
+        const currentSrc = img.getAttribute('src') || '';
 
-        // If the image points to our storage, strip the base URL
-        if (currentSrc && currentSrc.startsWith(STORAGE_BASE_URL)) {
-            // Remove the base URL and any leading slashes
-            const relativePath = currentSrc
-                .replace(STORAGE_BASE_URL, '')
-                .replace(/^\/+/, '');
-            
+        // Try to match any variant of storage paths and normalize to "images/..." without leading slash
+        // Matches: http(s)://.../storage/images/..., /storage/images/..., storage/images/...
+        const m1 = currentSrc.match(/(?:https?:\/\/[^\/]+)?\/?storage\/(images\/uploaded\/.+)/i);
+        if (m1 && m1[1]) {
+            img.setAttribute('src', m1[1]);
+            continue;
+        }
+        const m2 = currentSrc.match(/^storage\/(images\/uploaded\/.+)/i);
+        if (m2 && m2[1]) {
+            img.setAttribute('src', m2[1]);
+            continue;
+        }
+        // If it starts with the configured backend + /storage, strip that portion
+        if (BACKEND && currentSrc.startsWith(`${BACKEND}/storage`)) {
+            const relativePath = currentSrc.replace(`${BACKEND}/storage`, '').replace(/^\/+/, '');
             img.setAttribute('src', relativePath);
+            continue;
         }
     }
     return doc.body.innerHTML;
 }
 export function hydrateEditorImagePaths(htmlString)
 {
-    const STORAGE_BASE_URL = `${BACKEND_URL.replace(/\/$/, '')}/storage`;
+    const BACKEND = BACKEND_URL ? BACKEND_URL.replace(/\/$/, '') : '';
+    const STORAGE_BASE_URL = BACKEND ? `${BACKEND}/storage` : '/storage';
     const parser = new DOMParser();
     // Parse the string into a temporary DOM tree
     const doc = parser.parseFromString(htmlString, 'text/html');
@@ -349,9 +360,18 @@ export function hydrateEditorImagePaths(htmlString)
             rawPath.startsWith('data:')) {
             continue; 
         }
-        
-        const cleanPath = rawPath.replace(STORAGE_BASE_URL, '').replace(/^[\/]+|[\/]+$/g, '');
-        const absoluteUrl = `${STORAGE_BASE_URL}/${cleanPath}`;
+        // Normalize several possible incoming formats into a clean "images/..." path
+        let cleanPath = null;
+        const m1 = rawPath.match(/(?:https?:\/\/[^\/]+)?\/?storage\/(images\/uploaded\/.+)/i);
+        if (m1 && m1[1]) {
+            cleanPath = m1[1];
+        } else if (/^storage\/(images\/uploaded\/.+)/i.test(rawPath)) {
+            cleanPath = rawPath.replace(/^storage\//i, '');
+        } else if (/^images\/uploaded\/.+/i.test(rawPath)) {
+            cleanPath = rawPath;
+        }
+        if (!cleanPath) continue;
+        const absoluteUrl = `${STORAGE_BASE_URL}/${cleanPath.replace(/^[\/]+/, '')}`;
         img.src = absoluteUrl;
         //console.log("clean path?", rawPath, cleanPath, absoluteUrl)
     }

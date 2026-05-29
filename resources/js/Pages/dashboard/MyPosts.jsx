@@ -3,14 +3,15 @@ import "../DashboardProfile.css";
 import AutoloadTilesContainer from '../../Components/common/AutoloadTilesContainer';
 import { Category, FetchOrder, getScreenSize, monitorScreenSize } from '../../utils/helpers';
 import { useState, useEffect } from "react";
-import { useAuth } from '../../contexts/AuthContext';
 import {  Link, router, usePage , Head } from '@inertiajs/react';
 import DashboardCreateHeader from "./common/DashboardCreateHeader";
 
 function MyPosts()
 {
     const [screenSize, setScreenSize] = useState(getScreenSize());
-    const {user, fetchMyPosts} = useAuth();
+    const { props } = usePage();
+    const user = props?.auth?.user;
+    const initialPosts = props?.myPosts ?? null;
 
     useEffect(() => //check screen size at regular intervals.
     {   
@@ -25,12 +26,13 @@ function MyPosts()
         <DashboardCreateHeader
             headerText="your posts"
             createLink="/dashboard/new-post"
-            isVerified={user.is_email_verified}
+            isVerified={user?.is_email_verified}
         />
         <AutoloadTilesContainer 
             screenSize={screenSize}
             isDashboard={true}
-            fetchMethod={fetchMyPosts}
+            initialPosts={initialPosts}
+            partialProp={'myPosts'}
             fetchOrder={FetchOrder.Descending}
             category={Category.Archive}
         />

@@ -14,7 +14,8 @@ function DashboardTab({iconClasses, tabName, currentTab, targetPath, noticeLight
     }
     return (
         <Link className={tabClasses}
-            to={targetPath}
+            href={targetPath}
+            
         >
             <i className={iconClasses}>
             {
