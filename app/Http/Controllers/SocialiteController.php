@@ -28,7 +28,7 @@ class SocialiteController extends Controller
         // Check if the provider is supported
         if (!in_array($provider, ['google', 'github'])) {
             // Redirect back to frontend with an error status
-            $reactAppUrl = config('app.frontend_url', 'http://localhost:3000');
+            $reactAppUrl = config('app.url', 'http://localhost:3000');
             return redirect($reactAppUrl . '/oauth-callback?status=social_provider_not_supported');
         }
         $originPage = $request->query('origin_page', 'login');
@@ -179,7 +179,7 @@ class SocialiteController extends Controller
         $user->accepted_terms_version = config('app.user_agreement_version');
         $user->save();
         //Log::info("User profile completed for: " . $user->email);
-        //$reactAppUrl = config('app.frontend_url', 'http://localhost:3000');
+        //$reactAppUrl = config('app.url', 'http://localhost:3000');
         $status = "social_registration_complete";
 
         // return redirect($reactAppUrl . '/dashboard?' . http_build_query([

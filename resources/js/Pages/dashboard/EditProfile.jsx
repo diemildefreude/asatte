@@ -11,16 +11,15 @@ function EditProfile()
     const { props } = usePage();
     const user = props?.auth?.user;
     const from = props?.flash?.from || '/';
+    const flash = props?.flash || {};
 
-    const form = useForm({
+    const { data, setData, post, processing, errors, setError, clearErrors } = useForm({
         website: '',
         location: '',
         show_email_in_profile: false,
     });
 
-    const [success, setSuccess] = useState('');
-    const [error, setError] = useState('');
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
 
     const [hasChanges, setHasChanges] = useState(false);
     const [websiteField, setWebsiteField] = useState('');
@@ -31,109 +30,107 @@ function EditProfile()
     //console.log("user",user);
     useEffect(() =>
     {
-        if(!user)
-        {
-            return;
-        }
-        setWebsiteField(user.website);
-        setLocationField(user.location);
-        setShowEmailInProfile(user.show_email_in_profile);
-        form.setData('website', user.website || '');
-        form.setData('location', user.location || '');
-        form.setData('show_email_in_profile', !!user.show_email_in_profile);
+        if(!user) return;
+        setWebsiteField(user.website || '');
+        setLocationField(user.location || '');
+        setShowEmailInProfile(!!user.show_email_in_profile);
+        setData('website', user.website || '');
+        setData('location', user.location || '');
+        setData('show_email_in_profile', !!user.show_email_in_profile);
     }, [user]);
 
     const handleEditClick = useCallback((fieldName) => 
     {
         setEditingField(fieldName); 
-        setError(''); 
-        setSuccess(''); 
-    }, []);
+        clearErrors(); 
+    }, [clearErrors]);
 
     const handleLogoutSubmit = async (e) =>
     {
         e.preventDefault();
         try
         {
-            setIsSubmitting(true);
+            setIsLoggingOut(true);
             await router.post('/logout');     
             router.visit(from, {replace: true});       
         }
         catch (err)
         {
-            console.error('Login error in Login.jsx:', err);
+            console.error('Login error in EditProfile.jsx:', err);
         }
         finally
         {
-            setIsSubmitting(false);
+            setIsLoggingOut(false);
         }
     }
 
-    const handleProfileChangesSubmit = async (e) =>
+    const handleProfileChangesSubmit = (e) =>
     {
         e.preventDefault();
-        setError('');
-        setSuccess('');
+        clearErrors();
+        
         if(websiteField === user.website &&
             locationField === user.location &&
-            showEmailInProfile == user.show_email_in_profile
+            showEmailInProfile === !!user.show_email_in_profile
         )
         {
-            setError('No changes to submit.');
+            setError('general', 'No changes to submit.');
             return;    
         }
-        setIsSubmitting(true);
 
-        form.setData('website', websiteField || '');
-        form.setData('location', locationField || '');
-        form.setData('show_email_in_profile', !!showEmailInProfile);
+        setData('website', websiteField || '');
+        setData('location', locationField || '');
+        setData('show_email_in_profile', !!showEmailInProfile);
 
-        form.post('/update-profile', {
+        // using router.post because form.post queues state updates asynchronously, 
+        // so setData might not apply before form.post fires if invoked synchronously here.
+        router.post('/update-profile', {
+            website: websiteField || '',
+            location: locationField || '',
+            show_email_in_profile: !!showEmailInProfile
+        }, {
+            preserveState: true,
+            preserveScroll: true,
             onSuccess: () => {
-                setSuccess(`Profile successfully updated.`);
                 setHasChanges(false);
                 setEditingField(null);
             },
             onError: (err) => {
                 const displayErrorMessage = getErrorMessage(err);
-                setError(displayErrorMessage.trim());
-            },
-            onFinish: () => {
-                setIsSubmitting(false);
+                setError('general', displayErrorMessage.trim());
             }
         });
     };
+
     return (
     <div className="main-info-box sticky">
             <Head title="Edit Profile" />
         <div className="avatar-section">
-            {error && (
+            {errors.general && (
             <div className="error">
-                {error}
+                {errors.general}
             </div>
             )}
-            {success && (
+            {flash.success_profile && (
             <div className="notice">
-                {success}
+                {flash.success_profile}
             </div>
             )}
             <h3 className="centered-content no-margin">avatar:</h3>
-            <AvatarSetter user={user} setError={setError} setSuccess={setSuccess}
-                isSubmitting={isSubmitting} setIsSubmitting={setIsSubmitting}
-        />
+            <AvatarSetter user={user} />
         </div>
         <div className="info-section">
             <form onSubmit={handleProfileChangesSubmit}>                                    
                 <ProfileItem 
                     name="username"
-                    value={user.username}
+                    value={user?.username}
                 />
                 <ProfileItem
                     name="website"
                     value={websiteField}
                     setValue={setWebsiteField}
                     onChange={(e) => {setHasChanges(e.target.value !== user.website); setWebsiteField(e.target.value)}}
-                    isSubmitting={isSubmitting}
+                    isSubmitting={processing}
                     isEditingThisField={editingField === 'website'}
                     onEditClick={() => handleEditClick('website')}
                 />
@@ -142,38 +139,38 @@ function EditProfile()
                     value={locationField}
                     setValue={setLocationField}
                     onChange={(e) => {setHasChanges(e.target.value !== user.location); setLocationField(e.target.value)}}
-                    isSubmitting={isSubmitting}
+                    isSubmitting={processing}
                     isEditingThisField={editingField === 'location'}
                     onEditClick={() => handleEditClick('location')}
                 />
                 <ProfileItem 
                     name="email"
-                    value={user.email}
+                    value={user?.email}
                 />
                 <CheckboxField
                     name="show-email"
                     label="show e-mail in profile:"
                     value={showEmailInProfile}
-                    onChange={(e) => {setHasChanges(e.target.checked != user.show_email_in_profile); setShowEmailInProfile(e.target.checked);}}
-                    disabled={isSubmitting}
+                    onChange={(e) => {setHasChanges(e.target.checked !== !!user.show_email_in_profile); setShowEmailInProfile(e.target.checked);}}
+                    disabled={processing}
                 />
                 <div className="flex-row">
                     <div className="button-container">
-                        <button onClick={handleLogoutSubmit} disabled={isSubmitting}>log out</button>
+                        <button onClick={handleLogoutSubmit} disabled={processing || isLoggingOut}>log out</button>
                         {
                             hasChanges && (
-                                <button type="submit" disabled={isSubmitting}>save changes</button>
+                                <button type="submit" disabled={processing}>save changes</button>
                             )
                         }
                     </div>
                     <div className="flex-column">
                     {
-                        (user.is_email_verified && user.login_type == LoginType.Email) &&
+                        (user?.is_email_verified && user?.login_type === LoginType.Email) &&
                         (
                             <Link href="/password-change" className="centered-content no-margin">change password</Link>
                         )
                     }
-                    <Link href={`/${user.username}`} className="centered-content no-margin">
+                    <Link href={`/${user?.username}`} className="centered-content no-margin">
                         preview profile
                     </Link>
 

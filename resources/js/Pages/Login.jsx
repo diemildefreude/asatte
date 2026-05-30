@@ -1,68 +1,37 @@
-import { useState, useEffect } from "react";
-import { Link, router, usePage, Head } from '@inertiajs/react';
+import { Link, Head, useForm, usePage } from '@inertiajs/react';
 import FormField from '../Components/common/FormField';
 import '../Components/common/Form.css';
 import Layout from '../Components/layout/Layout';
 import OAuth from '../Components/common/OAuth';
-import { getErrorMessage } from '../utils/helpers';
 
 function Login()
 {
-    const [usernameOrEmail, setUsernameOrEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
-    const [isSubmitting, setIsSubmitting] = useState(false); // To disable button during submission
-    // We'll post explicitly with router.post to ensure field names match server expectations
-    // No central AuthContext: post directly to web route using Inertia
     const { props } = usePage();
-    const from = props?.flash?.from || '/dashboard/profile';
-    const message = props?.flash?.message;
-    useEffect(() => {
-        // if backend set a flash message about successful login redirect will occur
-        // keep message handling only
-    }, []);
-    useEffect(() => 
-    {
-        if (message) 
-        {                          
-          setSuccess('');
-          setError(message);
-        }
-    }, [message]);
+    const flash = props?.flash || {};
 
+    const { data, setData, post, processing, errors, setError, clearErrors } = useForm({
+        login_field: '',
+        password: '',
+    });
 
-    const canLogInWithEmail = usernameOrEmail && password && !isSubmitting;
+    const canLogInWithEmail = data.login_field && data.password && !processing;
 
-    const handleLoginSubmit = async (e) => 
+    const handleLoginSubmit = (e) => 
     {
         e.preventDefault();
-        setError('');       // Clear previous errors
-        setSuccess('');     // Clear previous success messages
-      setIsSubmitting(true);
-      router.post('/login',
-        { login_field: usernameOrEmail, password: password },
-        {
-          preserveState: false,
-          onError: (errors) => {
-            const msg = Object.values(errors).flat().join(' ');
-            setError(msg || 'Login failed');
-          },
-          onSuccess: () => {
-            // backend will redirect via session logic; Inertia handles it
-          },
-          onFinish: () => {
-            setIsSubmitting(false);
-          },
-        }
-      );
+        
+        post('/login', {
+            preserveState: true,
+            preserveScroll: true,
+            // backend will redirect via session logic on success; Inertia handles it
+        });
     };
     
     const handleSocialLoginSubmit = (type) =>
-    {//disable non OAuth fields/buttons if OAuth reg. has started
-        setIsSubmitting(true);
-    //the rest is handled in OAuth.jsx
-    }
+    {
+        // the rest is handled in OAuth.jsx
+    };
+
     return (
     <Layout>
             <Head title="Login" />
@@ -71,41 +40,50 @@ function Login()
           <p>New? <Link href="/register">Click here to join.</Link></p>
         </div>
         <h1 className="centered-content no-margin">log in</h1>
-        {error && (
+        {errors.general && (
           <div className="error">
-            {error}
+            {errors.general}
           </div>
         )}
-        {success && (
+        {flash.success && (
           <div className="notice">
-            {success}
+            {flash.success}
+          </div>
+        )}
+        {flash.error && (
+          <div className="error">
+            {flash.error}
           </div>
         )}
         <div className="field-groups-container">
             <form onSubmit={handleLoginSubmit}>
           <div className="field-group">
               <FormField
-                id="usernameOrEmail"
+                id="login_field"
                 label="username or e-mail"
                 placeholder="your e-mail or username"
-                value={usernameOrEmail}
-                onChange={(e) => setUsernameOrEmail(e.target.value)}
-                disabled={isSubmitting}
+                value={data.login_field}
+                onChange={(e) => setData('login_field', e.target.value)}
+                disabled={processing}
                 type="text"
                 classes="centered-content no-margin vertical-field"
+                error={errors.login_field}
+                onErrorUpdate={(id, msg) => msg ? setError(id, msg) : clearErrors(id)}
               />
               <FormField
                 id="password"
                 label="password"
                 placeholder="your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={isSubmitting}
+                value={data.password}
+                onChange={(e) => setData('password', e.target.value)}
+                disabled={processing}
                 type="password"
                 classes="centered-content no-margin vertical-field"
+                error={errors.password}
+                onErrorUpdate={(id, msg) => msg ? setError(id, msg) : clearErrors(id)}
               />
               <button type="submit" disabled={!canLogInWithEmail}>
-                {isSubmitting ? 'logging in...' : 'log in'}
+                {processing ? 'logging in...' : 'log in'}
               </button>
               <Link href="/password-recovery" className="sub-field-link">Forgot your password?</Link>
                  
@@ -113,9 +91,12 @@ function Login()
            </form>      
           <OAuth headerText="or:"
               onClick={handleSocialLoginSubmit}
-              setError={setError}
-              isSubmittingForm={isSubmitting}
-              setIsSubmittingForm={setIsSubmitting}
+              setError={(msg) => setError('general', msg)}
+              isSubmittingForm={processing}
+              // setIsSubmittingForm omitted since we're using processing, 
+              // but OAuth might expect a state setter. We can just pass a no-op 
+              // or let it manage its own internal loading state.
+              setIsSubmittingForm={() => {}}
            />
         </div>   
       </div>

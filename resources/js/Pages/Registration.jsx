@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import Layout from '../Components/layout/Layout';
-import { Link, router, usePage, Head } from '@inertiajs/react';
+import { Link, router, usePage, Head, useForm } from '@inertiajs/react';
 import FormField from '../Components/common/FormField';
 import CheckboxField from '../Components/common/CheckboxField'
 import OAuth from '../Components/common/OAuth';
@@ -19,31 +19,30 @@ function Registration()
     const user = props?.auth?.user ?? null;
     const isAuthenticated = !!user;
     const isLoading = false;
-    // Not using Inertia `useForm` here — we'll post explicitly with `router.post`
-    const [email, setEmail] = useState('');
-    const [showEmailInProfile, setShowEmailInProfile] = useState(false);
-    const [password, setPassword] = useState('');
-    const [passwordConfirmation, setPasswordConfirmation] = useState('');
-    const [username, setUsername] = useState('');
-    const [birthdate, setBirthdate] = useState('');
-    const [userAgrees, setUserAgrees] = useState(false);
-    const [error, setError] = useState('');
+    
+    const { data, setData, post, processing, errors, setError, clearErrors } = useForm({
+        email: '',
+        show_email_in_profile: false,
+        username: '',
+        password: '',
+        password_confirmation: '',
+        birthdate: '',
+        website: '',
+        is_user_human: false,
+        is_user_robot: true,
+        login_type: null,
+        user_agrees: false,
+    });
+
+    const [isValidating, setIsValidating] = useState(false);
     const [success, setSuccess] = useState('');
-    const [isSubmitting, setIsSubmitting] = useState(false);
     const [formPage, setFormPage] = useState(0); 
-    //0: start 
-    //1: e-mail reg details 
-    //2: e-mail: user-agreement
-    //3: social-reg completion (including user-agreement)
-    const [loginType, setLoginType] = useState(null);
 
     const [isEmailFieldValid, setIsEmailFieldValid] = useState(false);
     const [isPasswordFieldValid, setIsPasswordFieldValid] = useState(false);
     const [isUsernameFieldValid, setIsUsernameFieldValid] = useState(false);
     const [isBirthdateFieldValid, setIsBirthdateFieldValid] = useState(false);
     const [arePasswordsMatching, setArePasswordsMatching] = useState(false);
-    const [isUserRobot, setIsUserRobot] = useState(true);
-    const [isUserHuman, setIsUserHuman] = useState(false);
     
     const from = props?.flash?.from || '/dashboard';
     const message = props?.flash?.message;
@@ -51,24 +50,21 @@ function Registration()
     let formContainerClasses = "form-container";
     formContainerClasses = formPage === 1 ? formContainerClasses + " limited-width" : formContainerClasses;
 
-    const canContinueWithEmail = email && isEmailFieldValid && !isSubmitting;
-    const canRegisterWithEmail = (loginType === LoginType.Email 
-        && email && username && birthdate && password && passwordConfirmation 
+    const hasErrors = Object.keys(errors).length > 0;
+
+    const canContinueWithEmail = data.email && isEmailFieldValid && !processing && !hasErrors && !isValidating;
+    const canRegisterWithEmail = (data.login_type === LoginType.Email 
+        && data.email && data.username && data.birthdate && data.password && data.password_confirmation 
         && isEmailFieldValid && isUsernameFieldValid && isPasswordFieldValid 
-        && arePasswordsMatching && isBirthdateFieldValid && !isSubmitting) ? true : false;
-    const canCompleteSocialRegistration = username && isUsernameFieldValid && userAgrees
-        && birthdate && isBirthdateFieldValid && isAuthenticated && !isSubmitting;
+        && arePasswordsMatching && isBirthdateFieldValid && !processing && !hasErrors && !isValidating) ? true : false;
+    const canCompleteSocialRegistration = data.username && isUsernameFieldValid && data.user_agrees
+        && data.birthdate && isBirthdateFieldValid && isAuthenticated && !processing && !hasErrors && !isValidating;
 
-
-    // console.log("row 1:", formPage, loginType, 
-    //     "row 2:", email, username, birthdate, password, passwordConfirmation,
-    //     "row 3:", isEmailFieldValid, isUsernameFieldValid, isPasswordFieldValid,
-    //     "row 4:", arePasswordsMatching, isBirthdateFieldValid, !isSubmitting);
     useEffect(() => {
-        if (!isLoading && isAuthenticated) {
+        if (!isLoading && isAuthenticated && formPage !== 3) {
             router.visit(from, { replace: true });
         }
-    }, [isAuthenticated, isLoading, from]);
+    }, [isAuthenticated, isLoading, from, formPage]);
 
     useEffect(() => {
         if (message) {
@@ -77,17 +73,31 @@ function Registration()
                 setFormPage(3); // social registration completion page
                 setSuccess(message);
             } else {
-                setError(message);
+                setError('general', message);
             }
         }
-    }, [message, props?.flash?.status, user]);
+    }, [message, props?.flash?.status, user, setError]);
 
-    const handleEmailSubmit = async (e) => 
+    const handleEmailSubmit = (e) => 
     {
         e.preventDefault();
-        setFormPage(1);
-        setLoginType(LoginType.Email);
+        setIsValidating(true);
+        router.post('/register/check', { email: data.email }, {
+            preserveState: true,
+            preserveScroll: true,
+            only: ['errors'],
+            onError: (errs) => {
+                if (errs.email) setError('email', errs.email);
+            },
+            onSuccess: () => {
+                clearErrors('email');
+                setFormPage(1);
+                setData('login_type', LoginType.Email);
+            },
+            onFinish: () => setIsValidating(false)
+        });
     };
+
     const handleEmailFormatValidation = (proposedEmail, setFieldLocalError) => 
     {
         const isValid = isValidEmail(proposedEmail);
@@ -102,6 +112,7 @@ function Registration()
         setIsEmailFieldValid(isValid); // Update parent's email validity state
         return isValid;
     };
+
     const handleUsernameFormatValidation = (proposedName, setFieldLocalError) => 
     {
         const isEmpty = proposedName.length < 1;
@@ -124,6 +135,7 @@ function Registration()
         setIsUsernameFieldValid(isValid);
         return isValid;
     };
+
     const handlePasswordFormatValidation = (proposedPassword, setFieldLocalError) =>
     {
         const isValid = isValidPassword(proposedPassword);
@@ -138,6 +150,17 @@ function Registration()
         setIsPasswordFieldValid(isValid);
         return isValid;
     }
+
+    const handlePasswordConfirmValidation = (val, setFieldLocalError) => {
+        const areMatching = data.password === val;
+        setArePasswordsMatching(areMatching);
+        if (!areMatching && val !== "") {
+            setFieldLocalError("Password and confirmation do not match.");
+        } else {
+            setFieldLocalError("");
+        }
+    };
+
     const handleBirthdateFormatValidation = async (proposedBirthdate, setFieldLocalError) =>
     {
         const bd = new Date(proposedBirthdate);
@@ -171,112 +194,113 @@ function Registration()
         setIsBirthdateFieldValid(isValid);
         return isValid;
     }
+
     useEffect(() =>
     {
-        if(passwordConfirmation === "")
-        {//don't show error if user hasn't entered the confirmation yet
+        if(data.password_confirmation === "")
+        {
             return;
         }
-        const areMatching = password === passwordConfirmation;
+        const areMatching = data.password === data.password_confirmation;
         setArePasswordsMatching(areMatching);
         if(!areMatching)
         {
-            setError("Password and confirmation do not match.");
+            setError('password_confirmation', "Password and confirmation do not match.");
         }
         else
         {
-            setError("");
+            if (errors.password_confirmation === "Password and confirmation do not match.") {
+                clearErrors('password_confirmation');
+            }
         }
-    },[password, passwordConfirmation]);
+    },[data.password, data.password_confirmation, setError, clearErrors, errors.password_confirmation]);
 
     const handleDetailsSubmit = (e) =>
     {
         e.preventDefault();
-        setFormPage(2)
+        setIsValidating(true);
+        router.post('/register/check', { email: data.email, username: data.username }, {
+            preserveState: true,
+            preserveScroll: true,
+            only: ['errors'],
+            onError: (errs) => {
+                if (errs.email) setError('email', errs.email);
+                if (errs.username) setError('username', errs.username);
+            },
+            onSuccess: () => {
+                clearErrors('email', 'username');
+                setFormPage(2);
+            },
+            onFinish: () => setIsValidating(false)
+        });
     }
-    const handleEmailRegistrationSubmit = async (e) => {
+
+    const handleEmailRegistrationSubmit = (e) => {
         e.preventDefault();
-        setError('');
+        clearErrors('general');
         setSuccess('');
-        setIsSubmitting(true);
-        try {
-                router.post('/register',
-                    {
-                        login_type: loginType,
-                        email,
-                        username,
-                        password,
-                        password_confirmation: passwordConfirmation,
-                        birthdate,
-                        show_email_in_profile: showEmailInProfile,
-                        is_user_human: isUserHuman,
-                        is_user_robot: isUserRobot,
-                    },
-                    {
-                        preserveState: false,
-                        onError: (errors) => {
-                            const msg = Object.values(errors).flat().join(' ');
-                            setError(msg || 'Registration failed');
-                        },
-                        onSuccess: () => {
-                            // server will redirect to intended location via session auth
-                        }
-                    }
-                );
-        } catch (err) {
-            const displayErrorMessage = err?.message || 'Registration failed';
-            setError(displayErrorMessage);
-        } finally {
-            setIsSubmitting(false);
-        }
+        post('/register', {
+            preserveState: true,
+            onError: (errs) => {
+                if (errs.email || errs.username || errs.password || errs.birthdate || errs.password_confirmation) {
+                    setFormPage(1);
+                }
+            },
+            onSuccess: () => {
+                // server will redirect to intended location via session auth
+            }
+        });
     };
 
     const handleSocialRegistrationSubmit = () =>
     {//disable non OAuth fields/buttons if OAuth reg. has started
-        setIsSubmitting(true);
-    //the rest is handled in OAuth.jsx
     }
 
-    const handleSocialCompletionSubmit = async (e) => {
+    const handleSocialCompletionSubmit = (e) => {
         e.preventDefault();
-        setIsSubmitting(true);
-        try {
-            await router.post('/complete-social-profile',
-                {
-                    username,
-                    birthdate,
-                    show_email_in_profile: showEmailInProfile,
-                    is_user_human: isUserHuman,
-                    is_user_robot: isUserRobot,
-                },
-                {
-                    preserveState: false,
-                    onError: (errors) => {
-                        const msg = Object.values(errors).flat().join(' ');
-                        setError(msg || 'Submission failed');
-                    },
-                    onSuccess: () => {
-                        // on success backend may redirect; otherwise navigate to dashboard
-                        router.visit('/dashboard', { replace: true });
-                    }
-                }
-            );
-        } catch (err) {
-            const msg = err?.message || 'Submission failed';
-            setError(msg);
-        } finally {
-            setIsSubmitting(false);
-        }
+        clearErrors('general');
+        post('/complete-social-profile', {
+            preserveState: true,
+            onSuccess: () => {
+                router.visit('/dashboard', { replace: true });
+            }
+        });
     }
+
+    const handleBlur = (field, value) => {
+        if (value) {
+            router.post('/register/check', { [field]: value }, { 
+                preserveState: true, 
+                preserveScroll: true, 
+                only: ['errors'],
+                onError: (errs) => {
+                    if (errs[field]) {
+                        setError(field, errs[field]);
+                    }
+                },
+                onSuccess: () => {
+                    clearErrors(field);
+                }
+            });
+        }
+    };
+
+    const handleFormErrorUpdate = (field, msg) => {
+        if (msg) {
+            setError(field, msg);
+        } else {
+            clearErrors(field);
+        }
+    };
 
     return (
     <Layout>
         <Head title="Registration" />
         <div className={formContainerClasses}>
             <h1 className='centered-content no-margin'>join netart.io</h1>
-        {error && (
+        {errors.general && (
           <div className="error">
-            {error}
+            {errors.general}
           </div>
         )}
         {success && (
@@ -294,10 +318,13 @@ function Registration()
                             <FormField
                                 id="email"
                                 placeholder="valid@email.address"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                value={data.email}
+                                onChange={(e) => setData('email', e.target.value)}
+                                onBlur={(e) => handleBlur('email', e.target.value)}
                                 onValidate={handleEmailFormatValidation}
-                                disabled={isSubmitting}
+                                onErrorUpdate={handleFormErrorUpdate}
+                                error={errors.email}
+                                disabled={processing || isValidating}
                                 type="email"
                             />
                             <button 
@@ -312,9 +339,9 @@ function Registration()
                     </form>
                     <OAuth headerText="or:"
                         onClick={handleSocialRegistrationSubmit}
-                        setOnError={setError}
-                        isSubmittingForm={isSubmitting}
-                        setIsSubmittingForm={setIsSubmitting}
+                        setOnError={(msg) => setError('general', msg)}
+                        isSubmittingForm={processing || isValidating}
+                        setIsSubmittingForm={() => {}}
                     />
                 </div>
             </>
@@ -328,29 +355,35 @@ function Registration()
                             id="email"
                             label="type your e-mail address"
                             placeholder="valid@email.address"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value.trimEnd())}
+                            value={data.email}
+                            onChange={(e) => setData('email', e.target.value.trimEnd())}
+                            onBlur={(e) => handleBlur('email', e.target.value)}
                             onValidate={handleEmailFormatValidation}
-                            disabled={isSubmitting}
+                            onErrorUpdate={handleFormErrorUpdate}
+                            error={errors.email}
+                            disabled={processing || isValidating}
                             type="email"       
                             classes='limited-width'         
                         />
                         <CheckboxField
                             name="show-email"
                             label="show e-mail in profile?"
-                            value={showEmailInProfile}
-                            onChange={(e) => setShowEmailInProfile(e.target.checked)}
-                            disabled={isSubmitting}
+                            value={data.show_email_in_profile}
+                            onChange={(e) => setData('show_email_in_profile', e.target.checked)}
+                            disabled={processing || isValidating}
                             classes="centered"
                         />
                         <FormField
                             id="username"
                             placeholder="a-z, A-Z, 0-9, -, _"
                             label="pick a username"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value.trimEnd())}
+                            value={data.username}
+                            onChange={(e) => setData('username', e.target.value.trimEnd())}
+                            onBlur={(e) => handleBlur('username', e.target.value)}
                             onValidate={handleUsernameFormatValidation}
-                            disabled={isSubmitting}
+                            onErrorUpdate={handleFormErrorUpdate}
+                            error={errors.username}
+                            disabled={processing || isValidating}
                             type="text"                 
                             classes='limited-width'        
                         />
@@ -358,20 +391,25 @@ function Registration()
                             id="password"
                             label="choose a password"
                             placeholder="requires: a-z, A-Z, and 0-9"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value.trimEnd())}
+                            value={data.password}
+                            onChange={(e) => setData('password', e.target.value.trimEnd())}
                             onValidate={handlePasswordFormatValidation}
-                            disabled={isSubmitting}
+                            onErrorUpdate={handleFormErrorUpdate}
+                            error={errors.password}
+                            disabled={processing || isValidating}
                             type="password"                
                             classes='limited-width'
                         />
                         <FormField 
-                            id="password-confirm"
+                            id="password_confirmation"
                             label="confirm password"
                             placeholder="same as above"
-                            value={passwordConfirmation}
-                            onChange={(e) => setPasswordConfirmation(e.target.value.trimEnd())}
-                            disabled={isSubmitting}
+                            value={data.password_confirmation}
+                            onChange={(e) => setData('password_confirmation', e.target.value.trimEnd())}
+                            onValidate={handlePasswordConfirmValidation}
+                            onErrorUpdate={handleFormErrorUpdate}
+                            error={errors.password_confirmation}
+                            disabled={processing || isValidating}
                             type="password"                  
                             classes='limited-width'
                         />
@@ -380,10 +418,12 @@ function Registration()
                             label="date of birth"
                             min="1920-01-01"
                             max={getDateString()}
-                            value={birthdate}
+                            value={data.birthdate}
                             onValidate={handleBirthdateFormatValidation}
-                            onChange={(e) => setBirthdate(e.target.value.trimEnd())}
-                            disabled={isSubmitting}
+                            onChange={(e) => setData('birthdate', e.target.value.trimEnd())}
+                            onErrorUpdate={handleFormErrorUpdate}
+                            error={errors.birthdate}
+                            disabled={processing || isValidating}
                             type="date"                     
                             classes='limited-width'
                         />
@@ -391,11 +431,17 @@ function Registration()
                             id="website"
                             label="your website url"
                             placeholder="www.yoursite.com"
+                            value={data.website}
+                            onChange={(e) => setData('website', e.target.value.trimEnd())}
+                            onErrorUpdate={handleFormErrorUpdate}
+                            error={errors.website}
+                            disabled={processing || isValidating}
+                            type="text"
                             classes="bonus limited-width"
                         />
                         <div className="flex-row">
                             <button type="button"
-                                    disabled={isSubmitting}
+                                    disabled={processing || isValidating}
                                     onClick={(e) => {e.preventDefault(); setFormPage(0);}}
                                 >
                                     back
@@ -409,25 +455,25 @@ function Registration()
                     formPage === 2 ? (
                         <form onSubmit={handleEmailRegistrationSubmit}>
                             <UserAgreement
-                                onAgreeChange={(e) => setUserAgrees(e.target.checked)}
-                                onHumanChange={(e) => setIsUserHuman(e.target.checked)}
-                                onRobotChange={(e) => setIsUserRobot(e.target.checked)}
-                                agreeVal={userAgrees}
-                                humanVal={isUserHuman}
-                                robotVal={isUserRobot}
-                                isSubmitting={isSubmitting}
+                                onAgreeChange={(e) => setData('user_agrees', e.target.checked)}
+                                onHumanChange={(e) => setData('is_user_human', e.target.checked)}
+                                onRobotChange={(e) => setData('is_user_robot', e.target.checked)}
+                                agreeVal={data.user_agrees}
+                                humanVal={data.is_user_human}
+                                robotVal={data.is_user_robot}
+                                isSubmitting={processing || isValidating}
                             />
                             <div className="flex-row">
                                 <button type="button"
-                                    disabled={isSubmitting}
+                                    disabled={processing || isValidating}
                                     onClick={(e) => {e.preventDefault(); setFormPage(1);}}
                                 >
                                     back
                                 </button>
                                 <button type="submit" 
-                                    disabled={!canRegisterWithEmail || !userAgrees || isSubmitting}
+                                    disabled={!canRegisterWithEmail || !data.user_agrees || processing || hasErrors || isValidating}
                                 >
-                                    {isSubmitting ? 'registering...' : 'register'}
+                                    {processing || isValidating ? 'registering...' : 'register'}
                                 </button>
                             </div>
                         </form>
@@ -437,10 +483,13 @@ function Registration()
                                 id="username"
                                 placeholder="a-z, A-Z, 0-9, -, _"
                                 label="pick a username"
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value.trimEnd())}
+                                value={data.username}
+                                onChange={(e) => setData('username', e.target.value.trimEnd())}
+                                onBlur={(e) => handleBlur('username', e.target.value)}
                                 onValidate={handleUsernameFormatValidation}
-                                disabled={isSubmitting}
+                                onErrorUpdate={handleFormErrorUpdate}
+                                error={errors.username}
+                                disabled={processing}
                                 type="text"                            
                                 classes="limited-width"
                             />
@@ -449,32 +498,34 @@ function Registration()
                                 label="date of birth"
                                 min="1920-01-01"
                                 max={getDateString()}
-                                value={birthdate}
+                                value={data.birthdate}
                                 onValidate={handleBirthdateFormatValidation}
-                                onChange={(e) => setBirthdate(e.target.value.trimEnd())}
-                                disabled={isSubmitting}
+                                onChange={(e) => setData('birthdate', e.target.value.trimEnd())}
+                                onErrorUpdate={handleFormErrorUpdate}
+                                error={errors.birthdate}
+                                disabled={processing}
                                 type="date"                            
                                 classes="limited-width"
                             />
                             <CheckboxField
                                 name="show-email"
                                 label="show e-mail address in profile?"
-                                value={showEmailInProfile}
-                                onChange={(e) => setShowEmailInProfile(e.target.checked)}
-                                disabled={isSubmitting}
+                                value={data.show_email_in_profile}
+                                onChange={(e) => setData('show_email_in_profile', e.target.checked)}
+                                disabled={processing}
                                 classes="centered"
                             />
                             <UserAgreement
-                                onAgreeChange={(e) => setUserAgrees(e.target.checked)}
-                                onHumanChange={(e) => setIsUserHuman(e.target.checked)}
-                                onRobotChange={(e) => setIsUserRobot(e.target.checked)}
-                                agreeVal={userAgrees}
-                                humanVal={isUserHuman}
-                                robotVal={isUserRobot}
-                                isSubmitting={isSubmitting}
+                                onAgreeChange={(e) => setData('user_agrees', e.target.checked)}
+                                onHumanChange={(e) => setData('is_user_human', e.target.checked)}
+                                onRobotChange={(e) => setData('is_user_robot', e.target.checked)}
+                                agreeVal={data.user_agrees}
+                                humanVal={data.is_user_human}
+                                robotVal={data.is_user_robot}
+                                isSubmitting={processing}
                             />
                             <button type="submit" disabled={!canCompleteSocialRegistration}>
-                                {isSubmitting ? 'submitting...' : 'submit'}
+                                {processing ? 'submitting...' : 'submit'}
                             </button>
                         </form>
                     )

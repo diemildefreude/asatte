@@ -26,7 +26,7 @@ function UserProfile({ user: profileUserProp })
     //console.log("profileUser?", profileUser);
 
     const avatar = profileUser?.avatar ? `${BACKEND_URL}/storage/images/uploaded/users/${username}/avatar/small/${profileUser?.avatar}` 
-        : `${BACKEND_URL}/storage/images/defaults/avatar.webp`;
+        : `${BACKEND_URL}/storage/images/defaults/avatar.webp?v=1`;
 
     useEffect(() => //check screen size at regular intervals.
     {   

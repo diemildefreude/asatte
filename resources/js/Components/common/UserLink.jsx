@@ -8,7 +8,7 @@ function UserLink({user, readOnly=false, returnUser=false, onClick=null, additio
 {   
     const target = url ?? `/${user.username}/profile`;
     const avatar = user?.avatar ? `${BACKEND_URL}/storage/images/uploaded/users/${user.username}/avatar/thumb/${user?.avatar}` 
-        : `${BACKEND_URL}/storage/images/defaults/avatar.webp`;
+        : `${BACKEND_URL}/storage/images/defaults/avatar.webp?v=1`;
         
     let classes = `user-link ${additionalClasses}`;
     classes = readOnly ? classes + " read-only" : classes;

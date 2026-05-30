@@ -1,5 +1,5 @@
 import DOMPurify from 'dompurify';
-const BACKEND_URL = (typeof process !== 'undefined' && process.env && process.env.REACT_APP_BACKEND_URL) ? process.env.REACT_APP_BACKEND_URL : '';
+export const BACKEND_URL = (typeof process !== 'undefined' && process.env && process.env.REACT_APP_BACKEND_URL) ? process.env.REACT_APP_BACKEND_URL : '';
 
 const SAFE_VIDEO_IFRAME_HOSTS = [
   /^(?:www\.)?youtube\.com$/i,

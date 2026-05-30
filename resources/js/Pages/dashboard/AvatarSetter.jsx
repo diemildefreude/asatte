@@ -1,9 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import ImageZoom from '../../Components/common/ImageZoom';
-import { useForm, router } from '@inertiajs/react';
-import { getErrorMessage, getImageFileFromInput, getImageUrlFromFile } from '../../utils/helpers';
-
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+import { useForm, usePage, router } from '@inertiajs/react';
+import { BACKEND_URL, getErrorMessage, getImageFileFromInput, getImageUrlFromFile } from '../../utils/helpers';
 
 function parseTransformString(transformString) 
 {
@@ -79,8 +77,9 @@ function getCroppedImage(cropperElement)
     return blob;
 }
 
-function AvatarSetter({user, setSuccess, setError, isSubmitting, setIsSubmitting})
+function AvatarSetter({user})
 {
+    const { props } = usePage();
     const [isImageCropperOpen, setIsImageCropperOpen] = useState(false);
     const [selectedAvatar, setSelectedAvatar] = useState(null);
     const fileInputRef = useRef(null);
@@ -90,8 +89,8 @@ function AvatarSetter({user, setSuccess, setError, isSubmitting, setIsSubmitting
     const avatarContainerRef = useRef(null);
 
     const avatar = user?.avatar ? `${BACKEND_URL}/storage/images/uploaded/users/${user.username}/avatar/small/${user?.avatar}` 
-        : `${BACKEND_URL}/storage/images/defaults/avatar.webp`;
-    const form = useForm({ avatar: null });
+        : `${BACKEND_URL}/storage/images/defaults/avatar.webp?v=2`;
+    const { data, setData, post, processing, errors, setError, clearErrors } = useForm({ avatar: null });
 
     const closeCropperAndClearInput = useCallback(() => 
     {
@@ -108,43 +107,35 @@ function AvatarSetter({user, setSuccess, setError, isSubmitting, setIsSubmitting
         setIsImageCropperOpen(false);
         const resizedImage = getCroppedImage(imageCropContainerRef.current);        
         
-        setSuccess('');
-        setError('');
-        setIsSubmitting(true);
-        form.setData('avatar', resizedImage);
-        form.post('/update-avatar', {
+        clearErrors();
+        setData('avatar', resizedImage);
+        post('/update-avatar', {
+            preserveScroll: true,
             onSuccess: () => {
-                setSuccess('Avatar successfully updated.');
                 setSelectedAvatar(null);
             },
             onError: (err) => {
                 const errMsg = getErrorMessage(err);
-                setError(errMsg.trim());
-            },
-            onFinish: () => {
-                setIsSubmitting(false);
+                setError('avatar', errMsg.trim());
             }
         });
 
-    },[setIsImageCropperOpen, imageCropContainerRef.current, 
-        setSuccess, setError, setIsSubmitting,// updateAvatar, 
-        setSelectedAvatar]);
+    },[setIsImageCropperOpen, post, setData, setError, clearErrors]);
 
     const handleFileSelect = useCallback(async (e) =>
     {
-        setError('');
-        setSuccess('');
+        clearErrors();
         const file = getImageFileFromInput(e);
         if(!file)
         {
-            setError("Must be .jpeg, .png, .webp, or .bmp");
+            setError('avatar', "Must be .jpeg, .png, .webp, or .bmp");
             return;
         }
         console.log("opening");
         setIsImageCropperOpen(true);
         const selectedFileUrl = await getImageUrlFromFile(file);
         setSelectedAvatar(selectedFileUrl);
-    },[setIsImageCropperOpen, setSelectedAvatar]);
+    },[setIsImageCropperOpen, setSelectedAvatar, clearErrors, setError]);
 
     const handleDragOver = useCallback((e) =>
     {
@@ -273,7 +264,7 @@ function AvatarSetter({user, setSuccess, setError, isSubmitting, setIsSubmitting
                     />
                 </div>
                 <button type="button" onClick={handleCropAndUpload} 
-                    disabled={isSubmitting} ref={imageCropButtonRef}
+                    disabled={processing} ref={imageCropButtonRef}
                 >
                     update
                 </button>
@@ -281,6 +272,9 @@ function AvatarSetter({user, setSuccess, setError, isSubmitting, setIsSubmitting
             )
         }
         <div className="profile-avatar-container" ref={avatarContainerRef}>
+            {errors.avatar && (
+                <div className="error">{errors.avatar}</div>
+            )}
             <label htmlFor="profile_image" className="hidden"
             ></label>
             <input type="file" accept=".jpg, .jpeg, .png, .webp, .bmp" name="profile_image" 
@@ -289,7 +283,7 @@ function AvatarSetter({user, setSuccess, setError, isSubmitting, setIsSubmitting
             />    
             <button className="avatar-button"
                 onClick={handleUpdateClick}   
-                disabled={isSubmitting} 
+                disabled={processing} 
                 type="button"
             >
                 update

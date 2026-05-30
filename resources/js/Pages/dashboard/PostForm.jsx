@@ -1,24 +1,20 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import {  Link, router, usePage , Head } from '@inertiajs/react';
+import { Link, router, usePage, Head, useForm } from '@inertiajs/react';
 import FormField from '../../Components/common/FormField';
 import CheckboxField from '../../Components/common/CheckboxField';
 import RichTextEditor from '../../Components/common/RichTextEditor';
 import VideoIframe from '../../Components/common/VideoIframe';
 import ImageField from "./ImageField";
-import { addImageDragListeners, Category, dehydrateEditorImagePaths, getErrorMessage, getImageFilesFromInput, 
+import { BACKEND_URL, addImageDragListeners, Category, dehydrateEditorImagePaths, getErrorMessage, getImageFilesFromInput, 
     getImageUrlFromFile, getVideoEmbedUrl, hydrateEditorImagePaths, isAlphaDash, isUrl, 
-    MemberType, 
-    processEditorImages, resizeImage } from '../../utils/helpers';
-import "../DashboardProfile.css";
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+    MemberType, processEditorImages, resizeImage } from '../../utils/helpers';
 
 const createInitialImageFields = (post=null, user, postUrl) => 
 {
     if(post) 
     {
-        //console.log("poast!", post);
-        const images = post.gallery_image_urls;//JSON.parse(post.gallery_image_urls);
-        const alts = post.gallery_alts;//JSON.parse(post.gallery_alts);
+        const images = post.gallery_image_urls;
+        const alts = post.gallery_alts;
         return images.map((image, i) => ({
             index: i,
             image: `${BACKEND_URL}/storage/images/uploaded/users/${user.username}/posts/${postUrl}/gallery/thumb/${image}`,
@@ -29,13 +25,7 @@ const createInitialImageFields = (post=null, user, postUrl) =>
     } 
     else 
     {
-        return [{
-            index: 0,
-            image: null,
-            alt: null,
-            value: null,
-            type: 'new'
-        }];
+        return [{ index: 0, image: null, alt: null, value: null, type: 'new' }];
     }
 };
 
@@ -44,7 +34,7 @@ function hasImages(fields)
     let hasImg = false;
     for(let i = 0; i < fields.length; ++i)
     {
-        if(fields[i].image) //don't check the file field - old images are loaded without setting it.
+        if(fields[i].image) 
         {
             hasImg = true;
             break;
@@ -55,91 +45,80 @@ function hasImages(fields)
 
 function PostForm({isCreateForm=true, post=null, user, category=Category.Archive})
 {
+    const hydratedStatement = post?.statement ? hydrateEditorImagePaths(post.statement) : null;
     
-    // Using Inertia form submissions instead of legacy AuthContext API
+    const { data, setData, errors, setError, clearErrors } = useForm({
+        post_url: post?.post_url || "",
+        title: post?.title || "",
+        subtitle: post?.subtitle || "",
+        website: post?.website || "",
+        source_code: post?.sourceCode || "",
+        main_video: post?.main_video || "",
+        main_video_raw: post?.main_video || "",
+        is_private: post ? !!post.is_private : false,
+        is_news: post ? !!post.is_news : (category == Category.News),
+        statement: hydratedStatement
+    });
+
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [success, setSuccess] = useState("");
-    const [error, setError] = useState("");
+    const [hasChanged, setHasChanged] = useState(false);
+    const [initialStatement, setInitialStatement] = useState(hydratedStatement);    
 
-    const [title, setTitle] = useState("");
-    const [isPrivate, setIsPrivate] = useState(false);
-    const [isNews, setIsNews] = useState(category == Category.News);
-    const [postUrl, setPostUrl] = useState("");
-    const [subtitle, setSubtitle] = useState("");
-    const [website, setWebsite] = useState("");
-    const [sourceCode, setSourceCode] = useState("");
-    const [mainVideoRawUrl, setMainVideoRawUrl] = useState("");
-    const [mainVideo, setMainVideo] = useState("");
-    const [statement, setStatement] = useState(null);
-    const [initialStatement, setInitialStatement] = useState(null);    
-
-    const [isTitleValid, setIsTitleValid] = useState(false);
-    const [isPostUrlValid, setIsPostUrlValid] = useState(false);
-    const [isSubtitleValid, setIsSubtitleValid] = useState(false);
-    const [isWebsiteValid, setIsWebsiteValid] = useState(false);
-    const [isSourceCodeValid, setIsSourceCodeValid] = useState(false);
-    const [isMainVideoValid, setIsMainVideoValid] = useState(false);
-    const [hasChanged, setHasChanged] = useState(false); //for update
+    const [isTitleValid, setIsTitleValid] = useState(!!post);
+    const [isPostUrlValid, setIsPostUrlValid] = useState(!!post);
+    const [isSubtitleValid, setIsSubtitleValid] = useState(!!post);
+    const [isWebsiteValid, setIsWebsiteValid] = useState(true);
+    const [isSourceCodeValid, setIsSourceCodeValid] = useState(true);
+    const [isMainVideoValid, setIsMainVideoValid] = useState(!!post?.main_video);
 
     const galleryContainerRef = useRef(null);    
-    const [imageFields, setImageFields] = useState(createInitialImageFields(post, user, postUrl));
+    const [imageFields, setImageFields] = useState(createInitialImageFields(post, user, post?.post_url || ""));
     const dragCounterRef = useRef(0);
-    const canSubmit = title && isTitleValid && postUrl && isPostUrlValid
-        && subtitle && isSubtitleValid && ((website && isWebsiteValid) || !website)
-        && ((sourceCode && isSourceCodeValid) || !sourceCode)
+
+    const canSubmit = data.title && isTitleValid && data.post_url && isPostUrlValid
+        && data.subtitle && isSubtitleValid && ((data.website && isWebsiteValid) || !data.website)
+        && ((data.source_code && isSourceCodeValid) || !data.source_code)
         && imageFields.length > 0 && hasImages(imageFields) && hasChanged;    
+
     const buttonText = isCreateForm ? "create" : "update";
     const loadingText = "loading form...";
     const isFormReady = isCreateForm || post;
-    // console.log(title, isTitleValid, postUrl, isPostUrlValid, subtitle, isSubtitleValid,
-    //     website, isWebsiteValid, imageFields.length, hasImages(imageFields), hasChanged);
-    // console.log("canSubmit?", canSubmit, isSubmitting, isLoading);
-    
+
     useEffect(() =>
     {
-        if(!post)
-        {
-            return;
-        }        
-        setTitle(post.title);   
+        if(!post) return;
+        const hydr = hydrateEditorImagePaths(post.statement);
+        setData({
+            post_url: post.post_url || "",
+            title: post.title || "",
+            subtitle: post.subtitle || "",
+            website: post.website || "",
+            source_code: post.sourceCode || "",
+            main_video: post.main_video || "",
+            main_video_raw: post.main_video || "",
+            is_private: !!post.is_private,
+            is_news: !!post.is_news,
+            statement: hydr
+        });
         setIsTitleValid(true);
-        //console.log("private?!", post.is_private);
-        setIsPrivate(post.is_private);
-        setIsNews(post.is_news);
-        setPostUrl(post.post_url);
         setIsPostUrlValid(true);
-        setSubtitle(post.subtitle);
         setIsSubtitleValid(true);
-        if(post.website)
-        {
-            setWebsite(post.website);
-            setIsWebsiteValid(true);
-        }
-        if(post.sourceCode)
-        {
-            setSourceCode(post.sourceCode)
-            setIsWebsiteValid(true);
-        }
-        if(post.main_video)
-        {
-            setMainVideo(post.main_video);
-            setIsMainVideoValid(true);
-        }
-        const hydratedStatement = hydrateEditorImagePaths(post.statement);
-        setStatement(hydratedStatement);
-        setInitialStatement(hydratedStatement);
-        setImageFields(createInitialImageFields(post, user, post.post_url))
+        setIsWebsiteValid(true);
+        setIsSourceCodeValid(true);
+        setIsMainVideoValid(!!post.main_video);
+        setInitialStatement(hydr);
+        setImageFields(createInitialImageFields(post, user, post.post_url));
         setHasChanged(false);   
-    },[post, setTitle, setIsPrivate, setPostUrl, setSubtitle, setWebsite, 
-        setIsMainVideoValid, setMainVideo, setStatement, user]);
+    },[post, user, setData]);
 
     const onSubmit = useCallback(async (e) =>
     {
         e.preventDefault();
         setIsSubmitting(true);
         setSuccess('');
-        setError('');
-        //RESIZE GALLERY IMAGES
+        clearErrors();
+
         const resizedGalleryImages = [];
         for(let i = 0; i < imageFields.length; ++i)
         {               
@@ -154,33 +133,29 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
             const newField = {...imageFields[i], value: resizedImageFile};
             resizedGalleryImages.push(newField);
         };
-        //RESIZE STATEMENT IMAGES
-        const dehydratedStatement = dehydrateEditorImagePaths(statement);
+        
+        const dehydratedStatement = dehydrateEditorImagePaths(data.statement);
         const statementWithResizedImages = await processEditorImages(dehydratedStatement);
+
         try
         {
             const message = isCreateForm ? 'Post successfully created.' : 'Post successfully updated.';
-            // Build FormData for multipart upload (files + fields)
             const formData = new FormData();
-            formData.append('post_url', postUrl);
-            formData.append('title', title);
-            formData.append('subtitle', subtitle);
-            formData.append('website', website || '');
-            formData.append('source_code', sourceCode || '');
-            formData.append('main_video', mainVideo || '');
-            formData.append('is_private', isPrivate ? '1' : '0');
-            formData.append('is_news', isNews ? '1' : '0');
-            formData.append('statement', statementWithResizedImages);
+            formData.append('post_url', data.post_url);
+            formData.append('title', data.title);
+            formData.append('subtitle', data.subtitle);
+            formData.append('website', data.website || '');
+            formData.append('source_code', data.source_code || '');
+            formData.append('main_video', data.main_video || '');
+            formData.append('is_private', data.is_private ? '1' : '0');
+            formData.append('is_news', data.is_news ? '1' : '0');
+            formData.append('statement', statementWithResizedImages || '');
 
-            // Attach gallery images as gallery_images[index][file] or [url] + alt
             resizedGalleryImages.forEach((field, idx) =>
             {
-                if(field.type === 'new' && field.value)
-                {
+                if(field.type === 'new' && field.value) {
                     formData.append(`gallery_images[${idx}][file]`, field.value);
-                }
-                else if(field.type === 'old')
-                {
+                } else if(field.type === 'old') {
                     formData.append(`gallery_images[${idx}][url]`, field.value);
                 }
                 formData.append(`gallery_images[${idx}][alt]`, field.alt || '');
@@ -193,21 +168,20 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
                         preserveState: false,
                         preserveScroll: true,
                         onSuccess: (page) => resolve(page),
-                        onError: (errors) => reject(errors),
+                        onError: (errs) => reject(errs),
                         onFinish: () => setIsSubmitting(false)
                     });
                 });
             }
             else
             {
-                // Use method override for PUT when submitting FormData via POST
                 formData.append('_method', 'PUT');
                 await new Promise((resolve, reject) => {
                     router.post(`/posts/${post.id}`, formData, {
                         preserveState: false,
                         preserveScroll: true,
                         onSuccess: (page) => resolve(page),
-                        onError: (errors) => reject(errors),
+                        onError: (errs) => reject(errs),
                         onFinish: () => setIsSubmitting(false)
                     });
                 });
@@ -215,31 +189,31 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
 
             setSuccess(message);
             router.visit('/dashboard/posts', { state:{message:message}});
-            //REDIRECT TO dashboard/posts
         }
-        catch(error)
+        catch(err)
         {
-            const msg = getErrorMessage(error);
-            setError(msg);
+            if (err && typeof err === 'object' && !err.response && !err.message) {
+                for (const key in err) {
+                    setError(key, err[key]);
+                }
+            } else {
+                const msg = getErrorMessage(err);
+                setError('general', msg);
+            }
         }
         finally
         {
             setHasChanged(false);
             setIsSubmitting(false);
         }
-    },[setSuccess, setError, imageFields, isNews, isCreateForm, post, postUrl, 
-        title, subtitle, website, mainVideo, isPrivate, statement, 
-        setIsSubmitting]);
+    },[isCreateForm, post, data, imageFields, clearErrors, setError]);
 
     const handleDelete = useCallback(async () =>
     {
-        setError('');
+        clearErrors();
         setSuccess('');
-        const isConfirmed = window.confirm("Delete post?");
-        if(!isConfirmed)
-        {
-            return;            
-        }
+        if(!window.confirm("Delete post?")) return;
+        
         setIsSubmitting(true);
         try
         {
@@ -248,236 +222,175 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
                     preserveState: false,
                     preserveScroll: true,
                     onSuccess: () => resolve(),
-                    onError: (errors) => reject(errors),
+                    onError: (errs) => reject(errs),
                     onFinish: () => setIsSubmitting(false)
                 });
             });
             router.visit('/dashboard/posts', { state:{message:"Post successfully deleted."}});
         }
-        catch(error)
+        catch(err)
         {
-            const msg = getErrorMessage(error);
-            setError(msg);
+            if (err && typeof err === 'object' && !err.response && !err.message) {
+                for (const key in err) {
+                    setError(key, err[key]);
+                }
+            } else {
+                const msg = getErrorMessage(err);
+                setError('general', msg);
+            }
         }
         finally
         {
             setIsSubmitting(false);
         }
-    },[post, setError, setIsSubmitting]);
+    },[post, setError, clearErrors]);
 
     const handleMainVideoValidation = useCallback((proposedUrl, setFieldLocalError) =>
     {
         setFieldLocalError('');
         const embedUrl = getVideoEmbedUrl(proposedUrl);
-        embedUrl ? setIsMainVideoValid(true) : setIsMainVideoValid(false);
-        if(embedUrl)
-        {
-            setMainVideo(embedUrl);
+        setIsMainVideoValid(!!embedUrl);
+        if(embedUrl) {
+            setData('main_video', embedUrl);
+        } else {
+            setFieldLocalError('Must be a valid link from YouTube, DailyMotion, Vimeo, or Youku.');
         }
-        else
-        {
-            setFieldLocalError('Must be a valid link from YouTube, DailyMotion, Vimeo, or Youku.')
-        }
-    }, [setMainVideo, setIsMainVideoValid]);
+    }, [setData]);
 
     const handlePostUrlValidation = useCallback((proposedUrl, setFieldLocalError) =>
     {
-        const isEmpty = proposedUrl.length < 1;
-        if(isEmpty)
-        {
+        if(proposedUrl.length < 1) {
             setFieldLocalError("URL required.");
             setIsPostUrlValid(false);
             return;
         }
         const isValid = isAlphaDash(proposedUrl);
         setIsPostUrlValid(isValid);
-        if(!isValid)
-        {
+        if(!isValid) {
             setFieldLocalError("URL may only contain letters, numbers, _ and -");
             return;
         }
         setFieldLocalError("");
-    }, [setIsPostUrlValid]);
+    }, []);
+
     const handleWebsiteValidation = useCallback((proposedUrl, setFieldLocalError) =>
     {
         const isValid = isUrl(proposedUrl);
         setIsWebsiteValid(isValid);
-        if(proposedUrl && !isValid)
-        {
+        if(proposedUrl && !isValid) {
             setFieldLocalError("Not a valid URL.");
             return;
         }        
         setFieldLocalError("");
-    },[setIsWebsiteValid]);
+    }, []);
+
     const handleSourceCodeValidation = useCallback((proposedUrl, setFieldLocalError) =>
     {
         const isValid = isUrl(proposedUrl);
         setIsSourceCodeValid(isValid);
-        if(proposedUrl && !isValid)
-        {
+        if(proposedUrl && !isValid) {
             setFieldLocalError("Not a valid URL.");
             return;
         }        
         setFieldLocalError("");
-    },[setIsSourceCodeValid]);
+    }, []);
 
     const handleSubtitleValidation = useCallback((proposedSubtitle, setFieldLocalError) =>
     {
-        if(!proposedSubtitle)
-        {
+        if(!proposedSubtitle) {
             setFieldLocalError("Subtitle required.");
             setIsSubtitleValid(false);
             return;
         }
-        if(proposedSubtitle.length > 255)
-        {
-            setFieldLocalError("Must be less than 255 characters.")
+        if(proposedSubtitle.length > 255) {
+            setFieldLocalError("Must be less than 255 characters.");
             setIsSubtitleValid(false);
             return;
         }
         setFieldLocalError("");
         setIsSubtitleValid(true);
-    }, [setIsSubtitleValid]);
+    }, []);
 
     const handleTitleValidation = useCallback((proposedTitle, setFieldLocalError) =>
     {
-        if(!proposedTitle)
-        {
+        if(!proposedTitle) {
             setFieldLocalError("Title required.");
             setIsTitleValid(false);
             return;
         }
-        if(proposedTitle.length > 255)
-        {
-            setFieldLocalError("Must be less than 255 characters.")
+        if(proposedTitle.length > 255) {
+            setFieldLocalError("Must be less than 255 characters.");
             setIsTitleValid(false);
             return;
         }
         setFieldLocalError("");
         setIsTitleValid(true);
-    }, [setIsTitleValid]);
+    }, []);
 
     const handleAddImage = useCallback(() =>
     {
-        setError('');
-        if(imageFields.length >= 15)
-        {
-            setError("Max amount of images is 15. Input truncated.");
+        clearErrors('general');
+        if(imageFields.length >= 15) {
+            setError('general', "Max amount of images is 15. Input truncated.");
             return;
         }        
-        const newField = 
-        {
-            index: imageFields.length,
-            image: null,
-            alt: "",
-            value: null,
-            type: 'new'
-        }        
-        setImageFields(prevFields => [...prevFields, newField]);
+        setImageFields(prev => [...prev, { index: prev.length, image: null, alt: "", value: null, type: 'new' }]);
         setHasChanged(true);
-    },[imageFields, setImageFields, setHasChanged]);
+    },[imageFields.length, setError, clearErrors]);
 
     const onImageChange = useCallback((index, file, imageUrl) =>
     {
         setHasChanged(true); 
-        setImageFields((prevFields) =>
-        {
-            return prevFields.map((field) =>
-            {
-                if(field.index === index)
-                {
-                    return {...field, value: file, image:imageUrl};
-                }
-                return field;
-            });
-        });
-    }, [setImageFields, setHasChanged]);
+        setImageFields(prev => prev.map(field => field.index === index ? {...field, value: file, image:imageUrl} : field));
+    }, []);
 
     const onAltChange = useCallback((index, altText) =>
     {
         setHasChanged(true); 
-        setImageFields((prevFields) =>
-        {
-            return prevFields.map((field) =>
-            {
-                if(field.index === index)
-                {
-                    return {...field, alt:altText}
-                }
-                return field;
-            });
-        });
-    }, [setImageFields, setHasChanged]);
+        setImageFields(prev => prev.map(field => field.index === index ? {...field, alt:altText} : field));
+    }, []);
 
     const handleDroppedImages = useCallback(async (e) =>
     {
         e.preventDefault();
         e.stopPropagation();
-        console.log("um");
         dragCounterRef.current = 0;
-        if(galleryContainerRef.current)
-        {
-            galleryContainerRef.current.classList.toggle('dragged-over', false);
-        }
+        if(galleryContainerRef.current) galleryContainerRef.current.classList.toggle('dragged-over', false);
         
-        setError('');
-        let error = '';
+        clearErrors('general');
+        let localErr = '';
         const input = getImageFilesFromInput(e);
-        if(input.error)
-        {
-            error = input.error;
-        }
+        if(input.error) localErr = input.error;
 
-        let newFields = [];
         const imagesToProcess = input.images || [];
-
+        let newFields = [];
         for (const file of imagesToProcess) 
         {
             const url = await getImageUrlFromFile(file);
-
-            const newField = 
-            {
-                // The index will be assigned correctly in the state setter
-                index: -1, 
-                image: url,
-                alt: "",
-                value: file,
-                type: 'new'
-            };
-            newFields.push(newField);
+            newFields.push({ index: -1, image: url, alt: "", value: file, type: 'new' });
         }
 
-        setImageFields((prevFields) =>
+        setImageFields((prev) =>
         {
-            const combinedFields = [...prevFields, ...newFields];
-            let reindexedFields = combinedFields.map((field, i) =>
+            let combined = [...prev, ...newFields];
+            let reindexed = combined.map((f, i) => ({ ...f, index: i}));
+            if(reindexed.length >= 15)
             {
-                return { ...field, index: i};
-            })
-            if(reindexedFields.length >= 15)
-            {
-                error = error ? error + ' ' : error;
-                error += "Max amount of images is 15.";
-                reindexedFields = reindexedFields.slice(0, 15);
+                localErr = (localErr ? localErr + ' ' : '') + "Max amount of images is 15.";
+                reindexed = reindexed.slice(0, 15);
             }
-               
-            setError(error);
-            return reindexedFields;
+            if(localErr) setError('general', localErr);
+            return reindexed;
         });      
         setHasChanged(true);  
-    },[setImageFields, galleryContainerRef, setHasChanged]);
+    },[clearErrors, setError]);
 
     useEffect(() =>
     {
         const galCont = galleryContainerRef.current;
-        if(!galCont)
-        {
-            return;
-        }
-        const cleanup = addImageDragListeners(galCont, dragCounterRef, handleDroppedImages);
-
-        return cleanup;        
-    },[galleryContainerRef.current, handleDroppedImages]); //doesn't work right w/o ref.current
+        if(!galCont) return;
+        return addImageDragListeners(galCont, dragCounterRef, handleDroppedImages);
+    },[handleDroppedImages]);
 
     return (
     <div className="main-info-delete-container">
@@ -489,9 +402,9 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
             <div className="main-info-box stretch">
                 <form onSubmit={onSubmit}>
                     <div className="text-fields-container">
-                        {error && (
+                        {errors.general && (
                         <div className="error">
-                            {error}
+                            {errors.general}
                         </div>
                         )}
                         {success && (
@@ -503,95 +416,107 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
                         Fields with an * are required.
                         </div>
                         <FormField
-                            id="post-url"
+                            id="post_url"
                             label="post url*"
                             placeholder="used in page url"
-                            value={postUrl}
-                            onChange={(e) => {setHasChanged(true); setPostUrl(e.target.value)}}
+                            value={data.post_url}
+                            onChange={(e) => {setHasChanged(true); setData('post_url', e.target.value)}}
                             onValidate={handlePostUrlValidation}
                             disabled={isSubmitting}
                             type="text"
                             isInline={true}
                             classes="inline-form-field"
+                            error={errors.post_url}
+                            onErrorUpdate={(id, msg) => msg ? setError(id, msg) : clearErrors(id)}
                         />
                         <FormField
                             id="title"
                             label="title*"
                             placeholder="work title"
-                            value={title}
-                            onChange={(e) => {setHasChanged(true); setTitle(e.target.value)}}
+                            value={data.title}
+                            onChange={(e) => {setHasChanged(true); setData('title', e.target.value)}}
                             onValidate={handleTitleValidation}
                             disabled={isSubmitting}
                             type="text"
                             isInline={true}
                             classes="inline-form-field"
+                            error={errors.title}
+                            onErrorUpdate={(id, msg) => msg ? setError(id, msg) : clearErrors(id)}
                         />
                         <FormField
                             id="subtitle"
                             label="subtitle*"
                             placeholder="short description"
-                            value={subtitle}
-                            onChange={(e) => {setHasChanged(true); setSubtitle(e.target.value)}}
+                            value={data.subtitle}
+                            onChange={(e) => {setHasChanged(true); setData('subtitle', e.target.value)}}
                             onValidate={handleSubtitleValidation}
                             disabled={isSubmitting}
                             type="text"
                             isInline={true}
                             classes="inline-form-field"
+                            error={errors.subtitle}
+                            onErrorUpdate={(id, msg) => msg ? setError(id, msg) : clearErrors(id)}
                         />
                         <FormField 
                             id="website"
                             label="website"
                             placeholder="url of the work"
-                            value={website}
-                            onChange={(e) => {setHasChanged(true); setWebsite(e.target.value)}}
+                            value={data.website}
+                            onChange={(e) => {setHasChanged(true); setData('website', e.target.value)}}
                             onValidate={handleWebsiteValidation}
                             disabled={isSubmitting}
                             type="text"
                             isInline={true}
                             classes="inline-form-field"
+                            error={errors.website}
+                            onErrorUpdate={(id, msg) => msg ? setError(id, msg) : clearErrors(id)}
                         />
                         <FormField 
-                            id="source-code"
+                            id="source_code"
                             label="source code"
                             placeholder="eg. Github repo"
-                            value={sourceCode}
-                            onChange={(e) => {setHasChanged(true); setSourceCode(e.target.value)}}
+                            value={data.source_code}
+                            onChange={(e) => {setHasChanged(true); setData('source_code', e.target.value)}}
                             onValidate={handleSourceCodeValidation}
                             disabled={isSubmitting}
                             type="text"
                             isInline={true}
                             classes="inline-form-field"
+                            error={errors.source_code}
+                            onErrorUpdate={(id, msg) => msg ? setError(id, msg) : clearErrors(id)}
                         />
                         <FormField
-                            id="main-video"
+                            id="main_video_raw"
                             label="main video"
                             placeholder="YouTube, Vimeo, DailyMotion, or Youku"
-                            value={mainVideoRawUrl}
-                            onChange={(e) => {setHasChanged(true); setMainVideoRawUrl(e.target.value)}}
+                            value={data.main_video_raw}
+                            onChange={(e) => {setHasChanged(true); setData('main_video_raw', e.target.value)}}
                             onValidate={handleMainVideoValidation}
                             disabled={isSubmitting}
                             type="text"
                             isInline={true}
                             classes="inline-form-field"
+                            error={errors.main_video}
+                            onErrorUpdate={(id, msg) => msg ? setError('main_video', msg) : clearErrors('main_video')}
                         />
                         {
-                            isMainVideoValid && (
-                                <VideoIframe url={mainVideo}/>
+                            isMainVideoValid && data.main_video && (
+                                <VideoIframe url={data.main_video}/>
                             )
                         }
                         <CheckboxField name="is-private"
                             label="is private"
-                            onChange={(e) => {setHasChanged(true); setIsPrivate(e.target.checked)}}
+                            onChange={(e) => {setHasChanged(true); setData('is_private', e.target.checked)}}
                             disabled={isSubmitting}
-                            value={isPrivate}
+                            value={data.is_private}
                         />   
                         {
                             (user.member_type == MemberType.Webmaster) && (
                             <CheckboxField name="is-news"
                                 label="is news"
-                                onChange={(e) => {setHasChanged(true); setIsNews(e.target.checked)}}
+                                onChange={(e) => {setHasChanged(true); setData('is_news', e.target.checked)}}
                                 disabled={isSubmitting}
-                                value={isNews}
+                                value={data.is_news}
                             />   )
                         }
                         <div className="rte-container">
@@ -600,8 +525,8 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
                             </div>
                             <RichTextEditor placeholder="description of the work"
                                 isReadOnly={isSubmitting}
-                                onChange={(newStatement) => {setStatement(newStatement); setHasChanged(newStatement != initialStatement);}}
-                                value={statement}
+                                onChange={(val) => {setData('statement', val); setHasChanged(val !== initialStatement);}}
+                                value={data.statement}
                             />
                         </div>
                         <button type="submit" disabled={isSubmitting || !canSubmit}>

@@ -25,13 +25,11 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions) 
     {
         $exceptions->renderable(function (InvalidSignatureException $e, Request $request) { // <--- Note Request type-hint
-            $reactAppUrl = config('app.react_app_url', 'http://localhost:3000');
-
             // Log the event for debugging/monitoring
             Log::info('InvalidSignatureException caught for URL: ' . $request->fullUrl());
 
             // Redirect to your frontend dashboard with a specific status
-            return redirect($reactAppUrl . '/dashboard?status=invalid_link');
+            return redirect('/dashboard?status=invalid_link');
         });
     })
     ->create();

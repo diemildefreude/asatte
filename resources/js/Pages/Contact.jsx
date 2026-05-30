@@ -20,7 +20,7 @@ function Contact()
     const [isNameFieldValid, setIsNameFieldValid] = useState(false);
     const [isSubjectFieldValid, setIsSubjectFieldValid] = useState(false);
     const [isContentFieldValid, setIsContentFieldValid] = useState(false);
-    const [isMessageSent, setIsMessageSent] = useState(Boolean(flash.success));
+    //const [isMessageSent, setIsMessageSent] = useState(Boolean(flash.success));
     const canSubmit = form.data.email && isEmailFieldValid
                     && form.data.name && isNameFieldValid
                     && form.data.subject && isSubjectFieldValid
@@ -80,7 +80,7 @@ function Contact()
                 </div>
                 )}
                 {
-                isMessageSent ? (null):(<>
+                flash.success ? (null):(<>
                 <p className="centered-content no-margin">
                     Questions about the site? Send us a message.
                 </p>
@@ -95,7 +95,8 @@ function Contact()
                             onChange={(e) => form.setData('name', e.target.value)}
                             onValidate={createValidationHandler(setIsNameFieldValid)}
                             disabled={form.processing}
-                            serverError={form.errors.name}
+                            error={form.errors.name}
+                            onErrorUpdate={(id, msg) => msg ? form.setError(id, msg) : form.clearErrors(id)}
                             min={2}
                             max={25}
                             type="text"
@@ -108,7 +109,8 @@ function Contact()
                                 onChange={(e) => form.setData('email', e.target.value)}
                                 onValidate={handleEmailFormatValidation}
                                 disabled={form.processing}
-                                serverError={form.errors.email}
+                                error={form.errors.email}
+                                onErrorUpdate={(id, msg) => msg ? form.setError(id, msg) : form.clearErrors(id)}
                                 min={2}
                                 max={50}
                                 type="email"
@@ -120,7 +122,8 @@ function Contact()
                                 value={form.data.website}
                                 onChange={(e) => form.setData('website', e.target.value)}
                                 disabled={form.processing}
-                                serverError={form.errors.website}
+                                error={form.errors.website}
+                                onErrorUpdate={(id, msg) => msg ? form.setError(id, msg) : form.clearErrors(id)}
                                 min={5}
                                 max={100}
                                 type="text"
@@ -134,7 +137,8 @@ function Contact()
                                 onChange={(e) => form.setData('subject', e.target.value)}
                                 onValidate={createValidationHandler(setIsSubjectFieldValid)}
                                 disabled={form.processing}
-                                serverError={form.errors.subject}
+                                error={form.errors.subject}
+                                onErrorUpdate={(id, msg) => msg ? form.setError(id, msg) : form.clearErrors(id)}
                                 min={2}
                                 max={50}
                                 type="text"
@@ -148,7 +152,8 @@ function Contact()
                             onChange={(e) => form.setData('content', e.target.value)}
                             onValidate={createValidationHandler(setIsContentFieldValid)}
                             disabled={form.processing}
-                            serverError={form.errors.content}
+                            error={form.errors.content}
+                            onErrorUpdate={(id, msg) => msg ? form.setError(id, msg) : form.clearErrors(id)}
                             min={10}
                             max={1000}
                             isTextArea={true}

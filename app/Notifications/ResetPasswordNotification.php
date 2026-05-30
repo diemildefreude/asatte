@@ -40,7 +40,7 @@ class ResetPasswordNotification extends BaseResetPasswordNotification implements
      */
     public function toMail($notifiable) // No need for specific type hint for $notifiable if it's 'object'
     {
-        $reactAppUrl = config('app.react_app_url', 'http://localhost:3000');
+        $reactAppUrl = config('app.url', 'http://localhost:3000');
         $resetUrl = $reactAppUrl . '/password-reset?token=' . $this->token . '&email=' . urlencode($notifiable->getEmailForPasswordReset());
 
         $userName = $notifiable->username;

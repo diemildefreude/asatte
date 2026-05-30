@@ -1,44 +1,46 @@
-import { Head, router, usePage } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
 import { useCallback, useEffect, useState } from "react";
 import RichTextEditor from '../Components/common/RichTextEditor';
 import EditButton from '../Components/common/EditButton';
 import Layout from '../Components/layout/Layout';
 import { getErrorMessage, MemberType, processEditorImages, sanitizeRichHtml,
-    hydrateEditorImagePaths } from '../utils/helpers';
+    hydrateEditorImagePaths, dehydrateEditorImagePaths } from '../utils/helpers';
 
 function About({ about, status })
 {
+    const { props } = usePage();
+    const flash = props?.flash || {};
+    const user = props?.auth?.user;
+    const isWebmaster = user ? user.member_type == MemberType.Webmaster : false;
+    
     const initialHydratedStatement = (status === 'about_fetched' && about?.statement) ? hydrateEditorImagePaths(about.statement) : null;
     const [isInEditMode, setIsInEditMode] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
     const [hasStatementChanged, setHasStatementChanged] = useState(false);
-    const [error, setError] = useState("");
-    const [success, setSuccess] = useState("");
     const [statement, setStatement] = useState(initialHydratedStatement);
     const [initialStatement, setInitialStatement] = useState(initialHydratedStatement);
     const [dataLoaded, setDataLoaded] = useState(true);
-    const { props } = usePage();
-    const user = props?.auth?.user;
-    const isWebmaster = user ? user.member_type == MemberType.Webmaster : false;
-    //console.log("user?", user);
+
+    const { data, setData, post, processing, errors, setError, clearErrors } = useForm({
+        statement: initialHydratedStatement || ''
+    });
 
     const handleStatementChange = useCallback((newStatement) =>
     {
         setStatement(newStatement);
-        //console.log("new Statement", newStatement);
-        setHasStatementChanged(initialStatement != newStatement);
-
+        setHasStatementChanged(initialStatement !== newStatement);
     },[initialStatement]);
 
     const handleStatementUpdate = useCallback(async (e) =>
     {
         e.preventDefault();
-        setError('');
-        setSuccess('');
-        setIsSubmitting(true);
-        const statementWithResizedImages = await processEditorImages(statement);
-
-        router.post('/update-about', { statement: statementWithResizedImages }, {
+        
+        // Dehydrate before saving
+        const dehydratedStatement = dehydrateEditorImagePaths(statement);
+        const statementWithResizedImages = await processEditorImages(dehydratedStatement);
+        
+        setData('statement', statementWithResizedImages);
+        
+        post('/update-about', {
             preserveState: false,
             preserveScroll: true,
             onSuccess: (page) => {
@@ -48,26 +50,23 @@ function About({ about, status })
                     setInitialStatement(hydratedStatement);
                     setStatement(hydratedStatement);
                 }
-                setSuccess(page.props?.flash?.success || 'About updated.');
                 setHasStatementChanged(false);
                 setIsInEditMode(false);
-                setIsSubmitting(false);
                 setDataLoaded(true);
             },
-            onError: (errors) => {
-                const errMess = getErrorMessage(errors);
-                setError(errMess);
-                setIsSubmitting(false);
-            },
-            onFinish: () => setIsSubmitting(false)
+            onError: (err) => {
+                const displayErrorMessage = getErrorMessage(err);
+                setError('general', displayErrorMessage.trim());
+            }
         });
-    },[statement]);
+    }, [statement, post, setData, setError]);
 
     // Keep local editor state in sync when server props change (Inertia page swaps)
     useEffect(() => {
         const hydrated = (status === 'about_fetched' && about?.statement) ? hydrateEditorImagePaths(about.statement) : null;
         setStatement(hydrated);
         setInitialStatement(hydrated);
+        setData('statement', hydrated || '');
         setHasStatementChanged(false);
     }, [about, status]);
 
@@ -84,7 +83,7 @@ function About({ about, status })
                     <div className="left-item">
                         <button className="save-button" 
                             type="submit" 
-                            disabled={isSubmitting}
+                            disabled={processing}
                             onClick={handleStatementUpdate}
                         >
                             save
@@ -102,20 +101,20 @@ function About({ about, status })
                     </div>
                 </div>
                 
-                {error && (
+                {errors.general && (
                 <div className="error">
-                    {error}
+                    {errors.general}
                 </div>
                 )}
-                {success && (
+                {flash.success && (
                 <div className="notice">
-                    {success}
+                    {flash.success}
                 </div>
                 )}
                 {
                     isInEditMode ? (
                     <RichTextEditor
-                        isReadOnly={!isInEditMode || isSubmitting}
+                        isReadOnly={!isInEditMode || processing}
                         onChange={handleStatementChange}
                         value={statement}
                     />  

@@ -59,9 +59,12 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $user,
             ],
-            'flash' => [
+            'flash' => fn () => [
+                'status'  => $request->session()->get('status'),
                 'success' => $request->session()->get('success'),
-                'error' => $request->session()->get('error'),
+                'success_bio' => $request->session()->get('success_bio'),
+                'success_profile' => $request->session()->get('success_profile'),
+                'error'   => $request->session()->get('error'),
             ],
             'unread' => $unread,
         ]);

@@ -1,11 +1,8 @@
-import { useState } from 'react';
 import './Form.css';
 
 function FormField({ classes='', id, label, placeholder, value="", 
-    onChange, disabled, min, max, type = "text", onValidate, isTextArea=false, serverError="" }) 
+    onChange, onBlur, disabled, min, max, type = "text", onValidate, isTextArea=false, error="", onErrorUpdate = () => {} }) 
 {
-    const [error, setError] = useState(''); // This is FormField's local error state
-
     let fieldClasses = 'form-field ';
     fieldClasses = isTextArea ? fieldClasses + "text-area " : fieldClasses;
     fieldClasses += classes;
@@ -17,18 +14,15 @@ function FormField({ classes='', id, label, placeholder, value="",
     {
         const inputValue = e.target.value.trimEnd();
         onChange(e); // This updates the parent's value state
-        setError('');
 
         if (onValidate) 
         {
-            onValidate(inputValue, setError);
+            onValidate(inputValue, (msg) => onErrorUpdate(id, msg));
+        } else {
+            onErrorUpdate(id, '');
         }
-        // ONLY update the parent's state IF the client-side validation passed
-        
-        
-        // If !isValid, the parent's state for this field will not be updated.
-        // The error will be displayed by this FormField component.
     };
+
     return (
     <div className={fieldClasses}>
         <div className="label-input-container">
@@ -51,6 +45,7 @@ function FormField({ classes='', id, label, placeholder, value="",
             min={min}
             max={max}
             onChange={handleInternalChange}
+            onBlur={onBlur}
             disabled={disabled}
             placeholder={placeholder}
         />
@@ -63,6 +58,7 @@ function FormField({ classes='', id, label, placeholder, value="",
             max={max}
             id={id}
             onChange={handleInternalChange}
+            onBlur={onBlur}
             disabled={disabled}
         />
         )
@@ -74,12 +70,6 @@ function FormField({ classes='', id, label, placeholder, value="",
             {error}
         </div>
     )}                
-    {
-        serverError && (
-        <div className="error small">
-            {serverError}
-        </div>
-    )}
     </div>
     );
 }

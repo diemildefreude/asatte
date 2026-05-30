@@ -523,7 +523,91 @@ class PostController extends Controller
             'gallery_images.*.file.image' => 'Each uploaded file must be an image.',
         ]);       
         
-        $userName = $user->username;         
+        $userName = $user->username;    
+        $postImageRoot = "images/uploaded/users/$userName/posts";     
+        $originalUrl = $postUrl;
+
+        if ($basicFields['post_url'] != $postUrl) 
+        {
+            $newUrl = $basicFields['post_url'];
+            $oldDir = "{$postImageRoot}/{$postUrl}";
+            $newDir = "{$postImageRoot}/{$newUrl}";
+            
+            $disk = Storage::disk('public');
+
+            // 1. Sanity Check: Does the source folder actually exist?
+            if (!$disk->exists($oldDir)) 
+            {
+                Log::warning("Folder rename skipped: Source directory does not exist.", [
+                    'attempted_old_dir' => $oldDir
+                ]);
+                // Handle this gracefully—maybe the user hasn't uploaded images yet
+                $postUrl = $newUrl; 
+            } 
+            // 2. Conflict Check: Does the target folder name already exist?
+            elseif ($disk->exists($newDir)) 
+            {
+                Log::warning("Folder rename failed: Target directory already exists.", [
+                    'old_dir' => $oldDir,
+                    'conflicting_new_dir' => $newDir
+                ]);
+            } 
+            // 3. Both checks pass, proceed with defensive execution
+            else 
+            {
+                try {
+                    // Attempt the clean, native framework move
+                    $success = $disk->move($oldDir, $newDir);
+                    
+                    if (!$success) {
+                        throw new \Exception("Storage::move returned false without throwing an exception.");
+                    }
+                    
+                    Log::info("Successfully renamed post folder from {$oldDir} to {$newDir}");
+                    $postUrl = $newUrl;
+
+                } catch (\Throwable $e) {
+                    Log::warning("Native Storage::move failed. Attempting robust copy/delete fallback for Windows environment.", [
+                        'error' => $e->getMessage()
+                    ]);
+
+                    // FALLBACK WORKAROUND FOR WINDOWS FILE LOCKS: 
+                    // Manually copy files over one-by-one, then clear out the old directory.
+                    try {
+                        $allFiles = $disk->allFiles($oldDir);
+                        
+                        foreach ($allFiles as $file) {
+                            // Calculate the relative new path for each nested file asset
+                            $relativePath = str_replace($oldDir, '', $file);
+                            $destinationPath = $newDir . $relativePath;
+                            
+                            $disk->copy($file, $destinationPath);
+                        }
+                        
+                        // Once everything is safely copied over, wipe the old directory
+                        $disk->deleteDirectory($oldDir);
+                        
+                        Log::info("Fallback copy/delete successful. Folder updated to {$newDir}");
+                        $postUrl = $newUrl;
+
+                    } 
+                    catch (\Throwable $fallbackError) 
+                    {
+                        Log::error("Critical: Both native move and fallback copy operations failed.", [
+                            'move_error' => $e->getMessage(),
+                            'fallback_error' => $fallbackError->getMessage(),
+                            'old_dir' => $oldDir,
+                            'new_dir' => $newDir
+                        ]);
+
+                        throw \Illuminate\Validation\ValidationException::withMessages([
+                            'post_url' => ['The system was unable to reorganize the asset folders due to a local file lock. Please close open previews and try again.']
+                        ]);
+                    }
+                }
+            }
+        }
+        
         $galleryImageFolder = "users/$userName/posts/$postUrl/gallery";
         
         $allowedExistingUrls = $post->gallery_image_urls ?? [];
@@ -590,6 +674,13 @@ class PostController extends Controller
 
         $statementImageFolder = "users/$userName/posts/$postUrl/statement";
         $rawStatement = $request->input('statement');
+        
+        if ($originalUrl !== $postUrl) {
+            $oldStatementPath = "images/uploaded/users/$userName/posts/$originalUrl/statement";
+            $newStatementPath = "images/uploaded/users/$userName/posts/$postUrl/statement";
+            $rawStatement = str_replace($oldStatementPath, $newStatementPath, $rawStatement);
+        }
+
         $statement = saveEditorImages($rawStatement,
             $editorImageArray, $statementImageFolder);
         $statement = sanitizeRichHtml($statement);
@@ -600,6 +691,7 @@ class PostController extends Controller
         $postFields = 
         [
             ...$basicFields,
+            'post_url' => $postUrl,
             'website' => $website,
             'is_private' => $isPrivate,
             'is_news' => $isNews,

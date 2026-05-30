@@ -1,58 +1,64 @@
-import { Head, useForm, router, usePage } from '@inertiajs/react';
+import { Head, useForm, usePage, router } from '@inertiajs/react';
 import { useCallback, useEffect, useState } from 'react';
 import RichTextEditor from '../../Components/common/RichTextEditor';
 import EditButton from '../../Components/common/EditButton';
-import { dehydrateEditorImagePaths, getErrorMessage, getImageUrlsFromDelta, hydrateEditorImagePaths, processEditorImages, sanitizeRichHtml } from '../../utils/helpers';
+import { dehydrateEditorImagePaths, getErrorMessage, hydrateEditorImagePaths, processEditorImages, sanitizeRichHtml } from '../../utils/helpers';
 
 function EditBio()
 {
     const { props } = usePage();
     const user = props?.auth?.user;
+    const flash = props?.flash || {};
+    
     const [isInEditMode, setIsInEditMode] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [bio, setBio] = useState(null);
     const [initialBio, setInitialBio] = useState(null);
     const [hasBioChanged, setHasBioChanged] = useState(false);
-    const [success, setSuccess] = useState("");
-    const [error, setError] = useState("");
-    const form = useForm({ bio: '' });
+
+    const { data, setData, post, processing, errors, setError, clearErrors } = useForm({ bio: '' });
 
     useEffect(() =>
     {        
         const hydratedBio = hydrateEditorImagePaths(user?.bio);
         setBio(hydratedBio);
         setInitialBio(hydratedBio);
-        form.setData('bio', hydratedBio || '');
-    },[user]);
+        setData('bio', hydratedBio || '');
+    },[user, setData]);
     
     const handleBioChange = useCallback((newBio) =>
     {
         setBio(newBio);
-        setHasBioChanged(initialBio != newBio);
+        setHasBioChanged(initialBio !== newBio);
     },[initialBio]);
 
     const handleBioSubmit = async (e) =>
     {
         e.preventDefault();
-        setError('');
-        setSuccess('');        
-        setIsSubmitting(true);
+        clearErrors();
+        
         const dehydratedBio = dehydrateEditorImagePaths(bio);
         const bioWithResizedImages = await processEditorImages(dehydratedBio);
 
-        form.setData('bio', bioWithResizedImages);
-        form.post('/update-bio', {
+        setIsSubmitting(true);
+        router.post('/update-bio', { bio: bioWithResizedImages }, {
+            preserveScroll: true,
             onSuccess: (page) => {
-                const hydratedBio = hydrateEditorImagePaths(page.props?.auth?.user?.bio || bioWithResizedImages);
-                setInitialBio(hydratedBio);
-                setBio(hydratedBio);
-                setSuccess(`Bio successfully updated.`);
+                const updatedBio = hydrateEditorImagePaths(page.props?.auth?.user?.bio || bioWithResizedImages);
+                setInitialBio(updatedBio);
+                setBio(updatedBio);
                 setHasBioChanged(false);
                 setIsInEditMode(false);
             },
             onError: (err) => {
-                const displayErrorMessage = getErrorMessage(err);
-                setError(displayErrorMessage.trim());
+                if (err && typeof err === 'object' && !err.response && !err.message) {
+                    for (const key in err) {
+                        setError(key, err[key]);
+                    }
+                } else {
+                    const displayErrorMessage = getErrorMessage(err);
+                    setError('general', displayErrorMessage.trim());
+                }
             },
             onFinish: () => setIsSubmitting(false)
         });
@@ -84,14 +90,14 @@ function EditBio()
                     />)}
                 </div>
             </div>
-            {error && (
+            {errors.general && (
             <div className="error">
-                {error}
+                {errors.general}
             </div>
             )}
-            {success && (
+            {flash.success_bio && (
             <div className="notice">
-                {success}
+                {flash.success_bio}
             </div>
             )}
             {

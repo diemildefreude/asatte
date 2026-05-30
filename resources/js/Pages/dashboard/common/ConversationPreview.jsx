@@ -1,15 +1,13 @@
 import React from "react";
-import { getDateAsYYYYMMDD } from "../../../utils/helpers";
+import { BACKEND_URL, getDateAsYYYYMMDD } from "../../../utils/helpers";
 import { Link, router, usePage } from '@inertiajs/react';
-
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
 function ConversationPreview({conversation})
 {
     //console.log("This is a preview:", conversation);
     const otherUser = conversation.other_users[0];
     const avatar = otherUser?.avatar ? `${BACKEND_URL}/storage/images/uploaded/users/${otherUser.username}/avatar/small/${otherUser?.avatar}` 
-        : `${BACKEND_URL}/storage/images/defaults/avatar.webp`;
+        : `${BACKEND_URL}/storage/images/defaults/avatar.webp?v=1`;
     const avatarAlt = otherUser?.username ? `${otherUser.username}'s avatar` : "Deleted user. Showing default avatar.";
     const latestSenderName = conversation.latest_message.sender ? conversation.latest_message.sender.username : "[deleted user]";
     const usersString = conversation.users

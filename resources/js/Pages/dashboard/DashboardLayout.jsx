@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import DashboardTab from '../../Components/common/DashboardTab';
-import {  Link, router, usePage , Head } from '@inertiajs/react';
+import {  Link, router, usePage , Head, useForm } from '@inertiajs/react';
 import { MemberType } from '../../utils/helpers';
 import Layout from '../../Components/layout/Layout';
 
@@ -12,23 +12,16 @@ function DashboardLayout({ currentTab, headerText, children })
     const currentUrl = page.url || window.location.pathname;
     const parsedUrl = new URL(currentUrl, window.location.origin);
     const pathname = parsedUrl.pathname;
-    const search = parsedUrl.search;
     
     const [success, setSuccess] = useState('');
-    const [error, setError] = useState('');
+    const { post, processing, errors, setError, clearErrors } = useForm();
     const initialUnread = page.props?.unread ?? {};
     const [hasUnreadNotifications, setHasUnreadNotifications] = useState(!!initialUnread.has_unread_notifications);
     const [hasUnreadMail, setHasUnreadMail] = useState(!!initialUnread.has_unread_mail);
-    const [isSubmitting, setIsSubmitting] = useState(false);    
 
     let containerClasses = "dashboard-container";
     if(hasUnreadNotifications) { containerClasses += ' has-new-notifications'};
     if(hasUnreadMail){containerClasses += ' has-new-mail'};
-
-    
-    //console.log("hasUnreadMail", hasUnreadMail);
-    //console.log("containerClasses", containerClasses);
-    //console.log("children?", children);
 
     useEffect(() =>
     {
@@ -51,102 +44,104 @@ function DashboardLayout({ currentTab, headerText, children })
             sessionStorage.removeItem('completion_message');
             router.visit(pathname, { replace: true });
         }
-    }, [page.url]);
+    }, [page.url, pathname]);
 
     useEffect(() => {
         // sync flash messages from server-shared Inertia props
         const flash = page.props?.flash || {};
-        setSuccess(flash.success || '');
-        setError(flash.error || '');
-    }, [page.url]);
+        const params = new URLSearchParams(window.location.search);
+        const status = flash.status || params.get('status');
+        console.log("flash?", flash);
 
-    // unread status is supplied from server via Inertia shared props
-
-    const handleResendVerificationEmail = async (e) =>
-    {
-        e.preventDefault();
-        setError('');
-        setSuccess('');
-        setIsSubmitting(true);
-        try
-        {
-            router.post('/resend-verification', {}, {
-                onError: () => setError('Unable to send verification e-mail.'),
-                onFinish: () => setIsSubmitting(false),
-            });
+        if (params.has('status')) {
+            params.delete('status');
+            const newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+            window.history.replaceState({}, document.title, newUrl);
         }
-        catch (err)
-        {
-            console.log('Error sending verification e-mail', err);
-        }
-        finally
-        {
-        }
-    }
-    
-    useEffect(() => 
-    {
-        const params = new URLSearchParams(search);
-        const status = params.get('status'); // Get the 'status' query parameter
-
-        if (!status) return;
+        let message = flash.message || flash.success || '';
+        let localError = flash.error || '';
 
         async function logoutOnCancel()
         {
-            setIsSubmitting(true);
             await router.post('/logout');
-            const message = 'Your registration has been successfully cancelled.';
-            setSuccess(message);
-            setIsSubmitting(false);
+            setSuccess('Your registration has been successfully cancelled.');
         }
 
-        async function handleVerificationStatus()
+        if (status) 
         {
-            if (status) 
+            if (status === 'verify_verified') 
             {
-                let message = '';
-                if (status === 'verify_verified') 
-                {
-                    message = 'Your email has been successfully verified!';
-                    await router.reload();
-                } 
-                else if (status === 'verify_already_verified') 
-                {
-                    message = 'Your email is already verified.';
-                }             
-                else if (status === 'verify_already_canceled') 
-                { 
-                    message = 'This registration has already been canceled or the link is invalid';
-                }
-                else if (status === 'invalid_link')
-                {
-                    message = 'Invalid link.';
-                    message = (isAuthenticated && !user?.is_email_verified) ? (message + ' Please click above to resend verification e-mail.') : message;
-                }
-                else if (status === 'cancel_canceled') 
-                { 
-                    logoutOnCancel();
-                }
-                else if (status === 'cancel_already_verified') 
-                {
-                    message = 'Your email address is already verified. No action was taken.';
-                } 
-                else if (status === 'cancel_user_not_found')
-                {
-                    message = 'User not found.';
-                }
-                else if (status === 'cancel_error') 
-                {
-                    message = 'There was an error processing your request.';
-                    message = (isAuthenticated && !user?.is_email_verified) ? (message + ' Please click above to resend verification e-mail.') : message;
-                }
-
-                setSuccess(message); // Set the message in state
-                router.visit(pathname, { replace: true });
+                message = 'Your email has been successfully verified!';
+            } 
+            else if (status === 'verify_already_verified') 
+            {
+                message = 'Your email is already verified.';
+            }             
+            else if (status === 'verify_already_canceled') 
+            { 
+                message = 'This registration has already been canceled or the link is invalid';
+            }
+            else if (status === 'invalid_link')
+            {
+                localError = 'Invalid link.';
+                localError = (isAuthenticated && !user?.is_email_verified) ? (localError + ' Please click above to resend verification e-mail.') : localError;
+            }
+            else if (status === 'cancel_canceled') 
+            { 
+                logoutOnCancel();
+                return;
+            }
+            else if (status === 'cancel_already_verified') 
+            {
+                message = 'Your email address is already verified. No action was taken.';
+            } 
+            else if (status === 'cancel_user_not_found')
+            {
+                localError = 'User not found.';
+            }
+            else if (status === 'cancel_error') 
+            {
+                localError = 'There was an error processing your request.';
+                localError = (isAuthenticated && !user?.is_email_verified) ? (localError + ' Please click above to resend verification e-mail.') : localError;
+            }
+            else if (status === 'send_link_sent')
+            {
+                message = 'Verification e-mail sent!';
+            }
+            else if (status === 'send_link_already_verified')
+            {
+                message = 'Your email is already verified.';
             }
         }
-        handleVerificationStatus();
-    }, [page.url, isAuthenticated, user]);
+
+        if (message) 
+        {
+            setSuccess(message);
+        } 
+        else 
+            {
+            setSuccess('');
+        }
+        
+        if (localError) {
+            setError('general', localError);
+        } else {
+            clearErrors('general');
+        }
+    }, [page.url, isAuthenticated, user, page.props?.flash]);
+
+    const handleResendVerificationEmail = (e) =>
+    {
+        e.preventDefault();
+        clearErrors('general');
+        setSuccess('');
+        post('/resend-verification', {
+            preserveScroll: true,
+            preserveState: true,
+            onError: () => setError('general', 'Unable to send verification e-mail.'),
+            onSuccess: () => setSuccess('verification e-mail sent!')
+        });
+    }
 
     return (
     <Layout classes={containerClasses} isDashboard={true}>
@@ -160,13 +155,13 @@ function DashboardLayout({ currentTab, headerText, children })
                 (                        
                 <div className="main-info-box notice-container">
                     <p className="notice">Please check your e-mail to verify your address.</p> 
-                    <button onClick={handleResendVerificationEmail} disabled={isSubmitting}>resend</button>
+                    <button onClick={handleResendVerificationEmail} disabled={processing}>resend</button>
                 </div>
                 )
             }
-            {error && (
+            {errors.general && (
             <div className="error">
-                {error}
+                {errors.general}
             </div>
             )}
             {success && (
@@ -225,9 +220,9 @@ function DashboardLayout({ currentTab, headerText, children })
         </>):
         (
             <>
-            {error && (
+            {errors.general && (
             <div className="error">
-                {error}
+                {errors.general}
             </div>
             )}
             {success && (

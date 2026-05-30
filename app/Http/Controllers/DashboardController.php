@@ -43,7 +43,7 @@ class DashboardController extends Controller
         $user->avatar = $imgPath;
         $user->save();
 
-        $request->session()->flash('success', 'Your avatar has been successfully updated.');
+        $request->session()->flash('success_profile', 'Your avatar has been successfully updated.');
         return redirect()->back();
     }
     public function updateBio(Request $request)
@@ -76,7 +76,7 @@ class DashboardController extends Controller
         $user->bio = $newBio;
         $user->save();
         
-        $request->session()->flash('success', 'Your bio has been successfully updated.');
+        $request->session()->flash('success_bio', 'Your bio has been successfully updated.');
         return redirect()->back();
         
     }
@@ -107,7 +107,7 @@ class DashboardController extends Controller
         $user->show_email_in_profile = $showEmailInProfile;
         $user->save();
         
-        $request->session()->flash('success', 'Your profile has been successfully updated.');
+        $request->session()->flash('success_profile', 'Your profile has been successfully updated.');
         return redirect()->back();
     }
     public function unreadStatus(Request $request)

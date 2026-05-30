@@ -26,6 +26,7 @@ Route::get('/search', [SearchController::class, 'search']);
 Route::post('/login', [AuthController::class, 'login'])->name('login.attempt');
 Route::post('/register', [AuthController::class, 'register'])->name('register.attempt');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::post('/register/check', [AuthController::class, 'checkAvailability']);
 Route::post('/request-recovery', [AuthController::class, 'sendRecoveryLink'])->name('password.request');
 Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.reset');
 Route::post('/change-password', [AuthController::class, 'changePassword'])->middleware('auth')->name('password.change');

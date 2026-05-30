@@ -2,118 +2,101 @@ import { useEffect, useState } from "react";
 import '../Components/common/Form.css';
 import FormField from '../Components/common/FormField';
 import Layout from '../Components/layout/Layout';
-import { LoginType, useAuth } from '../contexts/AuthContext';
-import {  Link, router, usePage , Head } from '@inertiajs/react';
-import { getErrorMessage, isValidPassword } from '../utils/helpers';
+import { Link, router, usePage, Head, useForm } from '@inertiajs/react';
+import { isValidPassword } from '../utils/helpers';
 
 function PasswordChange()
 {
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
-    const [oldPassword, setOldPassword] = useState('');
-    const [newPassword, setNewPassword] = useState('');
-    const [passwordConfirmation, setPasswordConfirmation] = useState('');
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const { props } = usePage();
+    const user = props.auth?.user ?? null;
+    const isAuthenticated = !!user;
+
     const [isOldPasswordFieldValid, setIsOldPasswordFieldValid] = useState(false);
     const [isNewPasswordFieldValid, setIsNewPasswordFieldValid] = useState(false);
     const [arePasswordsMatching, setArePasswordsMatching] = useState(false);
-    const { user, isAuthenticated, isLoading, changePassword } = useAuth();
-    const { props } = usePage();
-    const from = props?.flash?.from || '/';
-    const canChangePassword = oldPassword && newPassword && passwordConfirmation
+    const [success, setSuccess] = useState('');
+
+    const { data, setData, post, processing, errors, setError, clearErrors, reset } = useForm({
+        old_password: '',
+        new_password: '',
+        new_password_confirmation: ''
+    });
+
+    const flash = props.flash || {};
+    const message = flash.message || '';
+
+    useEffect(() => {
+        if (!isAuthenticated) {
+            router.visit('/login', { replace: true });
+        }
+    }, [isAuthenticated]);
+
+    useEffect(() => {
+        if (message) {
+            setSuccess(message);
+        } else {
+            setSuccess('');
+        }
+    }, [message]);
+
+    const canChangePassword = data.old_password && data.new_password && data.new_password_confirmation
         && isOldPasswordFieldValid && isNewPasswordFieldValid 
-        && arePasswordsMatching && !isSubmitting;
+        && arePasswordsMatching && !processing;
 
-    useEffect(() =>
-    {
-        if (!isLoading && !isAuthenticated)
-        {
-            router.visit(from, { replace: true });
-        }
-    })
-
-    const handleOldPasswordFormatValidation = (enteredPassword, setFieldLocalError) =>
-    {
+    const handleOldPasswordFormatValidation = (enteredPassword) => {
         const isSomething = enteredPassword.length > 0;
-        if(!isSomething)
-        {   
-            setFieldLocalError("cannot be empty");
-        }
-        else
-        {
-            setFieldLocalError('');
+        if(!isSomething) {   
+            setError('old_password', "cannot be empty");
+        } else {
+            clearErrors('old_password');
         }
         setIsOldPasswordFieldValid(isSomething);
         return isSomething;
     };
-    const handleNewPasswordFormatValidation = (proposedPassword, setFieldLocalError) =>
-    {
+
+    const handleNewPasswordFormatValidation = (proposedPassword) => {
         const isValid = isValidPassword(proposedPassword);
-        if(!isValid)
-        {
-            setFieldLocalError("password must contain at least 8 characters, 1 lower-case letter, 1 upper-case letter, and 1 number")
-        }
-        else
-        {
-            setFieldLocalError('');
+        if(!isValid) {
+            setError('new_password', "password must contain at least 8 characters, 1 lower-case letter, 1 upper-case letter, and 1 number");
+        } else {
+            clearErrors('new_password');
         }
         setIsNewPasswordFieldValid(isValid);
         return isValid;
-    }
+    };
 
-    useEffect(() =>
-    {
-        if(passwordConfirmation === "")
-        {//don't show error if user hasn't entered the confirmation yet
-            return;
-        }
-        const areMatching = newPassword === passwordConfirmation;
+    useEffect(() => {
+        if(data.new_password_confirmation === "") return;
+        const areMatching = data.new_password === data.new_password_confirmation;
         setArePasswordsMatching(areMatching);
-        if(!areMatching)
-        {
-            setError("Password and confirmation do not match.");
+        if(!areMatching) {
+            setError('new_password_confirmation', "Password and confirmation do not match.");
+        } else {
+            clearErrors('new_password_confirmation');
         }
-        else
-        {
-            setError("");
-        }
-    },[newPassword, passwordConfirmation]);
+    }, [data.new_password, data.new_password_confirmation]);
 
-    const handlePasswordChangeSubmit = async (e) =>
-    {
+    const handlePasswordChangeSubmit = (e) => {
         e.preventDefault();
-        setError('');
         setSuccess('');
-        setIsSubmitting(true);
-        try
-        {
-            await changePassword(oldPassword, newPassword, passwordConfirmation);
-            const successMessage = `Password updated successfully.`;
-            //setSuccess(successMessage);
-            router.visit('/dashboard', { state: { message: successMessage, type: success}});
-        }
-        catch(err)
-        {
-            const displayErrorMessage = getErrorMessage(err);   
-            setError(displayErrorMessage.trim()); // Set general form error
-            console.error('Password change error:', err.response?.data || err.message || err); // Log full error for debugging
-        }
-        finally
-        {
-            setIsSubmitting(false);
-        }
+        post('/change-password', {
+            preserveScroll: true,
+            preserveState: true,
+        });
     }
+
+    if (!user) return null;
 
     return (
     <Layout>
             <Head title="Password Change" />
     {
-        (user.is_email_verified && user.login_type == LoginType.Email) ? (
+        (user.is_email_verified && user.login_type === 'email') ? (
             <div className="form-container limited-width">
             <h2>change password</h2>
-            {error && (
+            {errors.general && (
             <div className="error">
-                {error}
+                {errors.general}
             </div>
             )}
             {success && (
@@ -123,44 +106,49 @@ function PasswordChange()
             )}
             <form onSubmit={handlePasswordChangeSubmit}>
                 <FormField 
-                    id="oldPassword"
+                    id="old_password"
                     placeholder="your current password"
                     label="old password"
-                    value={oldPassword}
-                    onChange={(e) => setOldPassword(e.target.value)}
+                    value={data.old_password}
+                    onChange={(e) => setData('old_password', e.target.value)}
                     onValidate={handleOldPasswordFormatValidation}
-                    disabled={isSubmitting}
+                    disabled={processing}
                     type="password"
+                    error={errors.old_password}
+                    onErrorUpdate={(id, msg) => msg ? setError(id, msg) : clearErrors(id)}
                 />
                 <FormField 
-                    id="newPassword"
+                    id="new_password"
                     placeholder="requires: a-z, A-Z, and 0-9"
                     label="new password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
+                    value={data.new_password}
+                    onChange={(e) => setData('new_password', e.target.value)}
                     onValidate={handleNewPasswordFormatValidation}
-                    disabled={isSubmitting}
+                    disabled={processing}
                     type="password"
+                    error={errors.new_password}
+                    onErrorUpdate={(id, msg) => msg ? setError(id, msg) : clearErrors(id)}
                 />
                 <FormField 
-                    id="password-confirm"
+                    id="new_password_confirmation"
                     label="confirm new password"
                     placeholder="same as above"
-                    value={passwordConfirmation}
-                    onChange={(e) => setPasswordConfirmation(e.target.value.trimEnd())}
-                    disabled={isSubmitting}
+                    value={data.new_password_confirmation}
+                    onChange={(e) => setData('new_password_confirmation', e.target.value.trimEnd())}
+                    disabled={processing}
                     type="password"
+                    error={errors.new_password_confirmation}
                 />
                 <div className="horizontal-buttons-container">
                     <button type="submit" disabled={!canChangePassword}>
-                        {isSubmitting ? 'updating password...' : 'update'}
+                        {processing ? 'updating password...' : 'update'}
                     </button>
                     <Link href="/dashboard" className="link-button">back</Link>
                 </div>
             </form>
         </div>
         ):(
-            <div className="notice centered-content"><p>You cannot change your password as your login type is <em className="bold">{user.login_type}</em></p></div>
+            <div className="notice centered-content"><p>You cannot change your password as your login type is <em className="bold">{user?.login_type}</em></p></div>
         )
     }
         
