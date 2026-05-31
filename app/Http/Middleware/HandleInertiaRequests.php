@@ -65,6 +65,7 @@ class HandleInertiaRequests extends Middleware
                 'success_bio' => $request->session()->get('success_bio'),
                 'success_profile' => $request->session()->get('success_profile'),
                 'error'   => $request->session()->get('error'),
+                'new_message_id' => $request->session()->get('new_message_id'),
             ],
             'unread' => $unread,
         ]);

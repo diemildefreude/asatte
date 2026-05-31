@@ -52,47 +52,43 @@ class UserController extends Controller
         }
         return \Inertia\Inertia::render('Profile', ['user' => $user]);
     }
-    public function following(Request $request, User $user)
+    public function following(Request $request, User $user = null)
     {
-        $request->validate([
-            'items_per_page' => ['required', 'integer'],
-            'current_page' => ['required', 'integer'],
-        ]);
-        $itemsPerPage = $request->items_per_page;
-        $currentPage = $request->current_page - 1;
-        $user ??= auth('api')->user();
-        /** @var \App\Models\User $user */
-        $query = $user->following()
-            ->select('users.id', 'users.avatar', 'users.username')
-            ->get();
+        $user = $user ?? $request->user();
+        if (!$user) {
+            abort(404);
+        }
+
+        $amount = intval($request->query('amount', 100));
+        $page = intval($request->query('page', 1));
         
-        $totalCount = $query->count();
-        $following = $query
-        ->slice($itemsPerPage * $currentPage, $itemsPerPage);
-        //Log::info("$user->id is following", $following->toArray());
-        return response()->json([
-            "users" => $following->values(),
-            "total" => $totalCount], 200);
+        $paginator = $user->following()
+            ->select('users.id', 'users.avatar', 'users.username')
+            ->paginate($amount, ['*'], 'page', $page);
+            
+        return \Inertia\Inertia::render('Following', [
+            'usersList' => $paginator,
+            'memberProp' => $user
+        ]);
     }
-    public function followers(Request $request, User $user)
+
+    public function followers(Request $request, User $user = null)
     {
-        $request->validate([
-            'items_per_page' => ['required', 'integer'],
-            'current_page' => ['required', 'integer'],
-        ]);
-        $itemsPerPage = $request->items_per_page;
-        $currentPage = $request->current_page - 1;
-        $user = $user ?? auth('api')->user();
-        /** @var \App\Models\User $user */
-        $query = $user->followers()        
-            ->select('users.id', 'users.avatar', 'users.username')
-            ->get();
+        $user = $user ?? $request->user();
+        if (!$user) {
+            abort(404);
+        }
+
+        $amount = intval($request->query('amount', 100));
+        $page = intval($request->query('page', 1));
         
-        $totalCount = $query->count();
-        $followers = $query
-        ->slice($itemsPerPage * $currentPage, $itemsPerPage);
-        return response()->json([
-            "users" => $followers->values(),
-            "total" => $totalCount], 200);
+        $paginator = $user->followers()        
+            ->select('users.id', 'users.avatar', 'users.username')
+            ->paginate($amount, ['*'], 'page', $page);
+            
+        return \Inertia\Inertia::render('Followers', [
+            'usersList' => $paginator,
+            'memberProp' => $user
+        ]);
     }
 }

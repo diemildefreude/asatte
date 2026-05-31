@@ -80,6 +80,7 @@ function AutoloadTilesContainer({
             only: [partialProp],
             preserveState: true,
             preserveScroll: true,
+            replace: true,
             onSuccess: () => {
                 // Keep URL clean on non-search pages
                 if (!isSearch) {

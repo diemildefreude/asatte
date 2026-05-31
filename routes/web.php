@@ -58,6 +58,8 @@ Route::get('/email/cancel/{id}/{hash}', [App\Http\Controllers\AuthController::cl
 
 // Inertia Routes
 Route::get('/user/{username}', [UserController::class, 'user']);
+Route::get('/user/{username}/following', [UserController::class, 'following']);
+Route::get('/user/{username}/followers', [UserController::class, 'followers']);
 Route::get('/user/{username}/post/{post_url}', [PostController::class, 'show']);
 Route::get('/user/{username}/post/{post_url}/edit', [PostController::class, 'edit'])->middleware('auth');
 Route::get('/about', [AboutController::class, 'show'])->name('about');
@@ -71,6 +73,21 @@ Route::get('/dashboard/news-posts', [App\Http\Controllers\DashboardController::c
 Route::inertia('/dashboard/new-post', 'dashboard/NewPost')->middleware('auth')->name('dashboard.newPost');
 Route::inertia('/dashboard/new-news-post', 'dashboard/NewNewsPost')->middleware('auth')->name('dashboard.newNewsPost');
 Route::get('/dashboard/edit-post/{post_url}', [App\Http\Controllers\DashboardController::class, 'editPost'])->middleware('auth')->name('dashboard.editPost');
+
+// Dashboard subpages
+Route::get('/dashboard/activity', [App\Http\Controllers\DashboardController::class, 'activity'])->middleware('auth')->name('dashboard.activity');
+Route::get('/dashboard/liked-posts', [App\Http\Controllers\PostController::class, 'myLikedPosts'])->middleware('auth')->name('dashboard.likedPosts');
+Route::get('/dashboard/comments', [App\Http\Controllers\CommentController::class, 'index'])->middleware('auth')->name('dashboard.comments');
+Route::get('/dashboard/notifications', [App\Http\Controllers\ActivityController::class, 'notifications'])->middleware('auth')->name('dashboard.notifications');
+Route::get('/dashboard/following', [App\Http\Controllers\UserController::class, 'following'])->middleware('auth')->name('dashboard.following');
+Route::get('/dashboard/followers', [App\Http\Controllers\UserController::class, 'followers'])->middleware('auth')->name('dashboard.followers');
+
+Route::get('/dashboard/mail', [App\Http\Controllers\DMController::class, 'index'])->middleware('auth')->name('dashboard.mail.index');
+Route::get('/dashboard/mail/new', [App\Http\Controllers\DMController::class, 'create'])->middleware('auth')->name('dashboard.mail.create');
+Route::get('/dashboard/mail/{conversation}', [App\Http\Controllers\DMController::class, 'show'])->middleware('auth')->name('dashboard.mail.show');
+Route::post('/dashboard/mail', [App\Http\Controllers\DMController::class, 'store'])->middleware('auth')->name('dashboard.mail.store');
+Route::put('/dashboard/mail/{message}', [App\Http\Controllers\DMController::class, 'update'])->middleware('auth')->name('dashboard.mail.update');
+Route::delete('/dashboard/mail/{message}', [App\Http\Controllers\DMController::class, 'destroy'])->middleware('auth')->name('dashboard.mail.destroy');
 
 // Fallback: catch-all dashboard route
 Route::inertia('/dashboard', 'Dashboard')->middleware('auth')->name('dashboard');

@@ -12,9 +12,9 @@ const DEFAULT_GRID_POST_COUNTS = {
 };
 
 function LimitedTilesContainer({screenSize, fetchMethod, userId=null, classes="",
-    arePrivatePosts=false, category=Category.Archive, fetchOrder=FetchOrder.Ascending, postCounts=null})
+    arePrivatePosts=false, category=Category.Archive, fetchOrder=FetchOrder.Ascending, postCounts=null, initialPosts=null})
 {    
-    const [posts, setPosts] = useState([]);
+    const [posts, setPosts] = useState(initialPosts || []);
     function getPostAmount(currentSize){return gridPostCounts[currentSize]};    
     const prevScreenSizeRef = useRef(ScreenSize.Nothing);
     const fetchedScreenSize = useRef(ScreenSize.Nothing);
@@ -26,7 +26,7 @@ function LimitedTilesContainer({screenSize, fetchMethod, userId=null, classes=""
 
     useEffect(() =>
     {
-        if(areNoMorePosts || !fetchOrder)
+        if(areNoMorePosts || !fetchOrder || !fetchMethod)
         {
             return;
         }

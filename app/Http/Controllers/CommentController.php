@@ -9,6 +9,7 @@ use App\Models\Notification;
 use App\Models\Post;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\Response;
 
 class CommentController extends Controller
@@ -18,14 +19,9 @@ class CommentController extends Controller
      */
     public function index(Request $request)
     {
-        $request->validate([
-            'items_per_page' => ['required', 'integer'],
-            'current_page' => ['required', 'integer'],
-        ]);
-        
         $user = $request->user();
-        $itemsPerPage = $request->items_per_page; //5
-        $currentPage = $request->current_page - 1; //2 - 1 = 1
+        $amount = intval($request->query('amount', 10));
+        $page = intval($request->query('page', 1));
 
         $query = Comment::with([
             'post:id,post_url,title,user_id',
@@ -34,14 +30,11 @@ class CommentController extends Controller
         ->where('user_id', $user->id)
         ->latest();
 
-        $totalCount = $query->count();
-
-        $comments = $query->skip($itemsPerPage * $currentPage)
-        ->take($itemsPerPage)
-        ->get();
-        //Log::info("$user->id's comments", $comments);
+        $comments = $query->paginate($amount, ['*'], 'page', $page);
         
-        return response()->json(['comments' => $comments, 'total' => $totalCount], 200);
+        return Inertia::render('dashboard/UserComments', [
+            'comments' => $comments,
+        ]);
     }
 
     /**

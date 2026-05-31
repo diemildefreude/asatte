@@ -140,13 +140,7 @@ export const AuthProvider = ({ children, initialPage = null }) => {
   const fetchFollowing = async (userId, params) => callApi(`/${userId}/following`, { method: 'GET', params });
   const fetchFollowers = async (userId, params) => callApi(`/${userId}/followers`, { method: 'GET', params });
 
-  const userSearch = async (searchTerm) => callApi(`/usersearch/${encodeURIComponent(searchTerm)}`, { method: 'GET' });
-
-  const createDM = async (formData) => callApi('/direct-mails', { method: 'POST', data: formData });
-  const updateDM = async (messageID, formData) => callApi(`/direct-mails/${messageID}`, { method: 'POST', data: formData });
-  const deleteDM = async (messageID) => callApi(`/direct-mails/${messageID}`, { method: 'DELETE' });
-  const fetchConversation = async (id) => callApi(`/direct-mails/${id}`, { method: 'GET' });
-  const fetchConversations = async (itemsPerPage, currentPage) => callApi('/direct-mails', { method: 'GET', params: { items_per_page: itemsPerPage, current_page: currentPage } });
+    const userSearch = async (searchTerm) => callApi(`/usersearch/${encodeURIComponent(searchTerm)}`, { method: 'GET' });
 
   const updateProfileInfo = async (website, location, showEmail) => {
     const formData = new FormData();
@@ -211,11 +205,6 @@ export const AuthProvider = ({ children, initialPage = null }) => {
         fetchFollowing,
         fetchFollowers,
         userSearch,
-        createDM,
-        updateDM,
-        deleteDM,
-        fetchConversation,
-        fetchConversations,
         updateProfileInfo,
         updateBio,
         updateAvatar,

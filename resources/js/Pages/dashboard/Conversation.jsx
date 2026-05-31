@@ -27,9 +27,9 @@ function setHeader(conversation)
 function Conversation({ conversation: conversationProp, addressee })
 {
     
-    const { url } = usePage();
-    const [conversation, setConversation] = useState(conversationProp || null);
-    const { user, userSearch, createDM, deleteDM } = useAuth();
+    const { props, url } = usePage();
+    const conversation = conversationProp || props.conversationProp || null;
+    const { user, userSearch } = useAuth();
     const [recipients, setRecipients] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [searchResults, setSearchResults] = useState([]);
@@ -53,7 +53,7 @@ function Conversation({ conversation: conversationProp, addressee })
     const [quotedMessage, setQuotedMessage] = useState('');
     const [originalMessage, setOriginalMessage] = useState(null);
     const [originalMessageElement, setOriginalMessageElement] = useState(null);
-    const [pendingScrollId, setPendingScrollId] = useState(null);
+    const [pendingScrollId, setPendingScrollId] = useState(props.flash?.new_message_id || null);
 
     let convoName = isNew ? "new conversation" : "conversation";
     convoName = conversation?.name ?? convoName;
@@ -79,6 +79,12 @@ function Conversation({ conversation: conversationProp, addressee })
             }
         }
     }, [conversation, pendingScrollId]);
+
+    useEffect(() => {
+        if (props.flash?.new_message_id) {
+            setPendingScrollId(props.flash.new_message_id);
+        }
+    }, [props.flash?.new_message_id]);
 
     const handleRTEChange = useCallback((editedMessage) =>
     {
@@ -263,33 +269,50 @@ function Conversation({ conversation: conversationProp, addressee })
         setIsSubmitting(true);
         try
         {
-            let data;
             if(!isNew && conversation)
             {
-                data = await createDM(conversation.id, messageWithResizedImages, originalMessage?.id);
-                setConversation(data.conversation);
-                console.log("new id", data.new_message_id);
-                setPendingScrollId(data.new_message_id);
+                router.post('/dashboard/mail', {
+                    conversation_id: conversation.id,
+                    content: messageWithResizedImages,
+                    parent_id: originalMessage?.id
+                }, {
+                    preserveScroll: true,
+                    onSuccess: () => {
+                        setMessage("");
+                        setIsSubmitting(false);
+                    },
+                    onError: (err) => {
+                        setError(getErrorMessage(err));
+                        setIsSubmitting(false);
+                    }
+                });
             }
             else
             {
-                data = await createDM(null, messageWithResizedImages, originalMessage?.id, recipients, subject);
-                router.visit(`/dashboard/mail/${data.conversation.id}`,
-                    { state: { data } }
-                )
+                router.post('/dashboard/mail', {
+                    content: messageWithResizedImages,
+                    parent_id: originalMessage?.id,
+                    recipients: recipients.map(r => r.id),
+                    subject: subject
+                }, {
+                    onSuccess: () => {
+                        setMessage("");
+                        setIsSubmitting(false);
+                    },
+                    onError: (err) => {
+                        setError(getErrorMessage(err));
+                        setIsSubmitting(false);
+                    }
+                });
             }
-            setMessage("");
         }
         catch(err)
         {
             const msg = getErrorMessage(error);
             setError(msg);
-        }
-        finally
-        {
             setIsSubmitting(false);
         }
-    },[originalMessage, message, recipients, subject, createDM, getErrorMessage, conversation]);
+    },[originalMessage, message, recipients, subject, getErrorMessage, conversation]);
 
     const handleDelete = useCallback(async id =>
     {
@@ -299,29 +322,17 @@ function Conversation({ conversation: conversationProp, addressee })
             return;
         }
         setError('');
-        let data;
-        try
-        {
-            data = await deleteDM(id);
-            console.log("handleDelete: data", data);
-            if(data.status == "message_deleted")
-            {
-                setConversation(data.conversation);
+        setIsSubmitting(true);
+        router.delete(`/dashboard/mail/${id}`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setIsSubmitting(false);
+            },
+            onError: (err) => {
+                setError(getErrorMessage(err));
+                setIsSubmitting(false);
             }
-            else if(data.status == "conversation_deleted")
-            {
-                router.visit('/dashboard/mail');
-            }
-        }
-        catch(err)
-        {
-            const msg = getErrorMessage(error);
-            setError(msg);
-        }
-        finally
-        {
-            setIsSubmitting(false);
-        }
+        });
     },[]);
 
     // const handleReply = useCallback((message, elementID, isQuote=false) =>
@@ -403,7 +414,6 @@ function Conversation({ conversation: conversationProp, addressee })
                         key={message.id}
                         onReply={handleReply}
                         onDelete={handleDelete}
-                        setConversation={setConversation}
                         parentLocalId={parentElement}
                     />
         }) 

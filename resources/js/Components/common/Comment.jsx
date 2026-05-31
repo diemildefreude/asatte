@@ -14,7 +14,7 @@ function Comment({comment, isDashboard=false, onReply=null, id, parentLocalId=nu
     const [content, setContent] = useState('');
     const elementId = `comment-${id}`;
     const parentElementId = parentLocalId ? `comment-${parentLocalId}` : null;
-    
+
     const handleCommentEdit = useCallback(() =>
     {
         setIsEditing(true);

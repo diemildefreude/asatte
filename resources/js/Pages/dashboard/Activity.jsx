@@ -13,8 +13,15 @@ import UserCircle from '../../Components/common/UserCircle';
 function Activity()
 {
     const [screenSize, setScreenSize] = useState(getScreenSize());
-    const {fetchLikedPosts, fetchUserComments, fetchNotifications, 
-        fetchFollowers, fetchFollowing, user} = useAuth();
+    const { props } = usePage();
+    const { 
+        initialLikedPosts, 
+        initialComments, 
+        initialNotifications, 
+        initialFollowers, 
+        initialFollowing,
+        auth: { user }
+    } = props;
 
     useEffect(() => //check screen size at regular intervals.
     {
@@ -29,7 +36,7 @@ function Activity()
             <div className="notifications-comments-container">
                 <div className="main-info-box">
                     <LoadItems
-                        fetchMethod={async (page) => await fetchNotifications(3,page, true)}
+                        initialItems={initialNotifications}
                         renderMethod={(notification) =>({
                             notification
                         })}
@@ -41,7 +48,7 @@ function Activity()
                 </div>
                 <div className="main-info-box">
                     <LoadItems
-                        fetchMethod={async (page) => await fetchUserComments(3, page)}
+                        initialItems={initialComments}
                         renderMethod={(comment, i) =>({
                             comment,
                             id: i,
@@ -60,7 +67,7 @@ function Activity()
                     <LimitedTilesContainer
                         screenSize={screenSize}
                         arePrivatePosts={false}
-                        fetchMethod={fetchLikedPosts}
+                        initialPosts={initialLikedPosts}
                         fetchOrder={FetchOrder.Descending}
                         classes="no-padding"
                         postCounts= {{
@@ -83,22 +90,18 @@ function Activity()
                 <div className="main-info-box follows">
                     {/* <h3 className="centered-content">users you follow</h3> */}
                     <LoadItems
-                        fetchMethod={async (page, user) => await fetchFollowing(user, 6, page)}
+                        initialItems={initialFollowing}
                         renderMethod={(user) =>({user})}
                         Component={UserCircle}
                         itemString="users"
-                        fetchAmount={6}
-                        user={user}
                         headingText="users you follow"
                         viewAllLink="/dashboard/following"
                     />
                     <LoadItems
-                        fetchMethod={async (page, userId) => await fetchFollowers(userId, 6, page)}
+                        initialItems={initialFollowers}
                         renderMethod={(user) =>({user})}
                         Component={UserCircle}
                         itemString="users"
-                        fetchAmount={6}
-                        user={user}
                         headingText="followers"
                         viewAllLink="/dashboard/followers"
                     />                        

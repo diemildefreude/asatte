@@ -11,6 +11,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Inertia\Inertia;
 
 class ActivityController extends Controller
 {
@@ -77,29 +78,24 @@ class ActivityController extends Controller
     }
     public function notifications(Request $request)
     {
-        $request->validate([
-            'items_per_page' => ['required', 'integer'],
-            'current_page' => ['required', 'integer'],
-        ]);
-
         $showOnlyUnread = isset($request['unread_only']);
 
         $user = $request->user();
-        $itemsPerPage = $request->items_per_page;
-        $currentPage = $request->current_page - 1;
+        $amount = intval($request->query('amount', 10));
+        $page = intval($request->query('page', 1));
 
         $queryA = $showOnlyUnread ? Notification::where('user_id', $user->id)
         ->where('is_read', false)
         : Notification::where('user_id', $user->id);
 
-        $query = $queryA->latest()
-        ->get()
-        ->map(function ($notification) 
+        $paginator = $queryA->latest()->paginate($amount, ['*'], 'page', $page);
+
+        $paginator->getCollection()->transform(function ($notification) 
         {
             $type = $notification->type;
             $data = $notification->data; // JSON → array
             if (($type == NotificationType::Comment || $type == NotificationType::Reply)
-                && ($data['comment_id'])) 
+                && isset($data['comment_id'])) 
             {
                 $comment = Comment::with([
                     'user:id,username,avatar',
@@ -107,10 +103,9 @@ class ActivityController extends Controller
                     'post.user:id,username'
                 ])->find($data['comment_id']);
 
-                //$notification->comment = $comment;
                 $notification->setRelation('comment', $comment);
             }            
-            else if($type == NotificationType::Unhidden && $data['post_id'])
+            else if($type == NotificationType::Unhidden && isset($data['post_id']))
             {
                 $post = Post::with([
                     'user:id,username'
@@ -118,38 +113,27 @@ class ActivityController extends Controller
                 $notification->setRelation('post', $post);
                 $notification->unhidden_at = Carbon::now()->toDateTimeString();
             }
-            else if($type == NotificationType::Follower && $data['follower_id']) //for followers
+            else if($type == NotificationType::Follower && isset($data['follower_id'])) 
             {
                 $follower = User::select(['id', 'username', 'avatar'])->find($data['follower_id']);
-                //Log::info("follower", $follower->toArray());
                 $notification->setRelation('follower', $follower);
             }
-            //else if(isset($data['user_id'])) //for followers
             $notification->makeHidden('data');
-            return $notification;
-        });
-        
-        $totalCount = $query->count();
-
-        $notifications = $query
-        ->slice($itemsPerPage * $currentPage, $itemsPerPage)
-        ->values();
-
-        $notifications->each(function ($notification) //<--uncommenting this produces the error
-        {
+            
             $notification->is_read = true;
             $notification->save();
+            
+            return $notification;
         });
 
         $totalUnreadCount = Notification::where('user_id', $user->id)
         ->where('is_read', false)
-        ->get()->count();
+        ->count();
 
-        return response()->json([
-            'notifications' => $notifications, 
-            'total' => $totalCount,
+        return Inertia::render('dashboard/Notifications', [
+            'notifications' => $paginator, 
             'unread_total' => $totalUnreadCount
-        ], 200);
+        ]);
     }
     public function toggleFollow(Request $request, User $user)
     {

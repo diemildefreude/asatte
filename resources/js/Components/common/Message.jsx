@@ -11,7 +11,7 @@ import RichTextEditor from "./RichTextEditor";
 function Message({message, onReply=null, onDelete=null, id, parentLocalId=null, 
     currentUrl=null, setConversation=null, quoteText=""})
 {
-    const {user, updateDM} = useAuth();
+    const {user} = useAuth();
     const [isEditing, setIsEditing] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -52,22 +52,19 @@ function Message({message, onReply=null, onDelete=null, id, parentLocalId=null,
         setIsSubmitting(true);
         const dehydratedContent = dehydrateEditorImagePaths(content);
         const newContentWithResizedImages = await processEditorImages(dehydratedContent);
-        updateDM(message.id, newContentWithResizedImages)
-        .then((data) =>
-        {
-            //console.log(data.message);
-            setIsSubmitting(false);
-            setIsEditing(false);
-            console.log("data?", data);
-            setConversation(data.conversation);
-        })
-        .catch((err) =>
-        {
-            const msg = getErrorMessage(err);
-            console.error(msg);            
-            setIsSubmitting(false);
+        
+        router.put(`/dashboard/mail/${message.id}`, { content: newContentWithResizedImages }, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setIsSubmitting(false);
+                setIsEditing(false);
+            },
+            onError: (err) => {
+                console.error(err);
+                setIsSubmitting(false);
+            }
         });
-    },[content, setIsSubmitting, updateDM, message, setIsEditing, setConversation]);
+    },[content, setIsSubmitting, message, setIsEditing]);
 
     useEffect(() => 
     {

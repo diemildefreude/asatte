@@ -1,6 +1,7 @@
 import DashboardLayout from "./DashboardLayout";
 import { useAuth } from '../../contexts/AuthContext';
 import "../DashboardProfile.css";
+import "./TagsMail.css";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {  Link, router, usePage , Head } from '@inertiajs/react';
 import { getErrorMessage } from '../../utils/helpers';
@@ -11,39 +12,15 @@ const FETCH_AMOUNT = 10;
 
 function Mail()
 {
-    const { user, fetchConversations } = useAuth();
-    //const [conversations, setConversations] = useState([]);
-    const [error, setError] = useState("");
-    //console.log(user);
+    const { props } = usePage();
+    const { user } = useAuth();
+    const { conversations } = props;
 
-    // useEffect(() =>
-    // {
-    //     if(!user)
-    //     {
-    //         return;
-    //     }
-    //     setError("");
-    //     try
-    //     {
-    //         fetchConversations(FETCH_AMOUNT, 1)
-    //         .then((conv) =>
-    //         {
-    //             setConversations(conv);
-    //             console.log(conv);
-    //         }) 
-    //     }
-    //     catch(err)
-    //     {
-    //         setError(err);
-    //     }
-    // },[user]);
 
     return ( 
     <DashboardLayout currentTab="mail">
             <Head title="Mail" />
-        {
-            error && (<div className="error">{error}</div>)
-        }
+
         {                
             user && user.is_email_verified ?
             (<>
@@ -52,11 +29,11 @@ function Mail()
                     createLink="/dashboard/mail/new"
                 />
                 <LoadItems
-                    fetchMethod={async (page) => await fetchConversations(FETCH_AMOUNT, page)}
+                    partialProp="conversations"
+                    initialProp={conversations}
                     renderMethod={(item) =>({
                         conversation: item
                     })}
-                    fetchAmount={FETCH_AMOUNT}
                     Component={ConversationPreview}
                     itemString="conversations"
                     isFullPage={true}

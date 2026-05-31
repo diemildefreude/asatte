@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import DashboardTab from '../../Components/common/DashboardTab';
 import {  Link, router, usePage , Head, useForm } from '@inertiajs/react';
+import '../DashboardProfile.css';
 import { MemberType } from '../../utils/helpers';
 import Layout from '../../Components/layout/Layout';
 

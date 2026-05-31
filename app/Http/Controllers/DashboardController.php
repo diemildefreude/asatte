@@ -4,7 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Notification;
 use App\Models\Post;
+use App\Models\Comment;
+use App\Models\User;
 use App\Enums\MemberType;
+use App\Enums\NotificationType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
@@ -195,6 +198,55 @@ class DashboardController extends Controller
 
         return Inertia::render('dashboard/EditPost', [
             'post' => $post,
+        ]);
+    }
+
+    public function activity(Request $request)
+    {
+        $user = $request->user();
+
+        $likedPosts = Post::select('posts.*', 'post_user.id as pivot_id', 'post_user.created_at as liked_at')
+            ->join('post_user', 'posts.id', '=', 'post_user.post_id')
+            ->where('post_user.user_id', $user->id)
+            ->with('user:id,username,avatar')
+            ->orderBy('post_user.created_at', 'desc')
+            ->limit(4)->get();
+
+        $comments = Comment::with(['post:id,title,post_url,user_id', 'post.user:id,username'])
+            ->where('user_id', $user->id)
+            ->latest()
+            ->limit(3)->get();
+
+        $notifications = Notification::where('user_id', $user->id)
+            ->latest()
+            ->limit(3)->get()
+            ->map(function ($notification) {
+                $type = $notification->type;
+                $data = $notification->data;
+                if (($type == NotificationType::Comment || $type == NotificationType::Reply) && isset($data['comment_id'])) {
+                    $comment = Comment::with(['user:id,username,avatar', 'post:id,title,post_url,user_id', 'post.user:id,username'])->find($data['comment_id']);
+                    $notification->setRelation('comment', $comment);
+                } else if ($type == NotificationType::Unhidden && isset($data['post_id'])) {
+                    $post = Post::with(['user:id,username'])->find($data['post_id'])->select(['id', 'post_url', 'title']);
+                    $notification->setRelation('post', $post);
+                    $notification->unhidden_at = \Carbon\Carbon::now()->toDateTimeString();
+                } else if ($type == NotificationType::Follower && isset($data['follower_id'])) {
+                    $follower = User::select(['id', 'username', 'avatar'])->find($data['follower_id']);
+                    $notification->setRelation('follower', $follower);
+                }
+                $notification->makeHidden('data');
+                return $notification;
+            });
+
+        $followers = $user->followers()->select('users.id', 'users.avatar', 'users.username')->limit(6)->get();
+        $following = $user->following()->select('users.id', 'users.avatar', 'users.username')->limit(6)->get();
+
+        return Inertia::render('dashboard/Activity', [
+            'initialLikedPosts' => $likedPosts,
+            'initialComments' => $comments,
+            'initialNotifications' => $notifications,
+            'initialFollowers' => $followers,
+            'initialFollowing' => $following,
         ]);
     }
 }

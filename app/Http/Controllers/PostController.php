@@ -198,32 +198,21 @@ class PostController extends Controller
     public function myLikedPosts(Request $request)
     {
         $userId = $request->user()->id;
-        $limit = $request->query('amount');
-        $pivotId = $request->query('start_id'); // We'll use this later
+        $amount = intval($request->query('amount', 12));
+        $page = intval($request->query('page', 1));
 
         $query = Post::select('posts.*', 'post_user.id as pivot_id', 'post_user.created_at as liked_at')
             ->join('post_user', 'posts.id', '=', 'post_user.post_id')
             ->where('post_user.user_id', $userId)
             ->with('user:id,username,avatar');
 
-        if ($pivotId) 
-        {
-            $query->where('post_user.id', '<=', $pivotId);
-        }
-
         $posts = $query
             ->orderBy('post_user.created_at', 'desc')
-            ->limit($limit ?? 10)
-            ->get();
+            ->paginate($amount, ['*'], 'page', $page);
 
-        if ($posts->isEmpty()) {
-            return response()->json([
-                'status' => 'no_more_posts',
-                'message' => 'No more liked posts.'
-            ], 200);
-        }
-
-        return response()->json($posts);
+        return \Inertia\Inertia::render('dashboard/LikedPosts', [
+            'likedPosts' => $posts,
+        ]);
     }
     /**
      * Show the form for creating a new resource.

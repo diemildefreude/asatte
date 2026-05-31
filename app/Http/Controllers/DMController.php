@@ -6,6 +6,7 @@ use App\Models\Conversation;
 use App\Models\Message;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Inertia\Inertia;
 
 class DMController extends Controller
 {
@@ -14,14 +15,9 @@ class DMController extends Controller
      */
     public function index(Request $request)
     {
-        $request->validate([
-            'items_per_page' => ['required', 'integer'],
-            'current_page' => ['required', 'integer'],
-        ]);
-
-        $user = $request->user();//auth('api')->user();
-        $itemsPerPage = $request->items_per_page; //5
-        $currentPage = $request->current_page - 1;
+        $user = $request->user();
+        $amount = intval($request->query('amount', 10));
+        $page = intval($request->query('page', 1));
 
         $query = Conversation::with(['users', 'latestMessage.sender:id,username'])
         ->whereHas('users', function($q) use ($user)
@@ -33,19 +29,17 @@ class DMController extends Controller
             ->take(1),
             'desc'
         );
-        // Sort by the subquery result, fallback to conversation created_at if no messages exist
-        //->orderByRaw('COALESCE(last_message_at, conversations.created_at) DESC');
 
-        $totalCount = $query->count();
+        $conversations = $query->paginate($amount, ['*'], 'page', $page);
 
-        $conversations = $query->skip($itemsPerPage * $currentPage)
-        ->take($itemsPerPage)
-        ->get();
-
-        //Log::info("total count is $totalCount");
-        return response()->json([
+        return Inertia::render('dashboard/Mail', [
             'conversations' => $conversations,
-            'total' => $totalCount], 200);
+        ]);
+    }
+
+    public function create()
+    {
+        return Inertia::render('dashboard/Conversation');
     }
 
     /**
@@ -126,20 +120,15 @@ class DMController extends Controller
             'users',
             'messages.sender:id,username,avatar',
         ]);
-        return response()->json([
-            'status' => 'message sent',
-            'message' => 'Your message has been sent.',
-            'conversation' => $conversation,
-            'new_message_id' => $newestMessageID
-        ], 200);
+        return redirect()->route('dashboard.mail.show', $conversation->id)->with('new_message_id', $newestMessageID);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Request $request, string $id)
     {                
-        $user = auth('api')->user();
+        $user = $request->user();
 
         $conversation = Conversation::with('users')
         ->where('id', $id)
@@ -151,10 +140,7 @@ class DMController extends Controller
         
         if(!$conversation)
         {
-            return response() ->json([
-                'status' => 'conversation_not_found',
-                'message' => 'Conversation unavailable.'
-            ], 404);
+            abort(404);
         }
         
         $conversation->users()->updateExistingPivot($user->id, [
@@ -162,9 +148,10 @@ class DMController extends Controller
         ]);
 
         $conversation->load(['messages.sender:id,username,avatar']);
-        return response()->json([
-            'conversation' => $conversation
-        ],200);
+        
+        return Inertia::render('dashboard/Conversation', [
+            'conversationProp' => $conversation,
+        ]);
     }
 
     /**
@@ -194,19 +181,15 @@ class DMController extends Controller
 
         $conversation = Conversation::findOrFail($message->conversation_id);
         $conversation->load(['users', 'messages.sender:id,username,avatar']);
-        return response()->json([
-            'status' => 'message_updated',
-            'message' => 'Your message has been successfully updated.',
-            'conversation' => $conversation
-        ], 200);
+        return back()->with('success', 'Your message has been successfully updated.');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Request $request, string $id)
     {
-        $user = auth('api')->user();
+        $user = $request->user();
         $message = Message::where('id', $id)
             ->where('sender_id', $user->id)
             ->firstOrFail();
@@ -217,31 +200,17 @@ class DMController extends Controller
 
         if (!$conversation) 
         {
-            return response()->json([
-                'status' => 'conversation_not_found',
-                'message' => 'Conversation not found'
-            ], 404);
+            abort(404);
         }
 
         if($conversation->messages_count <= 1)
         {
             $conversation->delete(); 
-            return response()->json([
-                'status' => 'conversation_deleted',
-                'message' => 'Conversation deleted.'
-            ], 200);
+            return redirect()->route('dashboard.mail.index')->with('success', 'Conversation deleted.');
         }
         
         $message->delete();
 
-        $conversation->load(['messages.sender:id,username,avatar']);
-       $conversation->loadCount('messages');
-    
-       return response()->json([
-            'status' => 'message_deleted',
-            'message' => 'Message deleted.',
-            'conversation' => $conversation
-        ], 200);
-
+        return back()->with('success', 'Message deleted.');
     }
 }
