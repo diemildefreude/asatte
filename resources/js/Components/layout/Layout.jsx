@@ -2,11 +2,12 @@ import React, { useEffect, useState } from 'react';
 import './Layout.css';
 import Header from './Header';
 import InertiaAuthBridge from '../common/InertiaAuthBridge';
-const APP_NAME = process.env.REACT_APP_NAME;
-
+import { usePage } from '@inertiajs/react';
 function Layout({children, isDashboard=false, classes=""})
 {
     //console.log("classes?", classes);
+    const { props } = usePage();
+    const APP_NAME = props.app_name;
     const [isTouchDevice, setIsTouchDevice] = useState();
     let classNames = isTouchDevice ? "touch-device content" : "content";
     classNames += ` ${classes}`;

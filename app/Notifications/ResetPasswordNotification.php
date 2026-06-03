@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Notifications;
+
+use App\Enums\LoginType;
 use Illuminate\Auth\Notifications\ResetPassword as BaseResetPasswordNotification;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -13,14 +15,18 @@ class ResetPasswordNotification extends BaseResetPasswordNotification implements
 {
     use Queueable;
 
+    public LoginType $loginType;
+
     /**
      * Create a new notification instance.
      *
      * @param string $token The password reset token.
+     * @param LoginType $loginType The login type (e.g. Email, Google, Github).
      */
-    public function __construct(string $token)
+    public function __construct(string $token, LoginType $loginType = LoginType::Email)
     {
         parent::__construct($token); // Call parent constructor to set $this->token
+        $this->loginType = $loginType;
     }
 
     /**
@@ -46,7 +52,7 @@ class ResetPasswordNotification extends BaseResetPasswordNotification implements
         $userName = $notifiable->username;
         Log::info("'to' address is " . $notifiable->email);
         // Return your custom Mailable instance
-        return (new CustomResetPasswordMailable($resetUrl, $userName))
+        return (new CustomResetPasswordMailable($resetUrl, $userName, $this->loginType))
             ->to($notifiable->email); // Explicitly set the recipient
     }
 

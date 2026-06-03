@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Enums\LoginType;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
@@ -14,13 +15,16 @@ class ResetPassword extends Mailable
     use Queueable, SerializesModels;
     public $resetUrl;
     public $username;
+    public $loginType;
+
     /**
      * Create a new message instance.
      */
-    public function __construct(string $resetUrl, string $username)
+    public function __construct(string $resetUrl, string $username, LoginType $loginType = LoginType::Email)
     {
         $this->resetUrl = $resetUrl;
         $this->username = $username;
+        $this->loginType = $loginType;
     }
 
     /**

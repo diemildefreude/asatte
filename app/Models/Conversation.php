@@ -65,13 +65,27 @@ class Conversation extends Model
 
         $lastReadAt = $currentUser->pivot->last_read_at;
 
-        // If never read, it's unread if the conversation exists (has an updated_at)
-        if (is_null($lastReadAt)) {
-            return !is_null($this->updated_at);
+        // Grab the timestamp of the latest message.
+        // We check our pre-calculated database select variable first (from our optimized controller subquery),
+        // and fall back to the relation if this model was loaded somewhere else without it.
+        $latestMessageTime = $this->latest_message_created_at ?? $this->latestMessage?->created_at;
+
+        // If there are absolutely no messages in the conversation yet, it cannot be unread.
+        if (is_null($latestMessageTime)) {
+            return false;
         }
 
-        // Is the conversation's last activity newer than the user's last read?
-        return $this->updated_at->gt($lastReadAt);
+        // If the user has never opened this conversation room, it is automatically unread
+        if (is_null($lastReadAt)) {
+            return true;
+        }
+
+        // Cast both timestamps to Carbon instances if they aren't already, ensuring a safe comparison
+        $latestMessageTime = \Carbon\Carbon::parse($latestMessageTime);
+        $lastReadAt = \Carbon\Carbon::parse($lastReadAt);
+
+        // Is the latest message newer than the user's last read timestamp?
+        return $latestMessageTime->gt($lastReadAt);
     }
     // public function otherUsers($currentUserId)
     // {

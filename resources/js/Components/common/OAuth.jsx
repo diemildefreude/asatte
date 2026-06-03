@@ -1,7 +1,6 @@
 
 import React, { useCallback, useState } from 'react';
 import './OAuth.css';
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
 function OAuth({headerText, onClick, originPage, isSubmittingForm, setIsSubmittingForm}) 
 {

@@ -294,7 +294,7 @@ function Registration()
     };
 
     return (
-    <Layout>
+    <>
         <Head title="Registration" />
         <div className={formContainerClasses}>
             <h1 className='centered-content no-margin'>join netart.io</h1>
@@ -533,8 +533,10 @@ function Registration()
             )
         }
         </div>
-    </Layout>
+    </>
     );
 }
 
+
+Registration.layout = page => <Layout>{page}</Layout>;
 export default Registration;

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\LoginType;
 use App\Enums\MemberType;
 use App\Mail\VerifyEmail;
 use App\Notifications\ResetPasswordNotification;
@@ -65,7 +66,8 @@ class User extends Authenticatable implements OAuthenticatable, MustVerifyEmail
     public function sendPasswordResetNotification($token) // Laravel expects this method name
     {
         Log::info("User::sendPasswordResetNotification called");
-        $this->notify(new ResetPasswordNotification($token));
+        $loginType = $this->login_type ?? LoginType::Email;
+        $this->notify(new ResetPasswordNotification($token, $loginType));
     }
     public function followers()
     {
@@ -137,7 +139,8 @@ class User extends Authenticatable implements OAuthenticatable, MustVerifyEmail
             'birthdate' => 'date:Y-m-d',
             // 'bio' => 'array',
             'bio_image_urls' => 'array',
-            'member_type' => MemberType::class
+            'member_type' => MemberType::class,
+            'login_type' => LoginType::class
         ];
     }
     protected $appends = ['is_email_verified'];

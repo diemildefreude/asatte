@@ -16,9 +16,20 @@ function DashboardLayout({ currentTab, headerText, children })
     
     const [success, setSuccess] = useState('');
     const { post, processing, errors, setError, clearErrors } = useForm();
-    const initialUnread = page.props?.unread ?? {};
-    const [hasUnreadNotifications, setHasUnreadNotifications] = useState(!!initialUnread.has_unread_notifications);
-    const [hasUnreadMail, setHasUnreadMail] = useState(!!initialUnread.has_unread_mail);
+    const unread = page.props?.unread ?? {};
+    const hasUnreadNotifications = !!unread.has_unread_notifications;
+    const hasUnreadMail = !!unread.has_unread_mail;
+
+    useEffect(() => 
+    {
+        const handlePopState = () => {
+            setTimeout(() => {
+                router.reload({ preserveScroll: true, preserveState: true });
+            }, 0);
+        };
+        window.addEventListener('popstate', handlePopState);
+        return () => window.removeEventListener('popstate', handlePopState);
+    }, []);
 
     let containerClasses = "dashboard-container";
     if(hasUnreadNotifications) { containerClasses += ' has-new-notifications'};
@@ -52,7 +63,6 @@ function DashboardLayout({ currentTab, headerText, children })
         const flash = page.props?.flash || {};
         const params = new URLSearchParams(window.location.search);
         const status = flash.status || params.get('status');
-        console.log("flash?", flash);
 
         if (params.has('status')) {
             params.delete('status');
@@ -145,12 +155,12 @@ function DashboardLayout({ currentTab, headerText, children })
     }
 
     return (
-    <Layout classes={containerClasses} isDashboard={true}>
-            <Head title="Dashboard Layout" />
+    <>
+    <Head title="Dashboard Layout" />
     {
         isAuthenticated ?
         (
-        <>            
+        <div className={containerClasses}>
             {
                 user && !user?.is_email_verified &&
                 (                        
@@ -218,7 +228,7 @@ function DashboardLayout({ currentTab, headerText, children })
                     {children}
                 </main>
             </div>
-        </>):
+        </div>):
         (
             <>
             {errors.general && (
@@ -237,8 +247,10 @@ function DashboardLayout({ currentTab, headerText, children })
             </div>
             </>
         )}
-        </Layout>
+        </>
     );
 }
 
+
+DashboardLayout.layout = page => <Layout isDashboard={true}>{page}</Layout>;
 export default DashboardLayout;

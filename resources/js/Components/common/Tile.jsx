@@ -4,13 +4,9 @@ import UserLink from './UserLink';
 import './UserLink.css';
 import { openPopup } from '../../utils/helpers';
 import { Link, router, usePage } from '@inertiajs/react';
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const FRONTEND_URL = process.env.REACT_APP_FRONTEND_URL;
-
 function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false}) 
 {
-    //console.log("tile:post", post);
-    // console.log("tile check images", post.gallery_image_urls);
+    const { props } = usePage();
     if (!post || (!user && !post.user)) return null;
 
     const author = user ?? post.user;
@@ -24,7 +20,7 @@ function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false})
         viewText = "read";
     }
 
-    const directory = `${BACKEND_URL}/storage/images/uploaded/users/${author.username}/posts/${post.post_url}/gallery/small`;
+    const directory = `${props.app_url}/storage/images/uploaded/users/${author.username}/posts/${post.post_url}/gallery/small`;
 
     let imageUrls = [];
     try 

@@ -70,33 +70,12 @@ export const AuthProvider = ({ children, initialPage = null }) => {
   // should post directly with Inertia `useForm` or `router.post`.
 
   const logout = () => {
-    router.post('/logout', {
+    router.post('/logout', {}, {
       onSuccess: () => {
         setUser(null);
         setIsAuthenticated(false);
-        router.visit('/');
       },
     });
-  };
-
-  const refreshUser = async () => {
-    try {
-      setIsLoading(true);
-      const data = await callApi('/user');
-      setUser(data ?? null);
-      setIsAuthenticated(!!data);
-      return data;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const sendVerificationEmail = async () => {
-    return callApi('/resend-verification', { method: 'POST' });
-  };
-
-  const requestRecoveryMail = async (loginField) => {
-    return callApi('/request-recovery', { method: 'POST', data: { login_field: loginField } });
   };
 
   const resetPassword = async (email, token, password, passwordConfirmation) => {
@@ -105,16 +84,6 @@ export const AuthProvider = ({ children, initialPage = null }) => {
 
   // Lightweight wrappers for various API methods so existing imports don't break.
   const fetchPosts = async (params) => callApi('/posts', { method: 'GET', params });
-  const fetchMyPosts = async (params) => callApi('/my-posts', { method: 'GET', params });
-  const fetchLikedPosts = async (params) => callApi('/my-liked-posts', { method: 'GET', params });
-  const fetchPostToEdit = async (username, postUrl) => callApi(`/user/${username}/post/${postUrl}/edit`, { method: 'GET' });
-  const fetchSinglePost = async (username, postUrl) => callApi(`/user/${username}/post/${postUrl}`, { method: 'GET' });
-
-  const createPost = async (formData) => callApi('/posts', { method: 'POST', data: formData });
-  const updatePost = async (postId, formData) => callApi(`/posts/${postId}`, { method: 'POST', data: formData });
-  const deletePost = async (id) => callApi(`/posts/${id}`, { method: 'DELETE' });
-
-  const fetchUser = async (username) => callApi(`/user/${username}`, { method: 'GET' });
 
   const toggleLike = async (postId) => callApi(`/posts/${postId}/like`, { method: 'POST' });
   const recordView = async (postId) => callApi(`/posts/${postId}/record-view`, { method: 'POST' });
@@ -133,25 +102,9 @@ export const AuthProvider = ({ children, initialPage = null }) => {
   };
   const deleteComment = async (commentId, postId) => callApi(`/posts/${postId}/comments/${commentId}`, { method: 'DELETE' });
 
-  const fetchNotifications = async (params) => callApi('/notifications', { method: 'GET', params });
   const getUnreadStatus = async () => callApi('/unread-status', { method: 'GET' });
 
   const toggleFollow = async (userId) => callApi(`/${userId}/follow`, { method: 'POST' });
-  const fetchFollowing = async (userId, params) => callApi(`/${userId}/following`, { method: 'GET', params });
-  const fetchFollowers = async (userId, params) => callApi(`/${userId}/followers`, { method: 'GET', params });
-
-    const userSearch = async (searchTerm) => callApi(`/usersearch/${encodeURIComponent(searchTerm)}`, { method: 'GET' });
-
-  const updateProfileInfo = async (website, location, showEmail) => {
-    const formData = new FormData();
-    formData.append('website', website || '');
-    formData.append('location', location || '');
-    if (showEmail) formData.append('show_email_in_profile', showEmail);
-    return callApi('/update-profile', { method: 'POST', data: formData });
-  };
-
-  const updateBio = async (bio) => callApi('/update-bio', { method: 'POST', data: { bio } });
-  const updateAvatar = async (formData) => callApi('/update-avatar', { method: 'POST', data: formData });
 
   const updateAbout = async (statement) => callApi('/update-about', { method: 'POST', data: { statement } });
   const fetchAbout = async () => callApi('/about', { method: 'GET' });
@@ -181,33 +134,14 @@ export const AuthProvider = ({ children, initialPage = null }) => {
         user,
         logout,
         syncInertiaUser,
-        sendVerificationEmail,
-        refreshUser,
-        requestRecoveryMail,
         resetPassword,
-        createPost,
-        updatePost,
-        deletePost,
-        fetchPostToEdit,
-        fetchSinglePost,
         fetchPosts,
-        fetchMyPosts,
-        fetchLikedPosts,
-        fetchUser,
         toggleLike,
         recordView,
         createComment,
         updateComment,
         deleteComment,
-        fetchNotifications,
-        getUnreadStatus,
         toggleFollow,
-        fetchFollowing,
-        fetchFollowers,
-        userSearch,
-        updateProfileInfo,
-        updateBio,
-        updateAvatar,
         updateAbout,
         fetchAbout,
         toggleAdminPostHide,

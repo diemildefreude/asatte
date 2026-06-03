@@ -18,7 +18,7 @@ function Posts()
     }, [setScreenSize]);
 
     return ( 
-    <Layout>
+    <>
             <Head title="Posts" />
         <h2 className='centered-content padded-responsive'>{`${username}'s posts`}</h2>
         <AutoloadTilesContainer 
@@ -28,7 +28,9 @@ function Posts()
             username={username}
             fetchOrder={FetchOrder.Descending}
         />
-    </Layout>
+    </>
     );
 }
+
+Posts.layout = page => <Layout>{page}</Layout>;
 export default Posts;

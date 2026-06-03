@@ -30,7 +30,7 @@ function Mail()
                 />
                 <LoadItems
                     partialProp="conversations"
-                    initialProp={conversations}
+                    initialItems={conversations}
                     renderMethod={(item) =>({
                         conversation: item
                     })}

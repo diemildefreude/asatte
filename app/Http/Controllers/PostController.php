@@ -230,7 +230,9 @@ class PostController extends Controller
         $user = $request->user();
         if(!$user->email_verified_at)
         {
-            return response()->json(["error" => "Please verify your e-mail to begin posting."], 403);   
+            return back()->withInput()->with([
+                'error_message' => 'Please verify your e-mail to begin posting.'
+            ]);
         }
 
         $basicFields = $request->validate
@@ -244,7 +246,9 @@ class PostController extends Controller
 
         if($isNews && $user->member_type != MemberType::Webmaster)
         {
-            return response()->json(["error" => "Only webmasters can make news posts."], 403);   
+            return back()->withInput()->with([
+                'error_message' => 'Only webmasters can make news posts.'
+            ]);
         }
         
         $validatedPostUrlArray = $request->validate //should be unique among this user's posts
@@ -332,9 +336,7 @@ class PostController extends Controller
             'status' => 'post_created',
             'message' => 'Your post has been successfully created.'
         ];
-        if ($request->wantsJson()) {
-            return response()->json($response, 200);
-        }
+
         $request->session()->flash('success', $response['message']);
         $redirectRoute = $isNews ? 'dashboard.news' : 'dashboard.posts';
         return redirect()->route($redirectRoute);
@@ -458,7 +460,9 @@ class PostController extends Controller
         $user = $request->user();
         if(!$user->email_verified_at)
         {
-            return response()->json(["error" => "Please verify your e-mail to begin posting."], 403);   
+            return back()->withInput()->with([
+                'error_message' => 'Please verify your e-mail to begin posting.'
+            ]);
         }
         Log::info($request->headers->get('content-type'));
         $requestData = [
@@ -496,7 +500,9 @@ class PostController extends Controller
 
         if($request->user()->id != $post->user_id)
         {
-            return response()->json([ "error" => "This is not your post to edit."], 403);
+            return back()->withInput()->with([
+                'error_message' => 'This is not your post to edit.'
+            ]);
         }
 
         $postUrl = $post->post_url;        
@@ -695,9 +701,7 @@ class PostController extends Controller
             'status' => 'post_updated',
             'message' => 'Your post has been successfully updated.'
         ];
-        if ($request->wantsJson()) {
-            return response()->json($response, 200);
-        }
+
         $request->session()->flash('success', $response['message']);
         $redirectRoute = $isNews ? 'dashboard.news' : 'dashboard.posts';
         return redirect()->route($redirectRoute);
@@ -714,7 +718,9 @@ class PostController extends Controller
                 || $requestingUser->member_type == MemberType::Admin;
         if($requestingUser->id != $post->user_id && !$isAdminRequest)
         {
-            return response()->json([ "error" => "This is not your post to delete."], 403);
+            return back()->withInput()->with([
+                'error_message' => 'This is not your post to delete.'
+            ]);
         }
         $userName = $requestingUser->username;
         $postUrl = $post->post_url;
@@ -726,9 +732,7 @@ class PostController extends Controller
             'status' => 'post_deleted',
             'message' => 'Post successfully deleted.'
         ];
-        if ($request->wantsJson()) {
-            return response()->json($response, 200);
-        }
+
         $request->session()->flash('success', $response['message']);
         $redirectRoute = $post->is_news ? 'dashboard.news' : 'dashboard.posts';
         return redirect()->route($redirectRoute);

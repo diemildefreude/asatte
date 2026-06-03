@@ -24,6 +24,12 @@ function LimitedTilesContainer({screenSize, fetchMethod, userId=null, classes=""
     const classNames = "tiles-container " + classes;
     const gridPostCounts = postCounts ?? DEFAULT_GRID_POST_COUNTS;
 
+    useEffect(() => {
+        if (initialPosts) {
+            setPosts(initialPosts);
+        }
+    }, [initialPosts]);
+
     useEffect(() =>
     {
         if(areNoMorePosts || !fetchOrder || !fetchMethod)

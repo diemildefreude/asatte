@@ -88,12 +88,12 @@ function PasswordChange()
     if (!user) return null;
 
     return (
-    <Layout>
+    <>
             <Head title="Password Change" />
     {
         (user.is_email_verified && user.login_type === 'email') ? (
             <div className="form-container limited-width">
-            <h2>change password</h2>
+            <h1 className="centered-content">change password</h1>
             {errors.general && (
             <div className="error">
                 {errors.general}
@@ -152,8 +152,10 @@ function PasswordChange()
         )
     }
         
-    </Layout>
+    </>
     );
 }
 
+
+PasswordChange.layout = page => <Layout>{page}</Layout>;
 export default PasswordChange;

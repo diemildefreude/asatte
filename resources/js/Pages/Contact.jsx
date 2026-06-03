@@ -63,7 +63,7 @@ function Contact()
     };
 
     return (
-        <Layout isDashboard={false}>
+        <>
             <Head title="Contact" />
             <div className="form-container">
                 <div className="centered-content no-margin">
@@ -163,8 +163,10 @@ function Contact()
                 </form></>)
                 }
             </div>            
-        </Layout>
+        </>
     );
 }
 
+
+Contact.layout = page => <Layout isDashboard={false}>{page}</Layout>;
 export default Contact;

@@ -2,13 +2,13 @@ import './Tile.css';
 import './UserLink.css';
 import { Link, router, usePage } from '@inertiajs/react';
 import { useCallback } from 'react';
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
 function UserLink({user, readOnly=false, returnUser=false, onClick=null, additionalClasses="", url})
 {   
+    const { props } = usePage();
     const target = url ?? `/${user.username}/profile`;
-    const avatar = user?.avatar ? `${BACKEND_URL}/storage/images/uploaded/users/${user.username}/avatar/thumb/${user?.avatar}` 
-        : `${BACKEND_URL}/storage/images/defaults/avatar.webp?v=1`;
+    const avatar = user?.avatar ? `${props.app_url}/storage/images/uploaded/users/${user.username}/avatar/thumb/${user?.avatar}` 
+        : `${props.app_url}/storage/images/defaults/avatar.webp?v=1`;
         
     let classes = `user-link ${additionalClasses}`;
     classes = readOnly ? classes + " read-only" : classes;
@@ -31,7 +31,7 @@ function UserLink({user, readOnly=false, returnUser=false, onClick=null, additio
                 <Link href={target} 
                     className={classes} 
                     draggable="false" 
-                    onClick={onClick ? handleOnClickOverride : null}
+                    onClick={onClick ? handleOnClickOverride : undefined}
                 >
                     <span className="avatar-container">
                         <img className="round-image" src={avatar} 

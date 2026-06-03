@@ -13,7 +13,7 @@ function News({ newsPosts = [] }) {
     }, [setScreenSize]);
 
     return (
-        <Layout>
+        <>
             <Head title="News" />
             <div className="centered-content">
                 <h1>news</h1>
@@ -25,8 +25,10 @@ function News({ newsPosts = [] }) {
                 initialPosts={newsPosts}
                 partialProp={'newsPosts'}
             />
-        </Layout>
+        </>
     );
 }
 
+
+News.layout = page => <Layout>{page}</Layout>;
 export default News;

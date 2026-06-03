@@ -4,13 +4,15 @@ import Layout
 function NotFound()
 {
     return(
-        <Layout>
+        <>
             <Head title="Not Found" />
             <p className="centered-content top-offset">
                 Page not found. Check your spelling.
             </p>
-        </Layout>
+        </>
     )
 }
 
+
+NotFound.layout = page => <Layout>{page}</Layout>;
 export default NotFound;

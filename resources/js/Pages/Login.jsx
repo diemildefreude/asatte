@@ -1,4 +1,5 @@
 import { Link, Head, useForm, usePage } from '@inertiajs/react';
+import React, { useState, useEffect } from 'react';
 import FormField from '../Components/common/FormField';
 import '../Components/common/Form.css';
 import Layout from '../Components/layout/Layout';
@@ -8,6 +9,25 @@ function Login()
 {
     const { props } = usePage();
     const flash = props?.flash || {};
+
+    const [statusMessage, setStatusMessage] = useState(null);
+    const [statusError, setStatusError] = useState(null);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const params = new URLSearchParams(window.location.search);
+            const status = params.get('status');
+            if (status === 'cancel_success') {
+                setStatusMessage('Your registration has been successfully cancelled.');
+            } else if (status === 'cancel_already_verified') {
+                setStatusError('Account is already verified and cannot be cancelled.');
+            } else if (status === 'invalid_link') {
+                setStatusError('Invalid link or account already cancelled.');
+            } else if (status === 'cancel_error') {
+                setStatusError('An unexpected error occurred while cancelling your registration.');
+            }
+        }
+    }, []);
 
     const { data, setData, post, processing, errors, setError, clearErrors } = useForm({
         login_field: '',
@@ -33,7 +53,7 @@ function Login()
     };
 
     return (
-    <Layout>
+    <>
             <Head title="Login" />
       <div className="form-container">
         <div className="sub-form-text">
@@ -45,14 +65,14 @@ function Login()
             {errors.general}
           </div>
         )}
-        {flash.success && (
+        {(flash.success || statusMessage) && (
           <div className="notice">
-            {flash.success}
+            {flash.success || statusMessage}
           </div>
         )}
-        {flash.error && (
+        {(flash.error || statusError) && (
           <div className="error">
-            {flash.error}
+            {flash.error || statusError}
           </div>
         )}
         <div className="field-groups-container">
@@ -100,8 +120,10 @@ function Login()
            />
         </div>   
       </div>
-    </Layout>
+    </>
   );
 }
 
+
+Login.layout = page => <Layout>{page}</Layout>;
 export default Login;

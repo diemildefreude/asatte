@@ -145,10 +145,10 @@ class SocialiteController extends Controller
         {
             $user->delete(); //delete the bot
             auth()->logout();
-            return response()->json([
-                'message' => 'Thank you for registering.', //<-- fake message
-                'status' => 'happy_landings' //status for fake registration
-            ], 200);
+            return redirect('/')->with([
+                'status' => 'happy_landings',
+                'success' => 'Thank you for registering.'
+            ]);
         }
         
         $request->validate([
@@ -182,14 +182,9 @@ class SocialiteController extends Controller
         //$reactAppUrl = config('app.url', 'http://localhost:3000');
         $status = "social_registration_complete";
 
-        // return redirect($reactAppUrl . '/dashboard?' . http_build_query([
-        //         'message' => 'Profile completed successfully!',
-        //         //'user' => json_encode($user->toArray()), // Send user data as JSON string
-        //         'status' => $status,
-        //     ]));
-        return response()->json([
-                'message' => 'Profile completed successfully!', // <--- Top-level message
-                'status' => $status
-            ], 200);
+        return redirect('/dashboard')->with([
+                'status' => $status,
+                'success' => 'Profile completed successfully!'
+            ]);
     }
 }

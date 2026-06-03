@@ -15,12 +15,7 @@ class ContactController extends Controller
         if(isset($website)) //Honeypot!
         {
             Log::info("Gotcha, bitch!");
-            if ($request->expectsJson()) {
-                return response()->json([
-                    "status" => "mail_sent",
-                    "message" => 'Your message has been received. Thank you.'
-                ], 200);
-            }
+
             return redirect()->back()->with('success', 'Your message has been received. Thank you.');
         }
 
@@ -39,12 +34,7 @@ class ContactController extends Controller
         $content = $fields['content'];
         Mail::to('s.elliot.perez@gmail.com')->send(new ContactMail($senderName,$senderEmail,$subject,$content));
 
-        if ($request->expectsJson()) {
-            return response()->json([
-                "status" => "mail_sent",
-                "message" => 'Your message has been received. Thank you.'
-            ], 200);
-        }
+
 
         return redirect()->back()->with('success', 'Your message has been received. Thank you.');
     }

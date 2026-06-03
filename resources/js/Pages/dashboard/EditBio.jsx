@@ -8,6 +8,7 @@ function EditBio()
 {
     const { props } = usePage();
     const user = props?.auth?.user;
+    const appUrl = props.app_url;
     const flash = props?.flash || {};
     
     const [isInEditMode, setIsInEditMode] = useState(false);
@@ -20,7 +21,7 @@ function EditBio()
 
     useEffect(() =>
     {        
-        const hydratedBio = hydrateEditorImagePaths(user?.bio);
+        const hydratedBio = hydrateEditorImagePaths(user?.bio, appUrl);
         setBio(hydratedBio);
         setInitialBio(hydratedBio);
         setData('bio', hydratedBio || '');
@@ -37,14 +38,14 @@ function EditBio()
         e.preventDefault();
         clearErrors();
         
-        const dehydratedBio = dehydrateEditorImagePaths(bio);
+        const dehydratedBio = dehydrateEditorImagePaths(bio, appUrl);
         const bioWithResizedImages = await processEditorImages(dehydratedBio);
 
         setIsSubmitting(true);
         router.post('/update-bio', { bio: bioWithResizedImages }, {
             preserveScroll: true,
             onSuccess: (page) => {
-                const updatedBio = hydrateEditorImagePaths(page.props?.auth?.user?.bio || bioWithResizedImages);
+                const updatedBio = hydrateEditorImagePaths(page.props?.auth?.user?.bio || bioWithResizedImages, appUrl);
                 setInitialBio(updatedBio);
                 setBio(updatedBio);
                 setHasBioChanged(false);

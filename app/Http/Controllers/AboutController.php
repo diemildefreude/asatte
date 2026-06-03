@@ -31,13 +31,10 @@ class AboutController extends Controller
 
         if(!$user || $user->member_type != MemberType::Webmaster)
         {
-            if ($request->wantsJson()) {
-                return response()->json([
-                    'message' => 'Only the webmaster can make changes.',
-                    'status' => 'unauthorized'
-                ], Response::HTTP_FORBIDDEN);
-            }
-            return redirect()->back();
+            return back()->withInput()->with([
+                'status' => 'unauthorized',
+                'error_message' => 'Only the webmaster can make changes.'
+            ]);
         }
 
         $about = About::first();
@@ -71,9 +68,6 @@ class AboutController extends Controller
             'message' => "About statement has been updated successfully.",
             'about' => $about
         ];
-        if ($request->wantsJson()) {
-            return response()->json($response, 200);
-        }
         $request->session()->flash('success', $response['message']);
         return redirect()->route('about');
     }

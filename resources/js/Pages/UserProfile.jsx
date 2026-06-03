@@ -9,11 +9,12 @@ import '../Components/common/RichTextEditor.css';
 import { FetchOrder, getErrorMessage, getScreenSize, monitorScreenSize, 
     sanitizeRichHtml, hydrateEditorImagePaths } from '../utils/helpers';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
 function UserProfile({ user: profileUserProp })
 {
     const { fetchPosts, user, toggleFollow } = useAuth();
+    const { props } = usePage();
+    const appUrl = props.app_url;
     const username = profileUserProp?.username;
     const [screenSize, setScreenSize] = useState(getScreenSize());
     const [profileUser, setProfileUser] = useState(profileUserProp);
@@ -25,8 +26,8 @@ function UserProfile({ user: profileUserProp })
 
     //console.log("profileUser?", profileUser);
 
-    const avatar = profileUser?.avatar ? `${BACKEND_URL}/storage/images/uploaded/users/${username}/avatar/small/${profileUser?.avatar}` 
-        : `${BACKEND_URL}/storage/images/defaults/avatar.webp?v=1`;
+    const avatar = profileUser?.avatar ? `${appUrl}/storage/images/uploaded/users/${username}/avatar/small/${profileUser?.avatar}` 
+        : `${appUrl}/storage/images/defaults/avatar.webp?v=1`;
 
     useEffect(() => //check screen size at regular intervals.
     {   
@@ -65,7 +66,7 @@ function UserProfile({ user: profileUserProp })
     };
 
     return (
-    <Layout>
+    <>
             <Head title="User Profile" />        
         <div className="heading-profile-container public-profile">
             <div className='centered-content vert-1rem'><h1>{username}</h1></div>
@@ -180,7 +181,7 @@ function UserProfile({ user: profileUserProp })
                             </div>       
                             <div
                                 className="article-text padded"
-                                dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(hydrateEditorImagePaths(profileUser.bio))}}
+                                dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(hydrateEditorImagePaths(profileUser.bio, appUrl))}}
                             />                
                         </div>
                     </div>
@@ -210,7 +211,9 @@ function UserProfile({ user: profileUserProp })
                 </div>    
             </>):(null)
         }
-    </Layout>);
+    </>);
 }
 
+
+UserProfile.layout = page => <Layout>{page}</Layout>;
 export default UserProfile;

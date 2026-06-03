@@ -52,7 +52,7 @@ class AuthController extends Controller
         if ($status == Password::PASSWORD_RESET) 
         {
             Log::info("Password successfully reset for email: " . $request->email);
-            return back()->with('message', 'Your password has been reset successfully.')
+            return redirect('/dashboard')->with('success', 'Your password has been successfully reset.')
                          ->with('status', 'password_reset_success');
         }
 
@@ -110,7 +110,7 @@ class AuthController extends Controller
         {
             Log::info("Password reset attempt for non-existent user: " . $request->login_field);
             return back()->with('status', 'password_reset_link_sent')
-                         ->with('message', 'If an account with that email/username exists, a password reset link has been sent.');
+                         ->with('message', 'If an account with that email/username exists, a recovery e-mail as been sent to you.');
         }
 
         $status = Password::sendResetLink(
@@ -121,7 +121,7 @@ class AuthController extends Controller
         {
             Log::info("Password reset link sent to: " . $user->email);
             return back()->with('status', 'password_reset_link_sent')
-                         ->with('message', 'If an account with that email/username exists, a password reset link has been sent.');
+                         ->with('success', 'If an account with that email/username exists, a password reset link has been sent.');
         }
 
         Log::error("Failed to send password reset link to: " . $user->email . " Status: " . $status);
@@ -174,29 +174,29 @@ class AuthController extends Controller
 
             if (!hash_equals((string) $hash, sha1($user->email))) 
             {
-                return redirect('/dashboard?status=invalid_link');
+                return redirect('/login?status=invalid_link');
             }
 
             if ($user->hasVerifiedEmail()) 
             {
-                return redirect('/dashboard?status=cancel_already_verified');
+                return redirect('/login?status=cancel_already_verified');
             }        
 
             $user->delete(); // Delete the user record
             Log::info("User ID {$user->id} with email {$user->email} cancelled registration.");
-            return redirect('/dashboard?status=cancel_canceled');
+            return redirect('/login?status=cancel_success');
         }
         catch (ModelNotFoundException $e) 
         {
             // User was not found, meaning they likely already cancelled or the link is invalid
             Log::info("Attempt to cancel non-existent user ID {$id}. Likely already canceled.");
-            return redirect('/dashboard?status=cancel_user_not_found'); // New status for frontend
+            return redirect('/login?status=invalid_link'); // New status for frontend
         } 
         catch (\Exception $e) 
         {
             // Catch any other unexpected errors
             Log::error("Unexpected error canceling registration for user ID {$id}: " . $e->getMessage());
-            return redirect('/dashboard?status=cancel_error');
+            return redirect('/login?status=cancel_error');
         }
     }
     public function checkAvailability(Request $request)
@@ -242,7 +242,7 @@ class AuthController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
-        return redirect()->intended('/dashboard');
+        return redirect('/dashboard');
     }
     public function login(LoginRequest $request)
     {
@@ -263,7 +263,7 @@ class AuthController extends Controller
         if (Auth::attempt($credentials, $request->filled('remember'))) 
         {
             $request->session()->regenerate();
-            return redirect()->intended('/dashboard');
+            return redirect('/dashboard');
         }
 
         return back()->withErrors(['general' => ['invalid credentials provided']])->withInput();

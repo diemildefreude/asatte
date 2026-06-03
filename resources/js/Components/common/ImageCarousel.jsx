@@ -2,14 +2,14 @@ import React, { useState, useRef, useMemo, useEffect } from 'react';
 import './Carousel.css';
 import CarouselContainer from './CarouselContainer';
 import ImageZoom from './ImageZoom'; 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-
+import { usePage } from '@inertiajs/react';
 function ImageCarousel({size, post, title=""})
 {
+    const { props } = usePage();
     const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
     const [isZoomed, setIsZoomed] = useState(false); 
     const slideRefs = useRef([]);
-    const IMAGE_ROOT = `${BACKEND_URL}/storage/images/uploaded/users/${post.user.username}/posts/${post.post_url}/gallery`;
+    const IMAGE_ROOT = `${props.app_url}/storage/images/uploaded/users/${post.user.username}/posts/${post.post_url}/gallery`;
 
     slideRefs.current = [];
     const imageUrls = useMemo(() =>

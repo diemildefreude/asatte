@@ -20,6 +20,7 @@ Route::inertia('/login', 'Login')->name('login');
 Route::inertia('/register', 'Registration')->name('register');
 Route::inertia('/password-recovery', 'PasswordRecovery');
 Route::inertia('/password-change', 'PasswordChange');
+Route::inertia('/password-reset', 'PasswordReset');
 Route::get('/search', [SearchController::class, 'search']);
 
 // Session-based auth endpoints

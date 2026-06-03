@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { LoginType } from '../../contexts/AuthContext';
+import { LoginType, useAuth } from '../../contexts/AuthContext';
 import {  Link, router, usePage , Head, useForm } from '@inertiajs/react';
 import { getErrorMessage } from '../../utils/helpers';
 import AvatarSetter from "./AvatarSetter";
@@ -12,6 +12,7 @@ function EditProfile()
     const user = props?.auth?.user;
     const from = props?.flash?.from || '/';
     const flash = props?.flash || {};
+    const { logout } = useAuth();
 
     const { data, setData, post, processing, errors, setError, clearErrors } = useForm({
         website: '',
@@ -51,12 +52,11 @@ function EditProfile()
         try
         {
             setIsLoggingOut(true);
-            await router.post('/logout');     
-            router.visit(from, {replace: true});       
+            await logout();     
         }
         catch (err)
         {
-            console.error('Login error in EditProfile.jsx:', err);
+            console.error('Logout error in EditProfile.jsx:', err);
         }
         finally
         {

@@ -1,11 +1,11 @@
 import { Link, router, usePage } from '@inertiajs/react';
 import './Users.css';
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
 function UserCircle({user})
 {
-    const avatar = user?.avatar ? `${BACKEND_URL}/storage/images/uploaded/users/${user.username}/avatar/small/${user?.avatar}` 
-        : `${BACKEND_URL}/storage/images/defaults/avatar.webp?v=1`;
+    const { props } = usePage();
+    const avatar = user?.avatar ? `${props.app_url}/storage/images/uploaded/users/${user.username}/avatar/small/${user?.avatar}` 
+        : `${props.app_url}/storage/images/defaults/avatar.webp?v=1`;
 
         //console.log("userCircle?!", user);
     

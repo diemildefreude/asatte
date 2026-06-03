@@ -19,19 +19,29 @@ class DMController extends Controller
         $amount = intval($request->query('amount', 10));
         $page = intval($request->query('page', 1));
 
-        $query = Conversation::with(['users', 'latestMessage.sender:id,username'])
-        ->whereHas('users', function($q) use ($user)
-        {
-            $q->where('users.id', $user->id);
-        })->orderBy(Message::select('created_at')
+        // Subquery to isolate the created_at timestamp of the absolute newest message in each conversation
+        $latestMessageTimeQuery = Message::select('created_at')
             ->whereColumn('conversation_id', 'conversations.id')
             ->latest()
-            ->take(1),
-            'desc'
-        );
+            ->take(1);
+
+        $query = Conversation::with(['users', 'latestMessage.sender:id,username'])
+            ->whereHas('users', function($q) use ($user) {
+                $q->where('users.id', $user->id);
+            })
+            // 1. Select all default conversation columns
+            ->select('conversations.*')
+            // 2. Append the calculated subquery value so it is accessible as a temporary model attribute
+            ->addSelect([
+                'latest_message_created_at' => $latestMessageTimeQuery
+            ])
+            // 3. Keep your existing optimized subquery ordering logic intact
+            ->orderBy($latestMessageTimeQuery, 'desc');
 
         $conversations = $query->paginate($amount, ['*'], 'page', $page);
 
+        Log::info("DMs indexed", $conversations->toArray());
+        
         return Inertia::render('dashboard/Mail', [
             'conversations' => $conversations,
         ]);
@@ -74,10 +84,10 @@ class DMController extends Controller
     
             if (!$isParticipant) 
             {
-                return response()->json([
+                return back()->withInput()->with([
                     'status' => 'error',
-                    'message' => 'You do not have permission to post in this conversation.'
-                ], 403); // 403 Forbidden
+                    'error_message' => 'You do not have permission to post in this conversation.'
+                ]);
             }
         }
         else 

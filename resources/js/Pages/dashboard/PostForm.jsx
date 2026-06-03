@@ -5,11 +5,11 @@ import CheckboxField from '../../Components/common/CheckboxField';
 import RichTextEditor from '../../Components/common/RichTextEditor';
 import VideoIframe from '../../Components/common/VideoIframe';
 import ImageField from "./ImageField";
-import { BACKEND_URL, addImageDragListeners, Category, dehydrateEditorImagePaths, getErrorMessage, getImageFilesFromInput, 
+import { addImageDragListeners, Category, dehydrateEditorImagePaths, getErrorMessage, getImageFilesFromInput, 
     getImageUrlFromFile, getVideoEmbedUrl, hydrateEditorImagePaths, isAlphaDash, isUrl, 
     MemberType, processEditorImages, resizeImage } from '../../utils/helpers';
 
-const createInitialImageFields = (post=null, user, postUrl) => 
+const createInitialImageFields = (post=null, user, postUrl, appUrl) => 
 {
     if(post) 
     {
@@ -17,7 +17,7 @@ const createInitialImageFields = (post=null, user, postUrl) =>
         const alts = post.gallery_alts;
         return images.map((image, i) => ({
             index: i,
-            image: `${BACKEND_URL}/storage/images/uploaded/users/${user.username}/posts/${postUrl}/gallery/thumb/${image}`,
+            image: `${appUrl}/storage/images/uploaded/users/${user.username}/posts/${postUrl}/gallery/thumb/${image}`,
             alt: alts[i] == "null" ? "" : alts[i],
             value: image,
             type: 'old'
@@ -45,7 +45,9 @@ function hasImages(fields)
 
 function PostForm({isCreateForm=true, post=null, user, category=Category.Archive})
 {
-    const hydratedStatement = post?.statement ? hydrateEditorImagePaths(post.statement) : null;
+    const { props } = usePage();
+    const appUrl = props.app_url;
+    const hydratedStatement = post?.statement ? hydrateEditorImagePaths(post.statement, appUrl) : null;
     
     const { data, setData, errors, setError, clearErrors } = useForm({
         post_url: post?.post_url || "",
@@ -73,7 +75,7 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
     const [isMainVideoValid, setIsMainVideoValid] = useState(!!post?.main_video);
 
     const galleryContainerRef = useRef(null);    
-    const [imageFields, setImageFields] = useState(createInitialImageFields(post, user, post?.post_url || ""));
+    const [imageFields, setImageFields] = useState(createInitialImageFields(post, user, post?.post_url || "", appUrl));
     const dragCounterRef = useRef(0);
 
     const canSubmit = data.title && isTitleValid && data.post_url && isPostUrlValid
@@ -88,7 +90,7 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
     useEffect(() =>
     {
         if(!post) return;
-        const hydr = hydrateEditorImagePaths(post.statement);
+        const hydr = hydrateEditorImagePaths(post.statement, appUrl);
         setData({
             post_url: post.post_url || "",
             title: post.title || "",
@@ -108,7 +110,7 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
         setIsSourceCodeValid(true);
         setIsMainVideoValid(!!post.main_video);
         setInitialStatement(hydr);
-        setImageFields(createInitialImageFields(post, user, post.post_url));
+        setImageFields(createInitialImageFields(post, user, post.post_url, appUrl));
         setHasChanged(false);   
     },[post, user, setData]);
 
@@ -134,7 +136,7 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
             resizedGalleryImages.push(newField);
         };
         
-        const dehydratedStatement = dehydrateEditorImagePaths(data.statement);
+        const dehydratedStatement = dehydrateEditorImagePaths(data.statement, appUrl);
         const statementWithResizedImages = await processEditorImages(dehydratedStatement);
 
         try

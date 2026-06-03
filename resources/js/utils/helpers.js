@@ -1,6 +1,4 @@
 import DOMPurify from 'dompurify';
-export const BACKEND_URL = (typeof process !== 'undefined' && process.env && process.env.REACT_APP_BACKEND_URL) ? process.env.REACT_APP_BACKEND_URL : '';
-
 const SAFE_VIDEO_IFRAME_HOSTS = [
   /^(?:www\.)?youtube\.com$/i,
   /^(?:www\.)?youtube-nocookie\.com$/i,
@@ -308,9 +306,9 @@ export function resizeImage(source)
 
 //     return processedOps;
 // }
-export function dehydrateEditorImagePaths(htmlString) 
+export function dehydrateEditorImagePaths(htmlString, appUrl = '') 
 {
-    const BACKEND = BACKEND_URL ? BACKEND_URL.replace(/\/$/, '') : '';
+    const BACKEND = appUrl ? appUrl.replace(/\/$/, '') : '';
     const STORAGE_BASE_URL = BACKEND ? `${BACKEND}/storage` : '/storage';
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlString, 'text/html');
@@ -340,9 +338,9 @@ export function dehydrateEditorImagePaths(htmlString)
     }
     return doc.body.innerHTML;
 }
-export function hydrateEditorImagePaths(htmlString)
+export function hydrateEditorImagePaths(htmlString, appUrl = '')
 {
-    const BACKEND = BACKEND_URL ? BACKEND_URL.replace(/\/$/, '') : '';
+    const BACKEND = appUrl ? appUrl.replace(/\/$/, '') : '';
     const STORAGE_BASE_URL = BACKEND ? `${BACKEND}/storage` : '/storage';
     const parser = new DOMParser();
     // Parse the string into a temporary DOM tree

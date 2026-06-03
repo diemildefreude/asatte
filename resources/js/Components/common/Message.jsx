@@ -15,7 +15,10 @@ function Message({message, onReply=null, onDelete=null, id, parentLocalId=null,
     const [isEditing, setIsEditing] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const initialHydratedContent = useMemo(() => hydrateEditorImagePaths(message.content), [message.content]);
+    const { props } = usePage();
+    const appUrl = props.app_url;
+    
+    const initialHydratedContent = useMemo(() => hydrateEditorImagePaths(message.content, appUrl), [message.content, appUrl]);
     
     const [content, setContent] = useState(initialHydratedContent);
     const [initialContent, setInitialContent] = useState(initialHydratedContent);
@@ -50,7 +53,7 @@ function Message({message, onReply=null, onDelete=null, id, parentLocalId=null,
     const handleMessageUpdate = useCallback(async () =>
     {
         setIsSubmitting(true);
-        const dehydratedContent = dehydrateEditorImagePaths(content);
+        const dehydratedContent = dehydrateEditorImagePaths(content, appUrl);
         const newContentWithResizedImages = await processEditorImages(dehydratedContent);
         
         router.put(`/dashboard/mail/${message.id}`, { content: newContentWithResizedImages }, {

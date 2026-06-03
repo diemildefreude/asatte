@@ -18,7 +18,7 @@ function Home({ heroPosts = [], carouselArchive = [], carouselNews = [], archive
     }, [setScreenSize]);
 
     return (
-        <Layout>
+        <>
             <Head title="Home" />
         <div className="hero">
             <h1>asatte.io</h1>
@@ -47,8 +47,10 @@ function Home({ heroPosts = [], carouselArchive = [], carouselNews = [], archive
                 partialProp={'archivePosts'}
             />
         </div>
-        </Layout>
+        </>
     );
 }
 
+
+Home.layout = page => <Layout>{page}</Layout>;
 export default Home;

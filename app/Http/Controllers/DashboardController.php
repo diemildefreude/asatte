@@ -19,18 +19,13 @@ class DashboardController extends Controller
     {
         // Log::info($request);
 
-        if (!$request->hasFile('avatar')) 
-        {
-            return response()->json(['error' => 'No avatar file detected by Laravel.'], 422);
-        }
-
         if(!$request->user()->hasVerifiedEmail())
         {
             Log::error("e-mail not verified");
-            return response()->json([
-                'message' => 'Your email address must be verified to edit your profile.', // <--- Top-level message
-                'status' => 'change_profile_unverified'
-            ], Response::HTTP_FORBIDDEN);
+            return back()->withInput()->with([
+                'status' => 'change_profile_unverified',
+                'error_message' => 'Your email address must be verified to edit your profile.'
+            ]);
         }
 
         $request->validate
@@ -54,10 +49,10 @@ class DashboardController extends Controller
         if(!$request->user()->hasVerifiedEmail())
         {
             Log::error("e-mail not verified");
-            return response()->json([
-                'message' => 'Your email address must be verified to edit your bio.', // <--- Top-level message
-                'status' => 'change_profile_unverified'
-            ], Response::HTTP_FORBIDDEN);
+            return back()->withInput()->with([
+                'status' => 'change_profile_unverified',
+                'error_message' => 'Your email address must be verified to edit your bio.'
+            ]);
         }
 
         $request->validate
@@ -88,10 +83,10 @@ class DashboardController extends Controller
         if(!$request->user()->hasVerifiedEmail())
         {
             Log::error("e-mail not verified");
-            return response()->json([
-                'message' => 'Your email address must be verified to edit your profile.', // <--- Top-level message
-                'status' => 'change_profile_unverified'
-            ], Response::HTTP_FORBIDDEN);
+            return back()->withInput()->with([
+                'status' => 'change_profile_unverified',
+                'error_message' => 'Your email address must be verified to edit your profile.'
+            ]);
         }
 
         $request->validate
@@ -112,24 +107,6 @@ class DashboardController extends Controller
         
         $request->session()->flash('success_profile', 'Your profile has been successfully updated.');
         return redirect()->back();
-    }
-    public function unreadStatus(Request $request)
-    {
-        $user = $request->user();
-        $hasUnreadNotifications = Notification::where('user_id', $user->id)
-        ->where('is_read', false)->exists();//get()->count() > 0;
-
-        $hasUnreadMail = $user->conversations()
-            ->where(function ($query) 
-            {
-                $query->whereColumn('conversations.updated_at', '>', 'conversation_user.last_read_at')
-                  ->orWhereNull('conversation_user.last_read_at');
-            })->exists();
-        
-        return response()->json([
-            'has_unread_notifications' => $hasUnreadNotifications,
-            'has_unread_mail' => $hasUnreadMail
-        ],200);
     }
 
     public function posts(Request $request)

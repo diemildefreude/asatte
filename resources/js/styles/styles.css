@@ -337,7 +337,7 @@ button:disabled, button:disabled:hover
     object-fit: cover;
     object-position: center;
     aspect-ratio: 1/1;
-    border-radius: 50%;
+    border-radius: 100%;
     display: block;
 }
 .image-drag-panel

@@ -22,7 +22,7 @@ function SearchResults({ searchTerm = '', searchPosts = [] })
     // },[location.state]);
 
     return (
-        <Layout>
+        <>
             <Head title="Search Results" />
             <div className="page-section">
                 <h3 className='padded centered-content'>
@@ -43,8 +43,10 @@ function SearchResults({ searchTerm = '', searchPosts = [] })
                     partialProp={'searchPosts'}
                 />
             </div>
-        </Layout>
+        </>
     );
 }
 
+
+SearchResults.layout = page => <Layout>{page}</Layout>;
 export default SearchResults;

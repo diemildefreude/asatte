@@ -1,11 +1,12 @@
 import { Link, router, usePage } from '@inertiajs/react';
 import CheckboxField from "./CheckboxField";
-const APP_NAME = process.env.REACT_APP_NAME;
-const AGREEMENT_VERSION = process.env.REACT_APP_USER_AGREEMENT_VERSION;
 
 function UserAgreement({onAgreeChange, onHumanChange, onRobotChange, 
     agreeVal, humanVal, robotVal, isSubmitting}) 
 {
+    const { props } = usePage();
+    const APP_NAME = props.app_name;
+    const AGREEMENT_VERSION = props.app_user_agreement_version;
     return (<>
     <div className="user-agreement article-text">
         <div className="centered-content vert-1rem">

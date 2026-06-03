@@ -13,10 +13,11 @@
     import VideoIframe from '../Components/common/VideoIframe';
     import HiddenPostNotice from '../Components/common/HiddenPostNotice';
     import RichTextEditor from '../Components/common/RichTextEditor';
-    const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
     function Post({ post: postProp })
     {
+        const { props } = usePage();
+        const appUrl = props.app_url;
         const [post, setPost] = useState(postProp);
         const [isLiked, setIsLiked] = useState(!!postProp?.have_liked);
         const [likeCount, setLikeCount] = useState(postProp?.users_who_liked_count || 0);
@@ -150,7 +151,7 @@
         },[post]);
 
         return (
-        <Layout>
+        <>
             <Head title="Post" />
             <div className="post">       
             { 
@@ -169,7 +170,7 @@
                         <div className="image-info-container">
                             <div className="main-image-container">
                                 <div className="image-link-subcontainer">
-                                    <img className="main-image" src={`${BACKEND_URL}/storage/images/uploaded/users/${post.user.username}/posts/${post.post_url}/gallery/large/${imageUrls[0]}`} alt="" />
+                                    <img className="main-image" src={`${appUrl}/storage/images/uploaded/users/${post.user.username}/posts/${post.post_url}/gallery/large/${imageUrls[0]}`} alt="" />
                                     <div className="main-image-link-container">
                                         <div className="info-panel">                        
                                         { 
@@ -239,7 +240,7 @@
                                 </div>
                             </div>
                             <div className="page-section statement rte-container article-text"
-                                dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(hydrateEditorImagePaths(post.statement))}}
+                                dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(hydrateEditorImagePaths(post.statement, appUrl))}}
                             >
                             </div>
                         </div>
@@ -334,8 +335,10 @@
             )
             }
             </div>
-        </Layout>
+        </>
         )
     }
 
-    export default Post;
+    
+Post.layout = page => <Layout>{page}</Layout>;
+export default Post;

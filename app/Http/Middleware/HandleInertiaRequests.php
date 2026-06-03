@@ -38,22 +38,7 @@ class HandleInertiaRequests extends Middleware
     {
         $user = $request->user();
 
-        $unread = [
-            'has_unread_notifications' => false,
-            'has_unread_mail' => false,
-        ];
 
-        if ($user) {
-            $unread = [
-                'has_unread_notifications' => Notification::where('user_id', $user->id)
-                    ->where('is_read', false)->exists(),
-                'has_unread_mail' => $user->conversations()
-                    ->where(function ($query) {
-                        $query->whereColumn('conversations.updated_at', '>', 'conversation_user.last_read_at')
-                              ->orWhereNull('conversation_user.last_read_at');
-                    })->exists(),
-            ];
-        }
 
         return array_merge(parent::share($request), [
             'auth' => [
@@ -67,7 +52,27 @@ class HandleInertiaRequests extends Middleware
                 'error'   => $request->session()->get('error'),
                 'new_message_id' => $request->session()->get('new_message_id'),
             ],
-            'unread' => $unread,
+            'unread' => fn () => $request->user() ? [
+                'has_unread_notifications' => Notification::where('user_id', $request->user()->id)
+                    ->where('is_read', false)->exists(),
+                'has_unread_mail' => $request->user()->conversations()
+                    ->where(function ($query) 
+                    {
+                        $query->whereHas('messages', function ($subQuery) 
+                        {
+                            // Pin constraints: latest message created_at is strictly greater than the pivot's tracking timestamp
+                            $subQuery->whereColumn('messages.created_at', '>', 'conversation_user.last_read_at');
+                        })
+                        // Fallback: If they have never opened the thread room, treat it as unread automatically
+                        ->orWhereNull('conversation_user.last_read_at');
+                    })->exists(),
+            ] : [
+                'has_unread_notifications' => false,
+                'has_unread_mail' => false,
+            ],
+            'app_url' => config('app.url'),
+            'app_name' => config('app.name'),
+            'app_user_agreement_version' => env('USER_AGREEMENT_VERSION')
         ]);
     }
 }

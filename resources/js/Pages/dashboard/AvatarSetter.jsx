@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import ImageZoom from '../../Components/common/ImageZoom';
 import { useForm, usePage, router } from '@inertiajs/react';
-import { BACKEND_URL, getErrorMessage, getImageFileFromInput, getImageUrlFromFile } from '../../utils/helpers';
+import { getErrorMessage, getImageFileFromInput, getImageUrlFromFile } from '../../utils/helpers';
 
 function parseTransformString(transformString) 
 {
@@ -88,8 +88,8 @@ function AvatarSetter({user})
     const imageCropButtonRef = useRef(null);
     const avatarContainerRef = useRef(null);
 
-    const avatar = user?.avatar ? `${BACKEND_URL}/storage/images/uploaded/users/${user.username}/avatar/small/${user?.avatar}` 
-        : `${BACKEND_URL}/storage/images/defaults/avatar.webp?v=2`;
+    const avatar = user?.avatar ? `${props.app_url}/storage/images/uploaded/users/${user.username}/avatar/small/${user?.avatar}` 
+        : `${props.app_url}/storage/images/defaults/avatar.webp?v=2`;
     const { data, setData, post, processing, errors, setError, clearErrors } = useForm({ avatar: null });
 
     const closeCropperAndClearInput = useCallback(() => 
@@ -271,10 +271,10 @@ function AvatarSetter({user})
             </div>
             )
         }
+        {errors.avatar && (
+            <div className="error">{errors.avatar}</div>
+        )}
         <div className="profile-avatar-container" ref={avatarContainerRef}>
-            {errors.avatar && (
-                <div className="error">{errors.avatar}</div>
-            )}
             <label htmlFor="profile_image" className="hidden"
             ></label>
             <input type="file" accept=".jpg, .jpeg, .png, .webp, .bmp" name="profile_image" 

@@ -12,8 +12,9 @@ function About({ about, status })
     const flash = props?.flash || {};
     const user = props?.auth?.user;
     const isWebmaster = user ? user.member_type == MemberType.Webmaster : false;
+    const appUrl = props.app_url;
     
-    const initialHydratedStatement = (status === 'about_fetched' && about?.statement) ? hydrateEditorImagePaths(about.statement) : null;
+    const initialHydratedStatement = (status === 'about_fetched' && about?.statement) ? hydrateEditorImagePaths(about.statement, appUrl) : null;
     const [isInEditMode, setIsInEditMode] = useState(false);
     const [hasStatementChanged, setHasStatementChanged] = useState(false);
     const [statement, setStatement] = useState(initialHydratedStatement);
@@ -35,7 +36,7 @@ function About({ about, status })
         e.preventDefault();
         
         // Dehydrate before saving
-        const dehydratedStatement = dehydrateEditorImagePaths(statement);
+        const dehydratedStatement = dehydrateEditorImagePaths(statement, appUrl);
         const statementWithResizedImages = await processEditorImages(dehydratedStatement);
         
         setData('statement', statementWithResizedImages);
@@ -46,7 +47,7 @@ function About({ about, status })
             onSuccess: (page) => {
                 const newAbout = page.props?.about ?? null;
                 if (newAbout && newAbout.statement) {
-                    const hydratedStatement = hydrateEditorImagePaths(newAbout.statement);
+                    const hydratedStatement = hydrateEditorImagePaths(newAbout.statement, appUrl);
                     setInitialStatement(hydratedStatement);
                     setStatement(hydratedStatement);
                 }
@@ -63,7 +64,7 @@ function About({ about, status })
 
     // Keep local editor state in sync when server props change (Inertia page swaps)
     useEffect(() => {
-        const hydrated = (status === 'about_fetched' && about?.statement) ? hydrateEditorImagePaths(about.statement) : null;
+        const hydrated = (status === 'about_fetched' && about?.statement) ? hydrateEditorImagePaths(about.statement, appUrl) : null;
         setStatement(hydrated);
         setInitialStatement(hydrated);
         setData('statement', hydrated || '');
@@ -71,7 +72,7 @@ function About({ about, status })
     }, [about, status]);
 
     return (
-    <Layout>
+    <>
             <Head title="About" />
         <div className="rte-container borderless">
         {
@@ -130,8 +131,10 @@ function About({ about, status })
             )
         }
         </div>
-    </Layout>
+    </>
     );
 }
 
+
+About.layout = page => <Layout>{page}</Layout>;
 export default About;

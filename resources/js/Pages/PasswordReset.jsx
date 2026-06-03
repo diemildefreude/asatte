@@ -1,27 +1,28 @@
 import Layout from '../Components/layout/Layout';
 import FormField from '../Components/common/FormField';
 import React, { useState, useEffect } from 'react';
-import {  Link, router, usePage , Head } from '@inertiajs/react';
-import { useAuth } from '../contexts/AuthContext';
-import { getErrorMessage, isValidPassword } from '../utils/helpers';
+import { Head, useForm, usePage } from '@inertiajs/react';
+import { isValidPassword } from '../utils/helpers';
 
 function PasswordReset() 
 {
-    const [searchParams] = useSearchParams();
-    
-    const { resetPassword, isLoading } = useAuth();
-    const [email, setEmail] = useState('');
-    const [token, setToken] = useState('');
-    const [newPassword, setNewPassword] = useState('');
-    const [passwordConfirmation, setPasswordConfirmation] = useState('');
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
-    const [formDisabled, setFormDisabled] = useState(false); // To disable form after initial check
+    const { props } = usePage();
+    const flash = props?.flash || {};
+
+    const { data, setData, post, processing, errors, setError, clearErrors } = useForm({
+        email: '',
+        token: '',
+        password: '',
+        password_confirmation: '',
+    });
+
+    const [localError, setLocalError] = useState('');
+    const [formDisabled, setFormDisabled] = useState(false);
     const [isPasswordFieldValid, setIsPasswordFieldValid] = useState(false);
     const [arePasswordsMatching, setArePasswordsMatching] = useState(false);
 
-    const canReset = email && token && newPassword && passwordConfirmation 
-        && isPasswordFieldValid && arePasswordsMatching;
+    const canReset = data.email && data.token && data.password && data.password_confirmation 
+        && isPasswordFieldValid && arePasswordsMatching && !processing;
 
     const handlePasswordFormatValidation = (proposedPassword, setFieldLocalError) =>
     {
@@ -40,81 +41,81 @@ function PasswordReset()
 
     useEffect(() => 
     {
-        const emailParam = searchParams.get('email');
-        const tokenParam = searchParams.get('token');
+        if (typeof window !== 'undefined') {
+            const params = new URLSearchParams(window.location.search);
+            const emailParam = params.get('email');
+            const tokenParam = params.get('token');
 
-        if (!emailParam || !tokenParam) 
-        {
-            setError('Invalid or missing password reset link. Please request a new one.');
-            setFormDisabled(true); // Disable the form if link is invalid
-            // Optionally, redirect to forgot password page after a delay
-            //setTimeout(() => router.visit('/password-recovery'), 3000);
-        } 
-        else 
-        {
-            setEmail(emailParam);
-            setToken(tokenParam);
-            setError(''); // Clear any previous errors
-            setFormDisabled(false); // Enable form
+            if (!emailParam || !tokenParam) 
+            {
+                setLocalError('Invalid or missing password reset link. Please request a new one.');
+                setFormDisabled(true);
+            } 
+            else 
+            {
+                setData({
+                    ...data,
+                    email: emailParam,
+                    token: tokenParam
+                });
+                setLocalError('');
+                setFormDisabled(false);
+            }
         }
-    }, [searchParams, navigate]);
+    }, []);
 
     useEffect(() =>
     {
-        if(passwordConfirmation === "")
-        {//don't show error if user hasn't entered the confirmation yet
+        if(data.password_confirmation === "")
+        {
             return;
         }
-        const areMatching = newPassword === passwordConfirmation;
+        const areMatching = data.password === data.password_confirmation;
         setArePasswordsMatching(areMatching);
         if(!areMatching)
         {
-            setError("Password and confirmation do not match.");
+            setLocalError("Password and confirmation do not match.");
         }
         else
         {
-            setError("");
+            setLocalError("");
         }
-    },[newPassword, passwordConfirmation]);
+    },[data.password, data.password_confirmation]);
 
-    const handleSubmit = async (e) => 
+    const handleSubmit = (e) => 
     {
         e.preventDefault();
-        setError('');
-        setSuccess('');
-        setFormDisabled(true); // Disable form during submission
-
-        try 
-        {
-            const result = await resetPassword(email, token, newPassword, passwordConfirmation);//, newPasswordConfirmation);
-            setSuccess(result.message);
-            setNewPassword('');
-            setPasswordConfirmation('');
-            // Optionally, redirect to login page after success
-            setTimeout(() => router.visit('/login', { state: { message: 'Password reset successfully. Please log in.' } }), 3000);
-        } 
-        catch (err) 
-        {
-            const displayErrorMessage = getErrorMessage(err);
-            setError(displayErrorMessage.trim());
-            console.error("Password reset error:", err.response?.dat || err.message || err);
-            setFormDisabled(false);
-        } 
+        setLocalError('');
+        
+        post('/reset-password', {
+            preserveState: true,
+            preserveScroll: true,
+        });
     };
 
     return (
-    <Layout>
-            <Head title="Password Reset" />
-        <div className="form-container">
-            <h2>set new password</h2>
-            {error && (
+    <>
+        <Head title="Password Reset" />
+        <div className="form-container limited-width">
+            <h1 className='centered-content'>set new password</h1>
+            {localError && (
                 <div className="error">
-                  {error}
+                  {localError}
                 </div>
             )}
-            {success && (
+            {errors.general && (
+                <div className="error">
+                  {errors.general}
+                </div>
+            )}
+            {errors.email && (
+                <div className="error">
+                  {errors.email}
+                </div>
+            )}
+            {flash.success && (
             <div className="notice">
-                {success}
+                {flash.success}
             </div>
             )}
             <form onSubmit={handleSubmit}>
@@ -122,29 +123,32 @@ function PasswordReset()
                     id="password"
                     label="choose a new password"
                     placeholder="requires: a-z, A-Z, and 0-9"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value.trimEnd())}
+                    value={data.password}
+                    onChange={(e) => setData('password', e.target.value.trimEnd())}
                     onValidate={handlePasswordFormatValidation}
-                    disabled={formDisabled}
+                    disabled={formDisabled || processing}
                     type="password"
                     classes="centered-content vertical-field"
+                    error={errors.password}
+                    onErrorUpdate={(id, msg) => msg ? setError(id, msg) : clearErrors(id)}
                 />
                 <FormField 
-                    id="password-confirm"
+                    id="password_confirmation"
                     label="confirm password"
                     placeholder=""
-                    value={passwordConfirmation}
-                    onChange={(e) => setPasswordConfirmation(e.target.value.trimEnd())}
-                    disabled={formDisabled}
+                    value={data.password_confirmation}
+                    onChange={(e) => setData('password_confirmation', e.target.value.trimEnd())}
+                    disabled={formDisabled || processing}
                     type="password"
                     classes="centered-content vertical-field"
                 />
-                <button type="submit" disabled={!canReset || formDisabled || isLoading}>
-                    {isLoading ? 'resetting...' : 'reset password'}
+                <button type="submit" disabled={!canReset || formDisabled || processing}>
+                    {processing ? 'resetting...' : 'reset password'}
                 </button>
             </form>
         </div>
-    </Layout>);
+    </>);
 }
 
+PasswordReset.layout = page => <Layout>{page}</Layout>;
 export default PasswordReset;
