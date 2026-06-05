@@ -2,14 +2,13 @@
 
 import React, { useEffect } from 'react';
 import {  Link, router, usePage , Head } from '@inertiajs/react';
-import { useAuth } from '../contexts/AuthContext';
 import { getErrorMessage } from '../utils/helpers';
 
 function OAuthCallback() 
 {
     const [searchParams] = useSearchParams();
     
-    const { loginSocialUser } = useAuth();
+
 
     useEffect(() => 
     {        
@@ -23,7 +22,7 @@ function OAuthCallback()
             try 
             {
                 const user = JSON.parse(userDataString);
-                loginSocialUser(accessToken, user);
+
                 let targetPath;
                 let stateMessage;
 
@@ -60,7 +59,7 @@ function OAuthCallback()
             }
             router.visit(`/login`, { replace: true, state: { status: status, message: errorMessage}});
         }
-    }, [searchParams, navigate, loginSocialUser]); // Dependencies
+    }, [searchParams, router]); // Dependencies
 
     return (
         <div style={{ textAlign: 'center', padding: '50px' }}>

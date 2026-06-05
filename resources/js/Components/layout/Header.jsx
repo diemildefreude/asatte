@@ -1,12 +1,18 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './Header.css';
 import { Link, router, usePage } from '@inertiajs/react';
-import { useAuth } from '../../contexts/AuthContext';
+
 import UserLink from '../common/UserLink';
 
 function Header()
 {
-    const { isAuthenticated, user} = useAuth();
+    const { props } = usePage();
+    const appUrl = props.app_url;
+    const user = props?.auth?.user;
+    
+    const dashboardUrl = `${appUrl}/dashboard/`;
+    
+    const isAuthenticated = !!user;
     const [isNavOpen, setIsNavOpen] = useState(false);
     //const [isSearchOpen, setIsSearchOpen] = useState(false);
     const headerRef = useRef(null);
@@ -17,7 +23,6 @@ function Header()
     const didScrollRef = useRef(false);
     const scrollDeltaThreshold = 5;
     
-    const { url } = usePage();
     const pathname = window.location.pathname;
     const urlParams = new URLSearchParams(window.location.search);
     const currentSearchTerm = urlParams.get('q');
@@ -157,22 +162,23 @@ function Header()
                             <i className="fa-solid fa-magnifying-glass"></i>
                         </button>
                     </form>
-                    <Link href="/" className="nav-item">home</Link>
-                    <Link href="/news" className="nav-item">news</Link>
+                    <Link href="/" className="nav-item" onClick={() => setIsNavOpen(false)}>home</Link>
+                    <Link href="/news" className="nav-item" onClick={() => setIsNavOpen(false)}>news</Link>
                 </div>
                 <div className="nav-half second">
-                    <Link href="/contact" className="nav-item">contact</Link>
-                    <Link href="/about" className="nav-item">about</Link>
+                    <Link href="/contact" className="nav-item" onClick={() => setIsNavOpen(false)}>contact</Link>
+                    <Link href="/about" className="nav-item" onClick={() => setIsNavOpen(false)}>about</Link>
                     {
-                        (isAuthenticated && user.profile_completed) ?
+                        isAuthenticated ?
                         (
                             <UserLink user={user}
                                 additionalClasses="nav-item"
-                                url="/dashboard/profile"
+                                url={dashboardUrl}
+                                onClick={() => setIsNavOpen(false)}
                             />
                         ): 
                         (
-                            <Link href="/login" className="nav-item">log in</Link>
+                            <Link href="/login" className="nav-item" onClick={() => setIsNavOpen(false)}>log in</Link>
                         )
                     }
                 </div>                                

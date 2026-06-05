@@ -39,6 +39,7 @@ function Home({ heroPosts = [], carouselArchive = [], carouselNews = [], archive
             <TileCarousel size="small" category={Category.News} title="netart news:" initialPosts={carouselNews} />
         </div>
         <div className="page-section">
+            <h1 className='centered-content no-margin padded'>explore</h1>
             <AutoloadTilesContainer 
                 screenSize={screenSize} 
                 category={Category.Archive}

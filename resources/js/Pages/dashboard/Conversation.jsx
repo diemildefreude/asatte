@@ -11,19 +11,6 @@ import { dehydrateEditorImagePaths, getErrorMessage, hydrateEditorImagePaths, pr
 import {  Link, router, usePage , Head } from '@inertiajs/react';
 import Message from '../../Components/common/Message';
 
-function setHeader(conversation)
-{
-    if(!conversation)
-    {
-        return "";
-    }
-    if(conversation.name)
-    {
-        return conversation.name;
-    }
-    return `conversation with ${conversation.other_users.map(u => u.username).join(', ')}`;
-}
-
 function Conversation({ conversation: conversationProp, addressee })
 {
     
@@ -47,7 +34,6 @@ function Conversation({ conversation: conversationProp, addressee })
     //console.log(recipients?.length, isNew, doesMessageExist);
 
     const [error, setError] = useState("");
-    const headerText = isNew ? "new conversation" : setHeader(conversation);
     //console.log("rec", recipients);
     const initialRedirectConversation = useRef(conversationProp ?? null);
     const [quotedMessage, setQuotedMessage] = useState('');
@@ -342,18 +328,6 @@ function Conversation({ conversation: conversationProp, addressee })
         });
     },[]);
 
-    // const handleReply = useCallback((message, elementID, isQuote=false) =>
-    // {
-    //     setOriginalMessage(message);
-    //     setOriginalMessageElement(elementID);
-        
-    //     if(isQuote)
-    //     {
-    //         console.log("mesCon", message.content);
-    //         setQuotedMessage(message);
-    //     }
-    // },[])
-
     const handleReply = useCallback((message, elementID, isQuote=false) =>
     {
         setOriginalMessage(message);
@@ -380,7 +354,7 @@ function Conversation({ conversation: conversationProp, addressee })
     <DashboardLayout currentTab="mail">
             <Head title="Conversation" />
     <div className="centered-content no-margin">            
-        <h2>{convoName}</h2>
+        <h2 dangerouslySetInnerHTML={{ __html:convoName}} />
     </div>    
     {
         !isNew && (

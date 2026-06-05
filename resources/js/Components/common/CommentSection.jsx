@@ -1,32 +1,32 @@
 import React, { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import './CommentsNotifications.css';
-import { useAuth } from '../../contexts/AuthContext';
 import { getErrorMessage, scrollToElement } from '../../utils/helpers';
 import Comment from './Comment';
-import { Link, router, usePage } from '@inertiajs/react';
+import { Link, router, usePage, useForm } from '@inertiajs/react';
 
 function CommentSection({post, likeCount})
 {
-    const [content, setContent] = useState("");
     const [originalComment, setOriginalComment] = useState(null);
     const [originalCommentElement, setOriginalCommentElement] = useState(null);
     const [quoteText, setQuoteText] = useState("");
-    const [comments, setComments] = useState([]);
-    const {createComment, isAuthenticated} = useAuth();
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
+    
+    const { data, setData, post: submitComment, processing, reset, errors, clearErrors } = useForm({
+        content: '',
+        parent_id: null
+    });
+
+    const user = usePage().props.auth?.user;
+    const isAuthenticated = !!user;
     const page = usePage();
+    const success = page.props.flash?.success;
+    const comments = post.comments || [];
     const parsed = new URL(page.url || window.location.href, window.location.origin);
     const currentUrl = `${parsed.origin}${parsed.pathname}${parsed.search}`;
     const queryParams = new URLSearchParams(parsed.search);
     const commentId = queryParams.get('comment_id');
     const testText = `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.`
     
-    useEffect(() =>
-    {
-        setComments(post.comments);
-    },[post, setComments]);
+
 
     useEffect(() => 
     {
@@ -53,40 +53,27 @@ function CommentSection({post, likeCount})
     const handleCommentSubmit = useCallback((e)=>
     {
         e.preventDefault();
-        if(!post)
-        {
-            return;
-        }
-        setIsSubmitting(true);
-        setSuccess('');
-        setError('');
-
-        createComment(content, post.id, originalComment?.id)
-        .then((data) =>
-        {
-            setSuccess(data.message);
-            setComments(data.comments);
-            setContent('');
-            setOriginalComment(null);
-            setOriginalCommentElement(null);
-            setIsSubmitting(false);
-        })
-        .catch((err) => 
-        {
-            const msg = getErrorMessage(err);
-            setError(msg);
-            setIsSubmitting(false);
+        if(!post) return;
+        
+        submitComment(`/posts/${post.id}/comments`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                reset();
+                setOriginalComment(null);
+                setOriginalCommentElement(null);
+            }
         });
-    },[content, post, setComments, setSuccess, setError, originalComment]);
+    },[data, post.id]);
 
     const handleReply = useCallback((comment, elementId, isQuote=false) =>
     {
-        setSuccess('');
-        setError('');
+        clearErrors();
         setOriginalComment(comment);
         setOriginalCommentElement(elementId);
         
-        setContent((prev) => 
+        setData('parent_id', comment.id);
+        
+        setData('content', (prev) => 
         {
             let newText = prev;
             if(quoteText)
@@ -120,13 +107,14 @@ function CommentSection({post, likeCount})
                 scrollToElement(currentUrl, "leave-comment-container", false);
             }
         }
-    },[setOriginalComment, setOriginalCommentElement, setSuccess, setError, quoteText, setQuoteText]);
+    },[setOriginalComment, setOriginalCommentElement, quoteText, setQuoteText]);
 
     const handleReplyCancel = useCallback((e) =>
     {
         e.preventDefault();
         setOriginalComment(null);
         setOriginalCommentElement(null);
+        setData('parent_id', null);
     },[setOriginalComment, setOriginalCommentElement]);
 
     return ((post || comments) &&
@@ -139,7 +127,7 @@ function CommentSection({post, likeCount})
                 </div>
                 <div className="icon">
                     <i className="fa-regular fa-comment"></i>
-                    <span className='metric-number'> {comments?.length || post.comments.length}</span>
+                    <span className='metric-number'> {comments.length}</span>
                 </div>
                 <div className="icon">
                     <i className="fa-regular fa-star"></i>
@@ -151,9 +139,9 @@ function CommentSection({post, likeCount})
                     <div className="header-button-container">
                         <div>
                             <h2 className={isAuthenticated ? '' : 'greyed-out'}>leave a comment</h2>
-                            {error && (
+                            {errors.content && (
                             <div className="error">
-                                {error}
+                                {errors.content}
                             </div>
                             )}
                             {success && (
@@ -188,7 +176,7 @@ function CommentSection({post, likeCount})
                         <div className="button-container">
                             <button 
                                 type="submit"
-                                disabled={isSubmitting || !content}
+                                disabled={processing || !data.content}
                             >
                                 submit
                             </button>
@@ -197,8 +185,8 @@ function CommentSection({post, likeCount})
                     <textarea 
                         name="comment" 
                         id="comment"
-                        onChange={(e) => setContent(e.target.value)}
-                        value={content}
+                        onChange={(e) => setData('content', e.target.value)}
+                        value={data.content}
                         disabled={!isAuthenticated}
                     />
                 </form>    
@@ -218,7 +206,6 @@ function CommentSection({post, likeCount})
                                 onReply={handleReply}
                                 parentLocalId={parentElement}
                                 currentUrl={currentUrl}
-                                setComments={setComments}
                             />
                 })
             }

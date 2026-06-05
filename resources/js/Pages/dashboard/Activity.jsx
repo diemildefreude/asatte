@@ -4,10 +4,10 @@ import LoadItems from '../../Components/common/LoadItems';
 import Comment from '../../Components/common/Comment';
 import Notification from "./common/Notification";
 import {  Link, router, usePage , Head } from '@inertiajs/react';
-import { useAuth } from '../../contexts/AuthContext';
+
 import { FetchOrder, getScreenSize, monitorScreenSize, ScreenSize } from '../../utils/helpers';
 import { useEffect, useState } from "react";
-import LimitedTilesContainer from '../../Components/common/LimitedTilesContainer';
+import AutoloadTilesContainer from '../../Components/common/AutoloadTilesContainer';
 import UserCircle from '../../Components/common/UserCircle';
 
 function Activity()
@@ -64,21 +64,18 @@ function Activity()
             <div className="posts-follows-container">
                 <div className="main-info-box">
                     <h3 className="centered-content">liked posts</h3>
-                    <LimitedTilesContainer
+                    <AutoloadTilesContainer
                         screenSize={screenSize}
-                        arePrivatePosts={false}
                         initialPosts={initialLikedPosts}
+                        loadOnScroll={false}
                         fetchOrder={FetchOrder.Descending}
-                        classes="no-padding"
-                        postCounts= {{
+                        maxItems={{
                             [ScreenSize.Nothing]: 0,
                             [ScreenSize.Narrow]: 3, 
                             [ScreenSize.Small]: 4,
                             [ScreenSize.Mid]: 4,
                             [ScreenSize.Wide]: 4
                         }}
-                        headingText="liked posts"
-                        viewAllLink="/dashboard/liked-posts"
                     />
                     
                     <Link href="/dashboard/liked-posts"

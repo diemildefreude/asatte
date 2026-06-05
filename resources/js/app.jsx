@@ -6,7 +6,6 @@ import './styles/styles.css';
 import { createRoot } from 'react-dom/client';
 import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
-import { AuthProvider } from './contexts/AuthContext';
 import Layout from './Components/layout/Layout';
 
 const appName = window.document.getElementsByTagName('title')[0]?.innerText || 'Laravel';
@@ -29,9 +28,7 @@ createInertiaApp({
         const root = createRoot(el);
 
         root.render(
-            <AuthProvider initialPage={props.initialPage}>
-                <App {...props} />
-            </AuthProvider>
+            <App {...props} />
         );
     },
     progress: {

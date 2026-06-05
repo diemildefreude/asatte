@@ -13,6 +13,7 @@ use Illuminate\Support\Str; // For generating random passwords
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Carbon; // For email_verified_at timestamp
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response;
 
 class SocialiteController extends Controller
@@ -34,6 +35,12 @@ class SocialiteController extends Controller
         $originPage = $request->query('origin_page', 'login');
         // Store the origin page in session so we can validate it after callback
         $request->session()->put('socialite_origin_page', $originPage);
+
+        if ($provider === 'google') {
+            return Socialite::driver($provider)
+                ->with(['prompt' => 'select_account'])
+                ->redirect();
+        }
 
         return Socialite::driver($provider)->redirect();
     }
@@ -135,19 +142,10 @@ class SocialiteController extends Controller
         $user = $request->user();
         Log::info("user found when completing social profile: {$user}");
 
-        $hasHoneypotField = $request->input('is_user_human'); //<- hidden field on frontend
-        $hasRobotField = $request->input('is_user_robot');
-
-        $isRobotInHoneypot = isset($hasHoneypotField);
-        $isSelfAdmittedRobot = isset($hasRobotField);
-
-        if($isRobotInHoneypot || $isSelfAdmittedRobot)
+        if (!$user) 
         {
-            $user->delete(); //delete the bot
-            auth()->logout();
-            return redirect('/')->with([
-                'status' => 'happy_landings',
-                'success' => 'Thank you for registering.'
+            throw ValidationException::withMessages([
+                'general' => ['account not found'],
             ]);
         }
         
@@ -182,6 +180,8 @@ class SocialiteController extends Controller
         //$reactAppUrl = config('app.url', 'http://localhost:3000');
         $status = "social_registration_complete";
 
+        $request->session()->flash('status', 'social_registration_complete');
+        
         return redirect('/dashboard')->with([
                 'status' => $status,
                 'success' => 'Profile completed successfully!'

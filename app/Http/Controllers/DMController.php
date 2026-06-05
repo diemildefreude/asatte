@@ -47,9 +47,17 @@ class DMController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(Request $request)
     {
-        return Inertia::render('dashboard/Conversation');
+        $addressee = null;
+        if ($request->has('addressee')) {
+            $addressee = \App\Models\User::where('username', $request->query('addressee'))
+                ->select('id', 'username', 'avatar')->first();
+        }
+
+        return Inertia::render('dashboard/Conversation', [
+            'addressee' => $addressee
+        ]);
     }
 
     /**

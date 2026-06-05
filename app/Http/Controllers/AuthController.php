@@ -216,7 +216,7 @@ class AuthController extends Controller
         $hasHoneypotField = $request->input('is_user_human');
         $hasRobotField = $request->input('is_user_robot');
 
-        if ($hasHoneypotField || $hasRobotField) {
+        if ($hasHoneypotField === true || $hasRobotField === false) {
             return redirect('/')->with('status', 'happy_landings');
         }
 

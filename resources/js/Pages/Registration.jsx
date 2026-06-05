@@ -60,11 +60,17 @@ function Registration()
     const canCompleteSocialRegistration = data.username && isUsernameFieldValid && data.user_agrees
         && data.birthdate && isBirthdateFieldValid && isAuthenticated && !processing && !hasErrors && !isValidating;
 
-    useEffect(() => {
-        if (!isLoading && isAuthenticated && formPage !== 3) {
+    useEffect(() => 
+    {
+        if(!isLoading && isAuthenticated && !user.profile_completed)
+        {
+            setFormPage(3);
+        }
+        else if (!isLoading && isAuthenticated && user.profile_completed) 
+        {
             router.visit(from, { replace: true });
         }
-    }, [isAuthenticated, isLoading, from, formPage]);
+    }, [user, isAuthenticated, isLoading, from, formPage]);
 
     useEffect(() => {
         if (message) {
@@ -261,9 +267,10 @@ function Registration()
         clearErrors('general');
         post('/complete-social-profile', {
             preserveState: true,
-            onSuccess: () => {
-                router.visit('/dashboard', { replace: true });
-            }
+            replace: true
+            // onSuccess: () => {
+            //     router.visit('/dashboard', { replace: true });
+            // }
         });
     }
 
@@ -477,7 +484,7 @@ function Registration()
                                 </button>
                             </div>
                         </form>
-                    ):( //page 3!
+                    ):( //page 3: Profile Completion for Social Login
                         <form onSubmit={handleSocialCompletionSubmit}>
                             <FormField
                                 id="username"
@@ -517,12 +524,9 @@ function Registration()
                             />
                             <UserAgreement
                                 onAgreeChange={(e) => setData('user_agrees', e.target.checked)}
-                                onHumanChange={(e) => setData('is_user_human', e.target.checked)}
-                                onRobotChange={(e) => setData('is_user_robot', e.target.checked)}
                                 agreeVal={data.user_agrees}
-                                humanVal={data.is_user_human}
-                                robotVal={data.is_user_robot}
                                 isSubmitting={processing}
+                                isSocialLogin={true}
                             />
                             <button type="submit" disabled={!canCompleteSocialRegistration}>
                                 {processing ? 'submitting...' : 'submit'}

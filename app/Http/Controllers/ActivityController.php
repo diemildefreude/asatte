@@ -26,7 +26,7 @@ class ActivityController extends Controller
         ];
 
         $query = PostView::where('post_id', $postId);
-        $authenticatedUser = auth('api')->user();     
+        $authenticatedUser = $request->user();
 
         if($authenticatedUser)
         {
@@ -46,15 +46,11 @@ class ActivityController extends Controller
         {
             PostView::create($fields);
             $post->increment('view_count');
-            return response()->json([
-                'status' => 'view recorded'
-            ],200);
+            return back();
         }
         else
         {
-            return response()->json([
-                'status' => 'view ignored'
-            ],200);
+            return back();
         }
     }
     public function toggleLike(Post $post, Request $request)
@@ -69,12 +65,7 @@ class ActivityController extends Controller
 
         $post->loadCount('usersWhoLiked');
 
-        return response()->json([
-            'message' => $wasAttached ? 'Post liked successfully.' : 'Post unliked successfully.',
-            'liked' => $wasAttached, // True if a like was registered
-            'like_count' => $post->users_who_liked_count, // The new total count
-            'status' => 200,
-        ]);
+        return back()->with('success', $wasAttached ? 'Post liked successfully.' : 'Post unliked successfully.');
     }
     public function notifications(Request $request)
     {
@@ -141,7 +132,7 @@ class ActivityController extends Controller
             // Prevent self-following
         if ($authUser->id === $user->id) 
         {
-            return response()->json(['message' => 'You cannot follow yourself.'], 400);
+            return back()->withErrors(['error' => 'You cannot follow yourself.']);
         }
 
         $result = $authUser->following()->toggle($user->id);
@@ -154,9 +145,9 @@ class ActivityController extends Controller
         ];
         Notification::create($notificationFields);
 
-        return response()->json([
+        return back()->with([
             'is_following' => $isFollowing,
-            'message' => $isFollowing ? 'Followed successfully.' : 'Unfollowed successfully.',
+            'success' => $isFollowing ? 'Followed successfully.' : 'Unfollowed successfully.',
         ]);
     }
 }

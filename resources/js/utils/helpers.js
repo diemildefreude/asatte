@@ -11,6 +11,12 @@ const SAFE_VIDEO_IFRAME_HOSTS = [
   /^v\.youku\.com$/i,
 ];
 
+export const LoginType = {
+    Webmaster: 0,
+    Registered: 1,
+    Unregistered: 2
+};
+
 function isSafeVideoIframeSrc(src) 
 {
   try 

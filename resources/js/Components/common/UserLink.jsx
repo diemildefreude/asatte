@@ -3,10 +3,12 @@ import './UserLink.css';
 import { Link, router, usePage } from '@inertiajs/react';
 import { useCallback } from 'react';
 
-function UserLink({user, readOnly=false, returnUser=false, onClick=null, additionalClasses="", url})
+function UserLink({user, readOnly=false, returnUser=false, onClick=null, additionalClasses="", url=null})
 {   
     const { props } = usePage();
     const target = url ?? `/${user.username}/profile`;
+    //console.log("url", url);
+    //console.log("target", target);
     const avatar = user?.avatar ? `${props.app_url}/storage/images/uploaded/users/${user.username}/avatar/thumb/${user?.avatar}` 
         : `${props.app_url}/storage/images/defaults/avatar.webp?v=1`;
         
@@ -15,13 +17,14 @@ function UserLink({user, readOnly=false, returnUser=false, onClick=null, additio
 
     const handleOnClickOverride = useCallback((e) => 
     { 
-        e.preventDefault(); 
-        //if(returnUser)
-        //{
+        if(returnUser)
+        {
+            e.preventDefault(); 
             onClick(user);
-        //}
-        //onClick(e);
-    },[onClick, user]);
+        } else {
+            onClick(e);
+        }
+    },[onClick, user, returnUser]);
 
     return (   
         <>

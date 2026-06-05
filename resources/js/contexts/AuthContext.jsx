@@ -85,22 +85,6 @@ export const AuthProvider = ({ children, initialPage = null }) => {
   // Lightweight wrappers for various API methods so existing imports don't break.
   const fetchPosts = async (params) => callApi('/posts', { method: 'GET', params });
 
-  const toggleLike = async (postId) => callApi(`/posts/${postId}/like`, { method: 'POST' });
-  const recordView = async (postId) => callApi(`/posts/${postId}/record-view`, { method: 'POST' });
-
-  const createComment = async (content, postId, parentId = null) => {
-    const formData = new FormData();
-    formData.append('content', content);
-    if (parentId) formData.append('parent_id', parentId);
-    return callApi(`/posts/${postId}/comments`, { method: 'POST', data: formData });
-  };
-  const updateComment = async (commentId, postId, content) => {
-    const formData = new FormData();
-    formData.append('_method', 'PUT');
-    formData.append('content', content);
-    return callApi(`/posts/${postId}/comments/${commentId}`, { method: 'POST', data: formData });
-  };
-  const deleteComment = async (commentId, postId) => callApi(`/posts/${postId}/comments/${commentId}`, { method: 'DELETE' });
 
   const getUnreadStatus = async () => callApi('/unread-status', { method: 'GET' });
 
@@ -109,13 +93,6 @@ export const AuthProvider = ({ children, initialPage = null }) => {
   const updateAbout = async (statement) => callApi('/update-about', { method: 'POST', data: { statement } });
   const fetchAbout = async () => callApi('/about', { method: 'GET' });
 
-  const toggleAdminPostHide = async (isHidden, postId, message = '') => {
-    const formData = new FormData();
-    formData.append('is_hidden_by_admin', isHidden);
-    if (isHidden && message) formData.append('message_to_user', message);
-    formData.append('_method', 'PUT');
-    return callApi(`/set-admin-hide/${postId}`, { method: 'POST', data: formData });
-  };
 
   const sendContactMail = async (sender, email, subject, website, content) => {
     const formData = new FormData();
@@ -136,15 +113,9 @@ export const AuthProvider = ({ children, initialPage = null }) => {
         syncInertiaUser,
         resetPassword,
         fetchPosts,
-        toggleLike,
-        recordView,
-        createComment,
-        updateComment,
-        deleteComment,
         toggleFollow,
         updateAbout,
         fetchAbout,
-        toggleAdminPostHide,
         sendContactMail,
         isLoading,
       }}

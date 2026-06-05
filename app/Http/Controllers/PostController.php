@@ -350,7 +350,7 @@ class PostController extends Controller
         $user = User::where('username', $username)->first();
         if (!$user) 
         {
-            return response()->json(['error' => 'No user by that name found.'], 404);
+            abort(404, 'No user by that name found.');
         }
 
         $query = Post::with([
@@ -383,14 +383,14 @@ class PostController extends Controller
 
         if (!$post) 
         {
-            return response()->json(['error' => 'No such post found.'], 404);
+            abort(404, 'No such post found.');
         }
 
         $isPostCreator = $authenticatedUser && $authenticatedUser->id == $post->user_id;
 
         if ($post->is_private && !$isPostCreator)
         {
-            return response()->json(['error' => 'No such post found.'], 404);
+            abort(404, 'No such post found.');
         }
 
         $isHidden = $post->is_hidden_by_admin;
@@ -403,12 +403,12 @@ class PostController extends Controller
 
         if($isHidden && !$isAdminRequest && !$isPostCreatorRequest)
         {
-            return response()->json(['error' => 'No such post found.'], 404);
+            abort(404, 'No such post found.');
         }        
         
         $post->load('comments.user');
 
-        return \Inertia\Inertia::render('Post/Show', ['post' => $post]);
+        return \Inertia\Inertia::render('Post', ['post' => $post]);
     }
 
     /**
@@ -426,7 +426,7 @@ class PostController extends Controller
 
         if (!$postCreator) 
         {
-            return response()->json(['error' => 'No user by that name found.'], 404);
+            abort(404, 'No user by that name found.');
         }
 
         $query = Post::with([
@@ -446,10 +446,10 @@ class PostController extends Controller
 
         if (!$post) 
         {
-            return response()->json(['error' => 'No such post found.'], 404);
+            abort(404, 'No such post found.');
         }
         
-        return \Inertia\Inertia::render('Post/Show', ['post' => $post]);
+        return \Inertia\Inertia::render('Post', ['post' => $post]);
     }
 
     /**
@@ -754,16 +754,16 @@ class PostController extends Controller
         if($user->member_type != MemberType::Webmaster
          && $user->member_type != MemberType::Admin)
         {
-            return response()->json([
-                "message" => "Only the webmaster and admins can hide posts."
-            ], 401);
+            return back()->withErrors([
+                "error" => "Only the webmaster and admins can hide posts."
+            ]);
         }
         if($user->member_type != MemberType::Webmaster
          && $post->user->member_type == MemberType::Webmaster)
         {
-            return response()->json([
-                "message" => "An admin cannot hide the webmaster's posts."
-            ], 401);
+            return back()->withErrors([
+                "error" => "An admin cannot hide the webmaster's posts."
+            ]);
         }
         
         $hideIt = isset($request["is_hidden_by_admin"]) && $request["is_hidden_by_admin"];
@@ -811,19 +811,6 @@ class PostController extends Controller
 
         $responseMsg = $hideIt ? "Post successfully hidden" : "Post successfully unhidden";
         
-        $post->load([
-            'user' => function ($query) 
-            {
-                $query->select('id', 'username', 'avatar', 'member_type');
-            },
-            'comments' => function ($query) {
-                // Nested eager load the user for every comment
-                $query->with('user:id,username,avatar')->latest();
-            }]);
-
-        return response()->json([
-            "message" => $responseMsg,
-            "post" => $post
-        ], 200);
+        return back()->with('success', $responseMsg);
     }
 }

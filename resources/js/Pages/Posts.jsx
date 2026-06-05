@@ -2,14 +2,12 @@ import Layout from '../Components/layout/Layout';
 import AutoloadTilesContainer from '../Components/common/AutoloadTilesContainer';
 import { FetchOrder, getScreenSize, monitorScreenSize } from '../utils/helpers';
 import { useState, useEffect } from "react";
-import { useAuth } from '../contexts/AuthContext';
+
 import {  Link, router, usePage , Head } from '@inertiajs/react';
 
-function Posts()
+function Posts({ username, archivePosts })
 {
-    const { username } = useParams();
     const [screenSize, setScreenSize] = useState(getScreenSize());
-    const {fetchPosts} = useAuth();
 
     useEffect(() => //check screen size at regular intervals.
     {   
@@ -24,9 +22,10 @@ function Posts()
         <AutoloadTilesContainer 
             screenSize={screenSize}
             isDashboard={false}
-            fetchMethod={fetchPosts}
             username={username}
             fetchOrder={FetchOrder.Descending}
+            initialPosts={archivePosts}
+            partialProp={'archivePosts'}
         />
     </>
     );

@@ -85,13 +85,7 @@ class CommentController extends Controller
             Notification::create($notificationFields);
         }
 
-        $comments = $post->comments()->with('user:id,username,avatar')->get();
-
-        return response() ->json([
-            'status' => 'comment_left',
-            'message' => 'Your comment has been made.',
-            'comments' => $comments
-        ], 200);
+        return back()->with('success', 'Your comment has been made.');
     }
 
     /**
@@ -117,7 +111,7 @@ class CommentController extends Controller
     {
         if($comment->user_id != $request->user()->id)
         {
-            return response()->json(['error' => "This is not your comment to edit."], 403);
+            return back()->withErrors(['error' => "This is not your comment to edit."]);
         }
         //Log::info("updating comment", ['postId' => $post->id]);
         $validatedFields = $request->validate([
@@ -127,36 +121,24 @@ class CommentController extends Controller
 
         $comment->update(['content' => $updatedContent]);
 
-        $comments = $post->comments()->with('user:id,username,avatar')->get();
-
-        return response() ->json([
-            'status' => 'comment_updated',
-            'message' => 'Your comment has been updated.',
-            'comments' => $comments
-        ], 200);
+        return back()->with('success', 'Your comment has been updated.');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Post $post, Comment $comment)
+    public function destroy(Request $request, Post $post, Comment $comment)
     {
-        $requestingUser = auth('api')->user();
+        $requestingUser = $request->user();
         $isAdminRequest = $requestingUser->member_type == MemberType::Webmaster 
                 || $requestingUser->member_type == MemberType::Admin;
         if($requestingUser->id != $comment->user_id && !$isAdminRequest)
         {
-            return response()->json([ "error" => "This is not your comment to delete."], 403);
+            return back()->withErrors(['error' => "This is not your comment to delete."]);
         }
         Log::info("Deleting comment $comment->id");
         $comment->delete();
 
-        $comments = $post->comments()->with('user:id,username,avatar')->get();
-
-        return response() ->json([
-            'status' => 'comment_updated',
-            'message' => 'Comment successfully deleted.',
-            'comments' => $comments
-        ], 200);
+        return back()->with('success', 'Comment successfully deleted.');
     }
 }

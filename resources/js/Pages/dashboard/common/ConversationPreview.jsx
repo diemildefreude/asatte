@@ -30,7 +30,9 @@ function ConversationPreview({conversation})
                     <div className="notice-light"></div>
                 </div>
                 <div className="convo-key-info">
-                    <div className="convo-title">{conversation.name}</div>
+                    <div className="convo-title"
+                        dangerouslySetInnerHTML={{ __html: conversation.name }}
+                    />
                     <div className="other-users subtext">{`${usersString}・${getDateAsYYYYMMDD(conversation.created_at)}`}</div>
                 </div>
             </div>

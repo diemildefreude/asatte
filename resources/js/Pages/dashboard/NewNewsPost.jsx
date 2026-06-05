@@ -1,12 +1,13 @@
-import { Head } from '@inertiajs/react';
-import { useAuth } from '../../contexts/AuthContext';
+import { Head, usePage } from '@inertiajs/react';
+
 import DashboardLayout from "./DashboardLayout";
 import PostForm from "./PostForm";
 import { Category } from '../../utils/helpers';
 
 function NewNewsPost()
 {
-    const { user } = useAuth();
+    const { props } = usePage();
+    const user = props.auth?.user;
 
     return ( 
     <DashboardLayout currentTab="post" headerText="new post">

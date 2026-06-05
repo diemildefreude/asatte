@@ -1,7 +1,6 @@
 import React, { memo, useMemo } from 'react';
 import { dehydrateEditorImagePaths, getDateAsYYYYMMDD, getErrorMessage, getTimeAsHHMM, hydrateEditorImagePaths, processEditorImages, sanitizeRichHtml, scrollToElement } from "../../utils/helpers";
 import UserLink from "./UserLink";
-import { useAuth } from "../../contexts/AuthContext";
 import EditButton from "./EditButton";
 import { useCallback, useEffect, useState } from "react";
 import { Link, router, usePage } from '@inertiajs/react';
@@ -11,7 +10,7 @@ import RichTextEditor from "./RichTextEditor";
 function Message({message, onReply=null, onDelete=null, id, parentLocalId=null, 
     currentUrl=null, setConversation=null, quoteText=""})
 {
-    const {user} = useAuth();
+    const user = usePage().props.auth?.user;
     const [isEditing, setIsEditing] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 

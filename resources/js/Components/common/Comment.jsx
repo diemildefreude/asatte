@@ -1,79 +1,54 @@
 import { getDateAsYYYYMMDD, getErrorMessage, getTimeAsHHMM, sanitizeRichHtml, scrollToElement } from "../../utils/helpers";
 import UserLink from "./UserLink";
-import { useAuth } from "../../contexts/AuthContext";
 import EditButton from "./EditButton";
 import { useCallback, useState } from "react";
-import { Link, router, usePage } from '@inertiajs/react';
+import { Link, router, usePage, useForm } from '@inertiajs/react';
 import "./CommentsNotifications.css";
 
-function Comment({comment, isDashboard=false, onReply=null, id, parentLocalId=null, currentUrl=null, setComments=null})
+function Comment({comment, isDashboard=false, onReply=null, id, parentLocalId=null, currentUrl=null})
 {
-    const {user, isAuthenticated, updateComment, deleteComment} = useAuth();
+    const user = usePage().props.auth?.user;
+    const isAuthenticated = !!user;
     const [isEditing, setIsEditing] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [content, setContent] = useState('');
+    
+    const { data, setData, put: submitUpdate, delete: submitDelete, processing, errors, clearErrors } = useForm({
+        content: comment.content
+    });
+
     const elementId = `comment-${id}`;
     const parentElementId = parentLocalId ? `comment-${parentLocalId}` : null;
 
     const handleCommentEdit = useCallback(() =>
     {
         setIsEditing(true);
-        setContent(comment.content);
-    },[setIsEditing, setContent, comment]);
+        setData('content', comment.content);
+        clearErrors();
+    },[setIsEditing, setData, comment, clearErrors]);
 
     const handleEditCancel = useCallback(() =>
     {
         const isConfirmed = window.confirm("Revert changes?");
-        if(!isConfirmed)
-        {
-            return;
-        }
+        if(!isConfirmed) return;
         setIsEditing(false);
-        setContent(comment.content);　//reset 
-    },[setIsEditing, setContent, comment]);
+        setData('content', comment.content); //reset 
+    },[setIsEditing, setData, comment]);
 
     const handleCommentUpdate = useCallback(() =>
     {
-        setIsSubmitting(true);
-        updateComment(comment.id, comment.post_id, content)
-        .then((data) =>
-        {
-            console.log(data.message);
-            setIsSubmitting(false);
-            setIsEditing(false);
-            setComments(data.comments);
-        })
-        .catch((err) =>
-        {
-            const msg = getErrorMessage(err);
-            console.error(msg);            
-            setIsSubmitting(false);
+        submitUpdate(`/posts/${comment.post_id}/comments/${comment.id}`, {
+            preserveScroll: true,
+            onSuccess: () => setIsEditing(false)
         });
-    },[content, setIsSubmitting, updateComment, comment, setIsEditing, setComments]);
+    },[submitUpdate, comment]);
 
     const handleCommentDelete = useCallback(() =>
     {
         const isConfirmed = window.confirm("Delete comment?");
-        if(!isConfirmed)
-        {
-            return;
-        }
-        setIsSubmitting(true);
-        deleteComment(comment.id, comment.post_id)
-        .then((data) =>
-        {
-            console.log(data.message);
-            setIsSubmitting(false);
-            setIsEditing(false);
-            setComments(data.comments);
-        })
-        .catch((err) =>
-        {
-            const msg = getErrorMessage(err);
-            console.error(msg);            
-            setIsSubmitting(false);
+        if(!isConfirmed) return;
+        submitDelete(`/posts/${comment.post_id}/comments/${comment.id}`, {
+            preserveScroll: true
         });
-    },[comment, setIsSubmitting, setIsEditing, setComments, deleteComment])
+    },[submitDelete, comment]);
 
     return (
     <div className="comment" id={elementId}>
@@ -121,16 +96,17 @@ function Comment({comment, isDashboard=false, onReply=null, id, parentLocalId=nu
         }
         </div>
         {
-            isEditing ? (
+            isEditing ? (<>
                 <textarea
                     name={`comment-edit-${id}`}
                     id={`comment-edit-${id}`}
                     className="comment-edit-area"
-                    onChange={(e) => setContent(e.target.value)}
-                    value={content}
-                    disabled={isSubmitting}
+                    onChange={(e) => setData('content', e.target.value)}
+                    value={data.content}
+                    disabled={processing}
                 />
-            ):(<p 
+                {errors.content && <div className="error">{errors.content}</div>}
+            </>):(<p 
                 className="comment-text"
                 dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(comment.content_html) }}
             >    
@@ -145,7 +121,7 @@ function Comment({comment, isDashboard=false, onReply=null, id, parentLocalId=nu
                             onClick={() => onReply(comment, elementId, true)}
                             className="small-button"
                             title="quote reply"
-                            disabled={isSubmitting}
+                            disabled={processing}
                         >
                             <i className="fa-solid fa-quote-left"></i>
                         </button>
@@ -153,7 +129,7 @@ function Comment({comment, isDashboard=false, onReply=null, id, parentLocalId=nu
                             onClick={() => onReply(comment, elementId)}
                             className="small-button"
                             title="reply"
-                            disabled={isSubmitting}
+                            disabled={processing}
                         >
                             <i className="fa-solid fa-reply"></i>
                         </button>
@@ -168,7 +144,7 @@ function Comment({comment, isDashboard=false, onReply=null, id, parentLocalId=nu
                                 className="small-button"
                                 onClick={handleCommentUpdate}
                                 title="save"
-                                disabled={isSubmitting}
+                                disabled={processing || !data.content}
                             >
                                 <i className="fa-solid fa-floppy-disk"></i>
                             </button>  
@@ -176,7 +152,7 @@ function Comment({comment, isDashboard=false, onReply=null, id, parentLocalId=nu
                                 className="small-button"
                                 onClick={handleEditCancel}
                                 title="cancel"
-                                disabled={isSubmitting}
+                                disabled={processing}
                             >
                                 <i className="fa-solid fa-arrow-rotate-left"></i>
                             </button> 
@@ -184,14 +160,14 @@ function Comment({comment, isDashboard=false, onReply=null, id, parentLocalId=nu
                         <EditButton
                             className="small-button"
                             onClick={handleCommentEdit}
-                            disabled={isSubmitting}
+                            disabled={processing}
                         />)
                     }
                     <button 
                         onClick={handleCommentDelete}
                         className="small-button"
                         title="delete"
-                        disabled={isSubmitting}
+                        disabled={processing}
                     >
                         <i className="fa-solid fa-trash"></i>
                     </button>

@@ -2,7 +2,7 @@ import { Link, router, usePage } from '@inertiajs/react';
 import CheckboxField from "./CheckboxField";
 
 function UserAgreement({onAgreeChange, onHumanChange, onRobotChange, 
-    agreeVal, humanVal, robotVal, isSubmitting}) 
+    agreeVal, isSocialLogin=false, humanVal, robotVal, isSubmitting}) 
 {
     const { props } = usePage();
     const APP_NAME = props.app_name;
@@ -32,20 +32,25 @@ function UserAgreement({onAgreeChange, onHumanChange, onRobotChange,
         <p>{APP_NAME} is not responsible for any user-generated content that violates our terms or is otherwise perceived as offensive. Once discovered, we will hide or delete such content as we see fit.</p>
 
         <p>Users posting their own work are the copyright-holders thereof and {APP_NAME} makes no claim thereto.</p>
-        </div>
-        <CheckboxField name="user-agree"
-            label="I am a robot"
-            value={robotVal}
-            onChange={onRobotChange}
-            disabled={isSubmitting}
-        />    
-        <CheckboxField name="user-human"
-            label="I am a human"
-            value={humanVal}
-            onChange={onHumanChange}
-            disabled={isSubmitting}
-            classes="bonus"
-        />    
+        </div>          
+        {            
+            !isSocialLogin && (<>
+                <CheckboxField name="user-agree"
+                    label="I am a robot"
+                    value={robotVal}
+                    onChange={onRobotChange}
+                    disabled={isSubmitting}
+                />  
+                <CheckboxField name="user-human"
+                    label="I am a human"
+                    value={humanVal}
+                    onChange={onHumanChange}
+                    disabled={isSubmitting}
+                    classes="bonus"
+                />    
+                
+            </>)
+        }
         <CheckboxField name="user-agree"
             label="I agree to the above terms."
             value={agreeVal}

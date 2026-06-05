@@ -1,21 +1,21 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import Layout from '../Components/layout/Layout';
 import {  Link, router, usePage , Head } from '@inertiajs/react';
-import { useAuth } from '../contexts/AuthContext';
 import ProfileItem from '../Components/common/ProfileItem';
-import LimitedTilesContainer from '../Components/common/LimitedTilesContainer';
+import AutoloadTilesContainer from '../Components/common/AutoloadTilesContainer';
 import './DashboardProfile.css';
 import '../Components/common/RichTextEditor.css';
-import { FetchOrder, getErrorMessage, getScreenSize, monitorScreenSize, 
+import { FetchOrder, getErrorMessage, getScreenSize, monitorScreenSize, ScreenSize,
     sanitizeRichHtml, hydrateEditorImagePaths } from '../utils/helpers';
 
 
 function UserProfile({ user: profileUserProp })
 {
-    const { fetchPosts, user, toggleFollow } = useAuth();
     const { props } = usePage();
+    const user = props.auth?.user;
     const appUrl = props.app_url;
     const username = profileUserProp?.username;
+    
     const [screenSize, setScreenSize] = useState(getScreenSize());
     const [profileUser, setProfileUser] = useState(profileUserProp);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -38,21 +38,26 @@ function UserProfile({ user: profileUserProp })
     const handleFollowToggle = useCallback(() =>
     {
         setIsSubmitting(true);
-        toggleFollow(profileUser.id)
-        .then((data) =>
-        {
-            //console.log("follow data", data);
-            setIsFollowing(data.is_following);
-            setSuccess(data.message);
-            setIsSubmitting(false);
-        })
-        .catch((err) =>
-        {
-            console.log(err);
-            setError(getErrorMessage(err));
-            setIsSubmitting(false);
-        })
-    },[profileUser, setIsSubmitting, toggleFollow, setIsFollowing, setError, setSuccess]);
+        router.post(`/${profileUserProp.id}/follow`, {}, {
+            preserveScroll: true,
+            onSuccess: (page) => {
+                setIsSubmitting(false);
+                if (page.props.flash?.success) {
+                    setSuccess(page.props.flash.success);
+                    setError('');
+                }
+            },
+            onError: (errors) => {
+                setIsSubmitting(false);
+                setError(errors.error || 'Failed to toggle follow.');
+                setSuccess('');
+            }
+        });
+    }, [profileUserProp, setIsSubmitting, setError, setSuccess]);
+
+    useEffect(() => {
+        setIsFollowing(profileUserProp?.is_following || false);
+    }, [profileUserProp]);
 
     const handleCopy = async () => 
     {
@@ -143,7 +148,7 @@ function UserProfile({ user: profileUserProp })
                                     user && (user?.id != profileUser?.id) && (                                        
                                     <div>
                                         <Link href="/dashboard/mail/new" 
-                                            state={{addressee: { username: username, ...profileUser}}}
+                                            data={{addressee: username}}
                                             className='link-with-icon'
                                             >
                                             <i className="fa-regular fa-envelope big-icon"/> <span>send DM</span>
@@ -195,10 +200,17 @@ function UserProfile({ user: profileUserProp })
             profileUser ? (<>
             {/* false ? (<> */}
                 <h2 className='centered-content padded'>{`${username}'s posts`}</h2>
-                <LimitedTilesContainer
+                <AutoloadTilesContainer
                     screenSize={screenSize}
-                    arePrivatePosts={false}
-                    fetchMethod={fetchPosts}
+                    initialPosts={props.initialPosts || []}
+                    loadOnScroll={false}
+                    maxItems={{
+                        [ScreenSize.Nothing]: 0,
+                        [ScreenSize.Narrow]: 3, 
+                        [ScreenSize.Small]: 6,
+                        [ScreenSize.Mid]: 8,
+                        [ScreenSize.Wide]: 12
+                    }}
                     userId={profileUser?.id}
                     fetchOrder={FetchOrder.Descending}
                     key={profileUser?.id}

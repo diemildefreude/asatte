@@ -1,7 +1,7 @@
     import React, { useCallback, useEffect, useMemo, useState } from 'react';
     import {  Link, router, usePage , Head } from '@inertiajs/react';
     import { getDateAsYYYYMMDD, getErrorMessage, hydrateEditorImagePaths, MemberType, openPopup, processEditorImages, sanitizeRichHtml } from '../utils/helpers';
-    import { useAuth } from '../contexts/AuthContext';
+
     import Layout from '../Components/layout/Layout';
     import './Post.css';
     import '../Components/common/Tile.css';
@@ -14,42 +14,34 @@
     import HiddenPostNotice from '../Components/common/HiddenPostNotice';
     import RichTextEditor from '../Components/common/RichTextEditor';
 
-    function Post({ post: postProp })
+    function Post({ post })
     {
         const { props } = usePage();
         const appUrl = props.app_url;
-        const [post, setPost] = useState(postProp);
-        const [isLiked, setIsLiked] = useState(!!postProp?.have_liked);
-        const [likeCount, setLikeCount] = useState(postProp?.users_who_liked_count || 0);
+        const isLiked = !!post?.have_liked;
+        const likeCount = post?.users_who_liked_count || 0;
         
         const [adminMessageIsVisible, setAdminMessageIsVisible] = useState(false);
         const [adminMessage, setAdminMessage] = useState("");
         const [isSubmitting, setIsSubmitting] = useState(false);
-        const [success, setSuccess] = useState("");
-        const [error, setError] = useState("");
-
-        const {toggleLike, toggleAdminPostHide,
-            recordView, isAuthenticated, user } = useAuth();
+        const success = props.flash?.success;
+        const error = props.errors?.error || props.flash?.error;
         
+        const user = props.auth?.user;
+        const isAuthenticated = !!user;
 
         const isAdmin = (user?.member_type == MemberType.Webmaster 
                             || user?.member_type == MemberType.Admin);
         
         useEffect(() =>
         {
-            if(!post)
-            {
-                return;
-            }
-            recordView(post.id).then((response) =>
-            {
-                console.log("view?", response.status);
-            }).catch((err) => 
-            {
-                const msg = getErrorMessage(err);
-                console.log(msg);
-            })            
-        },[post]);
+            if(!post) return;
+            router.post(`/posts/${post.id}/record-view`, {}, {
+                preserveScroll: true,
+                preserveState: true,
+                replace: true
+            });
+        },[post.id]);
         
         const imageUrls = useMemo(() =>
         {
@@ -81,74 +73,61 @@
 
         const handleLikeToggle = useCallback(() =>
         {
-            if(!post)
-            {
-                return;
-            }
-            const prevIsLiked = isLiked;
-            const prevLikeCount = likeCount;
-            const countChange = isLiked ? -1 : 1;
-            setIsLiked(prev => !prev);
-            setLikeCount(prev => prev + countChange);
-
-            toggleLike(post.id).then((data) =>
-            {
-                setIsLiked(!!data.liked);
-                setLikeCount(data.like_count);
-            })
-            .catch((err) =>
-            {
-                setIsLiked(!!prevIsLiked);
-                setLikeCount(prevLikeCount);
-                console.log(err);
+            if(!post) return;
+            router.post(`/posts/${post.id}/like`, {}, {
+                preserveScroll: true,
+                preserveState: true,
             });
-        },[post, isLiked, setIsLiked, likeCount, setLikeCount]);
+        },[post.id]);
 
         const handleHideSubmit = useCallback(async (e, hide) =>
         {
             e.preventDefault();
-            setSuccess("");
-            setError("");
             if(!hide)
             {
                 const isConfirmed = window.confirm("Make post visible?");
-                if(!isConfirmed)
-                {
-                    return;
-                }
+                if(!isConfirmed) return;
             }
+            setIsSubmitting(true);
             try
             {
-                setIsSubmitting(true);
                 const messageWithProcessedPhotos = await processEditorImages(adminMessage);
-                const data = await toggleAdminPostHide(hide, post.id, messageWithProcessedPhotos);
-                setAdminMessage("");
-                setSuccess(data.message);
-                setAdminMessageIsVisible(false);
-                setPost(data.post);
+                router.post(`/set-admin-hide/${post.id}`, 
+                {
+                    _method: 'PUT',
+                    is_hidden_by_admin: hide,
+                    message_to_user: messageWithProcessedPhotos
+                }, 
+                {
+                    preserveScroll: true,
+                    preserveState: true,
+                    onSuccess: () => {
+                        setAdminMessage("");
+                        setAdminMessageIsVisible(false);
+                        setIsSubmitting(false);
+                    },
+                    onError: () => {
+                        setIsSubmitting(false);
+                    }
+                });
             }
             catch(err)
             {
-                const msg = getErrorMessage(err);
-                setError(msg);
-            }
-            finally
-            {
                 setIsSubmitting(false);
             }
-        },[adminMessage, post]);
+        },[adminMessage, post.id]);
+
+        console.log("Aroo?!", props.app_url, post.user.username, post.post_url);
 
         const handleHideClick = useCallback(() =>
         {
-            const adminStarterText = `<p>Your post, <a href="/${post.user.username}/${post.post_url}"><em>${post.title}</em></a> has been hidden.</p>
+            const adminStarterText = `<p>Your post, <a href="${props.app_url}/${post.user.username}/${post.post_url}"><em>${post.title}</em></a> has been hidden.</p>
             <p> reason: </p>    
             <p> If you wish to dispute this decision, please reply to this message.</p>
             `;
             setAdminMessage(adminStarterText);
             setAdminMessageIsVisible(true); 
-            setSuccess(""); 
-            setError("");
-        },[post]);
+        },[props, post]);
 
         return (
         <>
@@ -280,7 +259,7 @@
                                             onClick={(e) => handleHideSubmit(e, false)}
                                             className='red-button'
                                         >
-                                            show post
+                                            unhide post
                                         </button>                                        
                                     </div> 
                                 ):(

@@ -49,6 +49,7 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
       onInit={(evt, editor) => editorRef.current = editor}
       init={{
         height: 500,
+        convert_urls: false,
         menubar: false,
         plugins: 'image link media',
         toolbar: isReadOnly ? false : 

@@ -58,11 +58,10 @@ Route::get('/email/cancel/{id}/{hash}', [App\Http\Controllers\AuthController::cl
 
 
 // Inertia Routes
-Route::get('/user/{username}', [UserController::class, 'user']);
-Route::get('/user/{username}/following', [UserController::class, 'following']);
-Route::get('/user/{username}/followers', [UserController::class, 'followers']);
-Route::get('/user/{username}/post/{post_url}', [PostController::class, 'show']);
-Route::get('/user/{username}/post/{post_url}/edit', [PostController::class, 'edit'])->middleware('auth');
+Route::get('/posts', [App\Http\Controllers\PostController::class, 'index'])->name('posts.index');
+Route::post('/posts/{post}/record-view', [App\Http\Controllers\ActivityController::class, 'recordView'])->name('posts.recordView');
+
+
 Route::get('/about', [AboutController::class, 'show'])->name('about');
 // Web (Inertia) endpoint to update About (session-based)
 Route::post('/update-about', [App\Http\Controllers\AboutController::class, 'update'])->middleware('auth')->name('about.update');
@@ -102,3 +101,26 @@ Route::post('/update-avatar', [App\Http\Controllers\DashboardController::class, 
 Route::post('/posts', [App\Http\Controllers\PostController::class, 'store'])->middleware('auth')->name('posts.store');
 Route::put('/posts/{post}', [App\Http\Controllers\PostController::class, 'update'])->middleware('auth')->name('posts.update');
 Route::delete('/posts/{post}', [App\Http\Controllers\PostController::class, 'destroy'])->middleware('auth')->name('posts.destroy');
+
+// Post/Comment interactions (migrated from API)
+Route::middleware('auth')->group(function () {
+    Route::get('/my-posts', [App\Http\Controllers\PostController::class, 'myPosts'])->name('myPosts');
+    Route::put('/set-admin-hide/{post}', [App\Http\Controllers\PostController::class, 'toggleAdminHide'])->name('posts.toggleAdminHide');
+    Route::post('/posts/{post}/like', [App\Http\Controllers\ActivityController::class, 'toggleLike'])->name('posts.like');
+    Route::post('/{user}/follow', [App\Http\Controllers\ActivityController::class, 'toggleFollow'])->name('users.follow');
+    
+    // Comments
+    Route::post('/posts/{post}/comments', [App\Http\Controllers\CommentController::class, 'store'])->name('posts.comments.store');
+    Route::put('/posts/{post}/comments/{comment}', [App\Http\Controllers\CommentController::class, 'update'])->name('posts.comments.update');
+    Route::delete('/posts/{post}/comments/{comment}', [App\Http\Controllers\CommentController::class, 'destroy'])->name('posts.comments.destroy');
+});
+
+// User public profile routes
+Route::get('/{username}', [App\Http\Controllers\UserController::class, 'user'])->name('user.profile');
+Route::get('/{username}/profile', [App\Http\Controllers\UserController::class, 'user']);
+Route::get('/{username}/posts', [App\Http\Controllers\UserController::class, 'posts'])->name('user.posts');
+Route::get('/{username}/following', [App\Http\Controllers\UserController::class, 'following'])->name('user.following');
+Route::get('/{username}/followers', [App\Http\Controllers\UserController::class, 'followers'])->name('user.followers');
+
+// Fallback user post route
+Route::get('/{username}/{post_url}', [App\Http\Controllers\PostController::class, 'show'])->name('posts.show');

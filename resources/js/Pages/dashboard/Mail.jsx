@@ -1,5 +1,5 @@
 import DashboardLayout from "./DashboardLayout";
-import { useAuth } from '../../contexts/AuthContext';
+
 import "../DashboardProfile.css";
 import "./TagsMail.css";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -13,7 +13,7 @@ const FETCH_AMOUNT = 10;
 function Mail()
 {
     const { props } = usePage();
-    const { user } = useAuth();
+    const user = props.auth?.user;
     const { conversations } = props;
 
 

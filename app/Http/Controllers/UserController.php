@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Post;
+use App\Enums\MemberType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
@@ -21,7 +23,7 @@ class UserController extends Controller
     public function user(string $userName)
     {
         $user = User::where('username', $userName)
-            ->select('id', 'avatar', 'bio', 'location', 'website', 'show_email_in_profile', 'email')
+            ->select('id', 'username', 'avatar', 'bio', 'location', 'website', 'show_email_in_profile', 'email')
             ->first();
 
         if (!$user) 
@@ -40,17 +42,65 @@ class UserController extends Controller
         $user->is_following = false;
 
          /** @var \App\Models\User $authUser */
-        $authUser = auth('api')->user();
-        //Log::info("auth?", $authUser->toArray());
+        $authUser = auth()->user();
+        $isAdminRequest = false;
         // If the request is authenticated, check if the current user follows this one
         if ($authUser) 
         {
+            $isAdminRequest = $authUser->member_type == MemberType::Webmaster 
+                || $authUser->member_type == MemberType::Admin;
+
             $user->is_following = $authUser
                 ->following()
                 ->where('followed_id', $user->id)
                 ->exists();
         }
-        return \Inertia\Inertia::render('Profile', ['user' => $user]);
+
+        $posts = Post::with('user:id,username,avatar,member_type')
+            ->where('user_id', $user->id)
+            ->where('is_private', false)
+            ->where('is_news', false)
+            ->when(!$isAdminRequest, fn($q) => $q->where('is_hidden_by_admin', false))
+            ->latest()
+            ->limit(12)
+            ->get();
+
+        return \Inertia\Inertia::render('UserProfile', [
+            'user' => $user,
+            'initialPosts' => $posts
+        ]);
+    }
+
+    public function posts(Request $request, string $userName)
+    {
+        $user = User::where('username', $userName)->first();
+        if (!$user) {
+            abort(404);
+        }
+
+        /** @var \App\Models\User $authUser */
+        $authUser = auth()->user();
+        $isAdminRequest = false;
+        if ($authUser) {
+            $isAdminRequest = $authUser->member_type == MemberType::Webmaster 
+                || $authUser->member_type == MemberType::Admin;
+        }
+
+        $amount = intval($request->query('amount', 12));
+        $page = intval($request->query('page', 1));
+
+        $posts = Post::with('user:id,username,avatar,member_type')
+            ->where('user_id', $user->id)
+            ->where('is_private', false)
+            ->where('is_news', false)
+            ->when(!$isAdminRequest, fn($q) => $q->where('is_hidden_by_admin', false))
+            ->latest()
+            ->paginate($amount, ['*'], 'page', $page);
+
+        return \Inertia\Inertia::render('Posts', [
+            'username' => $userName,
+            'archivePosts' => $posts
+        ]);
     }
     public function following(Request $request, User $user = null)
     {
