@@ -28,7 +28,7 @@ class UserController extends Controller
 
         if (!$user) 
         {
-             return response()->json(['error' => 'No user by that name found.'], 404);
+             abort(404);
         }
         
         if(!$user->show_email_in_profile)

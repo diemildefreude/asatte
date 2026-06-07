@@ -10,6 +10,7 @@
     --lavender-gradient: linear-gradient(45deg, #505193cc 0%, #c1b7fdcc 60%);
     --red-gradient: linear-gradient(45deg, #ff4574 0%, #6c0746 70%);
     --footer-gradient: linear-gradient(10deg, #000000ff 20%, #00000000 60%);
+    --dark-purple: rgba(0.5,0.0,0.5,1.0);
     --transparent-black: rgba(0, 0, 0, 0.5);
     --header-height-wide: 60px;
     --header-height-narrow: 50px;

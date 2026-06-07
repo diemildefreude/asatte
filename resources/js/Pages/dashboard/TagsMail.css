@@ -61,7 +61,7 @@
 }
 .results-container
 {
-    background: #330055;
+    background: var(--dark-purple);
     position: absolute;
     z-index: 2;
 }
@@ -71,7 +71,7 @@
 }
 .tag.selected
 {
-    background: var(--transparent-black);
+    background: #330055;
 }
 .conversations-container
 {

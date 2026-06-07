@@ -1,4 +1,4 @@
-import { getDateAsYYYYMMDD, getErrorMessage, getTimeAsHHMM, sanitizeRichHtml, scrollToElement } from "../../utils/helpers";
+import { getDateAsYYYYMMDD, getErrorMessage, getTimeAsHHMM, MemberType, sanitizeRichHtml, scrollToElement } from "../../utils/helpers";
 import UserLink from "./UserLink";
 import EditButton from "./EditButton";
 import { useCallback, useState } from "react";
@@ -162,16 +162,20 @@ function Comment({comment, isDashboard=false, onReply=null, id, parentLocalId=nu
                             onClick={handleCommentEdit}
                             disabled={processing}
                         />)
-                    }
-                    <button 
-                        onClick={handleCommentDelete}
-                        className="small-button"
-                        title="delete"
-                        disabled={processing}
-                    >
-                        <i className="fa-solid fa-trash"></i>
-                    </button>
-                    </>)
+                    }</>)
+                }
+                {
+                    !isDashboard && (user.id === comment.user.id || user.member_type == MemberType.Admin ||
+                        user.member_type == MemberType.Webmaster) && (
+                        <button 
+                            onClick={handleCommentDelete}
+                            className="small-button"
+                            title="delete"
+                            disabled={processing}
+                        >
+                            <i className="fa-solid fa-trash"></i>
+                        </button>
+                    )
                 }
             </div>)
         }        

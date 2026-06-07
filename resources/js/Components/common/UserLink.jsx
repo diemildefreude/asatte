@@ -3,12 +3,12 @@ import './UserLink.css';
 import { Link, router, usePage } from '@inertiajs/react';
 import { useCallback } from 'react';
 
-function UserLink({user, readOnly=false, returnUser=false, onClick=null, additionalClasses="", url=null})
+function UserLink({user, readOnly=false, onClick=null, additionalClasses="", url=null, returnUser=false})
 {   
     const { props } = usePage();
-    const target = url ?? `/${user.username}/profile`;
-    //console.log("url", url);
-    //console.log("target", target);
+    
+    const target = url ?? `/${user?.username}/profile`;
+    
     const avatar = user?.avatar ? `${props.app_url}/storage/images/uploaded/users/${user.username}/avatar/thumb/${user?.avatar}` 
         : `${props.app_url}/storage/images/defaults/avatar.webp?v=1`;
         
@@ -17,14 +17,15 @@ function UserLink({user, readOnly=false, returnUser=false, onClick=null, additio
 
     const handleOnClickOverride = useCallback((e) => 
     { 
-        if(returnUser)
+        if(onClick && returnUser)
         {
-            e.preventDefault(); 
-            onClick(user);
-        } else {
+            onClick(e, user);
+        }
+        else if(onClick)
+        {
             onClick(e);
         }
-    },[onClick, user, returnUser]);
+    },[onClick, user, readOnly, returnUser]);
 
     return (   
         <>
@@ -34,7 +35,7 @@ function UserLink({user, readOnly=false, returnUser=false, onClick=null, additio
                 <Link href={target} 
                     className={classes} 
                     draggable="false" 
-                    onClick={onClick ? handleOnClickOverride : undefined}
+                    onClick={handleOnClickOverride}
                 >
                     <span className="avatar-container">
                         <img className="round-image" src={avatar} 

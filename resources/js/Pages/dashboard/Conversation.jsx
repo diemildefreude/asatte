@@ -81,11 +81,13 @@ function Conversation({ conversation: conversationProp, addressee })
 
     const handleCandidateHover = useCallback((i) =>
     {
+        console.log("hover: i", i);
         setSearchResultSelection(i);
     },[setSearchResultSelection]);
 
     const handleRecipientKeyPresses = useCallback((e) =>
     {
+        console.log("hrkp", searchResultSelection);
         const selection = window.getSelection();
         
         let caretPosition;
@@ -118,14 +120,14 @@ function Conversation({ conversation: conversationProp, addressee })
         }
         if(e.key === "Enter" || e.key === "," || e.key === "Tab")
         {
-            console.log("selection", resultsRef.children[searchResultSelection]);
+            console.log("selection", searchResultSelection);//resultsRef.children[searchResultSelection]);
             if(!resultsRef.children[searchResultSelection])
             {
                 return;
             }            
             e.preventDefault();
             const link = resultsRef.children[searchResultSelection].querySelector("a");
-            console.log("clicking link", link)
+            console.log("clicking link", searchResultSelection);
             link.click();
             return;
         }
@@ -161,7 +163,7 @@ function Conversation({ conversation: conversationProp, addressee })
                 return;
             }
             e.preventDefault();
-            //console.log("srs", searchResultSelection);
+            console.log("srs", searchResultSelection);
             let newInd = searchResultSelection;
             if(newInd === -1)
             {
@@ -175,7 +177,7 @@ function Conversation({ conversation: conversationProp, addressee })
             setSearchResultSelection(newInd);
             return;
         }
-    }, [recipients, setRecipients, searchResultSelection, setSearchResultSelection, 
+    }, [recipients, setRecipients, searchResultSelection, 
         setSearchTerm, searchResults, setSearchResults]);
 
     const handleXButton = useCallback((e, ind) =>
@@ -187,15 +189,19 @@ function Conversation({ conversation: conversationProp, addressee })
     //user types. Set timeout. Reset timeout every time the input changes
     //timeout ends, run search
     //
-    const handleRecipientSelect = useCallback((user) =>
+    const handleRecipientSelect = useCallback((e, user) =>
     {
-        console.log(user);
+        //console.log(user);
+        e.preventDefault();
         recipientSpanRef.current.innerHTML = "";
         setSearchTerm("");
         setRecipients(prev => [...prev, user]);
         setSearchResults([]);
         setSearchResultSelection(-1);
-    }, [setRecipients, setSearchResults, setSearchResultSelection]);
+
+        recipientSpanRef.current.focus();
+        
+    }, [setRecipients, setSearchResults, searchResultSelection]);
 
     const handleRecipientSearchTermChange = useCallback((e) =>
     {
@@ -447,7 +453,9 @@ function Conversation({ conversation: conversationProp, addressee })
                         >
                             <UserLink
                                 user={r}             
-                                onClick={handleRecipientSelect}                           
+                                onClick={handleRecipientSelect}      
+                                returnUser={true}   
+                                preventDefault={true}      
                             />
                         </div>
                     ))
