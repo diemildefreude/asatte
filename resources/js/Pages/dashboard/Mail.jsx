@@ -3,7 +3,8 @@ import DashboardLayout from "./DashboardLayout";
 import "../DashboardProfile.css";
 import "./TagsMail.css";
 import { useCallback, useEffect, useRef, useState } from "react";
-import {  Link, router, usePage , Head } from '@inertiajs/react';
+import PageHead from '../../Components/layout/PageHead';
+import { Link, router, usePage } from '@inertiajs/react';
 import { getErrorMessage } from '../../utils/helpers';
 import LoadItems from '../../Components/common/LoadItems';
 import ConversationPreview from "./common/ConversationPreview";
@@ -19,7 +20,7 @@ function Mail()
 
     return ( 
     <DashboardLayout currentTab="mail">
-            <Head title="Mail" />
+            <PageHead title="Mail" />
 
         {                
             user && user.is_email_verified ?

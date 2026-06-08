@@ -1,5 +1,6 @@
     import React, { useCallback, useEffect, useMemo, useState } from 'react';
-    import {  Link, router, usePage , Head } from '@inertiajs/react';
+    import {  Link, router, usePage } from '@inertiajs/react';
+    import PageHead from '../Components/layout/PageHead';
     import { getDateAsYYYYMMDD, getErrorMessage, hydrateEditorImagePaths, MemberType, openPopup, processEditorImages, sanitizeRichHtml } from '../utils/helpers';
 
     import Layout from '../Components/layout/Layout';
@@ -56,6 +57,8 @@
                 return [];                
             }
         }, [post]);
+
+        const mainImg = `${appUrl}/storage/images/uploaded/users/${post.user.username}/posts/${post.post_url}/gallery/large/${imageUrls[0]}`;
 
         const videoUrl = useMemo(() =>
         {
@@ -131,7 +134,11 @@
 
         return (
         <>
-            <Head title="Post" />
+            <PageHead title={`${post.title} by ${post.user.username}`}
+                description={post.subtitle}
+                ogType="article"
+                ogImg={mainImg}
+            />
             <div className="post">       
             { 
                 post ? (
@@ -149,7 +156,7 @@
                         <div className="image-info-container">
                             <div className="main-image-container">
                                 <div className="image-link-subcontainer">
-                                    <img className="main-image" src={`${appUrl}/storage/images/uploaded/users/${post.user.username}/posts/${post.post_url}/gallery/large/${imageUrls[0]}`} alt="" />
+                                    <img className="main-image" src={mainImg} alt="" />
                                     <div className="main-image-link-container">
                                         <div className="info-panel">                        
                                         { 

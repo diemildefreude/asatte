@@ -1,4 +1,5 @@
-import { Head, useForm, usePage } from '@inertiajs/react';
+import PageHead from '../Components/layout/PageHead';
+import { useForm, usePage } from '@inertiajs/react';
 import FormField from '../Components/common/FormField';
 import Layout from '../Components/layout/Layout';
 import '../Components/common/Form.css';
@@ -27,7 +28,7 @@ function PasswordRecovery()
 
     return (
     <>
-        <Head title="Password Recovery" />
+        <PageHead title="Password Recovery" />
         <div className="form-container limited-width">
             <h1 className='centered-content no-margin'>account recovery</h1>
             <p className="centered-content no-margin">Enter your email or username. We’ll send you a link to recover your account.</p>

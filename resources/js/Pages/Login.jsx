@@ -1,4 +1,5 @@
-import { Link, Head, useForm, usePage } from '@inertiajs/react';
+import PageHead from '../Components/layout/PageHead';
+import { Link, useForm, usePage } from '@inertiajs/react';
 import React, { useState, useEffect } from 'react';
 import FormField from '../Components/common/FormField';
 import '../Components/common/Form.css';
@@ -54,7 +55,7 @@ function Login()
 
     return (
     <>
-            <Head title="Login" />
+            <PageHead title="Login" />
       <div className="form-container">
         <div className="sub-form-text">
           <p>New? <Link href="/register">Click here to join.</Link></p>

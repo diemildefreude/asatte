@@ -1,7 +1,8 @@
 import DashboardLayout from "./DashboardLayout"
 import PostForm from "./PostForm"
 import { useEffect, useState } from "react";
-import {  Link, router, usePage , Head } from '@inertiajs/react';
+import PageHead from '../../Components/layout/PageHead';
+import { Link, router, usePage } from '@inertiajs/react';
 import HiddenPostNotice from '../../Components/common/HiddenPostNotice';
 import { getErrorMessage } from '../../utils/helpers';
 
@@ -16,7 +17,7 @@ import { getErrorMessage } from '../../utils/helpers';
         currentTab=""
         headerText="edit post"
     >
-            <Head title="Edit Post" />
+            <PageHead title="Edit Post" />
         {
             post?.is_hidden_by_admin && (                
             <HiddenPostNotice classes="no-margin"/>

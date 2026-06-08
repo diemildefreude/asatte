@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react';
+import PageHead from '../../Components/layout/PageHead';
 import DashboardLayout from "./DashboardLayout";
 // import LoadNotifications from "./common/LoadNotifications";
 import LoadItems from '../../Components/common/LoadItems';
@@ -7,7 +7,7 @@ function Notifications ()
 {
     return (
     <DashboardLayout currentTab="activity" headerText="notifications">
-            <Head title="Notifications" />
+            <PageHead title="Notifications" />
         <LoadItems
             partialProp="notifications"
             renderMethod={(notification) =>({

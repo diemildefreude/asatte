@@ -1,11 +1,12 @@
-import {  Link, router, usePage , Head } from '@inertiajs/react';
+import PageHead from '../../../Components/layout/PageHead';
+import { Link, router, usePage } from '@inertiajs/react';
 
 function DashboardCreateHeader({headerText, createLink, isVerified=true})
 {
 
     return(
         <div className="centered-header-box">
-            <Head title="Dashboard Create Header" />
+            <PageHead title="Dashboard Create Header" />
             <div className="centered-content no-margin">
                 <h1>{headerText}</h1>
             </div>

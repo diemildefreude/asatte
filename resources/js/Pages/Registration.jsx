@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Layout from '../Components/layout/Layout';
-import { Link, router, usePage, Head, useForm } from '@inertiajs/react';
+import PageHead from '../Components/layout/PageHead';
+import { Link, router, usePage, useForm } from '@inertiajs/react';
 import FormField from '../Components/common/FormField';
 import CheckboxField from '../Components/common/CheckboxField'
 import OAuth from '../Components/common/OAuth';
@@ -302,7 +303,7 @@ function Registration()
 
     return (
     <>
-        <Head title="Registration" />
+        <PageHead title="Registration" />
         <div className={formContainerClasses}>
             <h1 className='centered-content no-margin'>join netart.io</h1>
         {errors.general && (

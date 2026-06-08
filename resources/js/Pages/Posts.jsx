@@ -3,7 +3,8 @@ import AutoloadTilesContainer from '../Components/common/AutoloadTilesContainer'
 import { FetchOrder, getScreenSize, monitorScreenSize } from '../utils/helpers';
 import { useState, useEffect } from "react";
 
-import {  Link, router, usePage , Head } from '@inertiajs/react';
+import PageHead from '../Components/layout/PageHead';
+import { Link, router, usePage } from '@inertiajs/react';
 
 function Posts({ username, archivePosts })
 {
@@ -17,7 +18,7 @@ function Posts({ username, archivePosts })
 
     return ( 
     <>
-            <Head title="Posts" />
+            <PageHead title="Posts" />
         <h2 className='centered-content padded-responsive'>{`${username}'s posts`}</h2>
         <AutoloadTilesContainer 
             screenSize={screenSize}

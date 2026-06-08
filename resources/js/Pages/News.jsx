@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react';
+import PageHead from '../Components/layout/PageHead';
 import Layout from '../Components/layout/Layout';
 import AutoloadTilesContainer from '../Components/common/AutoloadTilesContainer';
 import { useEffect, useState } from "react";
@@ -14,7 +14,7 @@ function News({ newsPosts = [] }) {
 
     return (
         <>
-            <Head title="News" />
+            <PageHead title="news"/>
             <div className="centered-content">
                 <h1>news</h1>
             </div>

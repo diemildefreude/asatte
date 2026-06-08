@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react';
+import PageHead from '../../Components/layout/PageHead';
 import { useCallback, useEffect, useRef, useState } from "react";
 import { addImageDragListeners, getImageFileFromInput, getImageUrlFromFile } from '../../utils/helpers';
 
@@ -110,7 +110,7 @@ function ImageField({index, image=null, file=null, alt="", setArray, onImageChan
 
     return(
     <div className="image-field" ref={imageFieldRef}>
-            <Head title="Image Field" />
+            <PageHead title="Image Field" />
         {imageError && (
         <div className="error">
             {imageError}

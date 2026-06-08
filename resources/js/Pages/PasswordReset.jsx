@@ -1,7 +1,8 @@
 import Layout from '../Components/layout/Layout';
 import FormField from '../Components/common/FormField';
 import React, { useState, useEffect } from 'react';
-import { Head, useForm, usePage } from '@inertiajs/react';
+import PageHead from '../Components/layout/PageHead';
+import { useForm, usePage } from '@inertiajs/react';
 import { isValidPassword } from '../utils/helpers';
 
 function PasswordReset() 
@@ -95,7 +96,7 @@ function PasswordReset()
 
     return (
     <>
-        <Head title="Password Reset" />
+        <PageHead title="Password Reset" />
         <div className="form-container limited-width">
             <h1 className='centered-content'>set new password</h1>
             {localError && (

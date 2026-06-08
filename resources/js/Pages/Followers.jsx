@@ -2,7 +2,8 @@ import Layout from '../Components/layout/Layout';
 import DashboardLayout from "./dashboard/DashboardLayout";
 import LoadItems from '../Components/common/LoadItems';
 import '../Components/common/Users.css';
-import { Link, router, usePage, Head } from '@inertiajs/react';
+import PageHead from '../Components/layout/PageHead';
+import { Link, router, usePage } from '@inertiajs/react';
 import UserCircle from '../Components/common/UserCircle';
 
 const MEMBERS_PER_PAGE = 100;
@@ -36,7 +37,7 @@ function Followers({ memberProp })
     return (
         member && (
         <>
-        <Head title="Followers" />
+        <PageHead title="Followers" />
             { user ? <DashboardLayout 
                         headerText={ isDashboardUrl ? HEADER_TEXT : ""}
                         currentTab="activity"

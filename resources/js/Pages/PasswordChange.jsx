@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import '../Components/common/Form.css';
 import FormField from '../Components/common/FormField';
 import Layout from '../Components/layout/Layout';
-import { Link, router, usePage, Head, useForm } from '@inertiajs/react';
+import PageHead from '../Components/layout/PageHead';
+import { Link, router, usePage, useForm } from '@inertiajs/react';
 import { isValidPassword } from '../utils/helpers';
 
 function PasswordChange()
@@ -89,7 +90,7 @@ function PasswordChange()
 
     return (
     <>
-            <Head title="Password Change" />
+            <PageHead title="Password Change" />
     {
         (user.is_email_verified && user.login_type === 'email') ? (
             <div className="form-container limited-width">

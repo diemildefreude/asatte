@@ -1,4 +1,5 @@
-import { Head, usePage } from '@inertiajs/react';
+import PageHead from '../../Components/layout/PageHead';
+import { usePage } from '@inertiajs/react';
 import DashboardLayout from "./DashboardLayout";
 import PostForm from "./PostForm";
 
@@ -12,7 +13,7 @@ function NewPost()
         currentTab="post" 
         headerText="new post"
     >
-            <Head title="New Post" />
+            <PageHead title="New Post" />
         {
             user && user.is_email_verified ?
             (

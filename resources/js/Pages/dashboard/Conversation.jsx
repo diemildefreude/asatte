@@ -8,7 +8,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import UserLink from '../../Components/common/UserLink';
 import FormField from '../../Components/common/FormField';
 import { dehydrateEditorImagePaths, getErrorMessage, hydrateEditorImagePaths, processEditorImages, sanitizeRichHtml } from '../../utils/helpers';
-import {  Link, router, usePage , Head } from '@inertiajs/react';
+import PageHead from '../../Components/layout/PageHead';
+import { Link, router, usePage } from '@inertiajs/react';
 import Message from '../../Components/common/Message';
 
 function Conversation({ conversation: conversationProp, addressee })
@@ -358,7 +359,7 @@ function Conversation({ conversation: conversationProp, addressee })
     }, []);
     return ( 
     <DashboardLayout currentTab="mail">
-            <Head title="Conversation" />
+            <PageHead title="Conversation" />
     <div className="centered-content no-margin">            
         <h2 dangerouslySetInnerHTML={{ __html:convoName}} />
     </div>    

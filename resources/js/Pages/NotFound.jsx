@@ -1,11 +1,11 @@
-import { Head } from '@inertiajs/react';
+import PageHead from '../Components/layout/PageHead';
 import Layout
  from '../Components/layout/Layout';
 function NotFound()
 {
     return(
         <>
-            <Head title="Not Found" />
+            <PageHead title="Not Found" />
             <p className="centered-content top-offset">
                 Page not found. Check your spelling.
             </p>

@@ -1,5 +1,6 @@
-import { Head, useForm, usePage } from '@inertiajs/react';
+import { useForm, usePage } from '@inertiajs/react';
 import { useCallback, useEffect, useState } from "react";
+import PageHead from '../Components/layout/PageHead';
 import RichTextEditor from '../Components/common/RichTextEditor';
 import EditButton from '../Components/common/EditButton';
 import Layout from '../Components/layout/Layout';
@@ -73,7 +74,7 @@ function About({ about, status })
 
     return (
     <>
-            <Head title="About" />
+        <PageHead title="about"/>
         <div className="rte-container borderless">
         {
             dataLoaded ? (

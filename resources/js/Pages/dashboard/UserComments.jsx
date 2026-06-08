@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react';
+import PageHead from '../../Components/layout/PageHead';
 import DashboardLayout from "./DashboardLayout";
 import LoadItems from '../../Components/common/LoadItems';
 import Comment from '../../Components/common/Comment';
@@ -6,7 +6,7 @@ function UserComments ()
 {
     return (
     <DashboardLayout currentTab="activity" headerText="your comments">
-            <Head title="User Comments" />
+            <PageHead title="User Comments" />
         <LoadItems
             partialProp="comments"
             renderMethod={(comment, i) =>({

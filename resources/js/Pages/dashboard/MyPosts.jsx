@@ -3,7 +3,8 @@ import "../DashboardProfile.css";
 import AutoloadTilesContainer from '../../Components/common/AutoloadTilesContainer';
 import { Category, FetchOrder, getScreenSize, monitorScreenSize } from '../../utils/helpers';
 import { useState, useEffect } from "react";
-import {  Link, router, usePage , Head } from '@inertiajs/react';
+import PageHead from '../../Components/layout/PageHead';
+import { Link, router, usePage } from '@inertiajs/react';
 import DashboardCreateHeader from "./common/DashboardCreateHeader";
 
 function MyPosts()
@@ -22,7 +23,7 @@ function MyPosts()
 
     return ( 
     <DashboardLayout currentTab="posts">
-            <Head title="My Posts" />
+            <PageHead title="My Posts" />
         <DashboardCreateHeader
             headerText="your posts"
             createLink="/dashboard/new-post"

@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react';
+import PageHead from '../Components/layout/PageHead';
 import React, { useState, useEffect } from 'react';
 import './Home.css';
 import HeroTilesContainer from '../Components/common/HeroTilesContainer';
@@ -19,7 +19,7 @@ function Home({ heroPosts = [], carouselArchive = [], carouselNews = [], archive
 
     return (
         <>
-            <Head title="Home" />
+        <PageHead title="home"/>
         <div className="hero">
             <h1>asatte.io</h1>
             <p>the premier hub for internet art</p>

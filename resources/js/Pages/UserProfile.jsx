@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import Layout from '../Components/layout/Layout';
-import {  Link, router, usePage , Head } from '@inertiajs/react';
+import {  Link, router, usePage } from '@inertiajs/react';
+import PageHead from '../Components/layout/PageHead';
 import ProfileItem from '../Components/common/ProfileItem';
 import AutoloadTilesContainer from '../Components/common/AutoloadTilesContainer';
 import './DashboardProfile.css';
@@ -72,7 +73,8 @@ function UserProfile({ user: profileUserProp })
 
     return (
     <>
-            <Head title="User Profile" />        
+        <PageHead title={`${username}'s profile`}
+        />        
         <div className="heading-profile-container public-profile">
             <div className='centered-content vert-1rem'><h1>{username}</h1></div>
             {

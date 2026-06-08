@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react';
+import PageHead from '../../Components/layout/PageHead';
 import DashboardLayout from "./DashboardLayout";
 import AutoloadTilesContainer from '../../Components/common/AutoloadTilesContainer';
 import { useState } from "react";
@@ -9,7 +9,7 @@ function LikedPosts()
     const [screenSize, setScreenSize] = useState(getScreenSize());
     return(
         <DashboardLayout currentTab="activity" headerText="liked posts">
-            <Head title="Liked Posts" />
+            <PageHead title="Liked Posts" />
             <AutoloadTilesContainer
                 screenSize={screenSize}
                 isDashboard={false}

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Layout from '../Components/layout/Layout';
 import AutoloadTilesContainer from '../Components/common/AutoloadTilesContainer';
 import { getScreenSize, Category, FetchOrder } from '../utils/helpers';
-import { Head } from '@inertiajs/react';
+import PageHead from '../Components/layout/PageHead';
 
 function SearchResults({ searchTerm = '', searchPosts = [] })
 {
@@ -23,7 +23,7 @@ function SearchResults({ searchTerm = '', searchPosts = [] })
 
     return (
         <>
-            <Head title="Search Results" />
+            <PageHead title="Search Results" />
             <div className="page-section">
                 <h3 className='padded centered-content'>
                     {

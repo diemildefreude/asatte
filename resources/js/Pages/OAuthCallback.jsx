@@ -1,7 +1,8 @@
 // src/pages/AuthCallback.jsx (This needs to be a standalone route, not a child component)
 
 import React, { useEffect } from 'react';
-import {  Link, router, usePage , Head } from '@inertiajs/react';
+import PageHead from '../Components/layout/PageHead';
+import { Link, router, usePage } from '@inertiajs/react';
 import { getErrorMessage } from '../utils/helpers';
 
 function OAuthCallback() 
@@ -63,7 +64,7 @@ function OAuthCallback()
 
     return (
         <div style={{ textAlign: 'center', padding: '50px' }}>
-            <Head title="O Auth Callback" />
+            <PageHead title="O Auth Callback" />
             <h2>Processing Social Login...</h2>
             <p>Please wait while we log you in.</p>
             {/* You can add a spinner or loading animation here */}

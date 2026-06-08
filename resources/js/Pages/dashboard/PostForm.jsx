@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link, router, usePage, Head, useForm } from '@inertiajs/react';
+import PageHead from '../../Components/layout/PageHead';
+import { Link, router, usePage, useForm } from '@inertiajs/react';
 import FormField from '../../Components/common/FormField';
 import CheckboxField from '../../Components/common/CheckboxField';
 import RichTextEditor from '../../Components/common/RichTextEditor';
@@ -396,7 +397,7 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
 
     return (
     <div className="main-info-delete-container">
-            <Head title="Post Form" />
+            <PageHead title="Post Form" />
     {     
         isFormReady ?
         (

@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react';
+import PageHead from '../Components/layout/PageHead';
 import DashboardLayout from "./dashboard/DashboardLayout";
 import EditProfile from "./dashboard/EditProfile";
 import EditBio from "./dashboard/EditBio";
@@ -8,7 +8,7 @@ function Dashboard()
 {
     return (
         <DashboardLayout currentTab="profile" headerText="your profile">
-            <Head title="Dashboard" />    
+            <PageHead title="Dashboard" />    
             <div className="profile-boxes-container">   
                 <EditProfile/>
                 <EditBio/>

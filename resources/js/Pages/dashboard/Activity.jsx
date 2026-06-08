@@ -3,7 +3,8 @@ import "../DashboardProfile.css";
 import LoadItems from '../../Components/common/LoadItems';
 import Comment from '../../Components/common/Comment';
 import Notification from "./common/Notification";
-import {  Link, router, usePage , Head } from '@inertiajs/react';
+import PageHead from '../../Components/layout/PageHead';
+import { Link, router, usePage } from '@inertiajs/react';
 
 import { FetchOrder, getScreenSize, monitorScreenSize, ScreenSize } from '../../utils/helpers';
 import { useEffect, useState } from "react";
@@ -31,7 +32,7 @@ function Activity()
 
     return (
     <DashboardLayout currentTab="activity" headerText="activity">
-            <Head title="Activity" />
+            <PageHead title="Activity" />
         <div className="activity-box-container">
             <div className="notifications-comments-container">
                 <div className="main-info-box">

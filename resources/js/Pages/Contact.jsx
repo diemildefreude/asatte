@@ -1,4 +1,5 @@
-import { Head, useForm, usePage } from '@inertiajs/react';
+import { useForm, usePage } from '@inertiajs/react';
+import PageHead from '../Components/layout/PageHead';
 import Layout from '../Components/layout/Layout';
 import FormField from '../Components/common/FormField';
 import '../Components/common/Form.css';
@@ -64,7 +65,7 @@ function Contact()
 
     return (
         <>
-            <Head title="Contact" />
+            <PageHead title="contact"/>
             <div className="form-container">
                 <div className="centered-content no-margin">
                     <h1>contact</h1>

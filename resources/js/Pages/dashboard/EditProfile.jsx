@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { LoginType } from '../../utils/helpers';
-import {  Link, router, usePage , Head, useForm } from '@inertiajs/react';
+import PageHead from '../../Components/layout/PageHead';
+import { Link, router, usePage, useForm } from '@inertiajs/react';
 import { getErrorMessage } from '../../utils/helpers';
 import AvatarSetter from "./AvatarSetter";
 import ProfileItem from '../../Components/common/ProfileItem';
@@ -95,7 +96,7 @@ function EditProfile()
 
     return (
     <div className="main-info-box sticky">
-            <Head title="Edit Profile" />
+            <PageHead title="Edit Profile" />
         <div className="avatar-section">
             {errors.general && (
             <div className="error">
