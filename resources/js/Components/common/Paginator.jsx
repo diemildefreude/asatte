@@ -1,10 +1,13 @@
+import { usePage } from '@inertiajs/react';
+
 const MAX_PAGE_NUMBERS = 5;
 
-function getUrlWithPage(i)
+function getUrlWithPage(url, i)
 {
-    const params = new URLSearchParams(window.location.search);
+    const parsed = new URL(url, 'http://localhost');
+    const params = new URLSearchParams(parsed.search);
     params.set('page', i);
-    return `${window.location.pathname}?${params}`;
+    return `${parsed.pathname}?${params}`;
 }
 
 function getPageNumbers(currentPage, pageCount) 
@@ -38,6 +41,7 @@ function getPageNumbers(currentPage, pageCount)
 
 function Paginator({itemsPerPage, totalCount, currentPage, onNumberClick})
 {
+    const { url } = usePage();
     const pageCount = Math.ceil(totalCount / itemsPerPage); 
     //console.log("totalCount, itemsPerPage, pageCount, currentPage", totalCount, itemsPerPage, pageCount, currentPage);
 
@@ -51,7 +55,7 @@ function Paginator({itemsPerPage, totalCount, currentPage, onNumberClick})
                 <span>
                     <a 
                         onClick={(e) => { e.preventDefault(); onNumberClick(1)}}
-                        href={getUrlWithPage(1)}
+                        href={getUrlWithPage(url, 1)}
                         className="arrow"
                     >
                         {'<<'}
@@ -64,7 +68,7 @@ function Paginator({itemsPerPage, totalCount, currentPage, onNumberClick})
                 <span>
                     <a 
                         onClick={(e) => { e.preventDefault(); onNumberClick(currentPage - 1)}}
-                        href={getUrlWithPage(currentPage - 1)}
+                        href={getUrlWithPage(url, currentPage - 1)}
                         className="arrow"
                     >
                         {'<'}
@@ -85,7 +89,7 @@ function Paginator({itemsPerPage, totalCount, currentPage, onNumberClick})
                 <a 
                     className={i === currentPage ? 'current-page' : ''}
                     onClick={(e) => { e.preventDefault(); onNumberClick(i)}}
-                    href={getUrlWithPage(i)}
+                    href={getUrlWithPage(url, i)}
                 >
                     {i}
                 </a>
@@ -97,7 +101,7 @@ function Paginator({itemsPerPage, totalCount, currentPage, onNumberClick})
                 <span>
                     <a 
                         onClick={(e) => { e.preventDefault(); onNumberClick(currentPage + 1)}}
-                        href={getUrlWithPage(currentPage + 1)}
+                        href={getUrlWithPage(url, currentPage + 1)}
                         className="arrow"
                     >
                         {'>'}
@@ -110,7 +114,7 @@ function Paginator({itemsPerPage, totalCount, currentPage, onNumberClick})
                 <span>
                     <a 
                         onClick={(e) => { e.preventDefault(); onNumberClick(pageCount)}}
-                        href={getUrlWithPage(pageCount)}
+                        href={getUrlWithPage(url, pageCount)}
                         className="arrow"
                     >
                         {'>>'}

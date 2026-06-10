@@ -11,8 +11,9 @@ function DashboardLayout({ currentTab, headerText, children })
     const page = usePage();
     const user = page.props?.auth?.user ?? null;
     const isAuthenticated = !!user;
-    const currentUrl = page.url || window.location.pathname;
-    const parsedUrl = new URL(currentUrl, window.location.origin);
+    const currentUrl = page.url || (typeof window !== 'undefined' ? window.location.pathname : '');
+    const appUrl = page.props.app_url || 'http://localhost';
+    const parsedUrl = new URL(currentUrl, typeof window !== 'undefined' ? window.location.origin : appUrl);
     const pathname = parsedUrl.pathname;
     
     const [success, setSuccess] = useState('');

@@ -74,7 +74,9 @@ function About({ about, status })
 
     return (
     <>
-        <PageHead title="about"/>
+        <PageHead title="about"
+            ogType="article"
+        />
         <div className="rte-container borderless">
         {
             dataLoaded ? (

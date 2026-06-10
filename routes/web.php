@@ -11,6 +11,7 @@ use App\Http\Controllers\NewsController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\SocialiteController;
+use App\Http\Controllers\SitemapController;
 
 Route::get('/', [HomeController::class, 'index']);
 Route::get('/news', [NewsController::class, 'index']);
@@ -22,6 +23,7 @@ Route::inertia('/password-recovery', 'PasswordRecovery');
 Route::inertia('/password-change', 'PasswordChange');
 Route::inertia('/password-reset', 'PasswordReset');
 Route::get('/search', [SearchController::class, 'search']);
+Route::get('/sitemap.xml', [SitemapController::class, 'index']);
 
 // Session-based auth endpoints
 Route::post('/login', [AuthController::class, 'login'])->name('login.attempt');

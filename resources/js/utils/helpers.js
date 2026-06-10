@@ -1,4 +1,4 @@
-import DOMPurify from 'dompurify';
+import DOMPurify from 'isomorphic-dompurify';
 const SAFE_VIDEO_IFRAME_HOSTS = [
   /^(?:www\.)?youtube\.com$/i,
   /^(?:www\.)?youtube-nocookie\.com$/i,
@@ -21,7 +21,8 @@ function isSafeVideoIframeSrc(src)
 {
   try 
   {
-    const url = new URL(src, window.location.origin);
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost';
+    const url = new URL(src, origin);
     if (url.protocol !== 'https:' && url.protocol !== 'http:') return false;
     return SAFE_VIDEO_IFRAME_HOSTS.some((re) => re.test(url.hostname));
   } 
@@ -314,57 +315,42 @@ export function resizeImage(source)
 // }
 export function dehydrateEditorImagePaths(htmlString, appUrl = '') 
 {
+    if (!htmlString) return htmlString;
     const BACKEND = appUrl ? appUrl.replace(/\/$/, '') : '';
-    const STORAGE_BASE_URL = BACKEND ? `${BACKEND}/storage` : '/storage';
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(htmlString, 'text/html');
-    const images = doc.querySelectorAll('img');
-
-    for (const img of images) {
-        const currentSrc = img.getAttribute('src') || '';
-
-        // Try to match any variant of storage paths and normalize to "images/..." without leading slash
-        // Matches: http(s)://.../storage/images/..., /storage/images/..., storage/images/...
+    
+    return htmlString.replace(/<img\s+[^>]*src=(["'])(.*?)\1[^>]*>/gi, (match, quote, currentSrc) => {
+        let newSrc = currentSrc;
         const m1 = currentSrc.match(/(?:https?:\/\/[^\/]+)?\/?storage\/(images\/uploaded\/.+)/i);
         if (m1 && m1[1]) {
-            img.setAttribute('src', m1[1]);
-            continue;
+            newSrc = m1[1];
+        } else {
+            const m2 = currentSrc.match(/^storage\/(images\/uploaded\/.+)/i);
+            if (m2 && m2[1]) {
+                newSrc = m2[1];
+            } else if (BACKEND && currentSrc.startsWith(`${BACKEND}/storage`)) {
+                newSrc = currentSrc.replace(`${BACKEND}/storage`, '').replace(/^\/+/, '');
+            }
         }
-        const m2 = currentSrc.match(/^storage\/(images\/uploaded\/.+)/i);
-        if (m2 && m2[1]) {
-            img.setAttribute('src', m2[1]);
-            continue;
+        if (newSrc !== currentSrc) {
+            return match.replace(`src=${quote}${currentSrc}${quote}`, `src=${quote}${newSrc}${quote}`);
         }
-        // If it starts with the configured backend + /storage, strip that portion
-        if (BACKEND && currentSrc.startsWith(`${BACKEND}/storage`)) {
-            const relativePath = currentSrc.replace(`${BACKEND}/storage`, '').replace(/^\/+/, '');
-            img.setAttribute('src', relativePath);
-            continue;
-        }
-    }
-    return doc.body.innerHTML;
+        return match;
+    });
 }
+
 export function hydrateEditorImagePaths(htmlString, appUrl = '')
 {
+    if (!htmlString) return htmlString;
     const BACKEND = appUrl ? appUrl.replace(/\/$/, '') : '';
     const STORAGE_BASE_URL = BACKEND ? `${BACKEND}/storage` : '/storage';
-    const parser = new DOMParser();
-    // Parse the string into a temporary DOM tree
-    const doc = parser.parseFromString(htmlString, 'text/html');
-    const images = doc.querySelectorAll('img');
 
-    for (const img of images)
-    {
-        const rawPath = img.getAttribute('src');
-
-        // SKIP if: no src, starts with http, starts with www, or is a base64 blob
+    return htmlString.replace(/<img\s+[^>]*src=(["'])(.*?)\1[^>]*>/gi, (match, quote, rawPath) => {
         if (!rawPath || 
             rawPath.startsWith('http') || 
             rawPath.startsWith('www') || 
             rawPath.startsWith('data:')) {
-            continue; 
+            return match; 
         }
-        // Normalize several possible incoming formats into a clean "images/..." path
         let cleanPath = null;
         const m1 = rawPath.match(/(?:https?:\/\/[^\/]+)?\/?storage\/(images\/uploaded\/.+)/i);
         if (m1 && m1[1]) {
@@ -374,12 +360,10 @@ export function hydrateEditorImagePaths(htmlString, appUrl = '')
         } else if (/^images\/uploaded\/.+/i.test(rawPath)) {
             cleanPath = rawPath;
         }
-        if (!cleanPath) continue;
+        if (!cleanPath) return match;
         const absoluteUrl = `${STORAGE_BASE_URL}/${cleanPath.replace(/^[\/]+/, '')}`;
-        img.src = absoluteUrl;
-        //console.log("clean path?", rawPath, cleanPath, absoluteUrl)
-    }
-    return doc.body.innerHTML;
+        return match.replace(`src=${quote}${rawPath}${quote}`, `src=${quote}${absoluteUrl}${quote}`);
+    });
 }
 export async function processEditorImages(htmlString) 
 {

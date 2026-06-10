@@ -15,6 +15,7 @@ function PageHead({
     return(
         <Head title={title}>
             <meta head-key="description" name="description" content={description} />
+            <link head-key="canonical" rel="canonical" href={fullUrl} />
             
             {/* Open Graph / Facebook / LinkedIn / Discord */}
             <meta head-key="og:url" property="og:url" content={fullUrl} />

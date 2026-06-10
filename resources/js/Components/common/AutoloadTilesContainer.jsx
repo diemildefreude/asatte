@@ -39,7 +39,9 @@ function AutoloadTilesContainer({
     const initialDisplayed = initialFromServer;
 
     const initialAreNoMore = (isSearch && !searchTerm) || (initialFromServer.length === 0);
-    const rememberKey = `${partialProp}-${window.location.pathname}${searchTerm ? '-' + searchTerm : ''}`;
+    const { url } = usePage();
+    const pathname = typeof window !== 'undefined' ? window.location.pathname : new URL(url, 'http://localhost').pathname;
+    const rememberKey = `${partialProp}-${pathname}${searchTerm ? '-' + searchTerm : ''}`;
     
     const [posts, setPosts] = useRemember(initialDisplayed || [], `posts-${rememberKey}`);
     const [areNoMorePosts, setAreNoMorePosts] = useRemember(initialAreNoMore, `noMore-${rememberKey}`);

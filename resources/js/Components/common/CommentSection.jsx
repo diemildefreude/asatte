@@ -20,7 +20,9 @@ function CommentSection({post, likeCount})
     const page = usePage();
     const success = page.props.flash?.success;
     const comments = post.comments || [];
-    const parsed = new URL(page.url || window.location.href, window.location.origin);
+    const parsed = typeof window !== 'undefined' 
+        ? new URL(page.url || window.location.href, window.location.origin)
+        : new URL(page.url, page.props.app_url || 'http://localhost');
     const currentUrl = `${parsed.origin}${parsed.pathname}${parsed.search}`;
     const queryParams = new URLSearchParams(parsed.search);
     const commentId = queryParams.get('comment_id');

@@ -6,12 +6,13 @@ import UserLink from '../common/UserLink';
 
 function Header()
 {
-    const { props } = usePage();
+    const { props, url } = usePage();
     const appUrl = props.app_url;
     const user = props?.auth?.user;
     
     const dashboardUrl = `${appUrl}/dashboard/`;
     
+    const isClient = typeof window !== 'undefined';
     const isAuthenticated = !!user;
     const [isNavOpen, setIsNavOpen] = useState(false);
     //const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -19,12 +20,13 @@ function Header()
     const buttonClasses = isNavOpen ? "nav-button-container open"
         : "nav-button-container";
     const navClasses = isNavOpen ? "open" : "";
-    const lastScrollTopRef = useRef(window.scrollY);
+    const lastScrollTopRef = useRef(isClient ? window.scrollY : 0);
     const didScrollRef = useRef(false);
     const scrollDeltaThreshold = 5;
     
-    const pathname = window.location.pathname;
-    const urlParams = new URLSearchParams(window.location.search);
+    const pathname = url.split('?')[0];
+    const searchString = url.includes('?') ? url.split('?')[1] : '';
+    const urlParams = new URLSearchParams(searchString);
     const currentSearchTerm = urlParams.get('q');
     const [searchTerm, setSearchTerm] = useState("");
     const isSearchPage = pathname === "/search";
@@ -41,8 +43,7 @@ function Header()
 
     useEffect(() =>
     {
-        const currentPath = window.location.pathname;
-        if(currentPath == "/search" && currentSearchTerm)
+        if(pathname == "/search" && currentSearchTerm)
         {
             setSearchTerm(currentSearchTerm);
         }
