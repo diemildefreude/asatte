@@ -122,7 +122,7 @@ function EditProfile()
                     value={websiteField}
                     setValue={setWebsiteField}
                     onChange={(e) => {setHasChanges(e.target.value !== user.website); setWebsiteField(e.target.value)}}
-                    isSubmitting={processing}
+                    disabled={!user?.is_email_verified || processing}
                     isEditingThisField={editingField === 'website'}
                     onEditClick={() => handleEditClick('website')}
                 />
@@ -131,7 +131,7 @@ function EditProfile()
                     value={locationField}
                     setValue={setLocationField}
                     onChange={(e) => {setHasChanges(e.target.value !== user.location); setLocationField(e.target.value)}}
-                    isSubmitting={processing}
+                    disabled={!user?.is_email_verified || processing}
                     isEditingThisField={editingField === 'location'}
                     onEditClick={() => handleEditClick('location')}
                 />
@@ -144,7 +144,7 @@ function EditProfile()
                     label="show e-mail in profile:"
                     value={showEmailInProfile}
                     onChange={(e) => {setHasChanges(e.target.checked !== !!user.show_email_in_profile); setShowEmailInProfile(e.target.checked);}}
-                    disabled={processing}
+                    disabled={!user?.is_email_verified || processing}
                 />
                 <div className="flex-row">
                     <div className="button-container">

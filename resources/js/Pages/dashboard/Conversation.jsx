@@ -206,6 +206,13 @@ function Conversation({ conversation: conversationProp, addressee })
 
     const handleRecipientSearchTermChange = useCallback((e) =>
     {
+        if(recipients.length >= 5)
+        {
+            recipientSpanRef.current.innerText = "";
+            setError("You can mail up to five people.");
+            return;
+        }
+
         const search = () => 
         {
             const newVal = recipientSpanRef.current.innerText.trim();
@@ -360,8 +367,8 @@ function Conversation({ conversation: conversationProp, addressee })
     return ( 
     <DashboardLayout currentTab="mail">
             <PageHead title="Conversation" />
-    <div className="centered-content no-margin">            
-        <h2 dangerouslySetInnerHTML={{ __html:convoName}} />
+    <div className="centered-content no-margin side-padded">            
+        <h1 dangerouslySetInnerHTML={{ __html:convoName}} />
     </div>    
     {
         !isNew && (

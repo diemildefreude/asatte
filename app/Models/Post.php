@@ -11,7 +11,6 @@ class Post extends Model
     use HasFactory;
     protected $fillable =
     [
-        'user_id',
         'post_url',
         'title',
         'subtitle',
@@ -19,8 +18,6 @@ class Post extends Model
         'source_code',
         'main_video',
         'is_private',
-        'is_hidden_by_admin',
-        'is_news',
         'gallery_image_urls',
         'gallery_alts',
         'statement',

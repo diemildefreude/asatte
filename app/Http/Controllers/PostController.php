@@ -319,19 +319,21 @@ class PostController extends Controller
         $postFields = 
         [
             'post_url' => $postUrl,
-            'user_id' => $request->user()->id,
             ...$basicFields,
             'website' => $website,
             'source_code' => $sourceCode,
             'is_private' => $isPrivate,
-            'is_news' => $isNews,
             'gallery_image_urls' => $galleryArray,
             'gallery_alts' => $galleryAltArray,
             'statement' => $statement,
             'statement_image_urls' => $editorImageArray
         ];
 
-        Post::create($postFields);
+        $post = new Post($postFields);
+        $post->user_id = $request->user()->id;
+        $post->is_news = $isNews;
+        $post->is_hidden_by_admin = false;
+        $post->save();
         $response = [
             'status' => 'post_created',
             'message' => 'Your post has been successfully created.'
@@ -493,7 +495,12 @@ class PostController extends Controller
             'main_video' => ['max:255'],     
         ]); 
         $isPrivate = $request->input('is_private') ? true : false; 
-        $isNews = $request->input('is_news') ? true : false;
+        
+        $isNews = false;
+        if($user->member_type == MemberType::Webmaster)
+        {
+            $isNews = $request->input('is_news') ? true : false;
+        }
         Log::info("isPrivate? $isPrivate _ $request->input('is_private')");       
 
         $post = Post::findOrFail($id);
@@ -689,14 +696,18 @@ class PostController extends Controller
             'post_url' => $postUrl,
             'website' => $website,
             'is_private' => $isPrivate,
-            'is_news' => $isNews,
             'gallery_image_urls' => $updatedGalleryUrls,//$galleryJson,
             'gallery_alts' => $updatedGalleryAlts,//$galleryAltsJson,
             'statement' => $statement,//$statementJson,
             'statement_image_urls' => $editorImageArray//$statementImagesJson
         ];
 
-        $post->update($postFields);
+        $post->fill($postFields);
+        if($user->member_type == MemberType::Webmaster)
+        {
+            $post->is_news = $isNews;
+        }
+        $post->save();
         $response = [
             'status' => 'post_updated',
             'message' => 'Your post has been successfully updated.'
@@ -779,8 +790,8 @@ class PostController extends Controller
                 'name' => $name
             ]);
             $conversation->users()->attach([
-                $user->id,
-                $post->user->id
+                $user->id => ['last_read_at' => now()],
+                $post->user->id => ['last_read_at' => null]
             ]);
 
             $editorImageArray = [];

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>IG Iframe Resize Test</title>
+</head>
+<body>
+<iframe src="https://www.instagram.com/p/Ctu9-46qTD5/embed/captioned" width="500" height="400" frameborder="0" scrolling="no" style="max-width: 100%; overflow: hidden;"></iframe>
+<script>
+window.addEventListener('message', (event) => {
+    console.log("RAW EVENT DATA:", event.data);
+    let data;
+    try {
+        data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+    } catch (e) {
+        return;
+    }
+    console.log("PARSED EVENT DATA:", data);
+});
+</script>
+</body>
+</html>

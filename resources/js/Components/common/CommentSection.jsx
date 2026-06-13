@@ -75,9 +75,9 @@ function CommentSection({post, likeCount})
         
         setData('parent_id', comment.id);
         
-        setData('content', (prev) => 
+        setData((prevData) => 
         {
-            let newText = prev;
+            let newText = prevData.content || "";
             if(quoteText)
             {
                 newText = newText.replace(quoteText, "");
@@ -94,9 +94,9 @@ function CommentSection({post, likeCount})
             }
             else
             {
-                setQuoteText('');
+                setQuoteText(null);
             }
-            return newText;
+            return { ...prevData, content: newText };
         });
         const el = document.getElementById("leave-comment-container");
         if (el) 

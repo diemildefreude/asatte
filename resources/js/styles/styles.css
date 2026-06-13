@@ -10,7 +10,7 @@
     --lavender-gradient: linear-gradient(45deg, #505193cc 0%, #c1b7fdcc 60%);
     --red-gradient: linear-gradient(45deg, #ff4574 0%, #6c0746 70%);
     --footer-gradient: linear-gradient(10deg, #000000ff 20%, #00000000 60%);
-    --dark-purple: rgba(0.5,0.0,0.5,1.0);
+    --dark-purple: #330055;
     --transparent-black: rgba(0, 0, 0, 0.5);
     --header-height-wide: 60px;
     --header-height-narrow: 50px;
@@ -18,6 +18,18 @@
     --hover-button-border: 2px solid var(--pale-yellow);    
     --disabled-button-border: 2px solid gray;
     --footer-height: 150px;
+}
+*
+{
+    scrollbar-color: var(--blue) var(--dark-purple);
+    scrollbar-width: thin;
+}
+@media (min-width: 700px) 
+{
+    *
+    {
+        scrollbar-width: auto;   
+    }
 }
 html, body
 {
@@ -122,6 +134,11 @@ p iframe
 .footnote.bottom-1rem
 {
     margin: 0 0 1rem;
+}
+.page-section h1.big-title, .page-section h2.big-title
+{
+    font-size: 2rem;
+    font-weight: 1;
 }
 .centered-content h1
 {
@@ -461,6 +478,7 @@ button:disabled, button:disabled:hover
     padding-bottom: 56.25%; /* For a 16:9 aspect ratio */
     height: 0;
     overflow: hidden;
+    background-color: #000;
     border: 2px solid var(--grey-yellow); /* Add the border here */
 }
 .iframe-container iframe
@@ -507,13 +525,23 @@ button:disabled, button:disabled:hover
 {
     text-decoration: none;
 }
-.article-text
+.limited-width
+{
+    width: clamp(200px, 100%, 700px);
+    margin: 0 auto;
+}
+.article-text, .message-text
 {    
     line-height: 1.8em;
     /* padding: 0 1em 1em; */
     padding: 1rem;
-    overflow-wrap: break-word;
-    word-break: break-all;
+    /* overflow-wrap: break-word; */
+    overflow-wrap: anywhere;
+    /* word-break: break-all; */
+}
+.message-text
+{
+    padding: 1rem 0 0;
 }
 .article-text h1, .article-text h2, .article-text h3, .article-text h4
 {
@@ -566,7 +594,7 @@ button:disabled, button:disabled:hover
 }
 .big-icon
 {
-    font-size: 1.5em;
+    font-size: 2em;
 }
 .flex-row, .flex-column
 {
@@ -579,4 +607,11 @@ button:disabled, button:disabled:hover
 .flex-column
 {
     flex-direction: column;
+}
+@media (min-width: 450px)
+{
+    .comment, .message-text
+    {
+        padding: 0;
+    }
 }

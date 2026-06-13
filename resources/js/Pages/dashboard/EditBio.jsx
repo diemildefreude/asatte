@@ -85,10 +85,11 @@ function EditBio()
                 <div className="centered-content">
                     <h3>bio</h3>                    
                 </div>
-                <div className="right-item">
+                <div className="right-item padded">
                     {!isInEditMode && (
                     <EditButton
                         onClick={(e) => {e.preventDefault(); setIsInEditMode(true)}}
+                        disabled={!user?.is_email_verified}
                     />)}
                 </div>
             </div>
@@ -105,9 +106,10 @@ function EditBio()
             {
             isInEditMode ? (
             <RichTextEditor
-                isReadOnly={!isInEditMode || isSubmitting}
+                isReadOnly={!isInEditMode || isSubmitting }
                 onChange={handleBioChange}
                 value={bio}
+                autoFocus={true}
             />):(
             <div
                 className='padded article-text'

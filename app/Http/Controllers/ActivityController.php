@@ -65,6 +65,11 @@ class ActivityController extends Controller
 
         $post->loadCount('usersWhoLiked');
 
+        $user = $request->user();
+        if ($user && in_array($user->member_type, [\App\Enums\MemberType::Admin, \App\Enums\MemberType::Webmaster])) {
+            return back();
+        }
+
         return back()->with('success', $wasAttached ? 'Post liked successfully.' : 'Post unliked successfully.');
     }
     public function notifications(Request $request)
@@ -100,7 +105,7 @@ class ActivityController extends Controller
             {
                 $post = Post::with([
                     'user:id,username'
-                ])->find($data['post_id'])->select(['id', 'post_url', 'title']);
+                ])->select(['id', 'post_url', 'title', 'user_id'])->find($data['post_id']);
                 $notification->setRelation('post', $post);
                 $notification->unhidden_at = Carbon::now()->toDateTimeString();
             }

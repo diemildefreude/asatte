@@ -131,7 +131,7 @@ function AvatarSetter({user})
             setError('avatar', "Must be .jpeg, .png, .webp, or .bmp");
             return;
         }
-        console.log("opening");
+        
         setIsImageCropperOpen(true);
         const selectedFileUrl = await getImageUrlFromFile(file);
         setSelectedAvatar(selectedFileUrl);
@@ -264,7 +264,7 @@ function AvatarSetter({user})
                     />
                 </div>
                 <button type="button" onClick={handleCropAndUpload} 
-                    disabled={processing} ref={imageCropButtonRef}
+                    disabled={!user?.is_email_verified || processing} ref={imageCropButtonRef}
                 >
                     update
                 </button>
@@ -283,7 +283,7 @@ function AvatarSetter({user})
             />    
             <button className="avatar-button"
                 onClick={handleUpdateClick}   
-                disabled={processing} 
+                disabled={!user?.is_email_verified || processing} 
                 type="button"
             >
                 update

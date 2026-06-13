@@ -10,26 +10,67 @@ use Intervention\Image\ImageManager;
  * Sanitize rich HTML from TinyMCE. Allows safe formatting, images, links,
  * and iframes only from approved video hosts.
  */
-function sanitizeRichHtml(string $html): string
-{
+if (!function_exists('sanitizeRichHtml')) {
+  function sanitizeRichHtml(string $html): string
+  {
   if (trim($html) === '') {
     return '';
   }
+
+  // Convert raw pasted Twitter/X embed blockquotes into static iframes before sanitization
+  if (strpos($html, 'twitter-tweet') !== false) {
+      $html = preg_replace_callback(
+          '/<blockquote class="[^"]*twitter-tweet[^"]*"[^>]*>.*?href="https:\/\/(?:twitter|x)\.com\/[^\/]+\/status\/(\d+)[^"]*".*?<\/blockquote>(?:\s*<script[^>]*>.*?<\/script>)?/is',
+          function($m) {
+              return '<iframe src="https://platform.twitter.com/embed/Tweet.html?id=' . $m[1] . '" width="550" height="600" frameborder="0" scrolling="no" style="max-width: 100%; overflow: hidden;"></iframe>';
+          },
+          $html
+      );
+  }
+  
+  // Convert raw pasted Instagram embed blockquotes into static iframes before sanitization
+  if (strpos($html, 'instagram-media') !== false) {
+      $html = preg_replace_callback(
+          '/<blockquote class="[^"]*instagram-media[^"]*"[^>]*data-instgrm-permalink="https:\/\/(?:www\.)?instagram\.com\/(?:[^\/]+\/)?(?:p|reel|tv)\/([a-zA-Z0-9_-]+)[^"]*".*?<\/blockquote>(?:\s*<script[^>]*>.*?<\/script>)?/is',
+          function($m) {
+              return '<iframe src="https://www.instagram.com/p/' . $m[1] . '/embed/captioned" width="540" height="700" frameborder="0" scrolling="no" style="max-width: 100%; overflow: hidden;"></iframe>';
+          },
+          $html
+      );
+  }
+
+  // Magically convert raw pasted TikTok embed blockquotes into static iframes before sanitization
+  $html = preg_replace_callback(
+      '/<blockquote class="tiktok-embed"[^>]*?cite="https:\/\/www\.tiktok\.com\/.*?\/video\/(\d+)[^"]*".*?<\/blockquote>\s*<script[^>]*>.*?<\/script>/is',
+      function($m) {
+          return '<iframe src="https://www.tiktok.com/embed/v2/' . $m[1] . '" width="325" height="740" frameborder="0" scrolling="no" allow="fullscreen" style="max-width: 100%; overflow: hidden;"></iframe>';
+      },
+      $html
+  );
+  
+  // Magically convert raw pasted Dailymotion wrappers into .iframe-container before sanitization
+  $html = preg_replace_callback(
+      '/<div[^>]*?>\s*<iframe[^>]*?src="(https:\/\/(?:www\.|geo\.)?dailymotion\.com\/(?:embed\/video\/|player\.html\?video=)[a-zA-Z0-9_-]+)"[^>]*>.*?<\/iframe>\s*<\/div>/is',
+      function($m) {
+          return '<div class="iframe-container"><iframe src="' . $m[1] . '" width="100%" height="100%" frameborder="0" allowfullscreen></iframe></div>';
+      },
+      $html
+  );
   
   $config = \HTMLPurifier_Config::createDefault();
   $config->set('Cache.DefinitionImpl', null); // Keep disabled for local XAMPP dev
 
   // CRITICAL: Ensure class is explicitly allowed on spans, images, and iframes
   $config->set('HTML.Allowed',
-    'p[style|class],br,strong,b,em,i,u,s,strike,sub,sup,blockquote[style|class],' .
+    'p[style|class],br,strong,b,em,i,u,s,strike,sub,sup,blockquote[style|class|data-instgrm-permalink|data-instgrm-version|data-instgrm-captioned|data-instgrm-payload-id],' .
     'ul[style|class],ol[style|class],li[style|class],a[href|title|target|rel],img[src|alt|width|height|title|style|class],' .
     'h1[style|class],h2[style|class],h3[style|class],h4[style|class],h5[style|class],h6[style|class],span[style|class],div[style|class],' .
-    'iframe[src|width|height|frameborder|allowfullscreen|title|class|style]'
+    'iframe[src|width|height|frameborder|allowfullscreen|title|class|style|scrolling]'
   );
   
   $config->set(
     'CSS.AllowedProperties',
-    'text-align,float,display,margin,margin-left,margin-right,margin-top,margin-bottom,width,height,max-width'
+    'text-align,float,display,margin,margin-left,margin-right,margin-top,margin-bottom,width,height,max-width,padding,padding-bottom,padding-top,padding-left,padding-right,overflow,border,background,background-color'
   );
   
   $config->set('HTML.Nofollow', true);
@@ -41,29 +82,30 @@ function sanitizeRichHtml(string $html): string
   $config->set('HTML.Trusted', true);
   $config->set('CSS.AllowTricky', true);
 
+  // Define custom data attributes for Instagram blockquotes
+  // This must be called LAST because it finalizes the config
+  $def = $config->getHTMLDefinition(true);
+  $def->addAttribute('blockquote', 'data-instgrm-permalink', 'Text');
+  $def->addAttribute('blockquote', 'data-instgrm-version', 'Text');
+  $def->addAttribute('blockquote', 'data-instgrm-captioned', 'Text');
+  $def->addAttribute('blockquote', 'data-instgrm-payload-id', 'Text');
+  
+  // Define custom data attributes for Twitter blockquotes
+  $def->addAttribute('blockquote', 'data-theme', 'Text');
+  $def->addAttribute('blockquote', 'data-dnt', 'Text');
+  $def->addAttribute('blockquote', 'data-media-max-width', 'Text');
+
   $purifier = new \HTMLPurifier($config);
   return $purifier->purify($html);
+  }
 }
-function getSafeVideoIframeRegexp(): string
-{
-  $hosts = implode('|', [
-    // YouTube
-    '(?:www\.)?youtube\.com',
-    '(?:www\.)?youtube-nocookie\.com',
-    'youtu\.be', // rare in iframe src; harmless to allow
-    // Vimeo
-    'player\.vimeo\.com',
-    '(?:www\.)?vimeo\.com',
-    // DailyMotion
-    '(?:www\.)?dailymotion\.com',
-    'geo\.dailymotion\.com',
-    // Youku
-    '(?:www\.)?youku\.com',
-    'player\.youku\.com',
-    'v\.youku\.com',
-  ]);
-  // Match from start of URL (after optional scheme)
-  return '%^(https?:)?//(' . $hosts . ')/%i';
+
+if (!function_exists('getSafeVideoIframeRegexp')) {
+  function getSafeVideoIframeRegexp(): string
+  {
+  // Allow all HTTP and HTTPS URLs for iframes to universally support lesser-known platforms
+  return '%^https?://%';
+  }
 }
 function addHttpProtocol(string $url): string
 {
@@ -271,8 +313,12 @@ function saveAvatarImage($file, $userName)
     $thumb->scaleDown(height: avatarThumb());
     $small->scaleDown(height: avatarSmall());
 
-    // Save the resized image to the public disk
+    // Clear out any old avatars to prevent orphaned files
     $imageRoot = "images/uploaded/users/$userName/avatar/";
+    Storage::disk('public')->deleteDirectory($imageRoot . 'thumb');
+    Storage::disk('public')->deleteDirectory($imageRoot . 'small');
+
+    // Save the resized image to the public disk
     Storage::disk('public')->put($imageRoot . 'thumb/' . $imageName, (string) $thumb->encode());
     Storage::disk('public')->put($imageRoot . 'small/' . $imageName, (string) $small->encode());
 
@@ -303,12 +349,7 @@ function storeImageFile($file, $folder)
 
     return $imageName;
 }
-function deleteAvatar($imageName, $userName)
-{
-    $imageRoot = "images/uploaded/users/$userName/avatar/";   
-    Storage::disk('public')->delete($imageRoot . 'thumb/' . $imageName);
-    Storage::disk('public')->delete($imageRoot . 'small/' . $imageName);
-}
+
 function deleteGalleryImages($imageName, $folderPath)
 {
     $imageRoot = 'images/uploaded/' . $folderPath . '/';

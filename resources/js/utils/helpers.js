@@ -1,15 +1,4 @@
 import DOMPurify from 'isomorphic-dompurify';
-const SAFE_VIDEO_IFRAME_HOSTS = [
-  /^(?:www\.)?youtube\.com$/i,
-  /^(?:www\.)?youtube-nocookie\.com$/i,
-  /^player\.vimeo\.com$/i,
-  /^(?:www\.)?vimeo\.com$/i,
-  /^(?:www\.)?dailymotion\.com$/i,
-  /^geo\.dailymotion\.com$/i,
-  /^(?:www\.)?youku\.com$/i,
-  /^player\.youku\.com$/i,
-  /^v\.youku\.com$/i,
-];
 
 export const LoginType = {
     Webmaster: 0,
@@ -21,10 +10,10 @@ function isSafeVideoIframeSrc(src)
 {
   try 
   {
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost';
-    const url = new URL(src, origin);
+    const url = new URL(src, window.location.origin);
+    // Allow any valid HTTP/HTTPS URL
     if (url.protocol !== 'https:' && url.protocol !== 'http:') return false;
-    return SAFE_VIDEO_IFRAME_HOSTS.some((re) => re.test(url.hostname));
+    return true;
   } 
   catch 
   {
@@ -55,9 +44,9 @@ export function sanitizeRichHtml(html)
     ALLOWED_ATTR: [
       'href', 'title', 'target', 'rel', 'src', 'alt', 'width', 'height',
       'style', 'class', 'frameborder', 'allowfullscreen', 'allow',
-      'referrerpolicy',
+      'referrerpolicy', 'scrolling',
     ],
-    ALLOW_DATA_ATTR: false,
+    ALLOW_DATA_ATTR: true,
   });
 
   DOMPurify.removeHook('uponSanitizeElement');
@@ -152,6 +141,78 @@ function blobToBase64(blob)
         reader.readAsDataURL(blob);
     });
 }
+
+
+export function setupIframeResizer() {
+    if (window._iframeResizerSetup) return;
+    window._iframeResizerSetup = true;
+
+    window.addEventListener('message', (event) => {
+        let data;
+        try {
+            data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+        } catch (e) {
+            return;
+        }
+
+        // Check if it's a Twitter resize message
+        if (data && data['twttr.embed'] && data['twttr.embed'].method === 'twttr.private.resize') {
+            const height = data['twttr.embed'].params[0].height;
+            let found = false;
+            const iframes = document.querySelectorAll('iframe[src*="platform.twitter.com/embed/Tweet.html"]');
+            for (let i = 0; i < iframes.length; i++) {
+                if (iframes[i].contentWindow === event.source) {
+                    iframes[i].style.height = `${height + 4}px`;
+                    found = true;
+                    break;
+                }
+            }
+            if (!found && window.tinymce) {
+                window.tinymce.editors.forEach(editor => {
+                    const editorDoc = editor.getDoc();
+                    if (editorDoc) {
+                        const editorIframes = editorDoc.querySelectorAll('iframe[src*="platform.twitter.com/embed/Tweet.html"]');
+                        for (let i = 0; i < editorIframes.length; i++) {
+                            if (editorIframes[i].contentWindow === event.source) {
+                                editorIframes[i].style.height = `${height + 4}px`;
+                                break;
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Check if it's an Instagram resize message
+        if (data && data.type === 'MEASURE' && data.details && data.details.height) {
+            const height = data.details.height;
+            let found = false;
+            const iframes = document.querySelectorAll('iframe[src*="instagram.com"]');
+            for (let i = 0; i < iframes.length; i++) {
+                if (iframes[i].contentWindow === event.source) {
+                    iframes[i].style.height = `${height + 4}px`;
+                    found = true;
+                    break;
+                }
+            }
+            if (!found && window.tinymce) {
+                window.tinymce.editors.forEach(editor => {
+                    const editorDoc = editor.getDoc();
+                    if (editorDoc) {
+                        const editorIframes = editorDoc.querySelectorAll('iframe[src*="instagram.com"]');
+                        for (let i = 0; i < editorIframes.length; i++) {
+                            if (editorIframes[i].contentWindow === event.source) {
+                                editorIframes[i].style.height = `${height + 4}px`;
+                                break;
+                            }
+                        }
+                    }
+                });
+            }
+        }
+    });
+}
+
 function handleResizeWithCanvas(img, mimeType)
 {
     return new Promise((resolve) => 
@@ -528,7 +589,7 @@ export function getVideoEmbedUrl(url)
     videoId = getVideoId(url, vimeoPatterns);
     if (videoId) 
     {
-        return `https://player.vimeo.com/video/${videoId}`;
+        return `https://player.vimeo.com/video/${videoId}?transparent=0`;
     }
 
     videoId = getVideoId(url, dailyMotionPatterns);

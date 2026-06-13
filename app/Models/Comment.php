@@ -13,7 +13,6 @@ class Comment extends Model
     [
         'content',
         'post_id',
-        'user_id',
         'parent_id'
     ];
     protected $appends = ['content_html'];

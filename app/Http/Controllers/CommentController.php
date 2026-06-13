@@ -58,11 +58,10 @@ class CommentController extends Controller
         Log::info("parent id is $request->parent_id");
 
         $userId = $request->user()->id;
-        $commentFields = [
-            ...$validatedFields,
-            'user_id' => $userId
-        ];
-        $comment = $post->comments()->create($commentFields);
+        
+        $comment = new Comment($validatedFields);
+        $comment->user_id = $userId;
+        $post->comments()->save($comment);
 
         $repliedToUser = isset($request->parent_id) ? 
             Comment::where('id', $request->parent_id)->first()->user_id

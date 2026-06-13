@@ -17,6 +17,7 @@ function Registration()
     };
 
     const { props } = usePage();
+    const APP_NAME = props.app_name;
     const user = props?.auth?.user ?? null;
     const isAuthenticated = !!user;
     const isLoading = false;
@@ -305,7 +306,7 @@ function Registration()
     <>
         <PageHead title="Registration" />
         <div className={formContainerClasses}>
-            <h1 className='centered-content no-margin'>join netart.io</h1>
+            <h1 className='centered-content no-margin'>join {APP_NAME}</h1>
         {errors.general && (
           <div className="error">
             {errors.general}

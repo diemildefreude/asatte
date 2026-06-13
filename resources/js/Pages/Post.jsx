@@ -180,6 +180,17 @@
                                             ) : ( <></>)
                                         }
                                         {
+                                            post?.is_private ? (
+                                            <div>
+                                                <div
+                                                    type="button" 
+                                                    className={"big-icon blue"}
+                                                    title="private post"                                                    
+                                                >
+                                                    <i className="fa-regular fa-eye-slash"></i>
+                                                </div>
+                                            </div>
+                                            ):(
                                             isAuthenticated && (
                                             <div>
                                                 <button 
@@ -191,7 +202,7 @@
                                                 >
                                                     <i className={isLiked ? "fa-solid fa-star" : "fa-regular fa-star"}></i>
                                                 </button>
-                                            </div>)
+                                            </div>))
                                         }
                                         </div>
                                     </div>

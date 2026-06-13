@@ -33,10 +33,6 @@ class DashboardController extends Controller
             'avatar' => ['required', 'image', 'mimes:png,jpeg,jpg,webp,bmp']   
         ]);
         $user = $request->user();
-        if($user->avatar)
-        {
-            deleteAvatar($user->avatar, $user->username);
-        }
         $imgPath = saveAvatarImage($request->file('avatar'), $user->username);
         $user->avatar = $imgPath;
         $user->save();
@@ -91,8 +87,8 @@ class DashboardController extends Controller
 
         $request->validate
         ([
-            'website' => ['required', 'string'],
-            'location' => ['required', 'string']            
+            'website' => ['nullable', 'string', 'max:255'],
+            'location' => ['nullable', 'string', 'max:255']            
         ]);
 
         $showEmailInProfileField = $request->input('show_email_in_profile');
@@ -204,7 +200,7 @@ class DashboardController extends Controller
                     $comment = Comment::with(['user:id,username,avatar', 'post:id,title,post_url,user_id', 'post.user:id,username'])->find($data['comment_id']);
                     $notification->setRelation('comment', $comment);
                 } else if ($type == NotificationType::Unhidden && isset($data['post_id'])) {
-                    $post = Post::with(['user:id,username'])->find($data['post_id'])->select(['id', 'post_url', 'title']);
+                    $post = Post::with(['user:id,username'])->select(['id', 'post_url', 'title', 'user_id'])->find($data['post_id']);
                     $notification->setRelation('post', $post);
                     $notification->unhidden_at = \Carbon\Carbon::now()->toDateTimeString();
                 } else if ($type == NotificationType::Follower && isset($data['follower_id'])) {
@@ -212,6 +208,10 @@ class DashboardController extends Controller
                     $notification->setRelation('follower', $follower);
                 }
                 $notification->makeHidden('data');
+                if(!$notification->is_read) {
+                    $notification->is_read = true;
+                    $notification->save();
+                }
                 return $notification;
             });
 

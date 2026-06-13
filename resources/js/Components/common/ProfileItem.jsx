@@ -1,9 +1,19 @@
+import { useRef, useEffect } from "react";
 import EditButton from "./EditButton";
 
-function ProfileItem({name, value, onChange=null, isSubmitting=false, 
+function ProfileItem({name, value, onChange=null, disabled=false, 
     isLink=false, isEditingThisField=false, onEditClick, isPublic=false})
 {
     const isUpdatable = onChange ? true : false;
+    const inputRef = useRef(null);
+
+    useEffect(() => 
+    {
+        if (isEditingThisField && inputRef.current) 
+        {
+            inputRef.current.focus();
+        }
+    }, [isEditingThisField]);
 
     return (
         <div className="inline-form-field">            
@@ -13,8 +23,9 @@ function ProfileItem({name, value, onChange=null, isSubmitting=false,
                     <input 
                         id={name} 
                         defaultValue={value} 
-                        disabled={!isEditingThisField || isSubmitting}
+                        disabled={!isEditingThisField || disabled}
                         onChange={onChange}
+                        ref={inputRef}
                     />
                 </>):
                 (<>
@@ -34,8 +45,8 @@ function ProfileItem({name, value, onChange=null, isSubmitting=false,
                 </>)
             }
             {!isPublic && (    
-                <EditButton onClick={(e) => { e.preventDefault(); onEditClick()}} 
-                    disabled={!isUpdatable || isEditingThisField || isSubmitting} 
+                <EditButton onClick={(e) => { e.preventDefault(); onEditClick();}} 
+                    disabled={!isUpdatable || isEditingThisField || disabled} 
                     className={isUpdatable ? "" : "invisible"}
                 />  
             )}           

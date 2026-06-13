@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './Header.css';
+import '../../Pages/DashboardProfile.css';
 import { Link, router, usePage } from '@inertiajs/react';
 
 import UserLink from '../common/UserLink';
@@ -9,6 +10,8 @@ function Header()
     const { props, url } = usePage();
     const appUrl = props.app_url;
     const user = props?.auth?.user;
+    const unread = props?.unread ?? {};
+    const hasUnread = !!unread.has_unread_notifications || !!unread.has_unread_mail;
     
     const dashboardUrl = `${appUrl}/dashboard/`;
     
@@ -84,10 +87,12 @@ function Header()
             if(scrollTop > lastScrollTopRef.current)
             {
                 headerRef.current.classList.toggle("header-out", true);
+                headerRef.current.classList.toggle("header-in", false);
             }
             else        
             {
                 headerRef.current.classList.toggle("header-out", false);
+                headerRef.current.classList.toggle("header-in", true);
             }
 
             lastScrollTopRef.current = scrollTop;
@@ -119,15 +124,6 @@ function Header()
         }
         const encodedQuery = encodeURIComponent(searchTerm);
         router.visit(`/search?q=${encodedQuery}`);
-        //setIsSearching(true);
-        // const oldPath = location.pathname;
-        
-        // router.visit('/search', { state: { query: searchTerm}});
-
-        // if(oldPath == '/search')
-        // {
-        //     window.location.reload();
-        // }
     },[searchTerm]);
 
     return (
@@ -159,8 +155,8 @@ function Header()
                             onChange={e => setSearchTerm(e.target.value)} value={searchTerm}
                             ref={searchInputRef}
                         />
-                        <button type="submit" tabIndex="-1">
-                            <i className="fa-solid fa-magnifying-glass"></i>
+                        <button type="submit" tabIndex="-1" aria-label="Submit search">
+                            <i className="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
                         </button>
                     </form>
                     <Link href="/" className="nav-item" onClick={() => setIsNavOpen(false)}>home</Link>
@@ -173,7 +169,7 @@ function Header()
                         isAuthenticated ?
                         (
                             <UserLink user={user}
-                                additionalClasses="nav-item"
+                                additionalClasses={`nav-item ${hasUnread ? 'has-unread' : ''}`}
                                 url={dashboardUrl}
                                 onClick={() => setIsNavOpen(false)}
                             />

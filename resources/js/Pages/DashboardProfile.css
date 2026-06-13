@@ -94,7 +94,7 @@
     background-color: cyan;
     display: none;
 }
-.convo-avatar .notice-light
+.convo-avatar .notice-light, .notice-light.small
 {
     height: 20%;
 }
@@ -104,7 +104,8 @@
 }
 .has-new-notifications .activity .notice-light, 
 .has-new-notifications .notice-light.notifications-preview,
-.has-new-mail .mail .notice-light, .has-new-mail.convo-avatar .notice-light
+.has-new-mail .mail .notice-light, .has-new-mail.convo-avatar .notice-light,
+.has-unread .notice-light
 {
     display: block;
 }
@@ -128,6 +129,11 @@
     top: 50%;
     right: -20%;
     transform: translateY(-55%);
+}
+.avatar-container .notice-light
+{
+    bottom: 15%;
+    right: 0%;
 }
 /*---PROFILE/INFO BOX---*/
 .main-info-delete-container
@@ -236,7 +242,7 @@
 {    
     .heading-profile-container
     {
-        max-width: calc(100svw - 80px - 4rem);
+        max-width: calc(100svw - 80px - 3rem);
     }
     .heading-profile-container.public-profile
     {
@@ -274,13 +280,24 @@
     top: 50%;
     transform: translateY(-50%);
 }
-.left-item
+.left-item, .left-item.padded
 {
     left: 1rem;
 }
-.right-item
+.right-item .left-item.padded
 {    
     right: 1rem;
+}
+@media (min-width: 450px)
+{
+    .left-item
+    {
+        left: 0rem;
+    }
+    .right-item
+    {    
+        right: 0rem;
+    }
 }
 .image-crop-container-container
 {

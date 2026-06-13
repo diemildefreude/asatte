@@ -213,10 +213,11 @@ class AuthController extends Controller
     }
     public function register(RegisterRequest $request)
     {
-        $hasHoneypotField = $request->input('is_user_human');
+        $hasHoneypotField = $request->input('is_user_human'); 
         $hasRobotField = $request->input('is_user_robot');
 
-        if ($hasHoneypotField === true || $hasRobotField === false) {
+        if ($hasHoneypotField || $hasRobotField) 
+        {
             return redirect('/')->with('status', 'happy_landings');
         }
 

@@ -2,7 +2,7 @@ import { Editor } from '@tinymce/tinymce-react';
 import { useEffect, useRef } from 'react';
 import './RichTextEditor.css';
 
-function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApplied, placeholder=" " }) 
+function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApplied, placeholder=" ", autoFocus = false }) 
 {
     const editorRef = useRef(null);
     const localCssPath = '/tinymce/my-tinymce-styles.css';
@@ -46,7 +46,13 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
       // 2. Tell it you're using the open-source license
       licenseKey='gpl' 
       value={typeof value === 'string' ? value : ""}
-      onInit={(evt, editor) => editorRef.current = editor}
+      editorRef={editorRef}
+      onInit={(evt, editor) => {
+        editorRef.current = editor;
+        if (autoFocus) {
+          editor.focus();
+        }
+      }}
       init={{
         height: 500,
         convert_urls: false,
@@ -55,12 +61,77 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
         toolbar: isReadOnly ? false : 
             ['styles | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist | image media link']
         ,
+        extended_valid_elements: 'blockquote[class|data-instgrm-permalink|data-instgrm-version|data-instgrm-captioned|data-instgrm-payload-id|data-video-id|cite|data-theme|data-dnt|data-media-max-width],iframe[src|title|width|height|frameborder|allowfullscreen|scrolling|allow|style]',
         toolbar_mode: 'wrap',
         placeholder: placeholder,       
         // image_title: true,
         // automatic_uploads: true,
+        sandbox_iframes: false,
         file_picker_types: 'image',
         media_live_embeds: true,
+        setup: (editor) => {
+          editor.on('BeforeSetContent', (e) => {
+            if (!e.content) return;
+
+            // Convert raw pasted Twitter/X embed blockquotes into static iframes instantly
+            if (e.content.includes('twitter-tweet')) {
+              e.content = e.content.replace(/<blockquote class="[^"]*twitter-tweet[^"]*"[^>]*>[\s\S]*?href="https:\/\/(?:twitter|x)\.com\/[^\/]+\/status\/(\d+)[^"]*"[\s\S]*?<\/blockquote>(?:\s*<script[^>]*>[\s\S]*?<\/script>)?/ig, (match, tweetId) => {
+                  return `<iframe src="https://platform.twitter.com/embed/Tweet.html?id=${tweetId}" width="550" height="600" frameborder="0" scrolling="no" style="max-width: 100%; overflow: hidden;"></iframe>`;
+              });
+            }
+
+            // Convert raw pasted Instagram embed blockquotes into static iframes instantly
+            if (e.content.includes('instagram-media')) {
+              e.content = e.content.replace(/<blockquote class="[^"]*instagram-media[^"]*"[^>]*data-instgrm-permalink="https:\/\/(?:www\.)?instagram\.com\/(?:[^\/]+\/)?(?:p|reel|tv)\/([a-zA-Z0-9_-]+)[^"]*"[\s\S]*?<\/blockquote>(?:\s*<script[^>]*>[\s\S]*?<\/script>)?/ig, (match, igId) => {
+                  return `<iframe src="https://www.instagram.com/p/${igId}/embed/captioned" width="540" height="700" frameborder="0" scrolling="no" style="max-width: 100%; overflow: hidden;"></iframe>`;
+              });
+            }
+
+            // Convert raw pasted TikTok embed blockquotes into static iframes instantly
+            if (e.content.includes('tiktok-embed')) {
+              e.content = e.content.replace(/<blockquote class="[^"]*tiktok-embed[^"]*"[^>]*cite="https:\/\/(?:www\.)?tiktok\.com\/[^\/]+\/video\/(\d+)[^"]*"[\s\S]*?<\/blockquote>(?:\s*<script[^>]*>[\s\S]*?<\/script>)?/ig, (match, videoId) => {
+                  return `<iframe src="https://www.tiktok.com/embed/v2/${videoId}" width="325" height="740" frameborder="0" scrolling="no" allow="fullscreen" style="max-width: 100%; overflow: hidden;"></iframe>`;
+              });
+            }
+          });
+
+          editor.on('init', () => {
+            const editorWin = editor.getWin();
+            const editorDoc = editor.getDoc();
+            if (!editorWin || !editorDoc) return;
+            
+            editorWin.addEventListener('message', (event) => {
+                let data;
+                try {
+                    data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+                } catch (e) {
+                    return;
+                }
+
+                if (data && data['twttr.embed'] && data['twttr.embed'].method === 'twttr.private.resize') {
+                    const height = data['twttr.embed'].params[0].height;
+                    const iframes = editorDoc.querySelectorAll('iframe[src*="platform.twitter.com/embed/Tweet.html"]');
+                    for (let i = 0; i < iframes.length; i++) {
+                        if (iframes[i].contentWindow === event.source) {
+                            iframes[i].style.height = `${height + 4}px`;
+                            break;
+                        }
+                    }
+                }
+
+                if (data && data.type === 'MEASURE' && data.details && data.details.height) {
+                    const height = data.details.height;
+                    const iframes = editorDoc.querySelectorAll('iframe[src*="instagram.com"]');
+                    for (let i = 0; i < iframes.length; i++) {
+                        if (iframes[i].contentWindow === event.source) {
+                            iframes[i].style.height = `${height + 4}px`;
+                            break;
+                        }
+                    }
+                }
+            });
+          });
+        },
         
         media_url_resolver: (data) => {
           return new Promise((resolve, reject) => {
@@ -77,9 +148,47 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
               }
             }
             
-            // 2. If it's not a short, reject with an empty object so TinyMCE 
-            // uses its own internal regex matching for normal YouTube/Vimeo links
-            //reject({ msg: 'Not a YouTube Short' });
+            // 2. Instagram Post/Reel Converter
+            if (data.url && (data.url.includes('instagram.com/') && (data.url.includes('/p/') || data.url.includes('/reel/')))) {
+              const match = data.url.match(/instagram\.com\/(?:[^\/]+\/)?(p|reel)\/([a-zA-Z0-9_-]+)/);
+              if (match && match[2]) {
+                const embedHtml = `<iframe src="https://www.instagram.com/p/${match[2]}/embed/captioned" width="540" height="700" frameborder="0" scrolling="no" style="max-width: 100%; overflow: hidden;"></iframe>`;
+                resolve({ html: embedHtml });
+                return;
+              }
+            }
+
+            // 3. TikTok Video Converter (Safe static iframe)
+            if (data.url && data.url.includes('tiktok.com/')) {
+              const match = data.url.match(/tiktok\.com\/.*\/video\/(\d+)/);
+              if (match && match[1]) {
+                const embedHtml = `<iframe src="https://www.tiktok.com/embed/v2/${match[1]}" width="325" height="740" frameborder="0" scrolling="no" allow="fullscreen" style="max-width: 100%; overflow: hidden;"></iframe>`;
+                resolve({ html: embedHtml });
+                return;
+              }
+            }
+
+            // 4. Twitter / X Converter
+            if (data.url && (data.url.includes('twitter.com/') || data.url.includes('x.com/'))) {
+              const match = data.url.match(/(twitter\.com|x\.com)\/([^/]+)\/status\/(\d+)/);
+              if (match && match[3]) {
+                const embedHtml = `<iframe src="https://platform.twitter.com/embed/Tweet.html?id=${match[3]}" width="550" height="600" frameborder="0" scrolling="no" style="max-width: 100%; overflow: hidden;"></iframe>`;
+                resolve({ html: embedHtml });
+                return;
+              }
+            }
+
+            // 4.5 Vimeo Strict 16:9 Converter
+            if (data.url && data.url.includes('vimeo.com/')) {
+              const match = data.url.match(/(?:vimeo\.com\/|player\.vimeo\.com\/video\/)(\d+)/);
+              if (match && match[1]) {
+                const embedHtml = `<iframe src="https://player.vimeo.com/video/${match[1]}" width="560" height="315" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>`;
+                resolve({ html: embedHtml });
+                return;
+              }
+            }
+            
+            // 5. If none match, return empty so TinyMCE uses default fallback
             resolve({ html: '' });
           });
         },

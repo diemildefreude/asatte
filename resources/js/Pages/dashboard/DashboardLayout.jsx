@@ -22,6 +22,7 @@ function DashboardLayout({ currentTab, headerText, children })
     const hasUnreadNotifications = !!unread.has_unread_notifications;
     const hasUnreadMail = !!unread.has_unread_mail;
 
+    console.log("unread", unread);
     useEffect(() => 
     {
         const handlePopState = () => {

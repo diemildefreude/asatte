@@ -23,6 +23,7 @@
     /* flex-shrink: 0; */
     /* overflow: hidden;                */
     line-height: 0;    
+    position: relative;
 }
 /* make .round-image fill the avatar container */
 .user-link .avatar-container .round-image 

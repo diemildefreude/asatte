@@ -113,7 +113,7 @@ function Message({message, onReply=null, onDelete=null, id, parentLocalId=null,
                 />):(
                 <div
                     dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(content) }}
-                    className="article-text"
+                    className="message-text"
                 />
             )
         }

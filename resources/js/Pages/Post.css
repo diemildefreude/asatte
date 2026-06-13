@@ -70,10 +70,13 @@
 {
     padding: 0 0.5rem;
     font-size: 2em;
-    color: var(--grey-yellow);
     border: none;
 }
-.content:not(.touch-device) .main-image-container .like-button:hover
+.like-button
+{
+    color: var(--grey-yellow);
+}
+.content:not(.touch-device) .main-image-container button.like-button:hover
 {
     background: none;
     border: none;
@@ -130,7 +133,7 @@
 {
     margin: 0 0 2rem;
     box-sizing: border-box;
-    overflow-wrap: break-word;
+    /* overflow-wrap: anywhere; */
 }
 .page-section.video
 {
@@ -284,7 +287,7 @@
     background-color: rgba(0, 0, 0, 0.5);
     border: 2px solid white;
     box-sizing: border-box;
-    overflow-wrap: break-word;
+    /* overflow-wrap: break-word; */
 }
 /*-------ADMIN HIDE FORM---------*/
 .post form 

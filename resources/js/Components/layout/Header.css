@@ -14,7 +14,10 @@ header
     right: 0;
     z-index: 99;
     opacity: 1.0;
-    transition: opacity 0.5s;
+    visibility: visible;
+    transition: 
+        opacity 0.5s 0.0s, 
+        visibility 0.0s 0.5s;
     height: var(--header-height-narrow);
 }
 @media (min-width: 700px)
@@ -27,6 +30,13 @@ header
     {
         /* top: -100px; */
         opacity: 0.0;
+        visibility:hidden;
+    }
+    header.header-in
+    {
+        transition: 
+            opacity 0.5s 0.0s, 
+            visibility 0.0s 0.0s;
     }
 }
 /*NAV--------------*/
@@ -306,4 +316,17 @@ nav.open
         box-sizing:border-box;
         height: var(--header-height-wide);
     }
+}
+
+.user-link.nav-item.has-unread .avatar-container::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    right: 0px;
+    width: 14px;
+    height: 14px;
+    background-color: var(--neon-pink);
+    border-radius: 50%;
+    border: 2px solid var(--almost-black);
+    z-index: 2;
 }

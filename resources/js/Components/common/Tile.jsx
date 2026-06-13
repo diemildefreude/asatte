@@ -13,7 +13,7 @@ function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false})
     let viewText = "info";
     if(isDashboard)
     {
-        viewText = "preview";
+        viewText = "view";
     } 
     else if(post.is_news)
     {
@@ -45,13 +45,13 @@ function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false})
         }
     }
     return (
-        <div className="work-tile">                                    
+        <article className="work-tile">                                    
         { 
             imageUrls && imageUrls.length > 0 && 
             (
                 <img className='tile-image'
                     src={`${directory}/${imageUrls[0]}`} 
-                    alt={post.title} 
+                    alt={`Thumbnail for ${post.title}`} 
                     draggable="false"
                 />
             )                            
@@ -113,6 +113,7 @@ function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false})
                                     className="post-link"
                                     onClick={handleLinkClick} 
                                     draggable="false"
+                                    aria-label="Edit post"
                                 >
                                     <i className="fa-solid fa-pen-to-square"></i>
                                     <span>edit</span>  
@@ -127,6 +128,7 @@ function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false})
                             className="post-link"
                             onClick={handleLinkClick} 
                             draggable="false"
+                            aria-label={`View ${post.is_news ? 'news ' : ''}post`}
                         >
                             {
                                 post.is_news ? (
@@ -145,6 +147,7 @@ function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false})
                                 <a href={post.website} 
                                     className="post-link"
                                     draggable="false"
+                                    aria-label="Visit external website"
                                     onClick={(e) => 
                                     {
                                         if(isSliderDraggedPointerUp?.current)
@@ -168,7 +171,7 @@ function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false})
                 </div>
             </div>
             
-        </div>
+        </article>
     )
 }
 

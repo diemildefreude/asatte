@@ -3,6 +3,7 @@ import '../css/app.css';
 import './styles/reset.css';
 import './styles/styles.css';
 
+import { setupIframeResizer } from './utils/helpers';
 import { createRoot, hydrateRoot } from 'react-dom/client';
 import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
@@ -25,6 +26,9 @@ createInertiaApp({
         return page;
     },
     setup({ el, App, props }) {
+        // Initialize global iframe resizer for Twitter embeds
+        setupIframeResizer();
+
         if (import.meta.env.SSR) {
             hydrateRoot(el, <App {...props} />);
             return;

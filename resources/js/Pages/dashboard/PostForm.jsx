@@ -191,7 +191,8 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
             }
 
             setSuccess(message);
-            router.visit('/dashboard/posts', { state:{message:message}});
+            const targetRoute = data.is_news ? '/dashboard/news-posts' : '/dashboard/posts';
+            router.visit(targetRoute, { state:{message:message}});
         }
         catch(err)
         {
@@ -229,7 +230,8 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
                     onFinish: () => setIsSubmitting(false)
                 });
             });
-            router.visit('/dashboard/posts', { state:{message:"Post successfully deleted."}});
+            const targetRoute = data.is_news ? '/dashboard/news-posts' : '/dashboard/posts';
+            router.visit(targetRoute, { state:{message:"Post successfully deleted."}});
         }
         catch(err)
         {
@@ -256,7 +258,7 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
         if(embedUrl) {
             setData('main_video', embedUrl);
         } else {
-            setFieldLocalError('Must be a valid link from YouTube, DailyMotion, Vimeo, or Youku.');
+            setFieldLocalError('Must be a valid link from YouTube, DailyMotion, or Vimeo.');
         }
     }, [setData]);
 
@@ -344,7 +346,7 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
     const onImageChange = useCallback((index, file, imageUrl) =>
     {
         setHasChanged(true); 
-        setImageFields(prev => prev.map(field => field.index === index ? {...field, value: file, image:imageUrl} : field));
+        setImageFields(prev => prev.map(field => field.index === index ? {...field, value: file, image:imageUrl, type: 'new'} : field));
     }, []);
 
     const onAltChange = useCallback((index, altText) =>
@@ -491,7 +493,7 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
                         <FormField
                             id="main_video_raw"
                             label="main video"
-                            placeholder="YouTube, Vimeo, DailyMotion, or Youku"
+                            placeholder="YouTube, DailyMotion, or Vimeo"
                             value={data.main_video_raw}
                             onChange={(e) => {setHasChanged(true); setData('main_video_raw', e.target.value)}}
                             onValidate={handleMainVideoValidation}

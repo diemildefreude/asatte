@@ -42,6 +42,7 @@ function UserLink({user, readOnly=false, onClick=null, additionalClasses="", url
                             alt={`RipplyScottttttttttttttttttttttttttttttttt's avatar`} 
                             draggable="false"
                         />
+                        <span className="notice-light small"></span>
                     </span> 
                     <span className='username'>{user.username}</span>
                 </Link>

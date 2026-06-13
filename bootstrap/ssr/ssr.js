@@ -21,6 +21,7 @@ function PageHead({
   const ogImage = ogImg ?? `${domain}/storage/images/og_image.webp`;
   return /* @__PURE__ */ jsxs(Head, { title, children: [
     /* @__PURE__ */ jsx("meta", { "head-key": "description", name: "description", content: description }),
+    /* @__PURE__ */ jsx("link", { "head-key": "canonical", rel: "canonical", href: fullUrl }),
     /* @__PURE__ */ jsx("meta", { "head-key": "og:url", property: "og:url", content: fullUrl }),
     /* @__PURE__ */ jsx("meta", { "head-key": "og:type", property: "og:type", content: ogType }),
     /* @__PURE__ */ jsx("meta", { "head-key": "og:title", property: "og:title", content: title || "asatte.io" }),
@@ -36,7 +37,7 @@ function PageHead({
     /* @__PURE__ */ jsx("meta", { "head-key": "twitter:image", name: "twitter:image", content: ogImage })
   ] });
 }
-function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApplied, placeholder = " " }) {
+function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApplied, placeholder = " ", autoFocus = false }) {
   const editorRef = useRef(null);
   const localCssPath = "/tinymce/my-tinymce-styles.css";
   const localScriptSrc = "/tinymce/tinymce.min.js";
@@ -68,19 +69,80 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
       disabled: isReadOnly,
       licenseKey: "gpl",
       value: typeof value === "string" ? value : "",
-      onInit: (evt, editor) => editorRef.current = editor,
+      editorRef,
+      onInit: (evt, editor) => {
+        editorRef.current = editor;
+        if (autoFocus) {
+          editor.focus();
+        }
+      },
       init: {
         height: 500,
         convert_urls: false,
         menubar: false,
         plugins: "image link media",
         toolbar: isReadOnly ? false : ["styles | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist | image media link"],
+        extended_valid_elements: "blockquote[class|data-instgrm-permalink|data-instgrm-version|data-instgrm-captioned|data-instgrm-payload-id|data-video-id|cite|data-theme|data-dnt|data-media-max-width],iframe[src|title|width|height|frameborder|allowfullscreen|scrolling|allow|style]",
         toolbar_mode: "wrap",
         placeholder,
         // image_title: true,
         // automatic_uploads: true,
+        sandbox_iframes: false,
         file_picker_types: "image",
         media_live_embeds: true,
+        setup: (editor) => {
+          editor.on("BeforeSetContent", (e) => {
+            if (!e.content) return;
+            if (e.content.includes("twitter-tweet")) {
+              e.content = e.content.replace(/<blockquote class="[^"]*twitter-tweet[^"]*"[^>]*>[\s\S]*?href="https:\/\/(?:twitter|x)\.com\/[^\/]+\/status\/(\d+)[^"]*"[\s\S]*?<\/blockquote>(?:\s*<script[^>]*>[\s\S]*?<\/script>)?/ig, (match, tweetId) => {
+                return `<iframe src="https://platform.twitter.com/embed/Tweet.html?id=${tweetId}" width="550" height="600" frameborder="0" scrolling="no" style="max-width: 100%; overflow: hidden;"></iframe>`;
+              });
+            }
+            if (e.content.includes("instagram-media")) {
+              e.content = e.content.replace(/<blockquote class="[^"]*instagram-media[^"]*"[^>]*data-instgrm-permalink="https:\/\/(?:www\.)?instagram\.com\/(?:[^\/]+\/)?(?:p|reel|tv)\/([a-zA-Z0-9_-]+)[^"]*"[\s\S]*?<\/blockquote>(?:\s*<script[^>]*>[\s\S]*?<\/script>)?/ig, (match, igId) => {
+                return `<iframe src="https://www.instagram.com/p/${igId}/embed/captioned" width="540" height="700" frameborder="0" scrolling="no" style="max-width: 100%; overflow: hidden;"></iframe>`;
+              });
+            }
+            if (e.content.includes("tiktok-embed")) {
+              e.content = e.content.replace(/<blockquote class="[^"]*tiktok-embed[^"]*"[^>]*cite="https:\/\/(?:www\.)?tiktok\.com\/[^\/]+\/video\/(\d+)[^"]*"[\s\S]*?<\/blockquote>(?:\s*<script[^>]*>[\s\S]*?<\/script>)?/ig, (match, videoId) => {
+                return `<iframe src="https://www.tiktok.com/embed/v2/${videoId}" width="325" height="740" frameborder="0" scrolling="no" allow="fullscreen" style="max-width: 100%; overflow: hidden;"></iframe>`;
+              });
+            }
+          });
+          editor.on("init", () => {
+            const editorWin = editor.getWin();
+            const editorDoc = editor.getDoc();
+            if (!editorWin || !editorDoc) return;
+            editorWin.addEventListener("message", (event) => {
+              let data;
+              try {
+                data = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
+              } catch (e) {
+                return;
+              }
+              if (data && data["twttr.embed"] && data["twttr.embed"].method === "twttr.private.resize") {
+                const height = data["twttr.embed"].params[0].height;
+                const iframes = editorDoc.querySelectorAll('iframe[src*="platform.twitter.com/embed/Tweet.html"]');
+                for (let i = 0; i < iframes.length; i++) {
+                  if (iframes[i].contentWindow === event.source) {
+                    iframes[i].style.height = `${height + 4}px`;
+                    break;
+                  }
+                }
+              }
+              if (data && data.type === "MEASURE" && data.details && data.details.height) {
+                const height = data.details.height;
+                const iframes = editorDoc.querySelectorAll('iframe[src*="instagram.com"]');
+                for (let i = 0; i < iframes.length; i++) {
+                  if (iframes[i].contentWindow === event.source) {
+                    iframes[i].style.height = `${height + 4}px`;
+                    break;
+                  }
+                }
+              }
+            });
+          });
+        },
         media_url_resolver: (data) => {
           return new Promise((resolve, reject) => {
             if (data.url && data.url.includes("youtube.com/shorts/")) {
@@ -88,6 +150,38 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
               if (match && match[1]) {
                 const videoId = match[1];
                 const embedHtml = `<iframe width="560" height="315" src="https://www.youtube.com/embed/${videoId}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`;
+                resolve({ html: embedHtml });
+                return;
+              }
+            }
+            if (data.url && (data.url.includes("instagram.com/") && (data.url.includes("/p/") || data.url.includes("/reel/")))) {
+              const match = data.url.match(/instagram\.com\/(?:[^\/]+\/)?(p|reel)\/([a-zA-Z0-9_-]+)/);
+              if (match && match[2]) {
+                const embedHtml = `<iframe src="https://www.instagram.com/p/${match[2]}/embed/captioned" width="540" height="700" frameborder="0" scrolling="no" style="max-width: 100%; overflow: hidden;"></iframe>`;
+                resolve({ html: embedHtml });
+                return;
+              }
+            }
+            if (data.url && data.url.includes("tiktok.com/")) {
+              const match = data.url.match(/tiktok\.com\/.*\/video\/(\d+)/);
+              if (match && match[1]) {
+                const embedHtml = `<iframe src="https://www.tiktok.com/embed/v2/${match[1]}" width="325" height="740" frameborder="0" scrolling="no" allow="fullscreen" style="max-width: 100%; overflow: hidden;"></iframe>`;
+                resolve({ html: embedHtml });
+                return;
+              }
+            }
+            if (data.url && (data.url.includes("twitter.com/") || data.url.includes("x.com/"))) {
+              const match = data.url.match(/(twitter\.com|x\.com)\/([^/]+)\/status\/(\d+)/);
+              if (match && match[3]) {
+                const embedHtml = `<iframe src="https://platform.twitter.com/embed/Tweet.html?id=${match[3]}" width="550" height="600" frameborder="0" scrolling="no" style="max-width: 100%; overflow: hidden;"></iframe>`;
+                resolve({ html: embedHtml });
+                return;
+              }
+            }
+            if (data.url && data.url.includes("vimeo.com/")) {
+              const match = data.url.match(/(?:vimeo\.com\/|player\.vimeo\.com\/video\/)(\d+)/);
+              if (match && match[1]) {
+                const embedHtml = `<iframe src="https://player.vimeo.com/video/${match[1]}" width="560" height="315" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>`;
                 resolve({ html: embedHtml });
                 return;
               }
@@ -163,15 +257,18 @@ function UserLink({ user, readOnly = false, onClick = null, additionalClasses = 
       draggable: "false",
       onClick: handleOnClickOverride,
       children: [
-        /* @__PURE__ */ jsx("span", { className: "avatar-container", children: /* @__PURE__ */ jsx(
-          "img",
-          {
-            className: "round-image",
-            src: avatar,
-            alt: `RipplyScottttttttttttttttttttttttttttttttt's avatar`,
-            draggable: "false"
-          }
-        ) }),
+        /* @__PURE__ */ jsxs("span", { className: "avatar-container", children: [
+          /* @__PURE__ */ jsx(
+            "img",
+            {
+              className: "round-image",
+              src: avatar,
+              alt: `RipplyScottttttttttttttttttttttttttttttttt's avatar`,
+              draggable: "false"
+            }
+          ),
+          /* @__PURE__ */ jsx("span", { className: "notice-light small" })
+        ] }),
         /* @__PURE__ */ jsx("span", { className: "username", children: user.username })
       ]
     }
@@ -182,6 +279,8 @@ function Header() {
   const { props, url } = usePage();
   const appUrl = props.app_url;
   const user = (_a = props == null ? void 0 : props.auth) == null ? void 0 : _a.user;
+  const unread = (props == null ? void 0 : props.unread) ?? {};
+  const hasUnread = !!unread.has_unread_notifications || !!unread.has_unread_mail;
   const dashboardUrl = `${appUrl}/dashboard/`;
   const isClient = typeof window !== "undefined";
   const isAuthenticated = !!user;
@@ -230,8 +329,10 @@ function Header() {
       }
       if (scrollTop > lastScrollTopRef.current) {
         headerRef.current.classList.toggle("header-out", true);
+        headerRef.current.classList.toggle("header-in", false);
       } else {
         headerRef.current.classList.toggle("header-out", false);
+        headerRef.current.classList.toggle("header-in", true);
       }
       lastScrollTopRef.current = scrollTop;
     };
@@ -302,7 +403,7 @@ function Header() {
                   ref: searchInputRef
                 }
               ),
-              /* @__PURE__ */ jsx("button", { type: "submit", tabIndex: "-1", children: /* @__PURE__ */ jsx("i", { className: "fa-solid fa-magnifying-glass" }) })
+              /* @__PURE__ */ jsx("button", { type: "submit", tabIndex: "-1", "aria-label": "Submit search", children: /* @__PURE__ */ jsx("i", { className: "fa-solid fa-magnifying-glass", "aria-hidden": "true" }) })
             ]
           }
         ),
@@ -316,7 +417,7 @@ function Header() {
           UserLink,
           {
             user,
-            additionalClasses: "nav-item",
+            additionalClasses: `nav-item ${hasUnread ? "has-unread" : ""}`,
             url: dashboardUrl,
             onClick: () => setIsNavOpen(false)
           }
@@ -369,24 +470,12 @@ function Layout({ children, isDashboard = false, classes = "" }) {
     ] })
   ] });
 }
-const SAFE_VIDEO_IFRAME_HOSTS = [
-  /^(?:www\.)?youtube\.com$/i,
-  /^(?:www\.)?youtube-nocookie\.com$/i,
-  /^player\.vimeo\.com$/i,
-  /^(?:www\.)?vimeo\.com$/i,
-  /^(?:www\.)?dailymotion\.com$/i,
-  /^geo\.dailymotion\.com$/i,
-  /^(?:www\.)?youku\.com$/i,
-  /^player\.youku\.com$/i,
-  /^v\.youku\.com$/i
-];
 const LoginType = {};
 function isSafeVideoIframeSrc(src) {
   try {
-    const origin = typeof window !== "undefined" ? window.location.origin : "http://localhost";
-    const url = new URL(src, origin);
+    const url = new URL(src, window.location.origin);
     if (url.protocol !== "https:" && url.protocol !== "http:") return false;
-    return SAFE_VIDEO_IFRAME_HOSTS.some((re) => re.test(url.hostname));
+    return true;
   } catch {
     return false;
   }
@@ -445,9 +534,10 @@ function sanitizeRichHtml(html) {
       "frameborder",
       "allowfullscreen",
       "allow",
-      "referrerpolicy"
+      "referrerpolicy",
+      "scrolling"
     ],
-    ALLOW_DATA_ATTR: false
+    ALLOW_DATA_ATTR: true
   });
   DOMPurify.removeHook("uponSanitizeElement");
   return clean;
@@ -761,7 +851,7 @@ function getVideoEmbedUrl(url) {
   }
   videoId = getVideoId(url, vimeoPatterns);
   if (videoId) {
-    return `https://player.vimeo.com/video/${videoId}`;
+    return `https://player.vimeo.com/video/${videoId}?transparent=0`;
   }
   videoId = getVideoId(url, dailyMotionPatterns);
   console.log("dailyMotion?!", videoId);
@@ -973,6 +1063,16 @@ function About({ about, status }) {
     setData("statement", hydrated || "");
     setHasStatementChanged(false);
   }, [about, status]);
+  useEffect(() => {
+    if (!isInEditMode && statement) {
+      if (window.twttr && window.twttr.widgets) {
+        window.twttr.widgets.load();
+      }
+      if (window.instgrm && window.instgrm.Embeds) {
+        window.instgrm.Embeds.process();
+      }
+    }
+  }, [statement, isInEditMode]);
   return /* @__PURE__ */ jsxs(Fragment, { children: [
     /* @__PURE__ */ jsx(
       PageHead,
@@ -981,7 +1081,7 @@ function About({ about, status }) {
         ogType: "article"
       }
     ),
-    /* @__PURE__ */ jsx("div", { className: "rte-container borderless", children: dataLoaded ? /* @__PURE__ */ jsxs("article", { children: [
+    /* @__PURE__ */ jsx("div", { className: "rte-container borderless limited-width", children: dataLoaded ? /* @__PURE__ */ jsxs("article", { children: [
       /* @__PURE__ */ jsxs("div", { className: "centered-header-box", children: [
         isInEditMode && hasStatementChanged && /* @__PURE__ */ jsx("div", { className: "left-item", children: /* @__PURE__ */ jsx(
           "button",
@@ -994,7 +1094,7 @@ function About({ about, status }) {
           }
         ) }),
         /* @__PURE__ */ jsx("div", { className: "centered-content", children: /* @__PURE__ */ jsx("h1", { children: "about" }) }),
-        /* @__PURE__ */ jsx("div", { className: "right-item", children: !isInEditMode && isWebmaster && /* @__PURE__ */ jsx(
+        /* @__PURE__ */ jsx("div", { className: "right-item padded", children: !isInEditMode && isWebmaster && /* @__PURE__ */ jsx(
           EditButton,
           {
             onClick: (e) => {
@@ -1011,7 +1111,8 @@ function About({ about, status }) {
         {
           isReadOnly: !isInEditMode || processing,
           onChange: handleStatementChange,
-          value: statement
+          value: statement,
+          autoFocus: true
         }
       ) : /* @__PURE__ */ jsx(
         "div",
@@ -1326,6 +1427,7 @@ function DashboardLayout({ currentTab, headerText, children }) {
   const unread = ((_c = page.props) == null ? void 0 : _c.unread) ?? {};
   const hasUnreadNotifications = !!unread.has_unread_notifications;
   const hasUnreadMail = !!unread.has_unread_mail;
+  console.log("unread", unread);
   useEffect(() => {
     const handlePopState = () => {
       setTimeout(() => {
@@ -1806,7 +1908,6 @@ function AvatarSetter({ user }) {
       setError("avatar", "Must be .jpeg, .png, .webp, or .bmp");
       return;
     }
-    console.log("opening");
     setIsImageCropperOpen(true);
     const selectedFileUrl = await getImageUrlFromFile(file);
     setSelectedAvatar(selectedFileUrl);
@@ -1919,7 +2020,7 @@ function AvatarSetter({ user }) {
             {
               type: "button",
               onClick: handleCropAndUpload,
-              disabled: processing,
+              disabled: !(user == null ? void 0 : user.is_email_verified) || processing,
               ref: imageCropButtonRef,
               children: "update"
             }
@@ -1954,7 +2055,7 @@ function AvatarSetter({ user }) {
         {
           className: "avatar-button",
           onClick: handleUpdateClick,
-          disabled: processing,
+          disabled: !(user == null ? void 0 : user.is_email_verified) || processing,
           type: "button",
           children: [
             "update",
@@ -1974,13 +2075,19 @@ function ProfileItem({
   name,
   value,
   onChange = null,
-  isSubmitting = false,
+  disabled = false,
   isLink = false,
   isEditingThisField = false,
   onEditClick,
   isPublic = false
 }) {
   const isUpdatable = onChange ? true : false;
+  const inputRef = useRef(null);
+  useEffect(() => {
+    if (isEditingThisField && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isEditingThisField]);
   return /* @__PURE__ */ jsxs("div", { className: "inline-form-field", children: [
     isUpdatable ? /* @__PURE__ */ jsxs(Fragment, { children: [
       /* @__PURE__ */ jsxs("label", { htmlFor: name, className: "field-name", children: [
@@ -1992,8 +2099,9 @@ function ProfileItem({
         {
           id: name,
           defaultValue: value,
-          disabled: !isEditingThisField || isSubmitting,
-          onChange
+          disabled: !isEditingThisField || disabled,
+          onChange,
+          ref: inputRef
         }
       )
     ] }) : /* @__PURE__ */ jsxs(Fragment, { children: [
@@ -2017,7 +2125,7 @@ function ProfileItem({
           e.preventDefault();
           onEditClick();
         },
-        disabled: !isUpdatable || isEditingThisField || isSubmitting,
+        disabled: !isUpdatable || isEditingThisField || disabled,
         className: isUpdatable ? "" : "invisible"
       }
     )
@@ -2137,7 +2245,7 @@ function EditProfile() {
             setHasChanges(e.target.value !== user.website);
             setWebsiteField(e.target.value);
           },
-          isSubmitting: processing,
+          disabled: !(user == null ? void 0 : user.is_email_verified) || processing,
           isEditingThisField: editingField === "website",
           onEditClick: () => handleEditClick("website")
         }
@@ -2152,7 +2260,7 @@ function EditProfile() {
             setHasChanges(e.target.value !== user.location);
             setLocationField(e.target.value);
           },
-          isSubmitting: processing,
+          disabled: !(user == null ? void 0 : user.is_email_verified) || processing,
           isEditingThisField: editingField === "location",
           onEditClick: () => handleEditClick("location")
         }
@@ -2174,7 +2282,7 @@ function EditProfile() {
             setHasChanges(e.target.checked !== !!user.show_email_in_profile);
             setShowEmailInProfile(e.target.checked);
           },
-          disabled: processing
+          disabled: !(user == null ? void 0 : user.is_email_verified) || processing
         }
       ),
       /* @__PURE__ */ jsxs("div", { className: "flex-row", children: [
@@ -2259,13 +2367,14 @@ function EditBio() {
         }
       ) }),
       /* @__PURE__ */ jsx("div", { className: "centered-content", children: /* @__PURE__ */ jsx("h3", { children: "bio" }) }),
-      /* @__PURE__ */ jsx("div", { className: "right-item", children: !isInEditMode && /* @__PURE__ */ jsx(
+      /* @__PURE__ */ jsx("div", { className: "right-item padded", children: !isInEditMode && /* @__PURE__ */ jsx(
         EditButton,
         {
           onClick: (e) => {
             e.preventDefault();
             setIsInEditMode(true);
-          }
+          },
+          disabled: !(user == null ? void 0 : user.is_email_verified)
         }
       ) })
     ] }),
@@ -2276,7 +2385,8 @@ function EditBio() {
       {
         isReadOnly: !isInEditMode || isSubmitting,
         onChange: handleBioChange,
-        value: bio
+        value: bio,
+        autoFocus: true
       }
     ) : /* @__PURE__ */ jsx(
       "div",
@@ -2601,7 +2711,7 @@ function Tile({ post, isSliderDraggedPointerUp, user = null, isDashboard = false
   const author = user ?? post.user;
   let viewText = "info";
   if (isDashboard) {
-    viewText = "preview";
+    viewText = "view";
   } else if (post.is_news) {
     viewText = "read";
   }
@@ -2621,13 +2731,13 @@ function Tile({ post, isSliderDraggedPointerUp, user = null, isDashboard = false
       return;
     }
   }
-  return /* @__PURE__ */ jsxs("div", { className: "work-tile", children: [
+  return /* @__PURE__ */ jsxs("article", { className: "work-tile", children: [
     imageUrls && imageUrls.length > 0 && /* @__PURE__ */ jsx(
       "img",
       {
         className: "tile-image",
         src: `${directory}/${imageUrls[0]}`,
-        alt: post.title,
+        alt: `Thumbnail for ${post.title}`,
         draggable: "false"
       }
     ),
@@ -2668,6 +2778,7 @@ function Tile({ post, isSliderDraggedPointerUp, user = null, isDashboard = false
             className: "post-link",
             onClick: handleLinkClick,
             draggable: "false",
+            "aria-label": "Edit post",
             children: [
               /* @__PURE__ */ jsx("i", { className: "fa-solid fa-pen-to-square" }),
               /* @__PURE__ */ jsx("span", { children: "edit" })
@@ -2683,6 +2794,7 @@ function Tile({ post, isSliderDraggedPointerUp, user = null, isDashboard = false
               className: "post-link",
               onClick: handleLinkClick,
               draggable: "false",
+              "aria-label": `View ${post.is_news ? "news " : ""}post`,
               children: [
                 post.is_news ? /* @__PURE__ */ jsx("i", { className: "fa-brands fa-readme" }) : /* @__PURE__ */ jsx("i", { className: "fa-solid fa-magnifying-glass" }),
                 /* @__PURE__ */ jsx("span", { children: viewText })
@@ -2696,6 +2808,7 @@ function Tile({ post, isSliderDraggedPointerUp, user = null, isDashboard = false
             href: post.website,
             className: "post-link",
             draggable: "false",
+            "aria-label": "Visit external website",
             onClick: (e) => {
               if (isSliderDraggedPointerUp == null ? void 0 : isSliderDraggedPointerUp.current) {
                 e.stopPropagation();
@@ -3186,7 +3299,7 @@ function Home({ heroPosts = [], carouselArchive = [], carouselNews = [], archive
     /* @__PURE__ */ jsx("div", { className: "page-section carousel", children: /* @__PURE__ */ jsx(TileCarousel, { size: "small", category: Category.Archive, title: "works from new users:", initialPosts: carouselArchive }) }),
     /* @__PURE__ */ jsx("div", { className: "page-section carousel", children: /* @__PURE__ */ jsx(TileCarousel, { size: "small", category: Category.News, title: "netart news:", initialPosts: carouselNews }) }),
     /* @__PURE__ */ jsxs("div", { className: "page-section", children: [
-      /* @__PURE__ */ jsx("h1", { className: "centered-content no-margin padded", children: "explore" }),
+      /* @__PURE__ */ jsx("h2", { className: "big-title centered-content no-margin padded", children: "explore" }),
       /* @__PURE__ */ jsx(
         AutoloadTilesContainer,
         {
@@ -4044,8 +4157,8 @@ function CommentSection({ post, likeCount }) {
     setOriginalComment(comment);
     setOriginalCommentElement(elementId);
     setData("parent_id", comment.id);
-    setData("content", (prev) => {
-      let newText = prev;
+    setData((prevData) => {
+      let newText = prevData.content || "";
       if (quoteText) {
         newText = newText.replace(quoteText, "");
       }
@@ -4055,9 +4168,9 @@ function CommentSection({ post, likeCount }) {
         setQuoteText(formattedOriginal);
         newText = formattedOriginal + newText;
       } else {
-        setQuoteText("");
+        setQuoteText(null);
       }
-      return newText;
+      return { ...prevData, content: newText };
     });
     const el = document.getElementById("leave-comment-container");
     if (el) {
@@ -4341,7 +4454,15 @@ function Post({ post }) {
                     ]
                   }
                 ) }) : /* @__PURE__ */ jsx(Fragment, {}),
-                isAuthenticated && /* @__PURE__ */ jsx("div", { children: /* @__PURE__ */ jsx(
+                (post == null ? void 0 : post.is_private) ? /* @__PURE__ */ jsx("div", { children: /* @__PURE__ */ jsx(
+                  "div",
+                  {
+                    type: "button",
+                    className: "big-icon blue",
+                    title: "private post",
+                    children: /* @__PURE__ */ jsx("i", { className: "fa-regular fa-eye-slash" })
+                  }
+                ) }) : isAuthenticated && /* @__PURE__ */ jsx("div", { children: /* @__PURE__ */ jsx(
                   "button",
                   {
                     type: "button",
@@ -4596,6 +4717,7 @@ function Registration() {
     Email: "email"
   };
   const { props } = usePage();
+  const APP_NAME = props.app_name;
   const user = ((_a = props == null ? void 0 : props.auth) == null ? void 0 : _a.user) ?? null;
   const isAuthenticated = !!user;
   const isLoading = false;
@@ -4818,7 +4940,10 @@ function Registration() {
   return /* @__PURE__ */ jsxs(Fragment, { children: [
     /* @__PURE__ */ jsx(PageHead, { title: "Registration" }),
     /* @__PURE__ */ jsxs("div", { className: formContainerClasses, children: [
-      /* @__PURE__ */ jsx("h1", { className: "centered-content no-margin", children: "join netart.io" }),
+      /* @__PURE__ */ jsxs("h1", { className: "centered-content no-margin", children: [
+        "join ",
+        APP_NAME
+      ] }),
       errors.general && /* @__PURE__ */ jsx("div", { className: "error", children: errors.general }),
       success && /* @__PURE__ */ jsx("div", { className: "notice", children: success }),
       formPage === 0 ? /* @__PURE__ */ jsx(Fragment, { children: /* @__PURE__ */ jsxs("div", { className: "field-groups-container", children: [
@@ -5656,7 +5781,7 @@ function Message({
       "div",
       {
         dangerouslySetInnerHTML: { __html: sanitizeRichHtml(content) },
-        className: "article-text"
+        className: "message-text"
       }
     ),
     /* @__PURE__ */ jsxs("div", { className: "comment-buttons-container", children: [
@@ -5863,6 +5988,11 @@ function Conversation({ conversation: conversationProp, addressee }) {
     recipientSpanRef.current.focus();
   }, [setRecipients, setSearchResults, searchResultSelection]);
   const handleRecipientSearchTermChange = useCallback((e) => {
+    if (recipients.length >= 5) {
+      recipientSpanRef.current.innerText = "";
+      setError("You can mail up to five people.");
+      return;
+    }
     const search = () => {
       const newVal = recipientSpanRef.current.innerText.trim();
       const hasChanged = newVal !== searchTerm;
@@ -5983,7 +6113,7 @@ function Conversation({ conversation: conversationProp, addressee }) {
   }, []);
   return /* @__PURE__ */ jsxs(DashboardLayout, { currentTab: "mail", children: [
     /* @__PURE__ */ jsx(PageHead, { title: "Conversation" }),
-    /* @__PURE__ */ jsx("div", { className: "centered-content no-margin", children: /* @__PURE__ */ jsx("h2", { dangerouslySetInnerHTML: { __html: convoName } }) }),
+    /* @__PURE__ */ jsx("div", { className: "centered-content no-margin side-padded", children: /* @__PURE__ */ jsx("h1", { dangerouslySetInnerHTML: { __html: convoName } }) }),
     !isNew && /* @__PURE__ */ jsxs("div", { className: "footnote", children: [
       "with",
       " ",
@@ -6373,7 +6503,8 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
         });
       }
       setSuccess(message);
-      router.visit("/dashboard/posts", { state: { message } });
+      const targetRoute = data.is_news ? "/dashboard/news-posts" : "/dashboard/posts";
+      router.visit(targetRoute, { state: { message } });
     } catch (err) {
       if (err && typeof err === "object" && !err.response && !err.message) {
         for (const key in err) {
@@ -6403,7 +6534,8 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
           onFinish: () => setIsSubmitting(false)
         });
       });
-      router.visit("/dashboard/posts", { state: { message: "Post successfully deleted." } });
+      const targetRoute = data.is_news ? "/dashboard/news-posts" : "/dashboard/posts";
+      router.visit(targetRoute, { state: { message: "Post successfully deleted." } });
     } catch (err) {
       if (err && typeof err === "object" && !err.response && !err.message) {
         for (const key in err) {
@@ -6424,7 +6556,7 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
     if (embedUrl) {
       setData("main_video", embedUrl);
     } else {
-      setFieldLocalError("Must be a valid link from YouTube, DailyMotion, Vimeo, or Youku.");
+      setFieldLocalError("Must be a valid link from YouTube, DailyMotion, or Vimeo.");
     }
   }, [setData]);
   const handlePostUrlValidation = useCallback((proposedUrl, setFieldLocalError) => {
@@ -6498,7 +6630,7 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
   }, [imageFields.length, setError, clearErrors]);
   const onImageChange = useCallback((index, file, imageUrl) => {
     setHasChanged(true);
-    setImageFields((prev) => prev.map((field) => field.index === index ? { ...field, value: file, image: imageUrl } : field));
+    setImageFields((prev) => prev.map((field) => field.index === index ? { ...field, value: file, image: imageUrl, type: "new" } : field));
   }, []);
   const onAltChange = useCallback((index, altText) => {
     setHasChanged(true);
@@ -6649,7 +6781,7 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
             {
               id: "main_video_raw",
               label: "main video",
-              placeholder: "YouTube, Vimeo, DailyMotion, or Youku",
+              placeholder: "YouTube, DailyMotion, or Vimeo",
               value: data.main_video_raw,
               onChange: (e) => {
                 setHasChanged(true);
@@ -6864,6 +6996,12 @@ function Mail() {
   const { props } = usePage();
   const user = (_a = props.auth) == null ? void 0 : _a.user;
   const { conversations } = props;
+  useEffect(() => {
+    const removeListener = router.on("restore", () => {
+      router.reload({ only: ["conversations", "unread"] });
+    });
+    return () => removeListener();
+  }, []);
   return /* @__PURE__ */ jsxs(DashboardLayout, { currentTab: "mail", children: [
     /* @__PURE__ */ jsx(PageHead, { title: "Mail" }),
     user && user.is_email_verified ? /* @__PURE__ */ jsxs(Fragment, { children: [

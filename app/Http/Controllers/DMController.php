@@ -70,9 +70,11 @@ class DMController extends Controller
         $request->validate([
             'subject' => ['nullable', 'string', 'max:255'],
             'content' => ['required', 'string'],
-            'recipients'   => ['array', 'min:1'],
+            'recipients'   => ['array', 'min:1', 'max:5'],
             'recipients.*' => ['integer', 'exists:users,id'],
             'conversation_id' => ['integer', 'exists:conversations,id']
+        ], [
+            'recipients.max' => 'You can mail up to five people.'
         ]);
         //return;
         

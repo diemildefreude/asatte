@@ -16,7 +16,12 @@ function Mail()
     const { props } = usePage();
     const user = props.auth?.user;
     const { conversations } = props;
-
+    useEffect(() => {
+        const removeListener = router.on('restore', () => {
+            router.reload({ only: ['conversations', 'unread'] });
+        });
+        return () => removeListener();
+    }, []);
 
     return ( 
     <DashboardLayout currentTab="mail">

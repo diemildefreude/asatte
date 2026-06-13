@@ -71,13 +71,24 @@ function About({ about, status })
         setData('statement', hydrated || '');
         setHasStatementChanged(false);
     }, [about, status]);
+    // Hydrate Twitter and Instagram embeds injected via dangerouslySetInnerHTML
+    useEffect(() => {
+        if (!isInEditMode && statement) {
+            if (window.twttr && window.twttr.widgets) {
+                window.twttr.widgets.load();
+            }
+            if (window.instgrm && window.instgrm.Embeds) {
+                window.instgrm.Embeds.process();
+            }
+        }
+    }, [statement, isInEditMode]);
 
     return (
     <>
         <PageHead title="about"
             ogType="article"
         />
-        <div className="rte-container borderless">
+        <div className="rte-container borderless limited-width">
         {
             dataLoaded ? (
             <article>
@@ -97,7 +108,7 @@ function About({ about, status })
                     <div className="centered-content">
                         <h1>about</h1>                    
                     </div>
-                    <div className="right-item">
+                    <div className="right-item padded">
                         {!isInEditMode && isWebmaster && (
                         <EditButton
                             onClick={(e) => {e.preventDefault(); setIsInEditMode(true)}}
@@ -121,6 +132,8 @@ function About({ about, status })
                         isReadOnly={!isInEditMode || processing}
                         onChange={handleStatementChange}
                         value={statement}
+                        autoFocus={true}
+                        
                     />  
                     ):(
                         <div

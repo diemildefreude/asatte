@@ -16,22 +16,23 @@ use App\Http\Controllers\SitemapController;
 Route::get('/', [HomeController::class, 'index']);
 Route::get('/news', [NewsController::class, 'index']);
 Route::inertia('/contact', 'Contact');
-Route::post('/contact', [ContactController::class, 'sendContactMail'])->name('contact.send');
+Route::post('/contact', [ContactController::class, 'sendContactMail'])->name('contact.send')->middleware('throttle:3,1');
 Route::inertia('/login', 'Login')->name('login');
 Route::inertia('/register', 'Registration')->name('register');
 Route::inertia('/password-recovery', 'PasswordRecovery');
 Route::inertia('/password-change', 'PasswordChange');
 Route::inertia('/password-reset', 'PasswordReset');
 Route::get('/search', [SearchController::class, 'search']);
+Route::get('/api/usersearch/{searchterm}', [UserController::class, 'userSearch']);
 Route::get('/sitemap.xml', [SitemapController::class, 'index']);
 
 // Session-based auth endpoints
-Route::post('/login', [AuthController::class, 'login'])->name('login.attempt');
-Route::post('/register', [AuthController::class, 'register'])->name('register.attempt');
+Route::post('/login', [AuthController::class, 'login'])->name('login.attempt')->middleware('throttle:5,1');
+Route::post('/register', [AuthController::class, 'register'])->name('register.attempt')->middleware('throttle:5,1');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::post('/register/check', [AuthController::class, 'checkAvailability']);
-Route::post('/request-recovery', [AuthController::class, 'sendRecoveryLink'])->name('password.request');
-Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.reset');
+Route::post('/request-recovery', [AuthController::class, 'sendRecoveryLink'])->name('password.request')->middleware('throttle:5,1');
+Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.reset')->middleware('throttle:5,1');
 Route::post('/change-password', [AuthController::class, 'changePassword'])->middleware('auth')->name('password.change');
 Route::post('/resend-verification', [AuthController::class, 'sendVerifyLink'])->middleware('auth')->name('verification.resend');
 Route::post('/complete-social-profile', [SocialiteController::class, 'completeSocialProfile'])->middleware('auth')->name('social.complete');
@@ -115,6 +116,16 @@ Route::middleware('auth')->group(function () {
     Route::post('/posts/{post}/comments', [App\Http\Controllers\CommentController::class, 'store'])->name('posts.comments.store');
     Route::put('/posts/{post}/comments/{comment}', [App\Http\Controllers\CommentController::class, 'update'])->name('posts.comments.update');
     Route::delete('/posts/{post}/comments/{comment}', [App\Http\Controllers\CommentController::class, 'destroy'])->name('posts.comments.destroy');
+
+    // Migrated from api.php
+    Route::put('/api/update-about', [App\Http\Controllers\AboutController::class, 'update']);
+    Route::post('/api/update-profile', [App\Http\Controllers\DashboardController::class, 'updateProfile']);
+    Route::post('/api/update-bio', [App\Http\Controllers\DashboardController::class, 'updateBio']);
+    Route::post('/api/update-avatar', [App\Http\Controllers\DashboardController::class, 'updateAvatar']);
+    Route::get('/api/unread-status', [App\Http\Controllers\DashboardController::class, 'unreadStatus']);
+    Route::get('/api/user', function (Illuminate\Http\Request $request) {
+        return $request->user();
+    });
 });
 
 // User public profile routes

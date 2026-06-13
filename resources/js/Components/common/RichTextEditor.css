@@ -7,6 +7,12 @@
     overflow: visible; */
     display: flow-root;
     width: 100%;
+    position: relative;
+}
+.rte-container.limited-width
+{
+    width: clamp(200px, 100%, 700px);
+    margin: 0 auto;
 }
 .padded.article-text
 {
