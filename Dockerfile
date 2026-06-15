@@ -33,4 +33,5 @@ RUN npm install && npm run build
 # Clear and cache Laravel settings
 RUN php artisan config:cache && \
     php artisan route:cache && \
-    php artisan view:cache
+    php artisan view:cache && \
+    php artisan storage:link

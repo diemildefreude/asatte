@@ -17,6 +17,8 @@ services:
     networks:
       - asatte_net
       - npm_default
+    volumes:
+      - ./storage:/var/www/html/storage
 
   db:
     image: mysql:8.0
@@ -30,6 +32,16 @@ services:
       - mysql_data:/var/lib/mysql
     networks:
       - asatte_net
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: db
+      UPLOAD_LIMIT: 300M
+    networks:
+      - asatte_net
+      - npm_default
 
 networks:
   asatte_net:
