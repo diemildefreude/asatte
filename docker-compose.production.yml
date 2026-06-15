@@ -16,6 +16,7 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
     networks:
       - asatte_net
+      - npm_default
 
   db:
     image: mysql:8.0
@@ -32,6 +33,8 @@ services:
 
 networks:
   asatte_net:
+  npm_default:
+    external: true
 
 volumes:
   mysql_data:
