@@ -25,8 +25,8 @@
         const [adminMessageIsVisible, setAdminMessageIsVisible] = useState(false);
         const [adminMessage, setAdminMessage] = useState("");
         const [isSubmitting, setIsSubmitting] = useState(false);
-        const success = props.flash?.success;
-        const error = props.errors?.error || props.flash?.error;
+        const [adminSuccess, setAdminSuccess] = useState("");
+        const [adminError, setAdminError] = useState("");
         
         const user = props.auth?.user;
         const isAuthenticated = !!user;
@@ -87,6 +87,8 @@
         const handleHideSubmit = useCallback(async (e, hide) =>
         {
             e.preventDefault();
+            setAdminSuccess("");
+            setAdminError("");
             if(!hide)
             {
                 const isConfirmed = window.confirm("Make post visible?");
@@ -109,9 +111,12 @@
                         setAdminMessage("");
                         setAdminMessageIsVisible(false);
                         setIsSubmitting(false);
+                        setAdminSuccess(hide ? "Post successfully hidden." : "Post successfully unhidden.");
                     },
-                    onError: () => {
+                    onError: (errs) => {
                         setIsSubmitting(false);
+                        if(errs && errs.error) setAdminError(errs.error);
+                        else setAdminError("An error occurred.");
                     }
                 });
             }
@@ -120,8 +125,6 @@
                 setIsSubmitting(false);
             }
         },[adminMessage, post.id]);
-
-        console.log("Aroo?!", props.app_url, post.user.username, post.post_url);
 
         const handleHideClick = useCallback(() =>
         {
@@ -266,14 +269,14 @@
                         (<>
                             <h3 className='centered-content'>admin:</h3>
                             {<>
-                                {error && (
+                                {adminError && (
                                 <div className="error">
-                                    {error}
+                                    {adminError}
                                 </div>
                                 )}
-                                {success && (
+                                {adminSuccess && (
                                 <div className="notice">
-                                    {success}
+                                    {adminSuccess}
                                 </div>
                                 )}
                                 {post.is_hidden_by_admin ? (

@@ -831,8 +831,6 @@ class PostController extends Controller
         $post->is_hidden_by_admin = $hideIt;
         $post->save();
 
-        $responseMsg = $hideIt ? "Post successfully hidden" : "Post successfully unhidden";
-        
-        return back()->with('success', $responseMsg);
+        return back();
     }
 }

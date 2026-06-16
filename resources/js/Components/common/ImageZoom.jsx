@@ -35,8 +35,6 @@ function ImageZoom({ src, alt, isZoomed, clickFunc, outerContainerRef=null, isIm
     const TOUCH_ZOOM_SENSITIVITY = 0.01;
     const PAN_SENSITIVITY = 1; // For mouse wheel panning
 
-    console.log("zoom alt?", alt);
-
     const handleImageLoad = useCallback((event) => 
     {
         const img = event.currentTarget;

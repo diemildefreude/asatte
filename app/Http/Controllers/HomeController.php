@@ -43,6 +43,22 @@ class HomeController extends Controller
             ->limit(6)
             ->get();
 
+        $carouselFollowing = [];
+        if ($user = $request->user()) {
+            $followingIds = $user->following()->pluck('users.id');
+            if ($followingIds->isNotEmpty()) {
+                $carouselFollowing = Post::with(['user:id,username,avatar,member_type'])
+                    ->whereIn('user_id', $followingIds)
+                    ->where('is_news', false)
+                    ->where('is_private', false)
+                    ->where('is_hidden_by_admin', false)
+                    ->where('is_draft', false)
+                    ->latest()
+                    ->limit(6)
+                    ->get();
+            }
+        }
+
         // Archive posts - support random fetch with excludes, or paginated fetch
         $query = Post::with(['user:id,username,avatar,member_type'])
             ->where('is_news', false)
@@ -68,6 +84,7 @@ class HomeController extends Controller
             'heroPosts' => $heroPosts,
             'carouselArchive' => $carouselArchive,
             'carouselNews' => $carouselNews,
+            'carouselFollowing' => $carouselFollowing,
             'archivePosts' => $archivePosts,
         ]);
     }

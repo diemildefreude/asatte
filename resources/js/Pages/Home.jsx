@@ -7,7 +7,7 @@ import TileCarousel from '../Components/common/TileCarousel';
 import Layout from '../Components/layout/Layout';
 import { Category, FetchOrder, getScreenSize, monitorScreenSize } from '../utils/helpers';
 
-function Home({ heroPosts = [], carouselArchive = [], carouselNews = [], archivePosts = [] })
+function Home({ heroPosts = [], carouselArchive = [], carouselNews = [], carouselFollowing = [], archivePosts = [] })
 {    
     const [screenSize, setScreenSize] = useState(getScreenSize());
 
@@ -35,6 +35,11 @@ function Home({ heroPosts = [], carouselArchive = [], carouselNews = [], archive
         <div className="page-section carousel">
             <TileCarousel size="small" category={Category.Archive} title="works from new users:" initialPosts={carouselArchive} />
         </div>
+        {carouselFollowing && carouselFollowing.length > 0 && (
+            <div className="page-section carousel">
+                <TileCarousel size="small" category={Category.Archive} title="users you follow:" initialPosts={carouselFollowing} />
+            </div>
+        )}
         <div className="page-section carousel">
             <TileCarousel size="small" category={Category.News} title="netart news:" initialPosts={carouselNews} />
         </div>

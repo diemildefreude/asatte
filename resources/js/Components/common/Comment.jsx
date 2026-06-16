@@ -136,7 +136,7 @@ function Comment({comment, isDashboard=false, onReply=null, id, parentLocalId=nu
                     </>)
                 }
                 {
-                    !isDashboard && (user.id === comment.user.id) && (
+                    !isDashboard && (user?.id === comment?.user?.id) && (
                     <>
                     {
                         isEditing ? (<>
@@ -165,8 +165,8 @@ function Comment({comment, isDashboard=false, onReply=null, id, parentLocalId=nu
                     }</>)
                 }
                 {
-                    !isDashboard && (user.id === comment.user.id || user.member_type == MemberType.Admin ||
-                        user.member_type == MemberType.Webmaster) && (
+                    !isDashboard && (user?.id === comment?.user?.id || user?.member_type == MemberType.Admin ||
+                        user?.member_type == MemberType.Webmaster) && (
                         <button 
                             onClick={handleCommentDelete}
                             className="small-button"
