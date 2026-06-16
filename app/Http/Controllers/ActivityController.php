@@ -74,7 +74,7 @@ class ActivityController extends Controller
     }
     public function notifications(Request $request)
     {
-        $showOnlyUnread = isset($request['unread_only']);
+        $showOnlyUnread = $request->boolean('unread_only');
 
         $user = $request->user();
         $amount = intval($request->query('amount', 10));

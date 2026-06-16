@@ -166,8 +166,7 @@ class SocialiteController extends Controller
             ],
         ]);
         
-        $showEmailField = $request->input('show_email_in_profile');
-        $showEmail = isset($showEmailField);
+        $showEmail = $request->boolean('show_email_in_profile');
 
         //Log::info("completing social profile with {$request->username} as username and {$request->birthdate} as birthdate");
         $user->username = $request->username;

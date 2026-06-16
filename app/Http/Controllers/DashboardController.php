@@ -91,8 +91,8 @@ class DashboardController extends Controller
             'location' => ['nullable', 'string', 'max:255']            
         ]);
 
-        $showEmailInProfileField = $request->input('show_email_in_profile');
-        $showEmailInProfile = isset($showEmailInProfileField);
+        
+        $showEmailInProfile = $request->boolean('show_email_in_profile');
 
         $user = $request->user();
         $website = $request->input('website') ? addHttpProtocol($request->input('website', '')) : null;

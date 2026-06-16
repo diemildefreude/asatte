@@ -241,8 +241,8 @@ class PostController extends Controller
             'subtitle' => ['string', 'required', 'max:255'],
             'main_video' => ['max:255', 'url', 'nullable'],
         ]); 
-        $isPrivate = $request->input('is_private') ? true : false;        
-        $isNews = $request->input('is_news') ? true : false;    
+        $isPrivate = $request->boolean('is_private');        
+        $isNews = $request->boolean('is_news');    
 
         if($isNews && $user->member_type != MemberType::Webmaster)
         {
@@ -777,7 +777,7 @@ class PostController extends Controller
             ]);
         }
         
-        $hideIt = isset($request["is_hidden_by_admin"]) && $request["is_hidden_by_admin"];
+        $hideIt = $request->boolean('is_hidden_by_admin');
         $messageToUser = $request["message_to_user"] ?? null;
         
         if($hideIt && $messageToUser)

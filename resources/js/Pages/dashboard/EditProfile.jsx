@@ -51,7 +51,8 @@ function EditProfile()
     {
         e.preventDefault();
         setIsLoggingOut(true);
-        router.post('/logout', {}, {
+        router.post('/logout', {}, 
+        {
             onFinish: () => setIsLoggingOut(false)
         });
     }
@@ -73,14 +74,14 @@ function EditProfile()
         setData('website', websiteField || '');
         setData('location', locationField || '');
         setData('show_email_in_profile', !!showEmailInProfile);
-
         // using router.post because form.post queues state updates asynchronously, 
         // so setData might not apply before form.post fires if invoked synchronously here.
         router.post('/update-profile', {
             website: websiteField || '',
             location: locationField || '',
             show_email_in_profile: !!showEmailInProfile
-        }, {
+        }, 
+        {
             preserveState: true,
             preserveScroll: true,
             onSuccess: () => {
