@@ -235,6 +235,7 @@ class AuthController extends Controller
             'provider_id' => null,
             'profile_completed' => true,
             'show_email_in_profile' => $showEmailInProfile,
+            'bio' => '',
             'accepted_terms_version' => config('app.user_agreement_version')
         ]);
 
