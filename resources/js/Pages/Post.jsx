@@ -237,8 +237,12 @@
                                     <div><p><em>{post.subtitle}</em></p></div>   
                                     <div><p className="post-date"> posted by <UserLink user={post.user}/> on 2025.5.12</p></div>    
                                     {
-                                        post.source_code &&
-                                        (
+                                        post.premiere_date && (
+                                            <div><p className="post-date"><em>premiered on {getDateAsYYYYMMDD(post.premiere_date)}</em></p></div> 
+                                        )
+                                    }
+                                    {
+                                        post.source_code && (
                                             <div className="source-link"><a href={post.source_code} target="_blank"><i className="fa-solid fa-code"></i><span>source</span></a></div>   
                                         )
                                     }

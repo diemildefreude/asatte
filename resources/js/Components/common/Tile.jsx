@@ -68,7 +68,7 @@ function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false})
                     ) : (isDashboard && post?.is_draft) ? (
                         <div className="centered-icon blue">
                             <i 
-                                title="private"
+                                title="draft"
                                 className="fa-solid fa-file-pen"
                             />
                         </div>
