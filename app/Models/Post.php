@@ -21,7 +21,8 @@ class Post extends Model
         'gallery_image_urls',
         'gallery_alts',
         'statement',
-        'statement_image_urls'
+        'statement_image_urls',
+        'premiere_date'
     ];
 
     protected $casts = 

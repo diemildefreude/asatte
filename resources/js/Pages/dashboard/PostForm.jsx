@@ -62,6 +62,7 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
         source_code: post?.sourceCode || "",
         main_video: post?.main_video || "",
         main_video_raw: post?.main_video || "",
+        premiere_date: post?.premiere_date || "",
         is_private: post ? !!post.is_private : false,
         is_news: post ? !!post.is_news : (category == Category.News),
         statement: hydratedStatement
@@ -104,6 +105,7 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
             source_code: post.sourceCode || "",
             main_video: post.main_video || "",
             main_video_raw: post.main_video || "",
+            premiere_date: post.premiere_date || "",
             is_private: !!post.is_private,
             is_news: !!post.is_news,
             statement: hydr
@@ -154,6 +156,7 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
             formData.append('website', data.website || '');
             formData.append('source_code', data.source_code || '');
             formData.append('main_video', data.main_video || '');
+            formData.append('premiere_date', data.premiere_date || '');
             formData.append('is_private', data.is_private ? '1' : '0');
             formData.append('is_news', data.is_news ? '1' : '0');
             formData.append('statement', statementWithResizedImages || '');
@@ -464,6 +467,19 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
                             isInline={true}
                             classes="inline-form-field"
                             error={errors.subtitle}
+                            onErrorUpdate={(id, msg) => msg ? setError(id, msg) : clearErrors(id)}
+                        />
+                        <FormField
+                            id="premiere_date"
+                            label="premiere date"
+                            placeholder="e.g. YYYY-MM-DD"
+                            value={data.premiere_date}
+                            onChange={(e) => {setHasChanged(true); setData('premiere_date', e.target.value)}}
+                            disabled={isSubmitting}
+                            type="date"
+                            isInline={true}
+                            classes="inline-form-field"
+                            error={errors.premiere_date}
                             onErrorUpdate={(id, msg) => msg ? setError(id, msg) : clearErrors(id)}
                         />
                         <FormField 

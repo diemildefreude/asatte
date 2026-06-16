@@ -240,6 +240,7 @@ class PostController extends Controller
             'title' => ['string', 'required', 'max:255'],
             'subtitle' => ['string', 'required', 'max:255'],
             'main_video' => ['max:255', 'url', 'nullable'],
+            'premiere_date' => ['nullable', 'date'],
         ]); 
         $isPrivate = $request->boolean('is_private');        
         $isNews = $request->boolean('is_news');    
@@ -492,7 +493,8 @@ class PostController extends Controller
             ],
             'title' => ['string', 'required', 'max:255'],
             'subtitle' => ['string', 'required', 'max:255'],
-            'main_video' => ['max:255'],     
+            'main_video' => ['max:255', 'url', 'nullable'],
+            'premiere_date' => ['nullable', 'date'],
         ]); 
         $isPrivate = $request->input('is_private') ? true : false; 
         
@@ -520,6 +522,7 @@ class PostController extends Controller
             'gallery_images.*.file' => ['nullable', 'file', 'image', 'mimes:png,jpeg,jpg,webp,bmp', 'max:2048'], // 2MB limit
             'gallery_images.*.url' => ['nullable', 'string'],
             'website' => ['string', 'max:255', 'nullable'],
+            'source_code' => ['string', 'max:255', 'nullable'],
         ],
             [
             'gallery_images.*.file.image' => 'Each uploaded file must be an image.',
@@ -689,12 +692,13 @@ class PostController extends Controller
                 
         //Log::info("updating post. is_news: $isNews");
         $website = $request->input('website') ? addHttpProtocol($request->input('website', '')) : null;
-        
+        $sourceCode = $request->input('source_code') ? addHttpProtocol($request->input('source_code', '')) : null;
         $postFields = 
         [
             ...$basicFields,
             'post_url' => $postUrl,
             'website' => $website,
+            'source_code' => $sourceCode,
             'is_private' => $isPrivate,
             'gallery_image_urls' => $updatedGalleryUrls,//$galleryJson,
             'gallery_alts' => $updatedGalleryAlts,//$galleryAltsJson,
