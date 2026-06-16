@@ -14,6 +14,9 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev \
     && rm -rf /var/lib/apt/lists/*
 
+# Install Imagick PHP extension
+RUN install-php-extensions imagick
+
 # Install Node.js (for Vite asset compilation)
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
     apt-get install -y nodejs
