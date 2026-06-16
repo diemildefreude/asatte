@@ -11,16 +11,27 @@ return new class extends Migration
      */
     public function up(): void
     {
-       Schema::table('users', function (Blueprint $table) 
+       Schema::table('posts', function (Blueprint $table) 
         {
-            if (Schema::hasColumn('users', 'bio_image_urls')) {
-                $table->dropColumn("bio_image_urls");
+            if (Schema::hasColumn('posts', 'post_url')) 
+            {
+                $table->dropColumn("post_url");
+            }            
+            if (Schema::hasColumn('posts', 'gallery_alts')) 
+            {
+                $table->dropColumn("gallery_alts");
+            }            
+            if (Schema::hasColumn('posts', 'statement_image_urls')) 
+            {
+                $table->dropColumn("statement_image_urls");
             }
         });
 
-        Schema::table('users', function (Blueprint $table) 
+        Schema::table('posts', function (Blueprint $table) 
         {
-            $table->json("bio_image_urls")->nullable()->after("bio");
+            $table->string("post_url")->after("user_id");
+            $table->json("gallery_alts")->nullable()->after("gallery_image_urls");
+            $table->json("statement_image_urls")->nullable()->after("statement");
         });
     }
 
@@ -29,16 +40,27 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) 
+        Schema::table('posts', function (Blueprint $table) 
         {
-            if (Schema::hasColumn('users', 'bio_image_urls')) {
-                $table->dropColumn("bio_image_urls");
+            if (Schema::hasColumn('posts', 'post_url')) 
+            {
+                $table->dropColumn("post_url");
+            }            
+            if (Schema::hasColumn('posts', 'gallery_alts')) 
+            {
+                $table->dropColumn("gallery_alts");
+            }            
+            if (Schema::hasColumn('posts', 'statement_image_urls')) 
+            {
+                $table->dropColumn("statement_image_urls");
             }
         });
 
-        Schema::table('users', function (Blueprint $table) 
+        Schema::table('posts', function (Blueprint $table) 
         {
-            $table->json("bio_image_urls")->after("bio");
+            $table->string("post_url")->nullable()->after("user_id");
+            $table->json("gallery_alts")->after("gallery_image_urls");
+            $table->json("statement_image_urls")->after("statement");
         });
     }
 };
