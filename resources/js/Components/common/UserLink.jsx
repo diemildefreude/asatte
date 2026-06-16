@@ -48,7 +48,7 @@ function UserLink({user, readOnly=false, onClick=null, additionalClasses="", url
                 </Link>
             ) :
             (
-                <p className='loading bold'><em>deleted user</em></p>
+                <span className='loading bold'><em>deleted user</em></span>
             )
         }     
         </>

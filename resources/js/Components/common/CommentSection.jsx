@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useLayoutEffect, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import './CommentsNotifications.css';
 import { getErrorMessage, scrollToElement } from '../../utils/helpers';
 import Comment from './Comment';
@@ -9,6 +9,8 @@ function CommentSection({post, likeCount})
     const [originalComment, setOriginalComment] = useState(null);
     const [originalCommentElement, setOriginalCommentElement] = useState(null);
     const [quoteText, setQuoteText] = useState("");
+
+    const textAreaRef = useRef(null);
     
     const { data, setData, post: submitComment, processing, reset, errors, clearErrors } = useForm({
         content: '',
@@ -28,8 +30,6 @@ function CommentSection({post, likeCount})
     const commentId = queryParams.get('comment_id');
     const testText = `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.`
     
-
-
     useEffect(() => 
     {
         if (!commentId || !comments.length) return;
@@ -108,6 +108,7 @@ function CommentSection({post, likeCount})
             {
                 scrollToElement(currentUrl, "leave-comment-container", false);
             }
+            textAreaRef.current.focus();
         }
     },[setOriginalComment, setOriginalCommentElement, quoteText, setQuoteText]);
 
@@ -190,6 +191,7 @@ function CommentSection({post, likeCount})
                         onChange={(e) => setData('content', e.target.value)}
                         value={data.content}
                         disabled={!isAuthenticated}
+                        ref={textAreaRef}
                     />
                 </form>    
             </div> 

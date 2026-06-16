@@ -7,6 +7,10 @@ function Notification({notification})
 {
     //console.log("notification", notification);
     
+    if ((notification?.type == NotificationType.Comment || notification?.type == NotificationType.Reply) && !notification.comment) {
+        return null; // Handle orphaned notifications from deleted comments
+    }
+    
     return (    
     notification ? (
             <div className="comment">
@@ -20,8 +24,8 @@ function Notification({notification})
                 </p>
                 <br/>
                 <p>
-                    Your post, <Link href={`/${notification.post.user.username}/${notification.post.post_url}`}>
-                        {notification.post.title}
+                    Your post, <Link href={`/${notification.post?.user?.username}/${notification.post?.post_url}`}>
+                        {notification.post?.title}
                     </Link>, has been unhidden.
                 </p>
                 </>)
@@ -43,9 +47,9 @@ function Notification({notification})
                 notification.type == NotificationType.Comment && (
                 <p>
                     <UserLink user={notification.comment.user}
-                    /> commented on <Link href={`/${notification.comment.post.user.username}/${notification.comment.post.post_url}`}
+                    /> commented on <Link href={`/${notification.comment.post?.user?.username}/${notification.comment.post?.post_url}`}
                     >
-                        {notification.comment.post.title}
+                        {notification.comment.post?.title}
                     </Link> <em>on {getDateAsYYYYMMDD(notification.created_at)}
                         <span className="notice small"> at {getTimeAsHHMM(notification.created_at)}</span>
                     </em>
@@ -54,12 +58,12 @@ function Notification({notification})
             {
                 notification.type == NotificationType.Reply && (<p>
                     <UserLink user={notification.comment.user}
-                    /> replied to <Link href={`/${notification.comment.post.user.username}/${notification.comment.post.post_url}?comment_id=${notification.comment.parent_id}`}
+                    /> replied to <Link href={`/${notification.comment.post?.user?.username}/${notification.comment.post?.post_url}?comment_id=${notification.comment.parent_id}`}
                     >
                         your comment 
-                    </Link> in <Link href={`/${notification.comment.user.username}/${notification.comment.post.post_url}`}
+                    </Link> in <Link href={`/${notification.comment.post?.user?.username}/${notification.comment.post?.post_url}`}
                     >
-                        {notification.comment.post.title}
+                        {notification.comment.post?.title}
                     </Link> <em>on {getDateAsYYYYMMDD(notification.created_at)}
                         <span className="notice small"> at {getTimeAsHHMM(notification.created_at)}</span>
                     </em></p>)
@@ -67,7 +71,7 @@ function Notification({notification})
             {
                 (notification.type == NotificationType.Comment || notification.type == NotificationType.Reply) && (<>                    
                     <div className="comment-notice-container">
-                        <Link href={`/${notification.comment.post.user.username}/${notification.comment.post.post_url}?comment_id=${notification.comment.id}`}
+                        <Link href={`/${notification.comment.post?.user?.username}/${notification.comment.post?.post_url}?comment_id=${notification.comment.id}`}
                             className="notice small"
                         >
                             <i className="fa-solid fa-arrow-up-right-from-square"></i> go to comment

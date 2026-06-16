@@ -33,6 +33,13 @@ class Comment extends Model
     {
         return $this->belongsTo(Post::class);
     }
+
+    protected static function booted()
+    {
+        static::deleting(function ($comment) {
+            \App\Models\Notification::where('data->comment_id', $comment->id)->delete();
+        });
+    }
         
     // --- Removed the redundant getUsernameAttribute() and getAvatarAttribute() ---
 }

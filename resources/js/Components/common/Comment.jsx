@@ -8,6 +8,7 @@ import "./CommentsNotifications.css";
 function Comment({comment, isDashboard=false, onReply=null, id, parentLocalId=null, currentUrl=null})
 {
     const user = usePage().props.auth?.user;
+    if (!comment) return null;
     const isAuthenticated = !!user;
     const [isEditing, setIsEditing] = useState(false);
     
@@ -55,7 +56,7 @@ function Comment({comment, isDashboard=false, onReply=null, id, parentLocalId=nu
         <p>
         {
             isDashboard && comment.post ? (<>
-                in <Link href={`/${comment.post.user.username}/${comment.post.post_url}`} //+#comment-0
+                in <Link href={`/${comment.post?.user?.username}/${comment.post.post_url}`} //+#comment-0
                     className="bold"
                 >
                     {comment.post.title}
@@ -86,7 +87,7 @@ function Comment({comment, isDashboard=false, onReply=null, id, parentLocalId=nu
             ) : null
         }
         {
-            isDashboard && comment.post && ( //post is only included when using fetchUserComments
+            isDashboard && comment.post && comment.post.user && ( //post is only included when using fetchUserComments
                 <Link href={`/${comment.post.user.username}/${comment.post.post_url}?comment_id=${comment.id}`}
                     className="notice small"
                 >
