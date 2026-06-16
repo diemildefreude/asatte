@@ -40,9 +40,11 @@ function Home({ heroPosts = [], carouselArchive = [], carouselNews = [], carouse
                 <TileCarousel size="small" category={Category.Archive} title="users you follow:" initialPosts={carouselFollowing} />
             </div>
         )}
-        <div className="page-section carousel">
-            <TileCarousel size="small" category={Category.News} title="netart news:" initialPosts={carouselNews} />
-        </div>
+        {carouselNews && carouselNews.length > 0 && (
+            <div className="page-section carousel">
+                <TileCarousel size="small" category={Category.News} title="netart news:" initialPosts={carouselNews} />
+            </div>
+        )}
         <div className="page-section">
             <h2 className='big-title centered-content no-margin padded'>explore</h2>
             <AutoloadTilesContainer 
