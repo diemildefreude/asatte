@@ -131,5 +131,5 @@ return [
     |Latest version of the user agreement.
     |
     */
-    'user_agreement_version' => '1.0'
+    'user_agreement_version' => env('USER_AGREEMENT_VERSION', '1.0'),
 ];

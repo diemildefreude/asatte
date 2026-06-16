@@ -1,5 +1,5 @@
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import './OAuth.css';
 
 function OAuth({headerText, onClick, originPage, isSubmittingForm, setIsSubmittingForm}) 
@@ -14,6 +14,19 @@ function OAuth({headerText, onClick, originPage, isSubmittingForm, setIsSubmitti
         const authURI = `/auth/${provider}/redirect?origin_page=${originPage}`;
         window.location.href = authURI;
     }, [originPage, setIsSubmittingForm]);
+
+    useEffect(() => {
+        const handlePageShow = (e) => {
+            if (e.persisted) {
+                setIsSubmitting(false);
+                if (setIsSubmittingForm) {
+                    setIsSubmittingForm(false);
+                }
+            }
+        };
+        window.addEventListener('pageshow', handlePageShow);
+        return () => window.removeEventListener('pageshow', handlePageShow);
+    }, [setIsSubmittingForm]);
 
     return (
         <div className="field-group social-login-options">

@@ -72,7 +72,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'app_url' => config('app.url'),
             'app_name' => config('app.name'),
-            'app_user_agreement_version' => env('USER_AGREEMENT_VERSION')
+            'app_user_agreement_version' => config('app.user_agreement_version')
         ]);
     }
 }
