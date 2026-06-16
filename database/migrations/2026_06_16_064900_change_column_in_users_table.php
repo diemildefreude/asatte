@@ -13,8 +13,14 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) 
         {
-            $table->dropColumn("bio");
-            $table->longText("bio")->default("")->after("show_email_in_profile");
+            if (Schema::hasColumn('users', 'bio')) {
+                $table->dropColumn("bio");
+            }
+        });
+
+        Schema::table('users', function (Blueprint $table) 
+        {
+            $table->longText("bio")->nullable()->after("show_email_in_profile");
         });
     }
 
@@ -25,8 +31,9 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) 
         {
-            $table->dropColumn("bio");
-            $table->longText("bio")->after("show_email_in_profile");
+            if (Schema::hasColumn('users', 'bio')) {
+                $table->dropColumn("bio");
+            }
         });
     }
 };
