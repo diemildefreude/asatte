@@ -70,7 +70,7 @@ if (!function_exists('sanitizeRichHtml')) {
   
   $config->set(
     'CSS.AllowedProperties',
-    'text-align,float,display,margin,margin-left,margin-right,margin-top,margin-bottom,width,height,max-width,padding,padding-bottom,padding-top,padding-left,padding-right,overflow,border,background,background-color'
+    'text-align,float,display,margin,margin-left,margin-right,margin-top,margin-bottom,width,height,max-width,padding,padding-bottom,padding-top,padding-left,padding-right,overflow,border,background,background-color,color'
   );
   
   $config->set('HTML.Nofollow', true);
