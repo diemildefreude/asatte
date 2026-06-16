@@ -21,8 +21,8 @@ class HomeController extends Controller
             ->where('is_private', false)
             ->where('is_hidden_by_admin', false)
             ->where('is_draft', false)
-            ->latest()
-            ->limit(8)
+            ->inRandomOrder()
+            ->limit(11)
             ->get();
 
         $carouselArchive = Post::with(['user:id,username,avatar,member_type'])

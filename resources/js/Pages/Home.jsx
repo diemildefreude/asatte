@@ -33,7 +33,7 @@ function Home({ heroPosts = [], carouselArchive = [], carouselNews = [], carouse
             />
         </div>
         <div className="page-section carousel">
-            <TileCarousel size="small" category={Category.Archive} title="works from new users:" initialPosts={carouselArchive} />
+            <TileCarousel size="small" category={Category.Archive} title="newest works:" initialPosts={carouselArchive} />
         </div>
         {carouselFollowing && carouselFollowing.length > 0 && (
             <div className="page-section carousel">
