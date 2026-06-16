@@ -72,7 +72,7 @@ function EditBio()
             <div className="centered-header-box">            
                 {
                     (isInEditMode && hasBioChanged) && (
-                    <div className="left-item">
+                    <div className="left-item padded">
                         <button className="save-button" 
                             type="submit" 
                             disabled={isSubmitting}
