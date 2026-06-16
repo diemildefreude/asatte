@@ -20,6 +20,7 @@ class HomeController extends Controller
             ->where('is_news', false)
             ->where('is_private', false)
             ->where('is_hidden_by_admin', false)
+            ->where('is_draft', false)
             ->latest()
             ->limit(8)
             ->get();
@@ -28,6 +29,7 @@ class HomeController extends Controller
             ->where('is_news', false)
             ->where('is_private', false)
             ->where('is_hidden_by_admin', false)
+            ->where('is_draft', false)
             ->latest()
             ->limit(6)
             ->get();
@@ -36,6 +38,7 @@ class HomeController extends Controller
             ->where('is_news', true)
             ->where('is_private', false)
             ->where('is_hidden_by_admin', false)
+            ->where('is_draft', false)
             ->latest()
             ->limit(6)
             ->get();
@@ -44,7 +47,8 @@ class HomeController extends Controller
         $query = Post::with(['user:id,username,avatar,member_type'])
             ->where('is_news', false)
             ->where('is_private', false)
-            ->where('is_hidden_by_admin', false);
+            ->where('is_hidden_by_admin', false)
+            ->where('is_draft', false);
 
         if ($fetchOrder === 'random') {
             if ($excludes) {

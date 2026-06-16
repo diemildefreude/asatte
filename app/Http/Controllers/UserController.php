@@ -61,6 +61,7 @@ class UserController extends Controller
             ->where('is_private', false)
             ->where('is_news', false)
             ->when(!$isAdminRequest, fn($q) => $q->where('is_hidden_by_admin', false))
+            ->where('is_draft', false)
             ->latest()
             ->limit(12)
             ->get();
@@ -94,6 +95,7 @@ class UserController extends Controller
             ->where('is_private', false)
             ->where('is_news', false)
             ->when(!$isAdminRequest, fn($q) => $q->where('is_hidden_by_admin', false))
+            ->where('is_draft', false)
             ->latest()
             ->paginate($amount, ['*'], 'page', $page);
 

@@ -181,12 +181,12 @@
                                             ) : ( <></>)
                                         }
                                         {
-                                            post?.is_private ? (
+                                            (post?.is_private || post?.is_draft)? (
                                             <div>
                                                 <div
                                                     type="button" 
                                                     className={"big-icon blue"}
-                                                    title="private post"                                                    
+                                                    title={post?.is_private ? "private" : "draft"}                                                   
                                                 >
                                                     <i className="fa-regular fa-eye-slash"></i>
                                                 </div>

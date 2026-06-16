@@ -18,6 +18,9 @@ class SearchController extends Controller
 
         $amount = intval($request->query('amount', 12));
         $query = Post::with(['user:id,username,avatar,member_type'])
+            ->where('is_private', false)
+            ->where('is_draft', false)
+            ->where('is_hidden_by_admin', false)
             ->where(function ($q) use ($searchTerm) {
                 $q->where('title', 'LIKE', "%{$searchTerm}%")
                     ->orWhere('post_url', 'LIKE', "%{$searchTerm}%")

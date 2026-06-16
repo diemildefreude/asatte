@@ -32,7 +32,7 @@ class ContactController extends Controller
         $senderEmail = $fields['email'];
         $subject = $fields['subject'];
         $content = $fields['content'];
-        Mail::to('s.elliot.perez@gmail.com')->send(new ContactMail($senderName,$senderEmail,$subject,$content));
+        Mail::to(config('mail.contact_address'))->send(new ContactMail($senderName,$senderEmail,$subject,$content));
 
 
 

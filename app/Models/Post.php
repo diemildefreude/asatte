@@ -22,12 +22,14 @@ class Post extends Model
         'gallery_alts',
         'statement',
         'statement_image_urls',
-        'premiere_date'
+        'premiere_date',
+        'is_draft'
     ];
 
     protected $casts = 
     [
         'is_hidden_by_admin' => 'bool',
+        'is_draft' => 'bool',
         'gallery_image_urls' => 'array',
         'gallery_alts' => 'array',
         // 'statement' => 'array',

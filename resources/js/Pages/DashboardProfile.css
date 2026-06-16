@@ -142,10 +142,6 @@
     flex-direction: column;
     gap: 1rem;
 }
-.delete-button:hover
-{
-    background: var(--red-gradient);
-}
 .dashboard-container .main-info-box
 {    
     z-index: 1;

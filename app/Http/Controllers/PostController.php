@@ -244,6 +244,7 @@ class PostController extends Controller
         ]); 
         $isPrivate = $request->boolean('is_private');        
         $isNews = $request->boolean('is_news');    
+        $isDraft = $request->boolean('is_draft');
 
         if($isNews && $user->member_type != MemberType::Webmaster)
         {
@@ -324,6 +325,7 @@ class PostController extends Controller
             'website' => $website,
             'source_code' => $sourceCode,
             'is_private' => $isPrivate,
+            'is_draft' => $isDraft,
             'gallery_image_urls' => $galleryArray,
             'gallery_alts' => $galleryAltArray,
             'statement' => $statement,
@@ -391,7 +393,7 @@ class PostController extends Controller
 
         $isPostCreator = $authenticatedUser && $authenticatedUser->id == $post->user_id;
 
-        if ($post->is_private && !$isPostCreator)
+        if (($post->is_private || $post->is_draft) && !$isPostCreator)
         {
             abort(404, 'No such post found.');
         }
@@ -497,6 +499,7 @@ class PostController extends Controller
             'premiere_date' => ['nullable', 'date'],
         ]); 
         $isPrivate = $request->input('is_private') ? true : false; 
+        $isDraft = $request->boolean('is_draft');
         
         $isNews = false;
         if($user->member_type == MemberType::Webmaster)
@@ -700,12 +703,16 @@ class PostController extends Controller
             'website' => $website,
             'source_code' => $sourceCode,
             'is_private' => $isPrivate,
+            'is_draft' => $isDraft,
             'gallery_image_urls' => $updatedGalleryUrls,//$galleryJson,
             'gallery_alts' => $updatedGalleryAlts,//$galleryAltsJson,
             'statement' => $statement,//$statementJson,
             'statement_image_urls' => $editorImageArray//$statementImagesJson
         ];
 
+        if ($post->is_draft && !$isDraft) {
+            $post->created_at = now();
+        }
         $post->fill($postFields);
         if($user->member_type == MemberType::Webmaster)
         {

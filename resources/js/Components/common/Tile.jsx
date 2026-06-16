@@ -58,26 +58,29 @@ function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false})
         }
             <div className="info-panel">                
                 {
-                    post?.is_hidden_by_admin && (
+                    post?.is_hidden_by_admin ? (
                         <div className="centered-icon red">
                             <i 
                                 title="hidden"
                                 className="fa-regular fa-eye-slash"
                             />
                         </div>
-                    )
-                }
-                {
-                    (isDashboard && !post?.is_hidden && post?.is_private ) ?
-                    (
+                    ) : (isDashboard && post?.is_draft) ? (
+                        <div className="centered-icon blue">
+                            <i 
+                                title="private"
+                                className="fa-solid fa-file-pen"
+                            />
+                        </div>
+                    ): (isDashboard && post?.is_private) ? (
                         <div className="centered-icon blue">
                             <i 
                                 title="private"
                                 className="fa-regular fa-eye-slash"
                             />
                         </div>
-                    ):(null)
-                }      
+                    ) : null
+                }  
                 <div className="panel-top">
                     {
                         post.is_news ? (

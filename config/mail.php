@@ -115,4 +115,6 @@ return [
         'name' => env('MAIL_FROM_NAME', 'Example'),
     ],
 
+    'contact_address' => env('CONTACT_FORM_FORWARD_ADDRESS'),
+
 ];

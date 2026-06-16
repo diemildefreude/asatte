@@ -64,6 +64,7 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
         main_video_raw: post?.main_video || "",
         premiere_date: post?.premiere_date || "",
         is_private: post ? !!post.is_private : false,
+        is_draft: post ? !!post.is_draft : true,
         is_news: post ? !!post.is_news : (category == Category.News),
         statement: hydratedStatement
     });
@@ -87,9 +88,9 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
     const canSubmit = data.title && isTitleValid && data.post_url && isPostUrlValid
         && data.subtitle && isSubtitleValid && ((data.website && isWebsiteValid) || !data.website)
         && ((data.source_code && isSourceCodeValid) || !data.source_code)
-        && imageFields.length > 0 && hasImages(imageFields) && hasChanged;    
+        && imageFields.length > 0 && hasImages(imageFields) && (hasChanged || post?.is_draft);    
 
-    const buttonText = isCreateForm ? "create" : "update";
+    const buttonText = (!post || post.is_draft) ? "publish" : "update";
     const loadingText = "loading form...";
     const isFormReady = isCreateForm || post;
 
@@ -107,6 +108,7 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
             main_video_raw: post.main_video || "",
             premiere_date: post.premiere_date || "",
             is_private: !!post.is_private,
+            is_draft: !!post.is_draft,
             is_news: !!post.is_news,
             statement: hydr
         });
@@ -121,7 +123,7 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
         setHasChanged(false);   
     },[post, user, setData]);
 
-    const onSubmit = useCallback(async (e) =>
+    const onSubmit = useCallback(async (e, asDraft = false) =>
     {
         e.preventDefault();
         setIsSubmitting(true);
@@ -158,6 +160,7 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
             formData.append('main_video', data.main_video || '');
             formData.append('premiere_date', data.premiere_date || '');
             formData.append('is_private', data.is_private ? '1' : '0');
+            formData.append('is_draft', asDraft ? '1' : '0');
             formData.append('is_news', data.is_news ? '1' : '0');
             formData.append('statement', statementWithResizedImages || '');
 
@@ -412,7 +415,7 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
         (
         <>
             <div className="main-info-box stretch">
-                <form onSubmit={onSubmit}>
+                <form onSubmit={(e) => onSubmit(e, false)}>
                     <div className="text-fields-container">
                         {errors.general && (
                         <div className="error">
@@ -554,9 +557,16 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
                                 value={data.statement}
                             />
                         </div>
-                        <button type="submit" disabled={isSubmitting || !canSubmit}>
-                            {buttonText}
-                        </button>      
+                        <div className="horizontal-buttons-container">
+                            {(!post || post.is_draft) && (
+                                <button type="button" onClick={(e) => onSubmit(e, true)} disabled={isSubmitting || !canSubmit}>
+                                    save draft
+                                </button>
+                            )}
+                            <button type="submit" disabled={isSubmitting || !canSubmit}>
+                                {buttonText}
+                            </button>      
+                        </div>
                     </div>            
                     <div className="multi-field-container" ref={galleryContainerRef}>                            
                         <div className="field-button-container top-align">
@@ -582,10 +592,17 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
                                     onRemove={() => setHasChanged(true)}
                                 />
                             ))
-                        }          
-                        <button type="submit" disabled={isSubmitting || !canSubmit }>
-                            {buttonText}
-                        </button>                                      
+                        } 
+                        <div className="horizontal-buttons-container">         
+                            {(!post || post.is_draft) && (
+                                <button type="button" onClick={(e) => onSubmit(e, true)} disabled={isSubmitting || !canSubmit}>
+                                    save draft
+                                </button>
+                            )}
+                            <button type="submit" disabled={isSubmitting || !canSubmit }>
+                                {buttonText}
+                            </button>                                     
+                        </div> 
                     </div>  
                 </form>              
             </div>        
@@ -594,7 +611,7 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
                 (
                     <button 
                         type="button" 
-                        className="delete-button"
+                        className="red-button"
                         onClick={handleDelete}
                         disabled={isSubmitting}
                     >

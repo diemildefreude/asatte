@@ -340,6 +340,10 @@ button, .link-button
     border: var(--hover-button-border);
     font-weight: 600;
 }
+.content:not(.touch-device) button:not(.button-link).red-button:hover
+{
+    background: var(--red-gradient);
+}
 button:disabled, button:disabled:hover
 {
     background: transparent;
@@ -556,10 +560,6 @@ button:disabled, button:disabled:hover
     display: inline-block;
     max-width: 100%;
     height: auto;
-}
-.content:not(.touch-device) .red-button:hover
-{
-    background: var(--red-gradient);
 }
 .centered-icon
 {

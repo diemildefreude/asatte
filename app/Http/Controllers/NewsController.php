@@ -15,6 +15,7 @@ class NewsController extends Controller
             ->where('is_news', true)
             ->where('is_private', false)
             ->where('is_hidden_by_admin', false)
+            ->where('is_draft', false)
             ->latest();
 
         $newsPosts = $query->paginate($amount)->withQueryString();

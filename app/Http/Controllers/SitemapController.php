@@ -12,6 +12,7 @@ class SitemapController extends Controller
     {
         $posts = Post::where('is_private', false)
             ->where('is_hidden_by_admin', false)
+            ->where('is_draft', false)
             ->orderBy('updated_at', 'desc')
             ->get();
 
