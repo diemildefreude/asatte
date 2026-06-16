@@ -21,7 +21,7 @@
 }
 *
 {
-    scrollbar-color: var(--blue) var(--dark-purple);
+    scrollbar-color: var(--grey-yellow) var(--dark-purple);
     scrollbar-width: thin;
 }
 @media (min-width: 700px) 
