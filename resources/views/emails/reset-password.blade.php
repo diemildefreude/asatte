@@ -106,7 +106,7 @@
                 <table class="message-container-table" role="presentation" border="0" cellpadding="0" cellspacing="0">
                     <tr>
                         <td style="padding-top: 40px;">
-                            <h1>account recovery for netart.io</h1>
+                            <h1>account recovery for {{config('app.name')}}</h1>
                         </td>
                     </tr>
                     <tr>
