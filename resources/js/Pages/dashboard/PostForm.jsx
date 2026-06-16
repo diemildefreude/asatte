@@ -15,11 +15,15 @@ const createInitialImageFields = (post=null, user, postUrl, appUrl) =>
     if(post) 
     {
         const images = post.gallery_image_urls;
+        if(!images)
+        {
+            return null;
+        }
         const alts = post.gallery_alts;
         return images.map((image, i) => ({
             index: i,
             image: `${appUrl}/storage/images/uploaded/users/${user.username}/posts/${postUrl}/gallery/thumb/${image}`,
-            alt: alts[i] == "null" ? "" : alts[i],
+            alt: (!alts || alts[i] == "null") ? "" : alts[i],
             value: image,
             type: 'old'
         }));

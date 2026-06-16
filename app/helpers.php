@@ -126,11 +126,16 @@ function addHttpProtocol(string $url): string
  * @return string The updated HTML with Base64 replaced by relative paths.
  */
 
-function saveEditorImages(string $contentHtml, array &$oldImgArr, string $folderPath)
+function saveEditorImages(string $contentHtml, &$oldImgArr, string $folderPath)
 {
     $newImgArr = [];
     $cleanFolder = trim($folderPath, '/');
     $storageBase = "images/uploaded/$cleanFolder";
+
+    if(!$oldImgArr || gettype($oldImgArr) != "array")
+    {
+        $oldImgArr = [];
+    }
 
     // 1. IDENTIFY EXISTING IMAGES
     $quotedPath = preg_quote($storageBase, '/');

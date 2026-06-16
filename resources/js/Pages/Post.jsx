@@ -59,6 +59,7 @@
         }, [post]);
 
         const mainImg = `${appUrl}/storage/images/uploaded/users/${post.user.username}/posts/${post.post_url}/gallery/large/${imageUrls[0]}`;
+        const mainAlt = post?.gallery_alts[0] ?? "";
 
         const videoUrl = useMemo(() =>
         {
@@ -156,7 +157,7 @@
                         <div className="image-info-container">
                             <div className="main-image-container">
                                 <div className="image-link-subcontainer">
-                                    <img className="main-image" src={mainImg} alt="" />
+                                    <img className="main-image" src={mainImg} alt={mainAlt} />
                                     <div className="main-image-link-container">
                                         <div className="info-panel">                        
                                         { 
