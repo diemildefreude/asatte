@@ -60,7 +60,9 @@ class HomeController extends Controller
         }
 
         // Archive posts - support random fetch with excludes, or paginated fetch
+        $heroIds = $heroPosts->pluck('id')->toArray();
         $query = Post::with(['user:id,username,avatar,member_type'])
+            ->when(!empty($heroIds), fn($q) => $q->whereNotIn('id', $heroIds))
             ->where('is_news', false)
             ->where('is_private', false)
             ->where('is_hidden_by_admin', false)
