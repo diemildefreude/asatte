@@ -31,8 +31,9 @@ class VerifyEmail extends Mailable
      */
     public function envelope(): Envelope
     {
+        $appName = config('app.name');
         return new Envelope(
-            subject: 'netart.io: verify your email address',
+            subject: "$appName: verify your email address",
         );
     }
 
