@@ -299,8 +299,9 @@
 {
     background-color: rgba(0.0,0.0,0.0,0.7);
     position: fixed;
-    width: clamp(300px, 100svw, 100svw);
-    height: clamp(300px, 100svh, 100svh);
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
     top: 0;
     left: 0;
     z-index: 99;

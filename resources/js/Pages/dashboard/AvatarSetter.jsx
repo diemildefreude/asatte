@@ -218,8 +218,12 @@ function AvatarSetter({user})
         {
             return;
         }
+        if (imageCropButtonRef.current && imageCropButtonRef.current.contains(e.touches[0].target))
+        {
+            return;
+        }
         closeCropperAndClearInput();
-    }, [closeCropperAndClearInput, imageCropContainerRef.current]);
+    }, [closeCropperAndClearInput, imageCropContainerRef.current, imageCropButtonRef.current]);
 
     useEffect(() =>
     {
