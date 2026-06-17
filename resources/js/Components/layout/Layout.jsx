@@ -22,11 +22,24 @@ function Layout({children, isDashboard=false, classes=""})
     
         handleResize();
     
+        const handleScroll = () => {
+            if (window.scrollY <= 100) {
+                document.documentElement.style.overscrollBehaviorY = 'auto';
+                document.body.style.overscrollBehaviorY = 'auto';
+            } else {
+                document.documentElement.style.overscrollBehaviorY = 'none';
+                document.body.style.overscrollBehaviorY = 'none';
+            }
+        };
+
         window.addEventListener('resize', handleResize);
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        handleScroll(); // Initialize
 
         return () => 
         {
             window.removeEventListener('resize', handleResize);
+            window.removeEventListener('scroll', handleScroll);
         };
     },[]);
 
