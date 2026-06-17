@@ -13,31 +13,77 @@ function Layout({children, isDashboard=false, classes=""})
     classNames += ` ${classes}`;
     useEffect(() =>
     {
+        let ticking = false;
+        let isFooterVisible = false;
+        const footerElement = document.querySelector('footer');
+
+        const updateFooter = () => {
+            if (footerElement) {
+                const rect = footerElement.getBoundingClientRect();
+                const bottomOffset = window.innerHeight - rect.bottom;
+                document.body.style.setProperty('--footer-bottom', `${bottomOffset}px`);
+            }
+        };
+
         const handleResize = () => 
         {
             const isCurrentlyTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-            //console.log("ICT?", isCurrentlyTouch);
             setIsTouchDevice(isCurrentlyTouch);
+            updateFooter();
         };
     
         handleResize();
     
-        const handleScroll = () => {
-            if (window.scrollY <= 90) {
-                document.documentElement.style.overscrollBehaviorY = 'auto';
-                document.body.style.overscrollBehaviorY = 'auto';
+        const onScroll = () => {
+            if (window.scrollX !== 0) {
+                document.body.style.setProperty('--scroll-x', `-${window.scrollX}px`);
             } else {
-                document.documentElement.style.overscrollBehaviorY = 'none';
-                document.body.style.overscrollBehaviorY = 'none';
+                document.body.style.removeProperty('--scroll-x');
+            }
+
+            if (isFooterVisible) {
+                updateFooter();
+            }
+            ticking = false;
+        };
+
+        const handleScroll = () => {
+            if (!ticking) {
+                window.requestAnimationFrame(onScroll);
+                ticking = true;
             }
         };
 
+        let observer;
+        if (footerElement) {
+            // Start tracking position 500px before the footer enters the viewport 
+            // to prevent any pop-in during fast scrolling
+            observer = new IntersectionObserver((entries) => 
+            {
+                entries.forEach(entry => 
+                {
+                    isFooterVisible = entry.isIntersecting;
+                    if (isFooterVisible) 
+                    {
+                        updateFooter();
+                    }
+                });
+            }, 
+            {
+                rootMargin: '500px' 
+            });
+            observer.observe(footerElement);
+        }
+
         window.addEventListener('resize', handleResize);
         window.addEventListener('scroll', handleScroll, { passive: true });
-        handleScroll(); // Initialize
+        onScroll(); // Initialize variables
 
         return () => 
         {
+            if (observer && footerElement) {
+                observer.unobserve(footerElement);
+            }
             window.removeEventListener('resize', handleResize);
             window.removeEventListener('scroll', handleScroll);
         };

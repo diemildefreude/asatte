@@ -50,11 +50,14 @@ footer
 .footer-background
 {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
+  bottom: var(--footer-bottom, -500px);
+  left: -50vw;
+  width: 200vw;
   height: 500px;
   background: var(--footer-gradient);
+  transform: translateX(var(--scroll-x, 0px));
+  z-index: -2;
+  pointer-events: none;
 }
 
 .copyright
