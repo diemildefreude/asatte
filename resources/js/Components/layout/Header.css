@@ -55,8 +55,17 @@ nav
     gap: 1rem;
     justify-content: center;
     padding: 3rem 1rem;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    overflow-y: auto;
     z-index: -1;
+}
+@media (orientation: landscape) 
+{
+    nav 
+    {
+        flex-wrap: wrap;
+        gap: 0;
+    }
 }
 .nav-half
 {
