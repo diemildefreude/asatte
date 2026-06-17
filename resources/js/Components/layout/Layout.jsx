@@ -23,7 +23,7 @@ function Layout({children, isDashboard=false, classes=""})
         handleResize();
     
         const handleScroll = () => {
-            if (window.scrollY <= 100) {
+            if (window.scrollY <= 90) {
                 document.documentElement.style.overscrollBehaviorY = 'auto';
                 document.body.style.overscrollBehaviorY = 'auto';
             } else {
