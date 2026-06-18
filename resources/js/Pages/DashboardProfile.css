@@ -279,18 +279,20 @@
 .left-item, .left-item.padded
 {
     left: 1rem;
+    padding: 0;
 }
 .right-item, .right-item.padded
 {    
     right: 1rem;
+    padding: 0;
 }
 @media (min-width: 450px)
 {
-    .left-item
+    .left-item:not(.padded)
     {
         left: 0rem;
     }
-    .right-item
+    .right-item:not(.padded)
     {    
         right: 0rem;
     }

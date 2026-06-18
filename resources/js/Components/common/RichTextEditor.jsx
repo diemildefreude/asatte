@@ -251,7 +251,7 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
         },
 
         toolbar_mode: 'wrap', 
-        object_resizing: true,
+        object_resizing: 'img,iframe,video,figure',
         content_css: localCssPath,
         content_style: `
           @import url('https://fonts.googleapis.com/css2?family=Cascadia+Code:ital,wght@0,200..700;1,200..700&display=swap');
@@ -259,6 +259,10 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
           { 
             font-family: "Cascadia Code", sans-serif;
             font-weight: 1
+          }
+          iframe 
+          {
+            pointer-events: none;
           }
         `,
       }}
