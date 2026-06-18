@@ -156,6 +156,30 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
                 }
             });
           });
+          // Smart bottom-tap focus handler for mobile devices
+          editor.on('click', (e) => {
+              if (e.target.nodeName === 'BODY') {
+                  const body = editor.getBody();
+                  if (!body || !body.lastElementChild) return;
+                  
+                  const rect = body.lastElementChild.getBoundingClientRect();
+                  // Check if click was visually below the last content block
+                  if (e.clientY > rect.bottom - 10) {
+                      let lastEl = body.lastElementChild;
+                      
+                      // If the last element is an iframe/image wrapper, append a safe new line
+                      if (lastEl.querySelector('.mce-preview-object, iframe, img') || ['IFRAME', 'IMG', 'VIDEO'].includes(lastEl.nodeName)) {
+                          const newP = editor.getDoc().createElement('p');
+                          newP.innerHTML = '<br data-mce-bogus="1">';
+                          body.appendChild(newP);
+                          lastEl = newP;
+                      }
+                      
+                      // Explicitly place the caret inside the final element
+                      editor.selection.setCursorLocation(lastEl, 0);
+                  }
+              }
+          });
         },
         
         media_url_resolver: (data) => {
@@ -255,10 +279,19 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
         content_css: localCssPath,
         content_style: `
           @import url('https://fonts.googleapis.com/css2?family=Cascadia+Code:ital,wght@0,200..700;1,200..700&display=swap');
+          html 
+          {
+            height: 100%;
+          }
           body 
           { 
             font-family: "Cascadia Code", sans-serif;
-            font-weight: 1
+            font-weight: 1;
+            min-height: 100%;
+            margin: 0;
+            padding: 1rem;
+            box-sizing: border-box;
+            cursor: text;
           }
           iframe 
           {
