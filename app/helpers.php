@@ -364,8 +364,8 @@ function deleteGalleryImages($imageName, $folderPath)
     Storage::disk('public')->delete($imageRoot . 'large/' . $imageName);
 }
 
-function avatarThumb() { return 50;}
-function avatarSmall() { return 300;}
+function avatarThumb() { return 150;}
+function avatarSmall() { return 500;}
 function thumbSize(){ return 240;}
 function smallW(){ return 640;}
 function smallH(){ return 480;}
