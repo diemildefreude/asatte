@@ -397,7 +397,7 @@ function Conversation({ conversation: conversationProp, addressee })
             <p className="centered-content padding-1rem">
                 Loading conversation...
             </p>
-        ):(<>{              
+        ):(<div className="messages-container">{              
         conversation && conversation?.messages?.map((message, i) => 
         {
             //console.log("rerender conversation?", conversation);
@@ -421,7 +421,7 @@ function Conversation({ conversation: conversationProp, addressee })
             </div>
             )}
             {isNew && (
-            <dl>
+            <dl className="side-padded-on-mobile">
                 <dt>
                     <label className="main-label" htmlFor="">recipients</label>
                 </dt>
@@ -481,7 +481,7 @@ function Conversation({ conversation: conversationProp, addressee })
                 disabled={isSubmitting}
                 type="text"
                 isInline={false}
-                classes="form-field"
+                classes="side-padded-on-mobile"
             />
             )}
             <RichTextEditor
@@ -498,7 +498,7 @@ function Conversation({ conversation: conversationProp, addressee })
             >
                 send
             </button>
-        </form></>))
+        </form></div>))
         :(<p className="centered-content padding-1rem">
                 Please verify your e-mail to begin mailing other users.
         </p>)

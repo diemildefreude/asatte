@@ -98,7 +98,12 @@
     padding: 0 0 1rem;
     border-bottom: 1px solid white;
 }
-.comment:not(:first-child)
+.comment.dm
+{
+    margin: 0;
+    padding: 0 1rem 1rem;
+}
+.comment:not(:first-child), .comment.dm:not(:first-child)
 {
     margin: 1rem 0 0;
 }

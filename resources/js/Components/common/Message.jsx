@@ -77,7 +77,7 @@ function Message({message, onReply=null, onDelete=null, id, parentLocalId=null,
     }, [initialHydratedContent]);
 
     return (
-    <div className="comment" id={elementId}>
+    <div className="comment dm" id={elementId}>
         <p>
             <UserLink user={messageSender}/> <em>on {getDateAsYYYYMMDD(message.created_at)}
             <span className="notice small"> at {getTimeAsHHMM(message.created_at)}</span></em>            

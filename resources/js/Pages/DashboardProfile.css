@@ -278,11 +278,11 @@
 }
 .left-item, .left-item.padded
 {
-    padding-left: 1rem;
+    left: 1rem;
 }
 .right-item, .right-item.padded
 {    
-    padding-right: 1rem;
+    right: 1rem;
 }
 @media (min-width: 450px)
 {

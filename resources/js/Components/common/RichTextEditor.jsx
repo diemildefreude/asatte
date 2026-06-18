@@ -63,6 +63,9 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
         ,
         extended_valid_elements: 'blockquote[class|data-instgrm-permalink|data-instgrm-version|data-instgrm-captioned|data-instgrm-payload-id|data-video-id|cite|data-theme|data-dnt|data-media-max-width],iframe[src|title|width|height|frameborder|allowfullscreen|scrolling|allow|style]',
         toolbar_mode: 'wrap',
+        mobile: {
+            toolbar_mode: 'wrap'
+        },
         placeholder: placeholder,       
         // image_title: true,
         // automatic_uploads: true,
@@ -92,6 +95,28 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
               e.content = e.content.replace(/<blockquote class="[^"]*tiktok-embed[^"]*"[^>]*cite="https:\/\/(?:www\.)?tiktok\.com\/[^\/]+\/video\/(\d+)[^"]*"[\s\S]*?<\/blockquote>(?:\s*<script[^>]*>[\s\S]*?<\/script>)?/ig, (match, videoId) => {
                   return `<iframe src="https://www.tiktok.com/embed/v2/${videoId}" width="325" height="740" frameborder="0" scrolling="no" allow="fullscreen" style="max-width: 100%; overflow: hidden;"></iframe>`;
               });
+            }
+
+            // Clean up frontend layout wrappers that might be pasted in from the public site
+            if (e.content.includes('iframe-container') || e.content.includes('statement')) {
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = e.content;
+                const unwrapClasses = ['.iframe-container-container', '.iframe-container', '.statement'];
+                
+                unwrapClasses.forEach(selector => {
+                    const elements = Array.from(tempDiv.querySelectorAll(selector));
+                    // Reverse to unwrap deepest first
+                    elements.reverse().forEach(el => {
+                        if (el.parentNode) {
+                            while (el.firstChild) {
+                                el.parentNode.insertBefore(el.firstChild, el);
+                            }
+                            el.parentNode.removeChild(el);
+                        }
+                    });
+                });
+                
+                e.content = tempDiv.innerHTML;
             }
           });
 
@@ -229,6 +254,7 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
         object_resizing: true,
         content_css: localCssPath,
         content_style: `
+          @import url('https://fonts.googleapis.com/css2?family=Cascadia+Code:ital,wght@0,200..700;1,200..700&display=swap');
           body 
           { 
             font-family: "Cascadia Code", sans-serif;
