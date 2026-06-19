@@ -213,15 +213,15 @@ export function setupIframeResizer() {
     });
 }
 
-function handleResizeWithCanvas(img, mimeType)
+function handleResizeWithCanvas(img, mimeType, isGallery = false)
 {
     return new Promise((resolve) => 
     {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
 
-        const maxWidth = 1280;
-        const maxHeight = 1280;
+        const maxWidth = isGallery ? 1920 : 1280;
+        const maxHeight = isGallery ? 1920 : 1280;
         let width = img.width;
         let height = img.height;
 
@@ -251,7 +251,7 @@ function handleResizeWithCanvas(img, mimeType)
         }, mimeType, 0.7);
     });    
 }
-export function resizeImage(source)
+export function resizeImage(source, isGallery = false)
 {
     if (typeof source === 'string')
     {
@@ -262,7 +262,7 @@ export function resizeImage(source)
             {
                 try 
                 {
-                    const blob = await handleResizeWithCanvas(img, 'image/jpeg');
+                    const blob = await handleResizeWithCanvas(img, 'image/jpeg', isGallery);
                     resolve(blob);
                 } 
                 catch (error) 
@@ -290,7 +290,7 @@ export function resizeImage(source)
                 {
                     try 
                     {
-                        const blob = await handleResizeWithCanvas(img, source.type);
+                        const blob = await handleResizeWithCanvas(img, source.type, isGallery);
                         resolve(blob);
                     } 
                     catch (error) 

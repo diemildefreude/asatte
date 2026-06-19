@@ -139,7 +139,7 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
                 resizedGalleryImages.push(imageFields[i]);
                 continue;
             }
-            const resizedBlob = await resizeImage(file);
+            const resizedBlob = await resizeImage(file, true);
             const resizedImageFile = new File([resizedBlob], file.name, { type: file.type });
             const newField = {...imageFields[i], value: resizedImageFile};
             resizedGalleryImages.push(newField);

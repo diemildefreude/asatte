@@ -38,15 +38,7 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef=
     const TOUCH_ZOOM_SENSITIVITY = 0.01;
     const PAN_SENSITIVITY = 1; // For mouse wheel panning
 
-    const handleImageLoad = useCallback((event) => 
-    {
-        const img = event.currentTarget;
-        const natSize = { width: img.naturalWidth, height: img.naturalHeight }; 
-        setNaturalSize(natSize);
-        const initialT = calculateInitialTransform(zoomContainerRef?.current, outerContainerRef?.current, natSize.width, natSize.height);
-        setTransform(initialT);
-        setInitialTransform(initialT);
-    }, [setTransform, isZoomed, outerContainerRef]);
+    // Removed handleImageLoad since we calculate everything in the preloader
 
     const clampPosition = useCallback((newPosX, newPosY, currentScale) => 
     {
@@ -257,19 +249,57 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef=
             return;
         }
 
-        // Immediately show small image so the modal instantly renders without a blank flash
-        setLoadedSrc(smallSrc || src);
+        // Hide current image instantly when switching to a new post/image
+        setLoadedSrc(null);
 
-        // If a small placeholder was provided, preload the massive large version invisibly
-        if (smallSrc && src !== smallSrc) {
-            const img = new Image();
-            img.onload = () => {
-                if (currentSrcRef.current === src) {
-                    setLoadedSrc(src);
+        // Preload the small image (or large if no small)
+        const targetSrc = smallSrc || src;
+        const img = new Image();
+        
+        img.onload = () => {
+            if (currentSrcRef.current === src) {
+                // Calculate transform for the initial image
+                const natSize = { width: img.naturalWidth, height: img.naturalHeight }; 
+                const initialT = calculateInitialTransform(zoomContainerRef?.current, outerContainerRef?.current, natSize.width, natSize.height);
+                
+                // Batch updates! This prevents the wrong-transform flicker.
+                setNaturalSize(natSize);
+                setTransform(initialT);
+                setInitialTransform(initialT);
+                setLoadedSrc(targetSrc);
+
+                // If there's a large version to upgrade to, preload it now
+                if (smallSrc && src !== smallSrc) {
+                    const largeImg = new Image();
+                    largeImg.onload = () => {
+                        if (currentSrcRef.current === src) {
+                            const largeNatSize = { width: largeImg.naturalWidth, height: largeImg.naturalHeight }; 
+                            const largeInitialT = calculateInitialTransform(zoomContainerRef?.current, outerContainerRef?.current, largeNatSize.width, largeNatSize.height);
+                            
+                            // Safely preserve user's zoom/pan if they started interacting while loading
+                            setNaturalSize((prevNatSize) => {
+                                setTransform((prevTransform) => {
+                                    if (!prevNatSize) return largeInitialT;
+                                    const scaleRatio = largeNatSize.width / prevNatSize.width;
+                                    return {
+                                        scale: prevTransform.scale / scaleRatio,
+                                        posX: prevTransform.posX,
+                                        posY: prevTransform.posY
+                                    };
+                                });
+                                return largeNatSize;
+                            });
+                            
+                            setInitialTransform(largeInitialT);
+                            setLoadedSrc(src);
+                        }
+                    };
+                    largeImg.src = src;
                 }
-            };
-            img.src = src;
-        }
+            }
+        };
+        img.src = targetSrc;
+
     }, [src, smallSrc]);
 
     return (
@@ -279,15 +309,16 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef=
             ref={zoomContainerRef}>
             
             <img src={loadedSrc} 
-                alt={alt}
-                draggable="false"
-                ref={zoomedImageRef}
-                onLoad={handleImageLoad}
-                style={{
-                    transform: `translate(${transform.posX}px, ${transform.posY}px) scale(${transform.scale})`,
-                    transformOrigin: 'top left', 
-                }}
-            />
+                    alt={alt}
+                    draggable="false"
+                    ref={zoomedImageRef}
+                    style={{
+                        transform: `translate(${transform.posX}px, ${transform.posY}px) scale(${transform.scale})`,
+                        transformOrigin: 'top left', 
+                        opacity: loadedSrc ? 1 : 0
+                    }}
+                />
+            
         </div>
     )
 }

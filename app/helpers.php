@@ -107,15 +107,17 @@ if (!function_exists('getSafeVideoIframeRegexp')) {
   return '%^https?://%';
   }
 }
-function addHttpProtocol(string $url): string
-{
-    if ($url && !str_starts_with($url, 'http://') 
-        && !str_starts_with($url, 'https://')) 
+if (!function_exists('addHttpProtocol')) {
+    function addHttpProtocol(string $url): string
     {
-        return 'http://' . $url;
-    }
+        if ($url && !str_starts_with($url, 'http://') 
+            && !str_starts_with($url, 'https://')) 
+        {
+            return 'http://' . $url;
+        }
 
-    return $url;
+        return $url;
+    }
 }
 
 /**
@@ -345,6 +347,7 @@ function storeImageFile($file, $folder)
     // Resize the image
     $thumb->scaleDown(height: thumbSize());
     $small->scaleDown(height: smallH());
+    $large->scaleDown(width: largeW());
 
     // Save the resized image to the public disk
     $imageRoot = 'images/uploaded/' . $folder . '/';
