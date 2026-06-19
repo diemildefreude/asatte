@@ -162,27 +162,7 @@
                                 <div className="image-link-subcontainer">
                                     <img className="main-image" src={mainImg} alt={mainAlt} />
                                     <div className="main-image-link-container">
-                                        <div className="info-panel">                        
-                                        { 
-                                            post.website ?
-                                            (
-                                                <div className="info-item action-links link-container">
-                                                    <a className="post-link" 
-                                                        href={post.website}
-                                                        onClick={(e) =>
-                                                        {
-                                                            e.preventDefault();
-                                                            openPopup(post.website,`${post.id} : ${post.title}`, 
-                                                                window.screen.width * 0.2, window.screen.height * 0.2,
-                                                                window.screen.width * 0.8, window.screen.height * 0.8);
-                                                        }}  
-                                                    >
-                                                        <i className="fa-solid fa-arrow-up-right-from-square"></i>
-                                                        <span>visit site</span>
-                                                    </a>
-                                                </div>
-                                            ) : ( <></>)
-                                        }
+                                        <div className="info-panel">
                                         {
                                             (post?.is_private || post?.is_draft)? (
                                             <div>
@@ -207,6 +187,26 @@
                                                     <i className={isLiked ? "fa-solid fa-star" : "fa-regular fa-star"}></i>
                                                 </button>
                                             </div>))
+                                        }
+                                        { 
+                                            post.website ?
+                                            (
+                                                <div className="info-item action-links link-container">
+                                                    <a className="post-link" 
+                                                        href={post.website}
+                                                        onClick={(e) =>
+                                                        {
+                                                            e.preventDefault();
+                                                            openPopup(post.website,`${post.id} : ${post.title}`, 
+                                                                window.screen.width * 0.2, window.screen.height * 0.2,
+                                                                window.screen.width * 0.8, window.screen.height * 0.8);
+                                                        }}  
+                                                    >
+                                                        <i className="fa-solid fa-arrow-up-right-from-square"></i>
+                                                        <span>visit site</span>
+                                                    </a>
+                                                </div>
+                                            ) : ( <></>)
                                         }
                                         </div>
                                     </div>

@@ -325,6 +325,7 @@ nav.open
         margin: 0 0 0 -0.5rem; /*because of the avatar*/
         box-sizing:border-box;
         height: var(--header-height-wide);
+        font-size: 1.0em;
     }
 }
 

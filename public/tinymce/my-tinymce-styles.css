@@ -12,7 +12,7 @@ body {
     color: #000;
     min-height: 100%;
     margin: 0;
-    padding: 0.4rem !important;
+    padding: 0 0.4rem !important;
     box-sizing: border-box;
     cursor: text;
 }

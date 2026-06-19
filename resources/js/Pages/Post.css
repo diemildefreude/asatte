@@ -45,7 +45,7 @@
 }
 .main-image-container .info-panel
 {
-    flex-direction: row;
+    flex-direction: row-reverse;
     width: 100%;
     height: fit-content;
     position: relative;
@@ -279,6 +279,10 @@
 .post-date
 {
     color: var(--grey-yellow);
+}
+.touch-device .main-image-container .like-button i
+{    
+    -webkit-text-stroke: 1px indigo;
 }
 .statement
 {

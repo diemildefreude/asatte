@@ -344,7 +344,7 @@ function storeImageFile($file, $folder)
     $large = $manager->read($filePath);
     // Resize the image
     $thumb->scaleDown(height: thumbSize());
-    $small->scaleDown(height: mediumH());
+    $small->scaleDown(height: smallH());
 
     // Save the resized image to the public disk
     $imageRoot = 'images/uploaded/' . $folder . '/';

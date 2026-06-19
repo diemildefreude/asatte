@@ -58,6 +58,59 @@ Route::get('/email/cancel/{id}/{hash}', [App\Http\Controllers\AuthController::cl
 //     return dd("ur mom");
 // });
 
+Route::get('/regenerate-small-images', function () {
+    if (!app()->environment('local') && !auth()->check()) {
+        abort(403, 'Unauthorized.');
+    }
+    
+    $posts = \App\Models\Post::with('user')->get();
+    $manager = new \Intervention\Image\ImageManager(new \Intervention\Image\Drivers\Imagick\Driver());
+    $regeneratedCount = 0;
+    $deletedCount = 0;
+    
+    foreach ($posts as $post) {
+        $imageUrls = $post->gallery_image_urls;
+        if (is_array($imageUrls) && $post->user) {
+            $folder = 'images/uploaded/users/' . $post->user->username . '/posts/' . $post->post_url . '/gallery';
+            
+            // 1. Regenerate active small images
+            foreach ($imageUrls as $imageName) {
+                $largePath = $folder . '/large/' . $imageName;
+                $smallPath = $folder . '/small/' . $imageName;
+                
+                if (\Illuminate\Support\Facades\Storage::disk('public')->exists($largePath)) {
+                    try {
+                        $largeFileContent = \Illuminate\Support\Facades\Storage::disk('public')->get($largePath);
+                        $image = $manager->read($largeFileContent);
+                        $image->scaleDown(height: smallH());
+                        \Illuminate\Support\Facades\Storage::disk('public')->put($smallPath, (string) $image->encode());
+                        $regeneratedCount++;
+                    } catch (\Exception $e) {
+                        \Illuminate\Support\Facades\Log::error("Failed to regenerate small image for $largePath: " . $e->getMessage());
+                    }
+                }
+            }
+
+            // 2. Clean up orphaned files in all three subfolders
+            foreach (['thumb', 'small', 'large'] as $subfolder) {
+                $subfolderPath = $folder . '/' . $subfolder;
+                if (\Illuminate\Support\Facades\Storage::disk('public')->exists($subfolderPath)) {
+                    $files = \Illuminate\Support\Facades\Storage::disk('public')->files($subfolderPath);
+                    foreach ($files as $file) {
+                        $filename = basename($file);
+                        if (!in_array($filename, $imageUrls)) {
+                            \Illuminate\Support\Facades\Storage::disk('public')->delete($file);
+                            $deletedCount++;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    return "Regenerated $regeneratedCount active small images to " . smallH() . "px, and successfully deleted $deletedCount orphaned ghost files.";
+});
+
 
 
 // Inertia Routes
