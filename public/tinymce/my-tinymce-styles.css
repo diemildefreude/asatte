@@ -16,7 +16,10 @@ body {
     box-sizing: border-box;
     cursor: text;
 }
-
+body::before
+{
+    padding: 0 0.4rem !important;
+}
 p 
 {
     line-height: 1.6;  

@@ -180,6 +180,54 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
                   }
               }
           });
+
+          // Mobile Backspace Fix: Delete embeds natively instead of selecting them (which closes virtual keyboards)
+          editor.on('keydown beforeinput', (e) => {
+              const isBackspace = e.type === 'keydown' && (e.key === 'Backspace' || e.keyCode === 8);
+              const isDeleteBackward = e.type === 'beforeinput' && e.inputType === 'deleteContentBackward';
+              
+              if (isBackspace || isDeleteBackward) {
+                  const sel = editor.selection;
+                  if (!sel.isCollapsed()) return;
+
+                  const rng = sel.getRng();
+                  if (rng.startOffset !== 0) return;
+
+                  let currentNode = rng.startContainer;
+                  let currentBlock = currentNode.nodeType === 3 ? currentNode.parentNode : currentNode;
+                  
+                  while (currentBlock && !editor.dom.isBlock(currentBlock) && currentBlock.nodeName !== 'BODY') {
+                      currentBlock = currentBlock.parentNode;
+                  }
+
+                  if (currentBlock && currentBlock.previousSibling) {
+                      const prevBlock = currentBlock.previousSibling;
+                      const isEmbedNode = (node) => ['IFRAME', 'IMG', 'VIDEO', 'FIGURE'].includes(node.nodeName) || (node.classList && node.classList.contains('mce-preview-object'));
+                      
+                      let embedToDelete = null;
+                      if (isEmbedNode(prevBlock)) {
+                          embedToDelete = prevBlock;
+                      } else if (prevBlock.lastChild && isEmbedNode(prevBlock.lastChild)) {
+                          embedToDelete = prevBlock.lastChild;
+                      } else if (prevBlock.querySelector) {
+                          const embeds = prevBlock.querySelectorAll('iframe, img, video, figure, .mce-preview-object');
+                          if (embeds.length > 0) {
+                              embedToDelete = embeds[embeds.length - 1];
+                          }
+                      }
+
+                      if (embedToDelete) {
+                          e.preventDefault();
+                          editor.dom.remove(embedToDelete);
+                          
+                          // Clean up empty wrapper block so no ghost spacing is left behind
+                          if (prevBlock !== embedToDelete && !prevBlock.textContent.trim() && !prevBlock.querySelector('img, iframe, video')) {
+                              editor.dom.remove(prevBlock);
+                          }
+                      }
+                  }
+              }
+          });
         },
         
         media_url_resolver: (data) => {
