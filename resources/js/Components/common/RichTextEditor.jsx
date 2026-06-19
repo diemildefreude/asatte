@@ -191,39 +191,58 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
                   if (!sel.isCollapsed()) return;
 
                   const rng = sel.getRng();
-                  if (rng.startOffset !== 0) return;
-
                   let currentNode = rng.startContainer;
-                  let currentBlock = currentNode.nodeType === 3 ? currentNode.parentNode : currentNode;
-                  
-                  while (currentBlock && !editor.dom.isBlock(currentBlock) && currentBlock.nodeName !== 'BODY') {
-                      currentBlock = currentBlock.parentNode;
+                  let offset = rng.startOffset;
+
+                  const isEmbedNode = (node) => node && (['IFRAME', 'IMG', 'VIDEO', 'FIGURE'].includes(node.nodeName) || (node.classList && node.classList.contains('mce-preview-object')));
+
+                  let embedToDelete = null;
+                  let wrapperToClean = null;
+
+                  // Case 1: Caret is inside a block, immediately after the embed node (e.g. after a paragraph merge)
+                  if (currentNode.nodeType === 1 && offset > 0) {
+                      const prevNode = currentNode.childNodes[offset - 1];
+                      if (isEmbedNode(prevNode)) {
+                          embedToDelete = prevNode;
+                      } else if (prevNode && prevNode.nodeType === 1 && isEmbedNode(prevNode.lastChild)) {
+                          embedToDelete = prevNode.lastChild;
+                          wrapperToClean = prevNode;
+                      }
                   }
 
-                  if (currentBlock && currentBlock.previousSibling) {
-                      const prevBlock = currentBlock.previousSibling;
-                      const isEmbedNode = (node) => ['IFRAME', 'IMG', 'VIDEO', 'FIGURE'].includes(node.nodeName) || (node.classList && node.classList.contains('mce-preview-object'));
+                  // Case 2: Caret is at the absolute beginning of a text node or block, look at the preceding block
+                  if (!embedToDelete && offset === 0) {
+                      let currentBlock = currentNode.nodeType === 3 ? currentNode.parentNode : currentNode;
                       
-                      let embedToDelete = null;
-                      if (isEmbedNode(prevBlock)) {
-                          embedToDelete = prevBlock;
-                      } else if (prevBlock.lastChild && isEmbedNode(prevBlock.lastChild)) {
-                          embedToDelete = prevBlock.lastChild;
-                      } else if (prevBlock.querySelector) {
-                          const embeds = prevBlock.querySelectorAll('iframe, img, video, figure, .mce-preview-object');
-                          if (embeds.length > 0) {
-                              embedToDelete = embeds[embeds.length - 1];
-                          }
+                      while (currentBlock && !editor.dom.isBlock(currentBlock) && currentBlock.nodeName !== 'BODY') {
+                          currentBlock = currentBlock.parentNode;
                       }
 
-                      if (embedToDelete) {
-                          e.preventDefault();
-                          editor.dom.remove(embedToDelete);
+                      if (currentBlock && currentBlock.previousSibling) {
+                          const prevBlock = currentBlock.previousSibling;
                           
-                          // Clean up empty wrapper block so no ghost spacing is left behind
-                          if (prevBlock !== embedToDelete && !prevBlock.textContent.trim() && !prevBlock.querySelector('img, iframe, video')) {
-                              editor.dom.remove(prevBlock);
+                          if (isEmbedNode(prevBlock)) {
+                              embedToDelete = prevBlock;
+                          } else if (prevBlock.lastChild && isEmbedNode(prevBlock.lastChild)) {
+                              embedToDelete = prevBlock.lastChild;
+                              wrapperToClean = prevBlock;
+                          } else if (prevBlock.querySelector) {
+                              const embeds = prevBlock.querySelectorAll('iframe, img, video, figure, .mce-preview-object');
+                              if (embeds.length > 0) {
+                                  embedToDelete = embeds[embeds.length - 1];
+                                  wrapperToClean = prevBlock;
+                              }
                           }
+                      }
+                  }
+
+                  if (embedToDelete) {
+                      e.preventDefault();
+                      editor.dom.remove(embedToDelete);
+                      
+                      // Clean up empty wrapper block so no ghost spacing is left behind
+                      if (wrapperToClean && wrapperToClean !== embedToDelete && !wrapperToClean.textContent.trim() && !wrapperToClean.querySelector('img, iframe, video')) {
+                          editor.dom.remove(wrapperToClean);
                       }
                   }
               }
