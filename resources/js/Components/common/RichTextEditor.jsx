@@ -57,15 +57,15 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
         height: 500,
         convert_urls: false,
         menubar: false,
-        plugins: 'image link media autoresize',
+        plugins: 'image link media',
         toolbar: isReadOnly ? false : 
             ['styles | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist | image media link']
         ,
         extended_valid_elements: 'blockquote[class|data-instgrm-permalink|data-instgrm-version|data-instgrm-captioned|data-instgrm-payload-id|data-video-id|cite|data-theme|data-dnt|data-media-max-width],iframe[src|title|width|height|frameborder|allowfullscreen|scrolling|allow|style]',
         toolbar_mode: 'wrap',
-        // mobile: {
-        //     toolbar_mode: 'wrap'
-        // },
+        mobile: {
+            toolbar_mode: 'wrap'
+        },
         placeholder: placeholder,       
         // image_title: true,
         // automatic_uploads: true,

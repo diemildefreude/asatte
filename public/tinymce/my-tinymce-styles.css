@@ -37,6 +37,12 @@ blockquote {
     color: #666 !important;
 }
 
+/* If you are trying to remove the default rounded corners on focus */
+.tox.tox-tinymce--focused,
+.tox.tox-tinymce {
+    border-radius: 0px !important;
+}
+
 iframe {
     pointer-events: none;
 }
