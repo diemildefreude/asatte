@@ -1,34 +1,42 @@
-body 
-{ 
-    font-family: 'Cascadia Code', sans-serif; 
-    font-size: 1rem; 
+@import url('https://fonts.googleapis.com/css2?family=Cascadia+Code:ital,wght@0,200..700;1,200..700&display=swap');
+
+html {
+    height: 100%;
+}
+
+body {
+    font-family: 'Cascadia Code', sans-serif;
+    font-size: 1rem;
     font-weight: 1;
-    line-height: 1.8rem; 
-    color: #000; 
-    /* background: linear-gradient(45deg, #0000ff 0%, #330055 60%); */
+    line-height: 1.8rem;
+    color: #000;
+    min-height: 100%;
+    margin: 0;
+    padding: 0.4rem !important;
+    box-sizing: border-box;
+    cursor: text;
 }
+
 p 
-{ 
-    line-height: 1.6; 
-}
-img 
-{ 
-    border: 2px solid #eee; 
-}
-blockquote
 {
+    line-height: 1.6;  
+    /* padding: 0.2em !important;    */
+    /* padding: 1rem !important;
+    background-color: red !important; */
+}
+
+img {
+    border: 2px solid #eee;
+}
+
+blockquote {
     border-left: 3px solid #666 !important; 
     padding-left: 10px !important; 
     margin-inline-start: 10px;
     margin-inline-end: 10px;
     color: #666 !important;
 }
-/* If you are trying to remove the default rounded corners on focus */
-.tox.tox-tinymce--focused,
-.tox.tox-tinymce 
-{
-    border-radius: 0px !important;
-}
-.tox .tox-edit-area__inner {
-    border-radius: 0px !important;
+
+iframe {
+    pointer-events: none;
 }

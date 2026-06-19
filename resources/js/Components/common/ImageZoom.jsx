@@ -18,10 +18,14 @@ function calculateInitialTransform (zoomContainer, outerContainer, imgWidth, img
     return { scale, posX, posY };
 };
 
-function ImageZoom({ src, alt, isZoomed, clickFunc, outerContainerRef=null, isImageCropper=false})
+function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef=null, isImageCropper=false})
 {      
     const zoomContainerRef = useRef(null);
     const zoomedImageRef = useRef(null);
+    const [loadedSrc, setLoadedSrc] = useState(null);
+    const isSwappingToLargeRef = useRef(false);
+    const currentSrcRef = useRef(src);
+
     const [transform, setTransform] = useState({ scale: 1, posX: 0, posY: 0 });
     const [naturalSize, setNaturalSize] = useState(null);
     const [initialTransform, setInitialTransform] = useState(null);
@@ -39,11 +43,28 @@ function ImageZoom({ src, alt, isZoomed, clickFunc, outerContainerRef=null, isIm
     {
         const img = event.currentTarget;
         const natSize = { width: img.naturalWidth, height: img.naturalHeight }; 
-        setNaturalSize(natSize); 
         const initialT = calculateInitialTransform(zoomContainerRef?.current, outerContainerRef?.current, natSize.width, natSize.height);
-        setTransform(initialT);
-        setInitialTransform(initialT);
-    }, [setTransform, isZoomed]);
+        
+        setNaturalSize(prevNatSize => {
+            if (prevNatSize && isSwappingToLargeRef.current) {
+                // We are seamlessly swapping from small to large! Preserve the exact visual zoom!
+                const ratio = natSize.width / prevNatSize.width;
+                setTransform(prev => ({
+                    scale: prev.scale / ratio,
+                    posX: prev.posX,
+                    posY: prev.posY
+                }));
+                setInitialTransform(initialT);
+                isSwappingToLargeRef.current = false;
+                return natSize;
+            } else {
+                // Normal load (first image, or navigating to a new image). Reset to fit-screen.
+                setTransform(initialT);
+                setInitialTransform(initialT);
+                return natSize;
+            }
+        });
+    }, [setTransform, isZoomed, outerContainerRef]);
 
     const clampPosition = useCallback((newPosX, newPosY, currentScale) => 
     {
@@ -246,13 +267,38 @@ function ImageZoom({ src, alt, isZoomed, clickFunc, outerContainerRef=null, isIm
         
     }, [isZoomed, handleWheel, handleTouchEnd, handleTouchMove, handleTouchStart]);
 
+    useEffect(() => 
+    {
+        currentSrcRef.current = src;
+        if (!src) {
+            setLoadedSrc(null);
+            return;
+        }
+
+        // Immediately show small image so the modal instantly renders without a blank flash
+        setLoadedSrc(smallSrc || src);
+        isSwappingToLargeRef.current = false;
+
+        // If a small placeholder was provided, preload the massive large version invisibly
+        if (smallSrc && src !== smallSrc) {
+            const img = new Image();
+            img.onload = () => {
+                if (currentSrcRef.current === src) {
+                    isSwappingToLargeRef.current = true;
+                    setLoadedSrc(src);
+                }
+            };
+            img.src = src;
+        }
+    }, [src, smallSrc]);
+
     return (
         <div className={containerClasses}
             draggable="false"
             onClick={clickFunc}
             ref={zoomContainerRef}>
             
-            <img src={src} 
+            <img src={loadedSrc} 
                 alt={alt}
                 draggable="false"
                 ref={zoomedImageRef}

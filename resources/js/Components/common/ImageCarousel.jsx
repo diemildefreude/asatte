@@ -99,6 +99,7 @@ function ImageCarousel({size, post, title=""})
             }
             </CarouselContainer>        
             <ImageZoom src={isZoomed ? `${IMAGE_ROOT}/large/${imageUrls[currentSlideIndex]}` : null} 
+                smallSrc={isZoomed ? `${IMAGE_ROOT}/small/${imageUrls[currentSlideIndex]}` : null}
                 alt={post?.gallery_alts[currentSlideIndex]}
                 clickFunc={handleClick}
                 isZoomed={isZoomed}

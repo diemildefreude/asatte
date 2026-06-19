@@ -11,11 +11,15 @@ function DashboardCreateHeader({headerText, createLink, isVerified=true})
                 <h1>{headerText}</h1>
             </div>
             {                
-                isVerified && (<Link href={createLink} 
-                    className="right-item link-button plus-button"
-                >                    
-                    +
-                </Link>)
+                isVerified && ( 
+                <div className="right-item">
+                    <Link href={createLink} 
+                        className="plus-button link-button"
+                    >                    
+                        +
+                    </Link>
+                </div>                
+                )
             }
         </div>
     );

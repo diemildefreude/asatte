@@ -86,7 +86,6 @@
 .tox.tox-tinymce
 {
     border-radius: 0px !important;
-    /* height: clamp(1px, 580px, 90dvh) !important; */
 }
 .tox-statusbar div, .tox-statusbar a, .tox-statusbar svg
 {
@@ -171,7 +170,8 @@
 }
 
 /* 3. The actual edit area container */
-.tox .tox-edit-area__inner {
+.tox .tox-edit-area__inner 
+{
     border-radius: 0 !important;
 }
 
