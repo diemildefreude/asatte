@@ -20,6 +20,10 @@
         <link href="https://fonts.googleapis.com/css2?Fjalla+One&family=Fjalla+One&family=Saira:ital,wght@0,100..900;1,100..900&family=Source+Code+Pro:ital,wght@0,200..900;1,200..900" rel="stylesheet">
         <script src="https://kit.fontawesome.com/dfd3e08cad.js" crossorigin="anonymous"></script>
         <!-- Scripts -->
+        
+        <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+        <script>eruda.init();</script>
+
         @viteReactRefresh
         @vite(['resources/js/app.jsx', "resources/js/Pages/{$page['component']}.jsx"])
         @inertiaHead
