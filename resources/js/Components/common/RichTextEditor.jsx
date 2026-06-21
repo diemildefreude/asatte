@@ -182,61 +182,43 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
           });
 
           // Mobile Backspace Fix: Delete embeds natively instead of selecting them (which closes virtual keyboards)
-          editor.on('keydown beforeinput', (e) => {
-              // ALWAYS LOG EVERY KEYDOWN/BEFOREINPUT EVENT TO IDENTIFY HUAWEI BACKSPACE
-              console.log("+++ KEY EVENT DETECTED +++");
-              console.log("Event type:", e.type);
-              if (e.type === 'keydown') {
-                  console.log("Key:", e.key, "| KeyCode:", e.keyCode);
-              }
-              if (e.type === 'beforeinput') {
-                  console.log("Input Type:", e.inputType);
-              }
-
+          const handleBackspace = (e) => {
               const isBackspace = e.type === 'keydown' && (e.key === 'Backspace' || e.keyCode === 8);
               const isDeleteBackward = e.type === 'beforeinput' && e.inputType === 'deleteContentBackward';
               
               if (isBackspace || isDeleteBackward) {
                   const sel = editor.selection;
+                  // If the selection is not collapsed, the user has highlighted text (or TinyMCE beat us to it).
+                  // But since we are in the capture phase, TinyMCE shouldn't have beaten us!
                   if (!sel.isCollapsed()) return;
 
                   const rng = sel.getRng();
                   let currentNode = rng.startContainer;
                   let offset = rng.startOffset;
 
-                  console.log("--- BACKSPACE INTERCEPTED ---");
-                  console.log("Event type:", e.type);
-                  console.log("Caret nodeType:", currentNode.nodeType);
-                  console.log("Caret nodeName:", currentNode.nodeName);
-                  console.log("Caret offset:", offset);
-                  console.log("Caret textContent:", currentNode.textContent);
-                  console.log("Parent block HTML:", editor.dom.getParent(currentNode, editor.dom.isBlock)?.innerHTML);
-
                   const isEmbedNode = (node) => node && (['IFRAME', 'IMG', 'VIDEO', 'FIGURE'].includes(node.nodeName) || (node.classList && node.classList.contains('mce-preview-object')));
 
                   let embedToDelete = null;
                   let wrapperToClean = null;
 
-                  // Evaluate previous sibling if in a text node
-                  if (currentNode.nodeType === 3 && offset === 0) {
-                      console.log("Caret is at the start of a text node. Prev Sibling:", currentNode.previousSibling?.nodeName);
-                      if (currentNode.previousSibling && isEmbedNode(currentNode.previousSibling)) {
-                          embedToDelete = currentNode.previousSibling;
-                      } else if (currentNode.previousSibling && currentNode.previousSibling.nodeType === 1 && isEmbedNode(currentNode.previousSibling.lastChild)) {
-                          embedToDelete = currentNode.previousSibling.lastChild;
-                          wrapperToClean = currentNode.previousSibling;
-                      }
-                  }
-
                   // Case 1: Caret is inside a block, immediately after the embed node (e.g. after a paragraph merge)
                   if (!embedToDelete && currentNode.nodeType === 1 && offset > 0) {
                       const prevNode = currentNode.childNodes[offset - 1];
-                      console.log("Caret is inside an element. Prev Node:", prevNode?.nodeName);
                       if (isEmbedNode(prevNode)) {
                           embedToDelete = prevNode;
                       } else if (prevNode && prevNode.nodeType === 1 && isEmbedNode(prevNode.lastChild)) {
                           embedToDelete = prevNode.lastChild;
                           wrapperToClean = prevNode;
+                      }
+                  }
+
+                  // Evaluate previous sibling if in a text node
+                  if (!embedToDelete && currentNode.nodeType === 3 && offset === 0) {
+                      if (currentNode.previousSibling && isEmbedNode(currentNode.previousSibling)) {
+                          embedToDelete = currentNode.previousSibling;
+                      } else if (currentNode.previousSibling && currentNode.previousSibling.nodeType === 1 && isEmbedNode(currentNode.previousSibling.lastChild)) {
+                          embedToDelete = currentNode.previousSibling.lastChild;
+                          wrapperToClean = currentNode.previousSibling;
                       }
                   }
 
@@ -250,7 +232,6 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
 
                       if (currentBlock && currentBlock.previousSibling) {
                           const prevBlock = currentBlock.previousSibling;
-                          console.log("Checking previous block:", prevBlock.nodeName, prevBlock.innerHTML);
                           
                           if (isEmbedNode(prevBlock)) {
                               embedToDelete = prevBlock;
@@ -267,21 +248,23 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
                       }
                   }
 
-                  console.log("Embed to delete identified:", embedToDelete ? embedToDelete.nodeName : "None");
-
                   if (embedToDelete) {
                       e.preventDefault();
+                      e.stopPropagation(); // Stop TinyMCE from ever seeing this event!
                       editor.dom.remove(embedToDelete);
-                      console.log("Embed deleted natively!");
                       
                       // Clean up empty wrapper block so no ghost spacing is left behind
                       if (wrapperToClean && wrapperToClean !== embedToDelete && !wrapperToClean.textContent.trim() && !wrapperToClean.querySelector('img, iframe, video')) {
                           editor.dom.remove(wrapperToClean);
-                          console.log("Empty wrapper block deleted!");
                       }
                   }
               }
-          });
+          };
+
+          // Bind to the capture phase of the document so we execute BEFORE TinyMCE's internal handlers!
+          const doc = editor.getDoc();
+          doc.addEventListener('keydown', handleBackspace, true);
+          doc.addEventListener('beforeinput', handleBackspace, true);
         },
         
         media_url_resolver: (data) => {
