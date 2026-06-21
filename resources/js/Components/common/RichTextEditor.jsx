@@ -183,6 +183,16 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
 
           // Mobile Backspace Fix: Delete embeds natively instead of selecting them (which closes virtual keyboards)
           editor.on('keydown beforeinput', (e) => {
+              // ALWAYS LOG EVERY KEYDOWN/BEFOREINPUT EVENT TO IDENTIFY HUAWEI BACKSPACE
+              console.log("+++ KEY EVENT DETECTED +++");
+              console.log("Event type:", e.type);
+              if (e.type === 'keydown') {
+                  console.log("Key:", e.key, "| KeyCode:", e.keyCode);
+              }
+              if (e.type === 'beforeinput') {
+                  console.log("Input Type:", e.inputType);
+              }
+
               const isBackspace = e.type === 'keydown' && (e.key === 'Backspace' || e.keyCode === 8);
               const isDeleteBackward = e.type === 'beforeinput' && e.inputType === 'deleteContentBackward';
               
@@ -368,7 +378,7 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
 
         toolbar_mode: 'wrap', 
         object_resizing: 'img,iframe,video,figure',
-        content_css: localCssPath,
+        content_css: localCssPath + '?v=' + new Date().getTime(),
 
       }}
     />
