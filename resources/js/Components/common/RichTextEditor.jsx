@@ -262,9 +262,11 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
           };
 
           // Bind to the capture phase of the document so we execute BEFORE TinyMCE's internal handlers!
-          const doc = editor.getDoc();
-          doc.addEventListener('keydown', handleBackspace, true);
-          doc.addEventListener('beforeinput', handleBackspace, true);
+          editor.on('init', () => {
+              const doc = editor.getDoc();
+              doc.addEventListener('keydown', handleBackspace, true);
+              doc.addEventListener('beforeinput', handleBackspace, true);
+          });
         },
         
         media_url_resolver: (data) => {
