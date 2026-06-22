@@ -191,19 +191,22 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
                   console.log('Event type:', e.type);
                   
                   const sel = editor.selection;
-                  console.log('Is Collapsed?', sel.isCollapsed());
-                  if (!sel.isCollapsed()) return;
-
                   const rng = sel.getRng();
                   let currentNode = rng.startContainer;
                   let offset = rng.startOffset;
-
-                  console.log('Current Node Name:', currentNode.nodeName, 'Type:', currentNode.nodeType, 'Offset:', offset);
 
                   const isEmbedNode = (node) => node && (['IFRAME', 'IMG', 'VIDEO', 'FIGURE'].includes(node.nodeName) || (node.classList && node.classList.contains('mce-preview-object')));
 
                   let embedToDelete = null;
                   let wrapperToClean = null;
+
+                  if (!sel.isCollapsed()) {
+                      const selectedNode = sel.getNode();
+                      console.log('Selection is NOT collapsed. Selected Node:', selectedNode ? selectedNode.nodeName : 'null');
+                      if (isEmbedNode(selectedNode)) {
+                          embedToDelete = selectedNode;
+                      }
+                  }
 
                   // Evaluate previous sibling if in a block node
                   if (!embedToDelete && currentNode.nodeType === 1 && offset > 0) {
@@ -262,6 +265,13 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
                       console.log('EXECUTING NATIVE DELETION!');
                       e.preventDefault();
                       e.stopPropagation(); // Stop TinyMCE from ever seeing this event!
+                      
+                      // Try to keep the keyboard open by moving caret to the previous block BEFORE deletion
+                      let targetBlock = wrapperToClean ? wrapperToClean.previousSibling : embedToDelete.previousSibling;
+                      if (targetBlock) {
+                          editor.selection.setCursorLocation(targetBlock, targetBlock.childNodes.length);
+                      }
+
                       editor.dom.remove(embedToDelete);
                       
                       if (wrapperToClean && wrapperToClean !== embedToDelete && !wrapperToClean.textContent.trim() && !wrapperToClean.querySelector('img, iframe, video')) {
