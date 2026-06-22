@@ -187,23 +187,28 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
               const isDeleteBackward = e.type === 'beforeinput' && e.inputType === 'deleteContentBackward';
               
               if (isBackspace || isDeleteBackward) {
+                  console.log('+++ CAPTURE BACKSPACE FIRED +++');
+                  console.log('Event type:', e.type);
+                  
                   const sel = editor.selection;
-                  // If the selection is not collapsed, the user has highlighted text (or TinyMCE beat us to it).
-                  // But since we are in the capture phase, TinyMCE shouldn't have beaten us!
+                  console.log('Is Collapsed?', sel.isCollapsed());
                   if (!sel.isCollapsed()) return;
 
                   const rng = sel.getRng();
                   let currentNode = rng.startContainer;
                   let offset = rng.startOffset;
 
+                  console.log('Current Node Name:', currentNode.nodeName, 'Type:', currentNode.nodeType, 'Offset:', offset);
+
                   const isEmbedNode = (node) => node && (['IFRAME', 'IMG', 'VIDEO', 'FIGURE'].includes(node.nodeName) || (node.classList && node.classList.contains('mce-preview-object')));
 
                   let embedToDelete = null;
                   let wrapperToClean = null;
 
-                  // Case 1: Caret is inside a block, immediately after the embed node (e.g. after a paragraph merge)
+                  // Evaluate previous sibling if in a block node
                   if (!embedToDelete && currentNode.nodeType === 1 && offset > 0) {
                       const prevNode = currentNode.childNodes[offset - 1];
+                      console.log('Checking Case 1 (Block). PrevNode:', prevNode ? prevNode.nodeName : 'null');
                       if (isEmbedNode(prevNode)) {
                           embedToDelete = prevNode;
                       } else if (prevNode && prevNode.nodeType === 1 && isEmbedNode(prevNode.lastChild)) {
@@ -214,6 +219,7 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
 
                   // Evaluate previous sibling if in a text node
                   if (!embedToDelete && currentNode.nodeType === 3 && offset === 0) {
+                      console.log('Checking Case 1 (Text). PrevSibling:', currentNode.previousSibling ? currentNode.previousSibling.nodeName : 'null');
                       if (currentNode.previousSibling && isEmbedNode(currentNode.previousSibling)) {
                           embedToDelete = currentNode.previousSibling;
                       } else if (currentNode.previousSibling && currentNode.previousSibling.nodeType === 1 && isEmbedNode(currentNode.previousSibling.lastChild)) {
@@ -225,6 +231,7 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
                   // Case 2: Caret is at the absolute beginning of a text node or block, look at the preceding block
                   if (!embedToDelete && offset === 0) {
                       let currentBlock = currentNode.nodeType === 3 ? currentNode.parentNode : currentNode;
+                      console.log('Checking Case 2. Current Block:', currentBlock.nodeName);
                       
                       while (currentBlock && !editor.dom.isBlock(currentBlock) && currentBlock.nodeName !== 'BODY') {
                           currentBlock = currentBlock.parentNode;
@@ -232,6 +239,7 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
 
                       if (currentBlock && currentBlock.previousSibling) {
                           const prevBlock = currentBlock.previousSibling;
+                          console.log('Prev Block:', prevBlock.nodeName);
                           
                           if (isEmbedNode(prevBlock)) {
                               embedToDelete = prevBlock;
@@ -248,13 +256,16 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
                       }
                   }
 
+                  console.log('Embed To Delete:', embedToDelete ? embedToDelete.nodeName : 'null');
+
                   if (embedToDelete) {
+                      console.log('EXECUTING NATIVE DELETION!');
                       e.preventDefault();
                       e.stopPropagation(); // Stop TinyMCE from ever seeing this event!
                       editor.dom.remove(embedToDelete);
                       
-                      // Clean up empty wrapper block so no ghost spacing is left behind
                       if (wrapperToClean && wrapperToClean !== embedToDelete && !wrapperToClean.textContent.trim() && !wrapperToClean.querySelector('img, iframe, video')) {
+                          console.log('Cleaning up wrapper');
                           editor.dom.remove(wrapperToClean);
                       }
                   }
