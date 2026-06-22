@@ -128,251 +128,231 @@ if (!function_exists('addHttpProtocol')) {
  * @return string The updated HTML with Base64 replaced by relative paths.
  */
 
-function saveEditorImages(string $contentHtml, &$oldImgArr, string $folderPath)
-{
-    $newImgArr = [];
-    $cleanFolder = trim($folderPath, '/');
-    $storageBase = "images/uploaded/$cleanFolder";
-
-    if(!$oldImgArr || gettype($oldImgArr) != "array")
+if (!function_exists('saveEditorImages')) {
+    function saveEditorImages(string $contentHtml, &$oldImgArr, string $folderPath)
     {
-        $oldImgArr = [];
-    }
+        $newImgArr = [];
+        $cleanFolder = trim($folderPath, '/');
+        $storageBase = "images/uploaded/$cleanFolder";
 
-    // 1. IDENTIFY EXISTING IMAGES
-    $quotedPath = preg_quote($storageBase, '/');
-    // Match src attributes in a variety of forms:
-    // - "images/uploaded/..."
-    // - "/storage/images/uploaded/..."
-    // - "storage/images/uploaded/..."
-    // - "https://host/.../storage/images/uploaded/..."
-    // Support both single and double quotes.
-    $patternExisting = "/src=[\"'](?:https?:\\/\\/[^\"']+\\/)?\\/?(?:storage\\/)?{$quotedPath}\\/([^\"']+)[\"']/i";
-
-    preg_match_all($patternExisting, $contentHtml, $matchesExisting);
-    $currentImagesInHtml = $matchesExisting[1];
-
-    // 2. CLEANUP: Delete files from disk that were removed in the editor
-    foreach ($oldImgArr as $oldImg) {
-        if (!in_array($oldImg, $currentImagesInHtml)) {
-            $pathToDelete = "$storageBase/$oldImg";
-            if (Storage::disk('public')->exists($pathToDelete)) {
-                Storage::disk('public')->delete($pathToDelete);
-                Log::info("Deleted removed image: $pathToDelete");
-            }
-        } else {
-            $newImgArr[] = $oldImg;
-        }
-    }
-
-    // 3. STORAGE: Process new Base64 images safely
-    $patternBase64 = '/src="data:image\/([a-zA-Z]*);base64,([^"]*)"/i';
-
-    $contentHtml = preg_replace_callback($patternBase64, function($matches) use ($storageBase, &$newImgArr) {
-        $base64Data = $matches[2];
-
-        try {
-            $decodedData = base64_decode($base64Data, true);
-            if (!$decodedData) {
-                Log::warning("Failed to decode base64 string.");
-                return $matches[0];
-            }
-
-            // Enforce size limit (5MB)
-            if (strlen($decodedData) > 5242880) {
-                Log::warning("Base64 image payload exceeded 5MB size limit.");
-                return $matches[0]; 
-            }
-
-            // Securely determine true type using native PHP magic bytes
-            $finfo = new \finfo(FILEINFO_MIME_TYPE);
-            $mimeType = $finfo->buffer($decodedData);
-
-            $extension = match ($mimeType) {
-                'image/jpeg', 'image/jpg' => 'jpg',
-                'image/png'               => 'png',
-                'image/gif'               => 'gif',
-                'image/webp'              => 'webp',
-                default                   => null
-            };
-
-            if (!$extension) {
-                Log::warning("Unsupported or malicious image payload type intercepted: $mimeType");
-                return $matches[0];
-            }
-
-            // Read into Intervention v3
-            $manager = new ImageManager(new Driver());
-            $image = $manager->read($decodedData);
-            
-            // Sanitize dimension extremes
-            $image->scaleDown(width: 1920);
-
-            // Encode to format matching verified extension
-            $encodedImage = $image->encodeByExtension($extension);
-
-            $imageName = uniqid() . '.' . $extension;
-            $relativePath = "$storageBase/$imageName";
-
-            Log::info("Saving verified Base64 image via Intervention: $relativePath");
-
-            // FIX: Cast the EncodedImage object directly to a string to output raw binary content
-            Storage::disk('public')->put($relativePath, (string) $encodedImage);
-
-            $newImgArr[] = $imageName;
-            return 'src="' . $relativePath . '"';
-
-        } 
-        catch (\Exception $e) 
+        if(!$oldImgArr || gettype($oldImgArr) != "array")
         {
-            Log::error("Failed to safely process Base64 image: " . $e->getMessage());
-            return $matches[0];
+            $oldImgArr = [];
         }
-    }, $contentHtml);
 
-    $oldImgArr = $newImgArr;
-    return $contentHtml;
-}
+        // 1. IDENTIFY EXISTING IMAGES
+        $quotedPath = preg_quote($storageBase, '/');
+        $patternExisting = "/src=[\"'](?:https?:\\/\\/[^\"']+\\/)?\\/?(?:storage\\/)?{$quotedPath}\\/([^\"']+)[\"']/i";
 
-function saveEditorImagesFromDelta($contentArray, &$oldImgArr, $folderPath)
-{    
-    //$contentArray = json_decode($contentJson);
+        preg_match_all($patternExisting, $contentHtml, $matchesExisting);
+        $currentImagesInHtml = $matchesExisting[1];
 
-    $newImgArr = [];
-    $contentWithImg = array_filter($contentArray, function($op)
-    {
-        return isset($op->insert->image);
-    });
-    
-    $contentImgs = array_map(function($op)
-    {
-        return $op->insert->image;
-    }, $contentWithImg);
-
-    //$contentImgs = array_values($contentImgs);
-    $contentImgs = array_map(function($op) 
-    {
-        $imgData = $op->insert->image;
-        // If it's an object, get the 'image' property; otherwise use it as is
-        return is_object($imgData) ? $imgData->image : $imgData;
-    }, $contentWithImg);
-
-    foreach($oldImgArr as $i => $oldImg)
-    {  
-        $relativePath = "images/uploaded/$folderPath/$oldImg";
-        //$oldImgAbsPath = asset("storage/$relativePath");
-
-        //Log::info("old image: $oldImgAbsPath");
-        //Log::info("contentImgs", $contentImgs);
-        Log::info("looking for $relativePath:", $contentImgs);
-        $isFound = array_search($relativePath, $contentImgs) !== false;
-        if(!$isFound)
-        {
-            Storage::disk('public')->delete($relativePath);
+        // 2. CLEANUP: Delete files from disk that were removed in the editor
+        foreach ($oldImgArr as $oldImg) {
+            if (!in_array($oldImg, $currentImagesInHtml)) {
+                $pathToDelete = "$storageBase/$oldImg";
+                if (Storage::disk('public')->exists($pathToDelete)) {
+                    Storage::disk('public')->delete($pathToDelete);
+                    Log::info("Deleted removed image: $pathToDelete");
+                }
+            } else {
+                $newImgArr[] = $oldImg;
+            }
         }
-        else
-        {
-            array_push($newImgArr, $oldImg);
-        }
-    }
-    $oldImgArr = $newImgArr;
 
-    $pattern = '/data:image\/([a-zA-Z]*);base64,([^\"]*)/i'; 
-    foreach ($contentArray as &$op) 
-    {
-        if (isset($op->insert->image)) 
-        {
-            $imageValue = $op->insert->image;
-            
-            // Determine if it's a string or object
-            $currentPath = is_object($imageValue) ? ($imageValue->image ?? '') : $imageValue;
-            Log::info("checking if string: $currentPath");
-            if (is_string($currentPath) && preg_match($pattern, $currentPath, $matches)) 
+        // 3. STORAGE: Process new Base64 images safely
+        $patternBase64 = '/src="data:image\/([a-zA-Z]*);base64,([^"]*)"/i';
+
+        $contentHtml = preg_replace_callback($patternBase64, function($matches) use ($storageBase, &$newImgArr) {
+            $base64Data = $matches[2];
+
+            try {
+                $decodedData = base64_decode($base64Data, true);
+                if (!$decodedData) {
+                    Log::warning("Failed to decode base64 string.");
+                    return $matches[0];
+                }
+
+                if (strlen($decodedData) > 5242880) {
+                    Log::warning("Base64 image payload exceeded 5MB size limit.");
+                    return $matches[0]; 
+                }
+
+                $finfo = new \finfo(FILEINFO_MIME_TYPE);
+                $mimeType = $finfo->buffer($decodedData);
+
+                $extension = match ($mimeType) {
+                    'image/jpeg', 'image/jpg' => 'jpg',
+                    'image/png'               => 'png',
+                    'image/gif'               => 'gif',
+                    'image/webp'              => 'webp',
+                    default                   => null
+                };
+
+                if (!$extension) {
+                    Log::warning("Unsupported or malicious image payload type intercepted: $mimeType");
+                    return $matches[0];
+                }
+
+                $manager = new ImageManager(new Driver());
+                $image = $manager->read($decodedData);
+                
+                $image->scaleDown(width: 1920);
+
+                $encodedImage = $image->encodeByExtension($extension);
+
+                $imageName = uniqid() . '.' . $extension;
+                $relativePath = "$storageBase/$imageName";
+
+                Log::info("Saving verified Base64 image via Intervention: $relativePath");
+
+                Storage::disk('public')->put($relativePath, (string) $encodedImage);
+
+                $newImgArr[] = $imageName;
+                return 'src="' . $relativePath . '"';
+
+            } 
+            catch (\Exception $e) 
             {
-                $cleanFolder = trim($folderPath, '/');
-                $imageName = uniqid() . '.' . $matches[1];
-                $relativePath = "images/uploaded/$cleanFolder/$imageName";
-                
-                Log::info("making imageName: $relativePath");
+                Log::error("Failed to safely process Base64 image: " . $e->getMessage());
+                return $matches[0];
+            }
+        }, $contentHtml);
 
-                Storage::disk('public')->put($relativePath, base64_decode($matches[2]));
+        $oldImgArr = $newImgArr;
+        return $contentHtml;
+    }
+}
 
-                // FORCE it back to a string. 
-                // This fixes the "Missing URL" issue in your console.
-                $op->insert->image = $relativePath;
-                
-                array_push($oldImgArr, $imageName);
+if (!function_exists('saveEditorImagesFromDelta')) {
+    function saveEditorImagesFromDelta($contentArray, &$oldImgArr, $folderPath)
+    {    
+        $newImgArr = [];
+        $contentWithImg = array_filter($contentArray, function($op)
+        {
+            return isset($op->insert->image);
+        });
+        
+        $contentImgs = array_map(function($op)
+        {
+            return $op->insert->image;
+        }, $contentWithImg);
+
+        $contentImgs = array_map(function($op) 
+        {
+            $imgData = $op->insert->image;
+            return is_object($imgData) ? $imgData->image : $imgData;
+        }, $contentWithImg);
+
+        foreach($oldImgArr as $i => $oldImg)
+        {  
+            $relativePath = "images/uploaded/$folderPath/$oldImg";
+            Log::info("looking for $relativePath:", $contentImgs);
+            $isFound = array_search($relativePath, $contentImgs) !== false;
+            if(!$isFound)
+            {
+                Storage::disk('public')->delete($relativePath);
+            }
+            else
+            {
+                array_push($newImgArr, $oldImg);
             }
         }
+        $oldImgArr = $newImgArr;
+
+        $pattern = '/data:image\/([a-zA-Z]*);base64,([^\"]*)/i'; 
+        foreach ($contentArray as &$op) 
+        {
+            if (isset($op->insert->image)) 
+            {
+                $imageValue = $op->insert->image;
+                
+                $currentPath = is_object($imageValue) ? ($imageValue->image ?? '') : $imageValue;
+                Log::info("checking if string: $currentPath");
+                if (is_string($currentPath) && preg_match($pattern, $currentPath, $matches)) 
+                {
+                    $cleanFolder = trim($folderPath, '/');
+                    $imageName = uniqid() . '.' . $matches[1];
+                    $relativePath = "images/uploaded/$cleanFolder/$imageName";
+                    
+                    Log::info("making imageName: $relativePath");
+
+                    Storage::disk('public')->put($relativePath, base64_decode($matches[2]));
+
+                    $op->insert->image = $relativePath;
+                    
+                    array_push($oldImgArr, $imageName);
+                }
+            }
+        }
+        return $contentArray;
     }
-    //$updatedContent = json_encode($contentArray);
-    return $contentArray;//$updatedContent;
 }
-function saveAvatarImage($file, $userName)
-{
-    $manager = new ImageManager(new Driver());
-    $filePath = $file->getPathname();
+if (!function_exists('saveAvatarImage')) {
+    function saveAvatarImage($file, $userName)
+    {
+        $manager = new ImageManager(new Driver());
+        $filePath = $file->getPathname();
 
-    $imageName = uniqid() . "." . $file->extension();
-    $thumb = $manager->read($filePath);
-    $small = $manager->read($filePath);
+        $imageName = uniqid() . "." . $file->extension();
+        $thumb = $manager->read($filePath);
+        $small = $manager->read($filePath);
 
-    $thumb->scaleDown(height: avatarThumb());
-    $small->scaleDown(height: avatarSmall());
+        $thumb->scaleDown(height: avatarThumb());
+        $small->scaleDown(height: avatarSmall());
 
-    // Clear out any old avatars to prevent orphaned files
-    $imageRoot = "images/uploaded/users/$userName/avatar/";
-    Storage::disk('public')->deleteDirectory($imageRoot . 'thumb');
-    Storage::disk('public')->deleteDirectory($imageRoot . 'small');
+        $imageRoot = "images/uploaded/users/$userName/avatar/";
+        Storage::disk('public')->deleteDirectory($imageRoot . 'thumb');
+        Storage::disk('public')->deleteDirectory($imageRoot . 'small');
 
-    // Save the resized image to the public disk
-    Storage::disk('public')->put($imageRoot . 'thumb/' . $imageName, (string) $thumb->encode());
-    Storage::disk('public')->put($imageRoot . 'small/' . $imageName, (string) $small->encode());
+        Storage::disk('public')->put($imageRoot . 'thumb/' . $imageName, (string) $thumb->encode());
+        Storage::disk('public')->put($imageRoot . 'small/' . $imageName, (string) $small->encode());
 
-    return $imageName;
-}
-function storeImageFile($file, $folder)
-{    
-    $manager = new ImageManager(new Driver());
-
-    // Get the temporary file path
-    $filePath = $file->getPathname();
-
-    // Generate a unique image name
-    $imageName = uniqid() . "." . $file->extension();
-    // Read the image from the temporary file path
-    $thumb = $manager->read($filePath);
-    $small = $manager->read($filePath);
-    $large = $manager->read($filePath);
-    // Resize the image
-    $thumb->scaleDown(height: thumbSize());
-    $small->scaleDown(height: smallH());
-    $large->scaleDown(width: largeW());
-
-    // Save the resized image to the public disk
-    $imageRoot = 'images/uploaded/' . $folder . '/';
-    Storage::disk('public')->put($imageRoot . 'thumb/' . $imageName, (string) $thumb->encode());
-    Storage::disk('public')->put($imageRoot . 'small/' . $imageName, (string) $small->encode());
-    Storage::disk('public')->put($imageRoot . 'large/' . $imageName, (string) $large->encode());
-
-    return $imageName;
+        return $imageName;
+    }
 }
 
-function deleteGalleryImages($imageName, $folderPath)
-{
-    $imageRoot = 'images/uploaded/' . $folderPath . '/';
-    Log::info("Deleting image at $imageRoot");
-    Storage::disk('public')->delete($imageRoot . 'thumb/' . $imageName);
-    Storage::disk('public')->delete($imageRoot . 'small/' . $imageName);
-    Storage::disk('public')->delete($imageRoot . 'large/' . $imageName);
+if (!function_exists('storeImageFile')) {
+    function storeImageFile($file, $folder)
+    {    
+        $manager = new ImageManager(new Driver());
+        $filePath = $file->getPathname();
+        $imageName = uniqid() . "." . $file->extension();
+
+        $thumb = $manager->read($filePath);
+        $small = $manager->read($filePath);
+        $large = $manager->read($filePath);
+
+        $thumb->scaleDown(height: thumbSize());
+        $small->scaleDown(height: smallH());
+        $large->scaleDown(width: largeW());
+
+        $imageRoot = 'images/uploaded/' . $folder . '/';
+        Storage::disk('public')->put($imageRoot . 'thumb/' . $imageName, (string) $thumb->encode());
+        Storage::disk('public')->put($imageRoot . 'small/' . $imageName, (string) $small->encode());
+        Storage::disk('public')->put($imageRoot . 'large/' . $imageName, (string) $large->encode());
+
+        return $imageName;
+    }
 }
 
-function avatarThumb() { return 150;}
-function avatarSmall() { return 500;}
-function thumbSize(){ return 240;}
-function smallW(){ return 640;}
-function smallH(){ return 480;}
-function mediumW(){ return 1280;}
-function mediumH(){ return 720;}
-function largeW(){ return 1920;}
-function largeH(){ return 1080;}
+if (!function_exists('deleteGalleryImages')) {
+    function deleteGalleryImages($imageName, $folderPath)
+    {
+        $imageRoot = 'images/uploaded/' . $folderPath . '/';
+        Log::info("Deleting image at $imageRoot");
+        Storage::disk('public')->delete($imageRoot . 'thumb/' . $imageName);
+        Storage::disk('public')->delete($imageRoot . 'small/' . $imageName);
+        Storage::disk('public')->delete($imageRoot . 'large/' . $imageName);
+    }
+}
+
+if (!function_exists('avatarThumb')) { function avatarThumb() { return 150;} }
+if (!function_exists('avatarSmall')) { function avatarSmall() { return 500;} }
+if (!function_exists('thumbSize')) { function thumbSize(){ return 240;} }
+if (!function_exists('smallW')) { function smallW(){ return 640;} }
+if (!function_exists('smallH')) { function smallH(){ return 480;} }
+if (!function_exists('mediumW')) { function mediumW(){ return 1280;} }
+if (!function_exists('mediumH')) { function mediumH(){ return 720;} }
+if (!function_exists('largeW')) { function largeW(){ return 1920;} }
+if (!function_exists('largeH')) { function largeH(){ return 1080;} }
