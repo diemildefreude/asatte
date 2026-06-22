@@ -57,7 +57,8 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
         height: 500,
         convert_urls: false,
         menubar: false,
-        plugins: 'image link media',
+        plugins: 'autoresize image link media',
+        autoresize_bottom_margin: 50,
         toolbar: isReadOnly ? false : 
             ['styles | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist | image media link']
         ,
@@ -158,7 +159,7 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
           });
           // Smart bottom-tap focus handler for mobile devices
           editor.on('click', (e) => {
-              if (e.target.nodeName === 'BODY') {
+              if (e.target.nodeName === 'BODY' || e.target.nodeName === 'HTML') {
                   const body = editor.getBody();
                   if (!body || !body.lastElementChild) return;
                   

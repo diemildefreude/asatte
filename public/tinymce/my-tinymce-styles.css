@@ -3,6 +3,9 @@
 html 
 {
     height: 100%;
+    /* Fix Android touch-scroll bug when using autoresize */
+    touch-action: pan-y;
+    overflow-y: hidden !important;
 }
 body 
 {
@@ -17,17 +20,22 @@ body
     box-sizing: border-box;
     cursor: text;
     background: red;
+    
+    /* Fix Android touch-scroll bug when using autoresize */
+    touch-action: pan-y;
+    overflow-y: hidden !important;
 }
-body::before
+body::before, p
 {
-    padding: 0 0.4rem !important;
+    margin: 0;
+    padding: 0.2rem 0.4rem !important;
+    line-height: 1.6 !important;
 }
 p 
 {
     line-height: 1.6;  
-    /* padding: 0.2em !important;    */
-    /* padding: 1rem !important;
-    background-color: red !important; */
+    margin: 0;
+    padding: 0.2em 0 !important;  
 }
 img 
 {
@@ -51,4 +59,5 @@ blockquote
 iframe 
 {
     pointer-events: none;
+    max-width: 100% !important;
 }
