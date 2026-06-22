@@ -266,10 +266,11 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
                       e.preventDefault();
                       e.stopPropagation(); // Stop TinyMCE from ever seeing this event!
                       
-                      // Try to keep the keyboard open by moving caret to the previous block BEFORE deletion
+                      // Try to keep the keyboard open by moving caret to the end of the previous block BEFORE deletion
                       let targetBlock = wrapperToClean ? wrapperToClean.previousSibling : embedToDelete.previousSibling;
                       if (targetBlock) {
-                          editor.selection.setCursorLocation(targetBlock, targetBlock.childNodes.length);
+                          editor.selection.select(targetBlock, true);
+                          editor.selection.collapse(false);
                       }
 
                       editor.dom.remove(embedToDelete);
