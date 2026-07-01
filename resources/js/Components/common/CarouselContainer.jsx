@@ -77,10 +77,21 @@ function CarouselContainer({size, className, children})
     {
         updateSliderEnds();
         window.addEventListener('resize', updateSliderEnds);
+        
+        let resizeObserver = null;
+        if (innerSliderRef.current) {
+            resizeObserver = new ResizeObserver(() => {
+                updateSliderEnds();
+            });
+            resizeObserver.observe(innerSliderRef.current);
+        }
 
         return () => 
         {
             window.removeEventListener('resize', updateSliderEnds);
+            if (resizeObserver) {
+                resizeObserver.disconnect();
+            }
         };
     },[updateSliderEnds]);
 
