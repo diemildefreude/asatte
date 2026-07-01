@@ -127,7 +127,8 @@ function CarouselContainer({size, className, children})
 
     const handlePointerDown = useCallback((e) =>
     {
-        if (animationFrameRef.current) {
+        if (animationFrameRef.current) 
+        {
             cancelAnimationFrame(animationFrameRef.current);
             animationFrameRef.current = null;
         }
@@ -203,43 +204,56 @@ function CarouselContainer({size, className, children})
             velocityRef.current = 0;
         }
 
-        if (Math.abs(velocityRef.current) > 0.1 && isDraggingRef.current) {
+        if (Math.abs(velocityRef.current) > 0.1 && isDraggingRef.current) 
+        {
             let v = velocityRef.current;
+            
             let lastFrameTime = performance.now();
 
-            const momentumLoop = (time) => {
+            const momentumLoop = (time) => 
+            {
                 if (!innerSliderRef.current || !sliderContainerRef.current) return;
                 
                 const dt = time - lastFrameTime;
                 lastFrameTime = time;
 
-                if (!isPointerDownRef.current && Math.abs(v) > 0.05) {
+                if (!isPointerDownRef.current && Math.abs(v) > 0.05) 
+                {
                     let newTranslateX = currentTranslateXRef.current + v * dt;
                     let boundedX = checkBoundary(newTranslateX);
                     
                     // Stop early if hitting boundary
-                    if (newTranslateX !== boundedX) {
+                    if (newTranslateX !== boundedX) 
+                    {
                         v = 0;
                     }
                     
                     currentTranslateXRef.current = boundedX;
                     innerSliderRef.current.style.transform = `translateX(${currentTranslateXRef.current}px)`;
-                    
+                    updateSliderEnds();
+
                     v *= 0.92; // Friction
 
-                    if (Math.abs(v) > 0.05) {
+                    if (Math.abs(v) > 0.05) 
+                    {
                         animationFrameRef.current = requestAnimationFrame(momentumLoop);
-                    } else {
+                    } 
+                    else 
+                    {
                         animationFrameRef.current = null;
                         isDraggingRef.current = false;
                     }
-                } else {
+                } 
+                else 
+                {
                     animationFrameRef.current = null;
                     isDraggingRef.current = false;
                 }
             };
             animationFrameRef.current = requestAnimationFrame(momentumLoop);
-        } else {
+        } 
+        else 
+        {
             isDraggingRef.current = false;
         }
     }, [checkBoundary]);
