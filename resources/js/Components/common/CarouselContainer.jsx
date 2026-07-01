@@ -187,6 +187,7 @@ function CarouselContainer({size, className, children})
         newTranslateX = checkBoundary(newTranslateX);
         currentTranslateXRef.current = newTranslateX;
         innerSliderRef.current.style.transform = `translateX(${currentTranslateXRef.current}px)`;
+        updateSliderEnds();
     }, [checkBoundary]);
 
     const handlePointerUp = useCallback(() => 
