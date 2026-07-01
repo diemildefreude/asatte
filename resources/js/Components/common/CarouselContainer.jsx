@@ -29,6 +29,26 @@ function CarouselContainer({size, className, children})
     const mouseDownTargetRef = useRef(null);
     const distanceThreshold = 5;
 
+    const lastMoveTimeRef = useRef(0);
+    const lastMoveXRef = useRef(0);
+    const velocityRef = useRef(0);
+    const animationFrameRef = useRef(null);
+
+    const checkBoundary = useCallback((x) =>
+    {
+        if (!innerSliderRef.current || !sliderContainerRef.current) return x;
+        const innerW = innerSliderRef.current.offsetWidth;
+        const outerW = sliderContainerRef.current.offsetWidth;
+        if(innerW < outerW)
+        {
+            return 0;
+        }
+        const innerSliderMax = innerW - outerW;
+        let newTranslateX = Math.min(x, 0);
+        newTranslateX = Math.max(newTranslateX, -innerSliderMax);
+        return newTranslateX;
+    }, []);
+
     const handleFocusIn = useCallback(() =>
     {
         const focusedEl = document.activeElement;
@@ -60,7 +80,7 @@ function CarouselContainer({size, className, children})
             currentTranslateXRef.current = checkBoundary(currentTranslateXRef.current);
             innerSliderRef.current.style.transform = `translateX(${currentTranslateXRef.current}px)`;
         }
-    },[]);
+    }, [checkBoundary]);
 
     const renderContent = typeof children === 'function'
         ? children({
@@ -72,17 +92,26 @@ function CarouselContainer({size, className, children})
 
     const handlePointerDown = useCallback((e) =>
     {
+        if (animationFrameRef.current) {
+            cancelAnimationFrame(animationFrameRef.current);
+            animationFrameRef.current = null;
+        }
+
         isPointerDownRef.current = true;
         isDraggedPointerUpRef.current = false;
         isDraggingRef.current = false;
 
-        sliderContainerRef.current.classList.add('dragging');
-        innerSliderRef.current.classList.add('dragging');
+        if (sliderContainerRef.current) sliderContainerRef.current.classList.add('dragging');
+        if (innerSliderRef.current) innerSliderRef.current.classList.add('dragging');
 
         startPosRef.current = new Point(e.pageX,e.pageY);
         initialTranslateXRef.current = currentTranslateXRef.current;
         mouseDownTargetRef.current = e.target;
-    },[]);
+        
+        lastMoveXRef.current = e.pageX;
+        lastMoveTimeRef.current = performance.now();
+        velocityRef.current = 0;
+    }, []);
 
     const handlePointerMove = useCallback((e) => 
     {
@@ -104,39 +133,80 @@ function CarouselContainer({size, className, children})
         }
         if(!isDraggingCurrent)
         {
-            return
+            return;
         }
         isDraggedPointerUpRef.current = true;
         e.preventDefault(); // Prevent default browser drag behavior
         e.stopPropagation();
+
+        const now = performance.now();
+        const dt = now - lastMoveTimeRef.current;
+        if (dt > 0) {
+            velocityRef.current = (e.pageX - lastMoveXRef.current) / dt;
+        }
+        lastMoveXRef.current = e.pageX;
+        lastMoveTimeRef.current = now;
+
         const deltaX = e.pageX - startPosRef.current.x; // How much mouse has moved horizontally
         let newTranslateX = initialTranslateXRef.current + deltaX;
         newTranslateX = checkBoundary(newTranslateX);
         currentTranslateXRef.current = newTranslateX;
         innerSliderRef.current.style.transform = `translateX(${currentTranslateXRef.current}px)`;
-    }, []);
+    }, [checkBoundary]);
 
     const handlePointerUp = useCallback(() => 
     {
         isPointerDownRef.current = false;
-        isDraggingRef.current = false;
-        sliderContainerRef.current.classList.remove('dragging');
-        innerSliderRef.current.classList.remove('dragging'); 
-    }, []);
+        
+        if (sliderContainerRef.current) sliderContainerRef.current.classList.remove('dragging');
+        if (innerSliderRef.current) innerSliderRef.current.classList.remove('dragging'); 
 
-    function checkBoundary (x)
-    {
-        const innerW = innerSliderRef.current.offsetWidth;
-        const outerW = sliderContainerRef.current.offsetWidth;
-        if(innerW < outerW)
-        {
-            return 0;
+        const now = performance.now();
+        if (now - lastMoveTimeRef.current > 100) {
+            // User held the pointer still before releasing
+            velocityRef.current = 0;
         }
-        const innerSliderMax = innerW - outerW;
-        let newTranslateX = Math.min(x, 0);
-        newTranslateX = Math.max(newTranslateX, -innerSliderMax);
-        return newTranslateX;
-    }
+
+        if (Math.abs(velocityRef.current) > 0.1 && isDraggingRef.current) {
+            let v = velocityRef.current;
+            let lastFrameTime = performance.now();
+
+            const momentumLoop = (time) => {
+                if (!innerSliderRef.current || !sliderContainerRef.current) return;
+                
+                const dt = time - lastFrameTime;
+                lastFrameTime = time;
+
+                if (!isPointerDownRef.current && Math.abs(v) > 0.05) {
+                    let newTranslateX = currentTranslateXRef.current + v * dt;
+                    let boundedX = checkBoundary(newTranslateX);
+                    
+                    // Stop early if hitting boundary
+                    if (newTranslateX !== boundedX) {
+                        v = 0;
+                    }
+                    
+                    currentTranslateXRef.current = boundedX;
+                    innerSliderRef.current.style.transform = `translateX(${currentTranslateXRef.current}px)`;
+                    
+                    v *= 0.92; // Friction
+
+                    if (Math.abs(v) > 0.05) {
+                        animationFrameRef.current = requestAnimationFrame(momentumLoop);
+                    } else {
+                        animationFrameRef.current = null;
+                        isDraggingRef.current = false;
+                    }
+                } else {
+                    animationFrameRef.current = null;
+                    isDraggingRef.current = false;
+                }
+            };
+            animationFrameRef.current = requestAnimationFrame(momentumLoop);
+        } else {
+            isDraggingRef.current = false;
+        }
+    }, [checkBoundary]);
 
     useEffect(() =>
     {        

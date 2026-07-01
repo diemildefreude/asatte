@@ -24,6 +24,16 @@
     scrollbar-color: var(--grey-yellow) var(--dark-purple);
     scrollbar-width: thin;
 }
+input
+{
+    border-radius: 0%;
+}
+input:focus, textarea:focus
+{
+    outline:1px solid cyan;
+    border: 2px solid black;
+}
+
 @media (min-width: 700px) 
 {
     *

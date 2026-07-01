@@ -163,11 +163,15 @@
     border-radius: 0 !important;
 }
 
-/* 2. Target the specific focus state which uses a different class */
-.tox.tox-tinymce.tox-tinymce--focused {
-    border-radius: 0 !important;
-    /* Often the 'rounded' look comes from a box-shadow glow */
-    box-shadow: none !important; 
+/* 2. Target ALL possible focus states to kill the browser/TinyMCE blue focus ring */
+
+/* 2b. The TinyMCE 'Oxide' skin uses a ::before pseudo-element for its focus ring. We MUST kill it here. */
+.tox.tox-edit-focus .tox-edit-area::before,
+.tox .tox-edit-area::before 
+{
+    outline:2px solid black;
+    border: 1px solid cyan;
+    border-radius: 0%;
 }
 
 /* 3. The actual edit area container */

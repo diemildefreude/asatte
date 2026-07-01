@@ -25,7 +25,8 @@
     width: 100%;    
     gap: 0.2em;
 }
-.tags-container span[contenteditable] {
+.tags-container span[contenteditable] 
+{
     display: inline-block; /* Changed from inline-flex for better text behavior */
     flex-grow: 1;
     min-width: 50px;       /* Ensures there's always a clickable area */
@@ -43,7 +44,9 @@
 }
 .tags-container span[contenteditable]:focus 
 {
-    outline: none;
+    /* outline: none; */
+    outline:2px solid cyan;
+    border: 2px solid black;
 }
 .tag
 {

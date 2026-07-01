@@ -19,7 +19,7 @@ body
     padding: 0 0.4rem !important;
     box-sizing: border-box;
     cursor: text;
-    background: red;
+    background: white;
     
     /* Fix Android touch-scroll bug when using autoresize */
     touch-action: pan-y;
@@ -60,4 +60,5 @@ iframe, img
 {
     pointer-events: none;
     max-width: 100% !important;
+    height:auto;
 }
