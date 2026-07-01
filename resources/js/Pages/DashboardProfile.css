@@ -364,7 +364,6 @@
 {
     border: 1px solid white;
     padding: 1rem;
-    width: clamp(100px, 100%, 400px);
 }
 .image-field
 {

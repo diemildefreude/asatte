@@ -343,6 +343,14 @@ p iframe
     flex-direction: row;
     gap: 1rem;
 }
+.space-between
+{
+    justify-content: space-between;
+}
+.reverse-row
+{
+    flex-direction: row-reverse;
+}
 button, .link-button
 {
     background: transparent;
@@ -351,7 +359,7 @@ button, .link-button
     cursor: pointer;
     padding: 1rem;
     width: fit-content;
-    margin: 0 auto;
+    /* margin: 0 auto; */
     font-weight: 200;
     text-decoration: none;
 }

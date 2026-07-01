@@ -19,10 +19,12 @@ class Point
 function CarouselContainer({size, className, children})
 {
     const sliderContainerRef = useRef(null);
-    const innerSliderRef = useRef(null); //why null?
+    const innerSliderRef = useRef(null); 
     const isDraggingRef = useRef(false);
     const isDraggedPointerUpRef = useRef(false);
     const isPointerDownRef = useRef(false);
+    const sliderEndLeftRef = useRef(null);
+    const sliderEndRightRef = useRef(null);
     const startPosRef = useRef(new Point(0,0));
     const currentTranslateXRef = useRef(0); // Stores the current horizontal position (translateX value)
     const initialTranslateXRef = useRef(0); // Stores the translateX value when the drag starts
@@ -48,6 +50,39 @@ function CarouselContainer({size, className, children})
         newTranslateX = Math.max(newTranslateX, -innerSliderMax);
         return newTranslateX;
     }, []);
+
+    const updateSliderEnds = useCallback(() =>
+    {        
+        if(!innerSliderRef.current || !sliderContainerRef.current)
+        {return;}
+        const FADE_WIDTH = 200;
+        const currentX = currentTranslateXRef.current;
+        const opacityLeft = Math.min(-currentX / FADE_WIDTH, 1.0); //if currentX == 0, opacity = 1;
+        //console.log("opacityLeft", opacityLeft);
+        const sliderLeft = sliderEndLeftRef.current;
+        sliderLeft.style.setProperty("--left-opacity", opacityLeft);
+
+        const innerW = innerSliderRef.current.offsetWidth;
+        const outerW = sliderContainerRef.current.offsetWidth;
+        const innerSliderMax = innerW - outerW; // 264
+        const rightFadePoint = innerSliderMax - FADE_WIDTH; // 164
+        const opacityRight = 1.0 - Math.max((-currentX - rightFadePoint) / FADE_WIDTH, 0.0); // 164 - 164 = 0 || 264 - 164 = 100
+        //console.log("opacityRight", opacityRight);
+        const sliderRight = sliderEndRightRef.current;
+        sliderRight.style.setProperty("--right-opacity", opacityRight);
+
+    },[])
+
+    useEffect(() =>
+    {
+        updateSliderEnds();
+        window.addEventListener('resize', updateSliderEnds);
+
+        return () => 
+        {
+            window.removeEventListener('resize', updateSliderEnds);
+        };
+    },[updateSliderEnds]);
 
     const handleFocusIn = useCallback(() =>
     {
@@ -250,6 +285,7 @@ function CarouselContainer({size, className, children})
             currentTranslateXRef.current = newPos;
             innerSliderRef.current.style.transform = `translateX(${currentTranslateXRef.current}px)`;
             
+            updateSliderEnds();
             e.stopPropagation();
             e.preventDefault();
         };
@@ -282,15 +318,21 @@ function CarouselContainer({size, className, children})
     }, [handleFocusIn]);
 
     
+    
+
     return (
         <div className={className}>
-            <div className={"carousel-container " + size}  tabIndex="0" role="region" aria-label=""
-            ref={sliderContainerRef}>
+            <div className={"carousel-container " + size}
+                tabIndex="0" role="region" aria-label=""
+                ref={sliderContainerRef}
+            >
                 <div className="slider-container gallery-slider">            
                     <div className="inner-slider" ref={innerSliderRef}>
                         {renderContent} 
                     </div>                
                 </div>
+                <div className="slider-end-left" ref={sliderEndLeftRef}></div>
+                <div className="slider-end-right" ref={sliderEndRightRef}></div>
             </div>
         </div>       
     );

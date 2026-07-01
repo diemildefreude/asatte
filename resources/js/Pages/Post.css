@@ -256,13 +256,13 @@
 {
     margin: 1rem 0 2rem 1rem;
 }
-@media (min-width: 700px)
+/* @media (min-width: 700px)
 {
     .post .page-section.carousel
     {
         margin: 1rem 0 2rem 2rem;
     }
-}
+} */
 .main-info-container h2, .main-info-container p
 {
     text-align: center;

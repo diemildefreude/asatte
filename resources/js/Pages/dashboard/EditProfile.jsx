@@ -29,7 +29,7 @@ function EditProfile()
     const [showEmailInProfile, setShowEmailInProfile] = useState(false);
     const [editingField, setEditingField] = useState(null);
 
-    //console.log("user",user);
+    console.log("user",user);
     useEffect(() =>
     {
         if(!user) return;
@@ -158,7 +158,7 @@ function EditProfile()
                     </div>
                     <div className="flex-column">
                     {
-                        (user?.is_email_verified && user?.login_type === LoginType.Email) &&
+                        (user?.is_email_verified && user?.login_type == LoginType.Email) &&
                         (
                             <Link href="/password-change" className="centered-content no-margin">change password</Link>
                         )

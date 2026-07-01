@@ -427,8 +427,18 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
                             {success}
                         </div>
                         )}
+                        <div className="horizontal-buttons-container">
+                            {(!post || post.is_draft) && (
+                                <button type="button" onClick={(e) => onSubmit(e, true)} disabled={isSubmitting || !canSubmit}>
+                                    save draft
+                                </button>
+                            )}
+                            <button type="submit" disabled={isSubmitting || !canSubmit}>
+                                {buttonText}
+                            </button>      
+                        </div>                        
                         <div className="footnote">
-                        Fields with an * are required.
+                            Fields with an * are required.
                         </div>
                         <FormField
                             id="post_url"
@@ -557,18 +567,8 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
                                 value={data.statement}
                             />
                         </div>
-                        <div className="horizontal-buttons-container">
-                            {(!post || post.is_draft) && (
-                                <button type="button" onClick={(e) => onSubmit(e, true)} disabled={isSubmitting || !canSubmit}>
-                                    save draft
-                                </button>
-                            )}
-                            <button type="submit" disabled={isSubmitting || !canSubmit}>
-                                {buttonText}
-                            </button>      
-                        </div>
                     </div>            
-                    <div className="multi-field-container" ref={galleryContainerRef}>                            
+                    <div className="multi-field-container" ref={galleryContainerRef}>                                                    
                         <div className="field-button-container top-align">
                             <div className="main-label-container">
                                 <label className="main-label">gallery images*</label>
@@ -593,7 +593,7 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
                                 />
                             ))
                         } 
-                        <div className="horizontal-buttons-container">         
+                        <div className="horizontal-buttons-container reverse-row">         
                             {(!post || post.is_draft) && (
                                 <button type="button" onClick={(e) => onSubmit(e, true)} disabled={isSubmitting || !canSubmit}>
                                     save draft

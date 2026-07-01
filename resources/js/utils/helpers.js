@@ -1,9 +1,10 @@
 import DOMPurify from 'isomorphic-dompurify';
 
-export const LoginType = {
-    Webmaster: 0,
-    Registered: 1,
-    Unregistered: 2
+export const LoginType = 
+{
+  Email: 'email',
+  Github: 'github',
+  Google: 'google',
 };
 
 function isSafeVideoIframeSrc(src) 

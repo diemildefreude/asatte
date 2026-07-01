@@ -13,10 +13,11 @@
 .carousel-container-container
 {
     position: relative;
-    overflow: hidden;
+    overflow-x: hidden;
 }
 .carousel-container
 {
+    position: relative;
     height: var(--mobile-medium-height);
     /* width: calc(var(--carousel-w) - 1rem); */
 }
@@ -104,3 +105,27 @@
         width: calc(var(--carousel-w) - 2rem);
     }
 } */
+.slider-end-left, .slider-end-right
+{
+    --solid-color: var(--pale-yellow);
+    --faded-color: #ffffff00;
+    position: absolute;
+    height: 100%;
+    width: 150px;
+    top: 0;
+    pointer-events: none;
+}
+.slider-end-left
+{
+    --left-opacity: 0.0;
+    left: 0;
+    opacity: var(--left-opacity);
+    background: linear-gradient(70deg, var(--solid-color) 0%, var(--solid-color) 10%, var(--faded-color) 50%);
+}
+.slider-end-right
+{
+    --right-opacity: 1.0;
+    right: 0;
+    opacity: var(--right-opacity);
+    background: linear-gradient(-110deg, var(--solid-color) 0%, var(--solid-color) 10%, var(--faded-color) 50%);
+}

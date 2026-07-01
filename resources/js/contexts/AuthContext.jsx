@@ -1,12 +1,6 @@
 import React, { createContext, useContext, useState } from 'react';
 import { router } from '@inertiajs/react';
 
-export const LoginType = {
-  Email: 'email',
-  Github: 'github',
-  Google: 'google',
-};
-
 const AuthContext = createContext(null);
 
 const callApi = async (path, { method = 'GET', data = null, params = null } = {}) => {
