@@ -100,6 +100,20 @@ function ImageCarousel({size, post, title=""})
             </CarouselContainer>        
             <ImageZoom src={isZoomed ? `${IMAGE_ROOT}/large/${imageUrls[currentSlideIndex]}` : null} 
                 smallSrc={isZoomed ? `${IMAGE_ROOT}/small/${imageUrls[currentSlideIndex]}` : null}
+                nextSrc={isZoomed && currentSlideIndex < imageUrls.length - 1 ? `${IMAGE_ROOT}/large/${imageUrls[currentSlideIndex + 1]}` : null}
+                nextSmallSrc={isZoomed && currentSlideIndex < imageUrls.length - 1 ? `${IMAGE_ROOT}/small/${imageUrls[currentSlideIndex + 1]}` : null}
+                prevSrc={isZoomed && currentSlideIndex > 0 ? `${IMAGE_ROOT}/large/${imageUrls[currentSlideIndex - 1]}` : null}
+                prevSmallSrc={isZoomed && currentSlideIndex > 0 ? `${IMAGE_ROOT}/small/${imageUrls[currentSlideIndex - 1]}` : null}
+                onNavigateNext={() => {
+                    const newInd = Math.min(imageUrls.length - 1, currentSlideIndex + 1);
+                    setCurrentSlideIndex(newInd);
+                    slideRefs.current[newInd]?.focus();
+                }}
+                onNavigatePrev={() => {
+                    const newInd = Math.max(0, currentSlideIndex - 1);
+                    setCurrentSlideIndex(newInd);
+                    slideRefs.current[newInd]?.focus();
+                }}
                 alt={post?.gallery_alts[currentSlideIndex]}
                 clickFunc={handleClick}
                 isZoomed={isZoomed}

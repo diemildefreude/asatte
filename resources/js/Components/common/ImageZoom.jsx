@@ -18,14 +18,31 @@ function calculateInitialTransform (zoomContainer, outerContainer, imgWidth, img
     return { scale, posX, posY };
 };
 
-function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef=null, isImageCropper=false})
+function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef=null, isImageCropper=false, nextSrc, nextSmallSrc, prevSrc, prevSmallSrc, onNavigateNext, onNavigatePrev})
 {      
     const zoomContainerRef = useRef(null);
     const zoomedImageRef = useRef(null);
+    const slideContainerRef = useRef(null);
+    const nextImgRef = useRef(null);
+    const prevImgRef = useRef(null);
+    const tempOverlayRef = useRef(null);
     const [loadedSrc, setLoadedSrc] = useState(null);
     const currentSrcRef = useRef(src);
 
-    const [transform, setTransform] = useState({ scale: 1, posX: 0, posY: 0 });
+    const [transform, setTransformState] = useState({ scale: 1, posX: 0, posY: 0 });
+    const transformRef = useRef({ scale: 1, posX: 0, posY: 0 });
+    const setTransform = useCallback((newTransform) => {
+        if (typeof newTransform === 'function') {
+            setTransformState(prev => {
+                const updated = newTransform(prev);
+                transformRef.current = updated;
+                return updated;
+            });
+        } else {
+            transformRef.current = newTransform;
+            setTransformState(newTransform);
+        }
+    }, []);
     const [naturalSize, setNaturalSize] = useState(null);
     const [initialTransform, setInitialTransform] = useState(null);
     const isPanningRef = useRef(false);
@@ -41,6 +58,37 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef=
     const lastMovePosRef = useRef({ x: 0, y: 0 });
     const velocityRef = useRef({ x: 0, y: 0 });
     const animationFrameRef = useRef(null);
+
+    const virtualPosXRef = useRef(0);
+    const transitionDragXRef = useRef(0);
+
+    const updateTransitionVisuals = useCallback((dragX) => {
+        const width = zoomContainerRef.current ? zoomContainerRef.current.offsetWidth : window.innerWidth;
+        
+        if (nextImgRef.current) {
+            if (dragX < 0) {
+                nextImgRef.current.style.transform = `translateX(${width + dragX}px)`;
+                nextImgRef.current.style.opacity = 1;
+                nextImgRef.current.style.display = 'block';
+            } else {
+                nextImgRef.current.style.display = 'none';
+            }
+        }
+
+        if (prevImgRef.current) {
+            if (dragX > 0) {
+                prevImgRef.current.style.transform = `translateX(${-width + dragX}px)`;
+                prevImgRef.current.style.opacity = 1;
+                prevImgRef.current.style.display = 'block';
+            } else {
+                prevImgRef.current.style.display = 'none';
+            }
+        }
+
+        if (slideContainerRef.current) {
+            slideContainerRef.current.style.transform = `translateX(${dragX}px)`;
+        }
+    }, []);
 
     const containerClasses = isImageCropper ? "zoomed-image" : `zoomed-image ${!isZoomed ? 'hidden' : ''}`;
     const MIN_SCALE_FACTOR = 1; // Minimum scale relative to initial fit-to-screen scale
@@ -105,27 +153,8 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef=
 
     }, [transform, naturalSize, initialTransform, clampPosition]);
 
-    const handleWheel = useCallback((e) => 
-    {
-        if ((!isZoomed && !isImageCropper) || !zoomContainerRef.current) return;
-        e.preventDefault();
+    const wheelTimeoutRef = useRef(null);
 
-        if (e.ctrlKey) 
-        { 
-            const scaleDelta = 1 - e.deltaY * WHEEL_ZOOM_SENSITIVITY;
-            updateZoom(scaleDelta, e.clientX, e.clientY);
-        } 
-        else 
-        {
-            setTransform(prev => 
-            {
-                const newPosX = prev.posX - e.deltaX * PAN_SENSITIVITY;
-                const newPosY = prev.posY - e.deltaY * PAN_SENSITIVITY;
-                const clamped = clampPosition(newPosX, newPosY, prev.scale);
-                return { ...prev, posX: clamped.x, posY: clamped.y };
-            });
-        }
-    }, [isZoomed, updateZoom, clampPosition]);
 
     const handleTouchStart = useCallback((event) => 
     {
@@ -139,6 +168,11 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef=
         }
 
         if (!zoomContainerRef.current) return;
+        
+        virtualPosXRef.current = transformRef.current.posX;
+        transitionDragXRef.current = 0;
+        updateTransitionVisuals(0);
+
         if (event.touches.length === 1) { 
         isPanningRef.current = true;
         lastPanPositionRef.current = { x: event.touches[0].clientX, y: event.touches[0].clientY };
@@ -184,9 +218,22 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef=
             lastMovePosRef.current = { x: event.touches[0].clientX, y: event.touches[0].clientY };
             lastMoveTimeRef.current = now;
 
-            const newPosX = transform.posX + deltaX;
-            const newPosY = transform.posY + deltaY;
-            const clamped = clampPosition(newPosX, newPosY, transform.scale);
+            virtualPosXRef.current += deltaX;
+            const newPosY = transformRef.current.posY + deltaY;
+            const clamped = clampPosition(virtualPosXRef.current, newPosY, transformRef.current.scale);
+            
+            let overPan = virtualPosXRef.current - clamped.x;
+            if (overPan < 0 && !nextSrc) overPan = 0;
+            if (overPan > 0 && !prevSrc) overPan = 0;
+
+            const maxWidth = zoomContainerRef.current ? zoomContainerRef.current.offsetWidth * 0.8 : window.innerWidth * 0.8;
+            if (overPan < -maxWidth) overPan = -maxWidth;
+            if (overPan > maxWidth) overPan = maxWidth;
+            
+            virtualPosXRef.current = clamped.x + overPan;
+            transitionDragXRef.current = overPan;
+            updateTransitionVisuals(overPan);
+
             setTransform(prev => ({ ...prev, posX: clamped.x, posY: clamped.y }));
 
         } 
@@ -211,42 +258,71 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef=
             velocityRef.current = { x: 0, y: 0 };
         }
 
-        if (Math.abs(velocityRef.current.x) > 0.1 || Math.abs(velocityRef.current.y) > 0.1) {
-            let vx = velocityRef.current.x;
-            let vy = velocityRef.current.y;
-            let lastFrameTime = performance.now();
+        let vx = velocityRef.current.x;
+        let vy = velocityRef.current.y;
+        
+        const width = zoomContainerRef.current ? zoomContainerRef.current.offsetWidth : window.innerWidth;
+        const dragX = transitionDragXRef.current;
+        
+        const isSwipingNext = dragX < 0 && (dragX < -width * 0.2 || vx < -0.5);
+        const isSwipingPrev = dragX > 0 && (dragX > width * 0.2 || vx > 0.5);
 
-            const momentumLoop = (time) => {
-                const dt = time - lastFrameTime;
-                lastFrameTime = time;
+        let lastFrameTime = performance.now();
 
-                if (!isPanningRef.current && (Math.abs(vx) > 0.05 || Math.abs(vy) > 0.05)) {
-                    setTransform(prev => {
-                        const newPosX = prev.posX + vx * dt;
-                        const newPosY = prev.posY + vy * dt;
-                        const clamped = clampPosition(newPosX, newPosY, prev.scale);
-                        
-                        if (newPosX !== clamped.x) vx = 0;
-                        if (newPosY !== clamped.y) vy = 0;
+        const momentumLoop = (time) => {
+            const dt = time - lastFrameTime;
+            lastFrameTime = time;
 
-                        return { ...prev, posX: clamped.x, posY: clamped.y };
-                    });
+            if (isSwipingNext || isSwipingPrev) {
+                const targetX = isSwipingNext ? -width : width;
+                transitionDragXRef.current += (targetX - transitionDragXRef.current) * 0.15;
+                updateTransitionVisuals(transitionDragXRef.current);
 
-                    vx *= 0.92;
-                    vy *= 0.92;
+                if (Math.abs(targetX - transitionDragXRef.current) > 2) {
+                    animationFrameRef.current = requestAnimationFrame(momentumLoop);
+                } else {
+                    animationFrameRef.current = null;
+                    if (isSwipingNext && onNavigateNext) onNavigateNext();
+                    if (isSwipingPrev && onNavigatePrev) onNavigatePrev();
+                }
+            } else if (transitionDragXRef.current !== 0) {
+                transitionDragXRef.current += (0 - transitionDragXRef.current) * 0.2;
+                updateTransitionVisuals(transitionDragXRef.current);
+                
+                if (Math.abs(transitionDragXRef.current) > 1) {
+                    animationFrameRef.current = requestAnimationFrame(momentumLoop);
+                } else {
+                    transitionDragXRef.current = 0;
+                    updateTransitionVisuals(0);
+                    animationFrameRef.current = null;
+                }
+            } else if (!isPanningRef.current && (Math.abs(vx) > 0.05 || Math.abs(vy) > 0.05)) {
+                setTransform(prev => {
+                    const newPosX = prev.posX + vx * dt;
+                    const newPosY = prev.posY + vy * dt;
+                    const clamped = clampPosition(newPosX, newPosY, prev.scale);
+                    
+                    if (newPosX !== clamped.x) vx = 0;
+                    if (newPosY !== clamped.y) vy = 0;
 
-                    if (Math.abs(vx) > 0.05 || Math.abs(vy) > 0.05) {
-                        animationFrameRef.current = requestAnimationFrame(momentumLoop);
-                    } else {
-                        animationFrameRef.current = null;
-                    }
+                    return { ...prev, posX: clamped.x, posY: clamped.y };
+                });
+
+                vx *= 0.92;
+                vy *= 0.92;
+
+                if (Math.abs(vx) > 0.05 || Math.abs(vy) > 0.05) {
+                    animationFrameRef.current = requestAnimationFrame(momentumLoop);
                 } else {
                     animationFrameRef.current = null;
                 }
-            };
-            animationFrameRef.current = requestAnimationFrame(momentumLoop);
-        }
-    }, [clampPosition]);
+            } else {
+                animationFrameRef.current = null;
+            }
+        };
+        animationFrameRef.current = requestAnimationFrame(momentumLoop);
+        
+    }, [clampPosition, onNavigateNext, onNavigatePrev, updateTransitionVisuals]);
 
     const handleTouchEnd = useCallback(() => {
         isPanningRef.current = false;
@@ -270,6 +346,10 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef=
         isPanningRef.current = true;
         lastPanPositionRef.current = { x: event.clientX, y: event.clientY };
         
+        virtualPosXRef.current = transformRef.current.posX;
+        transitionDragXRef.current = 0;
+        updateTransitionVisuals(0);
+
         lastMoveTimeRef.current = performance.now();
         lastMovePosRef.current = { x: event.clientX, y: event.clientY };
         velocityRef.current = { x: 0, y: 0 };
@@ -301,9 +381,22 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef=
         lastMovePosRef.current = { x: event.clientX, y: event.clientY };
         lastMoveTimeRef.current = now;
 
-        const newPosX = transform.posX + deltaX;
-        const newPosY = transform.posY + deltaY;
-        const clamped = clampPosition(newPosX, newPosY, transform.scale);
+        virtualPosXRef.current += deltaX;
+        const newPosY = transformRef.current.posY + deltaY;
+        const clamped = clampPosition(virtualPosXRef.current, newPosY, transformRef.current.scale);
+        
+        let overPan = virtualPosXRef.current - clamped.x;
+        if (overPan < 0 && !nextSrc) overPan = 0;
+        if (overPan > 0 && !prevSrc) overPan = 0;
+
+        const maxWidth = zoomContainerRef.current ? zoomContainerRef.current.offsetWidth * 0.8 : window.innerWidth * 0.8;
+        if (overPan < -maxWidth) overPan = -maxWidth;
+        if (overPan > maxWidth) overPan = maxWidth;
+        
+        virtualPosXRef.current = clamped.x + overPan;
+        transitionDragXRef.current = overPan;
+        updateTransitionVisuals(overPan);
+
         setTransform(prev => ({ ...prev, posX: clamped.x, posY: clamped.y }));
 
     }, [transform, clampPosition]);
@@ -315,6 +408,28 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef=
         if (zoomContainerRef.current) zoomContainerRef.current.classList.toggle("dragging", false);
         startMomentum();
     }, [startMomentum]);
+
+    const handleWheel = useCallback((e) => 
+    {
+        if ((!isZoomed && !isImageCropper) || !zoomContainerRef.current) return;
+        e.preventDefault();
+
+        if (e.ctrlKey) 
+        { 
+            const scaleDelta = 1 - e.deltaY * WHEEL_ZOOM_SENSITIVITY;
+            updateZoom(scaleDelta, e.clientX, e.clientY);
+        } 
+        else 
+        {
+            setTransform(prev => 
+            {
+                const newPosX = prev.posX - e.deltaX * PAN_SENSITIVITY;
+                const newPosY = prev.posY - e.deltaY * PAN_SENSITIVITY;
+                const clamped = clampPosition(newPosX, newPosY, prev.scale);
+                return { ...prev, posX: clamped.x, posY: clamped.y };
+            });
+        }
+    }, [isZoomed, isImageCropper, updateZoom, clampPosition]);
 
     const handleClick = useCallback((e) => {
         if (hasDraggedRef.current) {
@@ -369,31 +484,51 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef=
     useEffect(() => 
     {
         currentSrcRef.current = src;
+        
+        if (transitionDragXRef.current !== 0 && zoomContainerRef.current) {
+            const overlay = document.createElement('img');
+            overlay.src = smallSrc || src;
+            overlay.className = 'zoom-transition-img';
+            overlay.style.display = 'block';
+            overlay.style.transform = 'translateX(0px)';
+            overlay.style.opacity = '1';
+            overlay.style.zIndex = '10';
+            overlay.draggable = false;
+            zoomContainerRef.current.appendChild(overlay);
+            
+            if (tempOverlayRef.current) tempOverlayRef.current.remove();
+            tempOverlayRef.current = overlay;
+        }
+
+        if (zoomedImageRef.current) zoomedImageRef.current.style.opacity = 0;
+        if (slideContainerRef.current) slideContainerRef.current.style.transform = `translateX(0px)`;
+        transitionDragXRef.current = 0;
+        updateTransitionVisuals(0);
+
         if (!src) {
             setLoadedSrc(null);
+            if (tempOverlayRef.current) {
+                tempOverlayRef.current.remove();
+                tempOverlayRef.current = null;
+            }
             return;
         }
 
-        // Hide current image instantly when switching to a new post/image
         setLoadedSrc(null);
 
-        // Preload the small image (or large if no small)
         const targetSrc = smallSrc || src;
         const img = new Image();
         
         img.onload = () => {
             if (currentSrcRef.current === src) {
-                // Calculate transform for the initial image
                 const natSize = { width: img.naturalWidth, height: img.naturalHeight }; 
                 const initialT = calculateInitialTransform(zoomContainerRef?.current, outerContainerRef?.current, natSize.width, natSize.height);
                 
-                // Batch updates! This prevents the wrong-transform flicker.
                 setNaturalSize(natSize);
                 setTransform(initialT);
                 setInitialTransform(initialT);
                 setLoadedSrc(targetSrc);
 
-                // If there's a large version to upgrade to, preload it now
                 if (smallSrc && src !== smallSrc) {
                     const largeImg = new Image();
                     largeImg.onload = () => {
@@ -401,7 +536,6 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef=
                             const largeNatSize = { width: largeImg.naturalWidth, height: largeImg.naturalHeight }; 
                             const largeInitialT = calculateInitialTransform(zoomContainerRef?.current, outerContainerRef?.current, largeNatSize.width, largeNatSize.height);
                             
-                            // Safely preserve user's zoom/pan if they started interacting while loading
                             setNaturalSize((prevNatSize) => {
                                 setTransform((prevTransform) => {
                                     if (!prevNatSize) return largeInitialT;
@@ -421,11 +555,26 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef=
                     };
                     largeImg.src = src;
                 }
+
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        if (tempOverlayRef.current) {
+                            tempOverlayRef.current.remove();
+                            tempOverlayRef.current = null;
+                        }
+                    });
+                });
+            }
+        };
+        img.onerror = () => {
+            if (tempOverlayRef.current) {
+                tempOverlayRef.current.remove();
+                tempOverlayRef.current = null;
             }
         };
         img.src = targetSrc;
 
-    }, [src, smallSrc]);
+    }, [src, smallSrc, updateTransitionVisuals, outerContainerRef, setTransform]);
 
     return (
         <div className={containerClasses}
@@ -433,17 +582,36 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef=
             onClick={handleClick}
             ref={zoomContainerRef}>
             
-            <img src={loadedSrc} 
-                    alt={alt}
-                    draggable="false"
-                    ref={zoomedImageRef}
-                    style={{
-                        transform: `translate(${transform.posX}px, ${transform.posY}px) scale(${transform.scale})`,
-                        transformOrigin: 'top left', 
-                        opacity: loadedSrc ? 1 : 0
-                    }}
+            <div ref={slideContainerRef} className="zoom-slide-container">
+                <img src={loadedSrc} 
+                        alt={alt}
+                        draggable="false"
+                        ref={zoomedImageRef}
+                        style={{
+                            transform: `translate(${transform.posX}px, ${transform.posY}px) scale(${transform.scale})`,
+                            transformOrigin: 'top left', 
+                            opacity: loadedSrc ? 1 : 0
+                        }}
+                    />
+            </div>
+
+            {prevSrc && (
+                <img src={prevSmallSrc || prevSrc} 
+                     ref={prevImgRef}
+                     className="zoom-transition-img"
+                     alt="Previous"
+                     draggable="false"
                 />
-            
+            )}
+
+            {nextSrc && (
+                <img src={nextSmallSrc || nextSrc} 
+                     ref={nextImgRef}
+                     className="zoom-transition-img"
+                     alt="Next"
+                     draggable="false"
+                />
+            )}
         </div>
     )
 }
