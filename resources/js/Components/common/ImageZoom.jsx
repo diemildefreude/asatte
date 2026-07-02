@@ -31,6 +31,17 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef=
     const isPanningRef = useRef(false);
     const lastPanPositionRef = useRef(null);
     const lastPinchDistanceRef = useRef(null);
+    
+    // Track drag distance to prevent click on release
+    const hasDraggedRef = useRef(false);
+    const dragDistanceRef = useRef(0);
+
+    // Momentum tracking
+    const lastMoveTimeRef = useRef(0);
+    const lastMovePosRef = useRef({ x: 0, y: 0 });
+    const velocityRef = useRef({ x: 0, y: 0 });
+    const animationFrameRef = useRef(null);
+
     const containerClasses = isImageCropper ? "zoomed-image" : `zoomed-image ${!isZoomed ? 'hidden' : ''}`;
     const MIN_SCALE_FACTOR = 1; // Minimum scale relative to initial fit-to-screen scale
     const MAX_SCALE_FACTOR = 5; // Maximum scale relative to initial fit-to-screen scale
@@ -119,10 +130,23 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef=
     const handleTouchStart = useCallback((event) => 
     {
         console.log("touch start");
+        hasDraggedRef.current = false;
+        dragDistanceRef.current = 0;
+
+        if (animationFrameRef.current) {
+            cancelAnimationFrame(animationFrameRef.current);
+            animationFrameRef.current = null;
+        }
+
         if (!zoomContainerRef.current) return;
         if (event.touches.length === 1) { 
         isPanningRef.current = true;
         lastPanPositionRef.current = { x: event.touches[0].clientX, y: event.touches[0].clientY };
+        
+        lastMoveTimeRef.current = performance.now();
+        lastMovePosRef.current = { x: event.touches[0].clientX, y: event.touches[0].clientY };
+        velocityRef.current = { x: 0, y: 0 };
+
         zoomContainerRef.current.style.setProperty('touch-action', 'none'); 
         } else if (event.touches.length === 2) { 
         isPanningRef.current = false; 
@@ -144,6 +168,22 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef=
             const deltaY = event.touches[0].clientY - lastPanPositionRef.current.y;
             lastPanPositionRef.current = { x: event.touches[0].clientX, y: event.touches[0].clientY };
             
+            dragDistanceRef.current += Math.abs(deltaX) + Math.abs(deltaY);
+            if (dragDistanceRef.current > 10) {
+                hasDraggedRef.current = true;
+            }
+
+            const now = performance.now();
+            const dt = now - lastMoveTimeRef.current;
+            if (dt > 0) {
+                velocityRef.current = {
+                    x: (event.touches[0].clientX - lastMovePosRef.current.x) / dt,
+                    y: (event.touches[0].clientY - lastMovePosRef.current.y) / dt
+                };
+            }
+            lastMovePosRef.current = { x: event.touches[0].clientX, y: event.touches[0].clientY };
+            lastMoveTimeRef.current = now;
+
             const newPosX = transform.posX + deltaX;
             const newPosY = transform.posY + deltaY;
             const clamped = clampPosition(newPosX, newPosY, transform.scale);
@@ -165,17 +205,75 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef=
         }
     }, [transform, clampPosition, updateZoom]);
 
+    const startMomentum = useCallback(() => {
+        const now = performance.now();
+        if (now - lastMoveTimeRef.current > 100) {
+            velocityRef.current = { x: 0, y: 0 };
+        }
+
+        if (Math.abs(velocityRef.current.x) > 0.1 || Math.abs(velocityRef.current.y) > 0.1) {
+            let vx = velocityRef.current.x;
+            let vy = velocityRef.current.y;
+            let lastFrameTime = performance.now();
+
+            const momentumLoop = (time) => {
+                const dt = time - lastFrameTime;
+                lastFrameTime = time;
+
+                if (!isPanningRef.current && (Math.abs(vx) > 0.05 || Math.abs(vy) > 0.05)) {
+                    setTransform(prev => {
+                        const newPosX = prev.posX + vx * dt;
+                        const newPosY = prev.posY + vy * dt;
+                        const clamped = clampPosition(newPosX, newPosY, prev.scale);
+                        
+                        if (newPosX !== clamped.x) vx = 0;
+                        if (newPosY !== clamped.y) vy = 0;
+
+                        return { ...prev, posX: clamped.x, posY: clamped.y };
+                    });
+
+                    vx *= 0.92;
+                    vy *= 0.92;
+
+                    if (Math.abs(vx) > 0.05 || Math.abs(vy) > 0.05) {
+                        animationFrameRef.current = requestAnimationFrame(momentumLoop);
+                    } else {
+                        animationFrameRef.current = null;
+                    }
+                } else {
+                    animationFrameRef.current = null;
+                }
+            };
+            animationFrameRef.current = requestAnimationFrame(momentumLoop);
+        }
+    }, [clampPosition]);
+
     const handleTouchEnd = useCallback(() => {
         isPanningRef.current = false;
         lastPinchDistanceRef.current = null;
         if (zoomContainerRef.current) zoomContainerRef.current.style.removeProperty('touch-action');
-    }, []);
+        startMomentum();
+    }, [startMomentum]);
 
     const handleMouseDown = useCallback((event) => 
     {
         if (event.button !== 0) return; 
+        
+        hasDraggedRef.current = false;
+        dragDistanceRef.current = 0;
+
+        if (animationFrameRef.current) {
+            cancelAnimationFrame(animationFrameRef.current);
+            animationFrameRef.current = null;
+        }
+
         isPanningRef.current = true;
         lastPanPositionRef.current = { x: event.clientX, y: event.clientY };
+        
+        lastMoveTimeRef.current = performance.now();
+        lastMovePosRef.current = { x: event.clientX, y: event.clientY };
+        velocityRef.current = { x: 0, y: 0 };
+
         zoomContainerRef.current.classList.toggle("dragging", true);
     }, []);
 
@@ -186,6 +284,22 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef=
         const deltaX = event.clientX - lastPanPositionRef.current.x;
         const deltaY = event.clientY - lastPanPositionRef.current.y;
         lastPanPositionRef.current = { x: event.clientX, y: event.clientY };
+
+        dragDistanceRef.current += Math.abs(deltaX) + Math.abs(deltaY);
+        if (dragDistanceRef.current > 10) {
+            hasDraggedRef.current = true;
+        }
+
+        const now = performance.now();
+        const dt = now - lastMoveTimeRef.current;
+        if (dt > 0) {
+            velocityRef.current = {
+                x: (event.clientX - lastMovePosRef.current.x) / dt,
+                y: (event.clientY - lastMovePosRef.current.y) / dt
+            };
+        }
+        lastMovePosRef.current = { x: event.clientX, y: event.clientY };
+        lastMoveTimeRef.current = now;
 
         const newPosX = transform.posX + deltaX;
         const newPosY = transform.posY + deltaY;
@@ -198,8 +312,19 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef=
     {
         isPanningRef.current = false;
         //if (imageRef.current) imageRef.current.style.cursor = 'grab';
-        zoomContainerRef.current.classList.toggle("dragging", false);
-    }, []);
+        if (zoomContainerRef.current) zoomContainerRef.current.classList.toggle("dragging", false);
+        startMomentum();
+    }, [startMomentum]);
+
+    const handleClick = useCallback((e) => {
+        if (hasDraggedRef.current) {
+            e.preventDefault();
+            e.stopPropagation();
+            hasDraggedRef.current = false; // Reset for next valid click
+            return;
+        }
+        if (clickFunc) clickFunc(e);
+    }, [clickFunc]);
 
     useEffect(() =>
     {
@@ -305,7 +430,7 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef=
     return (
         <div className={containerClasses}
             draggable="false"
-            onClick={clickFunc}
+            onClick={handleClick}
             ref={zoomContainerRef}>
             
             <img src={loadedSrc} 
