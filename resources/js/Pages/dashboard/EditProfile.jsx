@@ -16,7 +16,7 @@ function EditProfile()
 
 
     const { data, setData, post, processing, errors, setError, clearErrors } = useForm({
-        website: '',
+        websites: [],
         location: '',
         show_email_in_profile: false,
     });
@@ -24,7 +24,7 @@ function EditProfile()
     const [isLoggingOut, setIsLoggingOut] = useState(false);
 
     const [hasChanges, setHasChanges] = useState(false);
-    const [websiteField, setWebsiteField] = useState('');
+    const [websitesField, setWebsitesField] = useState([]);
     const [locationField, setLocationField] = useState('');
     const [showEmailInProfile, setShowEmailInProfile] = useState(false);
     const [editingField, setEditingField] = useState(null);
@@ -33,10 +33,19 @@ function EditProfile()
     useEffect(() =>
     {
         if(!user) return;
-        setWebsiteField(user.website || '');
+        
+        // Ensure websites is an array
+        let userWebsites = [];
+        if (user.websites && Array.isArray(user.websites)) {
+            userWebsites = user.websites;
+        } else if (typeof user.website === 'string') {
+            userWebsites = [user.website];
+        }
+
+        setWebsitesField(userWebsites);
         setLocationField(user.location || '');
         setShowEmailInProfile(!!user.show_email_in_profile);
-        setData('website', user.website || '');
+        setData('websites', userWebsites);
         setData('location', user.location || '');
         setData('show_email_in_profile', !!user.show_email_in_profile);
     }, [user]);
@@ -62,8 +71,8 @@ function EditProfile()
         e.preventDefault();
         clearErrors();
         
-        if(websiteField === user.website &&
-            locationField === user.location &&
+        if (JSON.stringify(websitesField) === JSON.stringify(user.websites || []) &&
+            locationField === (user.location || '') &&
             showEmailInProfile === !!user.show_email_in_profile
         )
         {
@@ -71,16 +80,13 @@ function EditProfile()
             return;    
         }
 
-        setData('website', websiteField || '');
-        setData('location', locationField || '');
-        setData('show_email_in_profile', !!showEmailInProfile);
-        // using router.post because form.post queues state updates asynchronously, 
-        // so setData might not apply before form.post fires if invoked synchronously here.
-        router.post('/update-profile', {
-            website: websiteField || '',
-            location: locationField || '',
+        const currentData = {
+            websites: websitesField,
+            location: locationField,
             show_email_in_profile: !!showEmailInProfile
-        }, 
+        };
+
+        router.post('/update-profile', currentData, 
         {
             preserveState: true,
             preserveScroll: true,
@@ -119,13 +125,25 @@ function EditProfile()
                     value={user?.username}
                 />
                 <ProfileItem
-                    name="website"
-                    value={websiteField}
-                    setValue={setWebsiteField}
-                    onChange={(e) => {setHasChanges(e.target.value !== user.website); setWebsiteField(e.target.value)}}
+                    name="websites"
+                    value={websitesField}
+                    isArray={true}
+                    maxArrayLength={3}
+                    onChange={(e, idx) => {
+                        const newWebsites = [...websitesField];
+                        newWebsites[idx] = e.target.value;
+                        setHasChanges(true); 
+                        setWebsitesField(newWebsites);
+                    }}
+                    onAddArrayItem={() => {
+                        if (websitesField.length < 3) {
+                            setWebsitesField([...websitesField, '']);
+                            setHasChanges(true);
+                        }
+                    }}
                     disabled={!user?.is_email_verified || processing}
-                    isEditingThisField={editingField === 'website'}
-                    onEditClick={() => handleEditClick('website')}
+                    isEditingThisField={editingField === 'websites'}
+                    onEditClick={() => handleEditClick('websites')}
                 />
                 <ProfileItem
                     name="location"

@@ -39,7 +39,7 @@ function UserLink({user, readOnly=false, onClick=null, additionalClasses="", url
                 >
                     <span className="avatar-container">
                         <img className="round-image" src={avatar} 
-                            alt={`RipplyScottttttttttttttttttttttttttttttttt's avatar`} 
+                            alt={`${user.username}'s avatar`} 
                             draggable="false"
                         />
                         <span className="notice-light small"></span>

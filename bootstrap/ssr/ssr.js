@@ -80,10 +80,14 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
         height: 500,
         convert_urls: false,
         menubar: false,
-        plugins: "image link media",
+        plugins: "autoresize image link media",
+        autoresize_bottom_margin: 50,
         toolbar: isReadOnly ? false : ["styles | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist | image media link"],
         extended_valid_elements: "blockquote[class|data-instgrm-permalink|data-instgrm-version|data-instgrm-captioned|data-instgrm-payload-id|data-video-id|cite|data-theme|data-dnt|data-media-max-width],iframe[src|title|width|height|frameborder|allowfullscreen|scrolling|allow|style]",
         toolbar_mode: "wrap",
+        mobile: {
+          toolbar_mode: "wrap"
+        },
         placeholder,
         // image_title: true,
         // automatic_uploads: true,
@@ -107,6 +111,23 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
               e.content = e.content.replace(/<blockquote class="[^"]*tiktok-embed[^"]*"[^>]*cite="https:\/\/(?:www\.)?tiktok\.com\/[^\/]+\/video\/(\d+)[^"]*"[\s\S]*?<\/blockquote>(?:\s*<script[^>]*>[\s\S]*?<\/script>)?/ig, (match, videoId) => {
                 return `<iframe src="https://www.tiktok.com/embed/v2/${videoId}" width="325" height="740" frameborder="0" scrolling="no" allow="fullscreen" style="max-width: 100%; overflow: hidden;"></iframe>`;
               });
+            }
+            if (e.content.includes("iframe-container") || e.content.includes("statement")) {
+              const tempDiv = document.createElement("div");
+              tempDiv.innerHTML = e.content;
+              const unwrapClasses = [".iframe-container-container", ".iframe-container", ".statement"];
+              unwrapClasses.forEach((selector) => {
+                const elements = Array.from(tempDiv.querySelectorAll(selector));
+                elements.reverse().forEach((el) => {
+                  if (el.parentNode) {
+                    while (el.firstChild) {
+                      el.parentNode.insertBefore(el.firstChild, el);
+                    }
+                    el.parentNode.removeChild(el);
+                  }
+                });
+              });
+              e.content = tempDiv.innerHTML;
             }
           });
           editor.on("init", () => {
@@ -141,6 +162,108 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
                 }
               }
             });
+          });
+          editor.on("click", (e) => {
+            if (e.target.nodeName === "BODY" || e.target.nodeName === "HTML") {
+              const body = editor.getBody();
+              if (!body || !body.lastElementChild) return;
+              const rect = body.lastElementChild.getBoundingClientRect();
+              if (e.clientY > rect.bottom - 10) {
+                let lastEl = body.lastElementChild;
+                if (lastEl.querySelector(".mce-preview-object, iframe, img") || ["IFRAME", "IMG", "VIDEO"].includes(lastEl.nodeName)) {
+                  const newP = editor.getDoc().createElement("p");
+                  newP.innerHTML = '<br data-mce-bogus="1">';
+                  body.appendChild(newP);
+                  lastEl = newP;
+                }
+                editor.selection.setCursorLocation(lastEl, 0);
+              }
+            }
+          });
+          const handleBackspace = (e) => {
+            const isBackspace = e.type === "keydown" && (e.key === "Backspace" || e.keyCode === 8);
+            const isDeleteBackward = e.type === "beforeinput" && e.inputType === "deleteContentBackward";
+            if (isBackspace || isDeleteBackward) {
+              console.log("+++ CAPTURE BACKSPACE FIRED +++");
+              console.log("Event type:", e.type);
+              const sel = editor.selection;
+              const rng = sel.getRng();
+              let currentNode = rng.startContainer;
+              let offset = rng.startOffset;
+              const isEmbedNode = (node) => node && (["IFRAME", "IMG", "VIDEO", "FIGURE"].includes(node.nodeName) || node.classList && node.classList.contains("mce-preview-object"));
+              let embedToDelete = null;
+              let wrapperToClean = null;
+              if (!sel.isCollapsed()) {
+                const selectedNode = sel.getNode();
+                console.log("Selection is NOT collapsed. Selected Node:", selectedNode ? selectedNode.nodeName : "null");
+                if (isEmbedNode(selectedNode)) {
+                  embedToDelete = selectedNode;
+                }
+              }
+              if (!embedToDelete && currentNode.nodeType === 1 && offset > 0) {
+                const prevNode = currentNode.childNodes[offset - 1];
+                console.log("Checking Case 1 (Block). PrevNode:", prevNode ? prevNode.nodeName : "null");
+                if (isEmbedNode(prevNode)) {
+                  embedToDelete = prevNode;
+                } else if (prevNode && prevNode.nodeType === 1 && isEmbedNode(prevNode.lastChild)) {
+                  embedToDelete = prevNode.lastChild;
+                  wrapperToClean = prevNode;
+                }
+              }
+              if (!embedToDelete && currentNode.nodeType === 3 && offset === 0) {
+                console.log("Checking Case 1 (Text). PrevSibling:", currentNode.previousSibling ? currentNode.previousSibling.nodeName : "null");
+                if (currentNode.previousSibling && isEmbedNode(currentNode.previousSibling)) {
+                  embedToDelete = currentNode.previousSibling;
+                } else if (currentNode.previousSibling && currentNode.previousSibling.nodeType === 1 && isEmbedNode(currentNode.previousSibling.lastChild)) {
+                  embedToDelete = currentNode.previousSibling.lastChild;
+                  wrapperToClean = currentNode.previousSibling;
+                }
+              }
+              if (!embedToDelete && offset === 0) {
+                let currentBlock = currentNode.nodeType === 3 ? currentNode.parentNode : currentNode;
+                console.log("Checking Case 2. Current Block:", currentBlock.nodeName);
+                while (currentBlock && !editor.dom.isBlock(currentBlock) && currentBlock.nodeName !== "BODY") {
+                  currentBlock = currentBlock.parentNode;
+                }
+                if (currentBlock && currentBlock.previousSibling) {
+                  const prevBlock = currentBlock.previousSibling;
+                  console.log("Prev Block:", prevBlock.nodeName);
+                  if (isEmbedNode(prevBlock)) {
+                    embedToDelete = prevBlock;
+                  } else if (prevBlock.lastChild && isEmbedNode(prevBlock.lastChild)) {
+                    embedToDelete = prevBlock.lastChild;
+                    wrapperToClean = prevBlock;
+                  } else if (prevBlock.querySelector) {
+                    const embeds = prevBlock.querySelectorAll("iframe, img, video, figure, .mce-preview-object");
+                    if (embeds.length > 0) {
+                      embedToDelete = embeds[embeds.length - 1];
+                      wrapperToClean = prevBlock;
+                    }
+                  }
+                }
+              }
+              console.log("Embed To Delete:", embedToDelete ? embedToDelete.nodeName : "null");
+              if (embedToDelete) {
+                console.log("EXECUTING NATIVE DELETION!");
+                e.preventDefault();
+                e.stopPropagation();
+                let targetBlock = wrapperToClean ? wrapperToClean.previousSibling : embedToDelete.previousSibling;
+                if (targetBlock) {
+                  editor.selection.select(targetBlock, true);
+                  editor.selection.collapse(false);
+                }
+                editor.dom.remove(embedToDelete);
+                if (wrapperToClean && wrapperToClean !== embedToDelete && !wrapperToClean.textContent.trim() && !wrapperToClean.querySelector("img, iframe, video")) {
+                  console.log("Cleaning up wrapper");
+                  editor.dom.remove(wrapperToClean);
+                }
+              }
+            }
+          };
+          editor.on("init", () => {
+            const doc = editor.getDoc();
+            doc.addEventListener("keydown", handleBackspace, true);
+            doc.addEventListener("beforeinput", handleBackspace, true);
           });
         },
         media_url_resolver: (data) => {
@@ -210,15 +333,8 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
           input.click();
         },
         toolbar_mode: "wrap",
-        object_resizing: true,
-        content_css: localCssPath,
-        content_style: `
-          body 
-          { 
-            font-family: "Cascadia Code", sans-serif;
-            font-weight: 1
-          }
-        `
+        object_resizing: "img,iframe,video,figure",
+        content_css: localCssPath + "?v=" + (/* @__PURE__ */ new Date()).getTime()
       }
     }
   );
@@ -263,7 +379,7 @@ function UserLink({ user, readOnly = false, onClick = null, additionalClasses = 
             {
               className: "round-image",
               src: avatar,
-              alt: `RipplyScottttttttttttttttttttttttttttttttt's avatar`,
+              alt: `${user.username}'s avatar`,
               draggable: "false"
             }
           ),
@@ -272,7 +388,7 @@ function UserLink({ user, readOnly = false, onClick = null, additionalClasses = 
         /* @__PURE__ */ jsx("span", { className: "username", children: user.username })
       ]
     }
-  ) : /* @__PURE__ */ jsx("p", { className: "loading", children: "loading user..." }) });
+  ) : /* @__PURE__ */ jsx("span", { className: "loading bold", children: /* @__PURE__ */ jsx("em", { children: "deleted user" }) }) });
 }
 function Header() {
   var _a;
@@ -397,10 +513,11 @@ function Header() {
                   name: "search",
                   className: "nav-search",
                   type: "text",
-                  placeholder: " search",
+                  placeholder: "search",
                   onChange: (e) => setSearchTerm(e.target.value),
                   value: searchTerm,
-                  ref: searchInputRef
+                  ref: searchInputRef,
+                  "aria-label": "search"
                 }
               ),
               /* @__PURE__ */ jsx("button", { type: "submit", tabIndex: "-1", "aria-label": "Submit search", children: /* @__PURE__ */ jsx("i", { className: "fa-solid fa-magnifying-glass", "aria-hidden": "true" }) })
@@ -447,14 +564,65 @@ function Layout({ children, isDashboard = false, classes = "" }) {
   let classNames = isTouchDevice ? "touch-device content" : "content";
   classNames += ` ${classes}`;
   useEffect(() => {
+    let ticking = false;
+    let isFooterVisible = false;
+    const footerElement = document.querySelector("footer");
+    const updateFooter = () => {
+      if (footerElement) {
+        const rect = footerElement.getBoundingClientRect();
+        const bottomOffset = window.innerHeight - rect.bottom;
+        document.body.style.setProperty("--footer-bottom", `${bottomOffset}px`);
+      }
+    };
     const handleResize = () => {
       const isCurrentlyTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
       setIsTouchDevice(isCurrentlyTouch);
+      updateFooter();
     };
     handleResize();
+    const onScroll = () => {
+      if (window.scrollX !== 0) {
+        document.body.style.setProperty("--scroll-x", `-${window.scrollX}px`);
+      } else {
+        document.body.style.removeProperty("--scroll-x");
+      }
+      if (isFooterVisible) {
+        updateFooter();
+      }
+      ticking = false;
+    };
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(onScroll);
+        ticking = true;
+      }
+    };
+    let observer;
+    if (footerElement) {
+      observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            isFooterVisible = entry.isIntersecting;
+            if (isFooterVisible) {
+              updateFooter();
+            }
+          });
+        },
+        {
+          rootMargin: "500px"
+        }
+      );
+      observer.observe(footerElement);
+    }
     window.addEventListener("resize", handleResize);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    onScroll();
     return () => {
+      if (observer && footerElement) {
+        observer.unobserve(footerElement);
+      }
       window.removeEventListener("resize", handleResize);
+      window.removeEventListener("scroll", handleScroll);
     };
   }, []);
   return /* @__PURE__ */ jsxs(Fragment, { children: [
@@ -470,7 +638,9 @@ function Layout({ children, isDashboard = false, classes = "" }) {
     ] })
   ] });
 }
-const LoginType = {};
+const LoginType = {
+  Email: "email"
+};
 function isSafeVideoIframeSrc(src) {
   try {
     const url = new URL(src, window.location.origin);
@@ -605,12 +775,12 @@ function blobToBase64(blob) {
     reader.readAsDataURL(blob);
   });
 }
-function handleResizeWithCanvas(img, mimeType) {
+function handleResizeWithCanvas(img, mimeType, isGallery = false) {
   return new Promise((resolve) => {
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
-    const maxWidth = 1280;
-    const maxHeight = 1280;
+    const maxWidth = isGallery ? 1920 : 1280;
+    const maxHeight = isGallery ? 1920 : 1280;
     let width = img.width;
     let height = img.height;
     if (width > height) {
@@ -632,13 +802,13 @@ function handleResizeWithCanvas(img, mimeType) {
     }, mimeType, 0.7);
   });
 }
-function resizeImage(source) {
+function resizeImage(source, isGallery = false) {
   if (typeof source === "string") {
     return new Promise((resolve, reject) => {
       const img = new Image();
       img.onload = async () => {
         try {
-          const blob = await handleResizeWithCanvas(img, "image/jpeg");
+          const blob = await handleResizeWithCanvas(img, "image/jpeg", isGallery);
           resolve(blob);
         } catch (error) {
           reject(error);
@@ -657,7 +827,7 @@ function resizeImage(source) {
         const img = new Image();
         img.onload = async () => {
           try {
-            const blob = await handleResizeWithCanvas(img, source.type);
+            const blob = await handleResizeWithCanvas(img, source.type, isGallery);
             resolve(blob);
           } catch (error) {
             reject(error);
@@ -1009,6 +1179,18 @@ function checkIfFetchNeeded(prevScreenSizeRef, screenSize, fetchedScreenSize) {
   let shouldFetch = screenSize > prevScreenSize && screenSize > fetchedScreenSize.current;
   prevScreenSizeRef.current = screenSize;
   return shouldFetch;
+}
+function getPostUrl(post) {
+  var _a;
+  if (!post) return "";
+  if (post.is_news && post.created_at) {
+    const date = new Date(post.created_at);
+    const yyyy = date.getUTCFullYear();
+    const mm = String(date.getUTCMonth() + 1).padStart(2, "0");
+    const dd = String(date.getUTCDate()).padStart(2, "0");
+    return `/news/${yyyy}${mm}${dd}/${post.post_url}`;
+  }
+  return `/${(_a = post.user) == null ? void 0 : _a.username}/${post.post_url}`;
 }
 function About({ about, status }) {
   var _a;
@@ -1427,7 +1609,6 @@ function DashboardLayout({ currentTab, headerText, children }) {
   const unread = ((_c = page.props) == null ? void 0 : _c.unread) ?? {};
   const hasUnreadNotifications = !!unread.has_unread_notifications;
   const hasUnreadMail = !!unread.has_unread_mail;
-  console.log("unread", unread);
   useEffect(() => {
     const handlePopState = () => {
       setTimeout(() => {
@@ -1621,29 +1802,72 @@ function calculateInitialTransform(zoomContainer, outerContainer, imgWidth, imgH
   const posY = (conH - imgHeight * scale) / 2;
   return { scale, posX, posY };
 }
-function ImageZoom({ src, alt, isZoomed, clickFunc, outerContainerRef = null, isImageCropper = false }) {
+function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef = null, isImageCropper = false, nextSrc, nextSmallSrc, prevSrc, prevSmallSrc, onNavigateNext, onNavigatePrev }) {
   const zoomContainerRef = useRef(null);
   const zoomedImageRef = useRef(null);
-  const [transform, setTransform] = useState({ scale: 1, posX: 0, posY: 0 });
+  const slideContainerRef = useRef(null);
+  const nextImgRef = useRef(null);
+  const prevImgRef = useRef(null);
+  const tempOverlayRef = useRef(null);
+  const [loadedSrc, setLoadedSrc] = useState(null);
+  const currentSrcRef = useRef(src);
+  const [transform, setTransformState] = useState({ scale: 1, posX: 0, posY: 0 });
+  const transformRef = useRef({ scale: 1, posX: 0, posY: 0 });
+  const setTransform = useCallback((newTransform) => {
+    if (typeof newTransform === "function") {
+      setTransformState((prev) => {
+        const updated = newTransform(prev);
+        transformRef.current = updated;
+        return updated;
+      });
+    } else {
+      transformRef.current = newTransform;
+      setTransformState(newTransform);
+    }
+  }, []);
   const [naturalSize, setNaturalSize] = useState(null);
   const [initialTransform, setInitialTransform] = useState(null);
   const isPanningRef = useRef(false);
   const lastPanPositionRef = useRef(null);
   const lastPinchDistanceRef = useRef(null);
+  const hasDraggedRef = useRef(false);
+  const dragDistanceRef = useRef(0);
+  const lastMoveTimeRef = useRef(0);
+  const lastMovePosRef = useRef({ x: 0, y: 0 });
+  const velocityRef = useRef({ x: 0, y: 0 });
+  const animationFrameRef = useRef(null);
+  const virtualPosXRef = useRef(0);
+  const transitionDragXRef = useRef(0);
+  const updateTransitionVisuals = useCallback((dragX) => {
+    const width = zoomContainerRef.current ? zoomContainerRef.current.offsetWidth : window.innerWidth;
+    if (nextImgRef.current) {
+      if (dragX < 0) {
+        nextImgRef.current.style.transform = `translateX(${width + dragX}px)`;
+        nextImgRef.current.style.opacity = 1;
+        nextImgRef.current.style.display = "block";
+      } else {
+        nextImgRef.current.style.display = "none";
+      }
+    }
+    if (prevImgRef.current) {
+      if (dragX > 0) {
+        prevImgRef.current.style.transform = `translateX(${-width + dragX}px)`;
+        prevImgRef.current.style.opacity = 1;
+        prevImgRef.current.style.display = "block";
+      } else {
+        prevImgRef.current.style.display = "none";
+      }
+    }
+    if (slideContainerRef.current) {
+      slideContainerRef.current.style.transform = `translateX(${dragX}px)`;
+    }
+  }, []);
   const containerClasses = isImageCropper ? "zoomed-image" : `zoomed-image ${!isZoomed ? "hidden" : ""}`;
   const MIN_SCALE_FACTOR = 1;
   const MAX_SCALE_FACTOR = 5;
   const WHEEL_ZOOM_SENSITIVITY = 4e-3;
   const TOUCH_ZOOM_SENSITIVITY = 0.01;
   const PAN_SENSITIVITY = 1;
-  const handleImageLoad = useCallback((event) => {
-    const img = event.currentTarget;
-    const natSize = { width: img.naturalWidth, height: img.naturalHeight };
-    setNaturalSize(natSize);
-    const initialT = calculateInitialTransform(zoomContainerRef == null ? void 0 : zoomContainerRef.current, outerContainerRef == null ? void 0 : outerContainerRef.current, natSize.width, natSize.height);
-    setTransform(initialT);
-    setInitialTransform(initialT);
-  }, [setTransform, isZoomed]);
   const clampPosition = useCallback((newPosX, newPosY, currentScale) => {
     if (!naturalSize || !initialTransform) return { x: newPosX, y: newPosY };
     const scaledWidth = naturalSize.width * currentScale;
@@ -1684,27 +1908,25 @@ function ImageZoom({ src, alt, isZoomed, clickFunc, outerContainerRef = null, is
     const clamped = clampPosition(newPosX, newPosY, clampedScale);
     setTransform({ scale: clampedScale, posX: clamped.x, posY: clamped.y });
   }, [transform, naturalSize, initialTransform, clampPosition]);
-  const handleWheel = useCallback((e) => {
-    if (!isZoomed && !isImageCropper || !zoomContainerRef.current) return;
-    e.preventDefault();
-    if (e.ctrlKey) {
-      const scaleDelta = 1 - e.deltaY * WHEEL_ZOOM_SENSITIVITY;
-      updateZoom(scaleDelta, e.clientX, e.clientY);
-    } else {
-      setTransform((prev) => {
-        const newPosX = prev.posX - e.deltaX * PAN_SENSITIVITY;
-        const newPosY = prev.posY - e.deltaY * PAN_SENSITIVITY;
-        const clamped = clampPosition(newPosX, newPosY, prev.scale);
-        return { ...prev, posX: clamped.x, posY: clamped.y };
-      });
-    }
-  }, [isZoomed, updateZoom, clampPosition]);
+  useRef(null);
   const handleTouchStart = useCallback((event) => {
     console.log("touch start");
+    hasDraggedRef.current = false;
+    dragDistanceRef.current = 0;
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
     if (!zoomContainerRef.current) return;
+    virtualPosXRef.current = transformRef.current.posX;
+    transitionDragXRef.current = 0;
+    updateTransitionVisuals(0);
     if (event.touches.length === 1) {
       isPanningRef.current = true;
       lastPanPositionRef.current = { x: event.touches[0].clientX, y: event.touches[0].clientY };
+      lastMoveTimeRef.current = performance.now();
+      lastMovePosRef.current = { x: event.touches[0].clientX, y: event.touches[0].clientY };
+      velocityRef.current = { x: 0, y: 0 };
       zoomContainerRef.current.style.setProperty("touch-action", "none");
     } else if (event.touches.length === 2) {
       isPanningRef.current = false;
@@ -1721,9 +1943,32 @@ function ImageZoom({ src, alt, isZoomed, clickFunc, outerContainerRef = null, is
       const deltaX = event.touches[0].clientX - lastPanPositionRef.current.x;
       const deltaY = event.touches[0].clientY - lastPanPositionRef.current.y;
       lastPanPositionRef.current = { x: event.touches[0].clientX, y: event.touches[0].clientY };
-      const newPosX = transform.posX + deltaX;
-      const newPosY = transform.posY + deltaY;
-      const clamped = clampPosition(newPosX, newPosY, transform.scale);
+      dragDistanceRef.current += Math.abs(deltaX) + Math.abs(deltaY);
+      if (dragDistanceRef.current > 10) {
+        hasDraggedRef.current = true;
+      }
+      const now = performance.now();
+      const dt = now - lastMoveTimeRef.current;
+      if (dt > 0) {
+        velocityRef.current = {
+          x: (event.touches[0].clientX - lastMovePosRef.current.x) / dt,
+          y: (event.touches[0].clientY - lastMovePosRef.current.y) / dt
+        };
+      }
+      lastMovePosRef.current = { x: event.touches[0].clientX, y: event.touches[0].clientY };
+      lastMoveTimeRef.current = now;
+      virtualPosXRef.current += deltaX;
+      const newPosY = transformRef.current.posY + deltaY;
+      const clamped = clampPosition(virtualPosXRef.current, newPosY, transformRef.current.scale);
+      let overPan = virtualPosXRef.current - clamped.x;
+      if (overPan < 0 && !nextSrc) overPan = 0;
+      if (overPan > 0 && !prevSrc) overPan = 0;
+      const maxWidth = zoomContainerRef.current ? zoomContainerRef.current.offsetWidth * 0.8 : window.innerWidth * 0.8;
+      if (overPan < -maxWidth) overPan = -maxWidth;
+      if (overPan > maxWidth) overPan = maxWidth;
+      virtualPosXRef.current = clamped.x + overPan;
+      transitionDragXRef.current = overPan;
+      updateTransitionVisuals(overPan);
       setTransform((prev) => ({ ...prev, posX: clamped.x, posY: clamped.y }));
     } else if (event.touches.length === 2 && lastPinchDistanceRef.current) {
       const dx = event.touches[0].clientX - event.touches[1].clientX;
@@ -1736,15 +1981,86 @@ function ImageZoom({ src, alt, isZoomed, clickFunc, outerContainerRef = null, is
       lastPinchDistanceRef.current = currentDist;
     }
   }, [transform, clampPosition, updateZoom]);
+  const startMomentum = useCallback(() => {
+    const now = performance.now();
+    if (now - lastMoveTimeRef.current > 100) {
+      velocityRef.current = { x: 0, y: 0 };
+    }
+    let vx = velocityRef.current.x;
+    let vy = velocityRef.current.y;
+    const width = zoomContainerRef.current ? zoomContainerRef.current.offsetWidth : window.innerWidth;
+    const dragX = transitionDragXRef.current;
+    const isSwipingNext = dragX < 0 && (dragX < -width * 0.2 || vx < -0.5);
+    const isSwipingPrev = dragX > 0 && (dragX > width * 0.2 || vx > 0.5);
+    let lastFrameTime = performance.now();
+    const momentumLoop = (time) => {
+      const dt = time - lastFrameTime;
+      lastFrameTime = time;
+      if (isSwipingNext || isSwipingPrev) {
+        const targetX = isSwipingNext ? -width : width;
+        transitionDragXRef.current += (targetX - transitionDragXRef.current) * 0.15;
+        updateTransitionVisuals(transitionDragXRef.current);
+        if (Math.abs(targetX - transitionDragXRef.current) > 2) {
+          animationFrameRef.current = requestAnimationFrame(momentumLoop);
+        } else {
+          animationFrameRef.current = null;
+          if (isSwipingNext && onNavigateNext) onNavigateNext();
+          if (isSwipingPrev && onNavigatePrev) onNavigatePrev();
+        }
+      } else if (transitionDragXRef.current !== 0) {
+        transitionDragXRef.current += (0 - transitionDragXRef.current) * 0.2;
+        updateTransitionVisuals(transitionDragXRef.current);
+        if (Math.abs(transitionDragXRef.current) > 1) {
+          animationFrameRef.current = requestAnimationFrame(momentumLoop);
+        } else {
+          transitionDragXRef.current = 0;
+          updateTransitionVisuals(0);
+          animationFrameRef.current = null;
+        }
+      } else if (!isPanningRef.current && (Math.abs(vx) > 0.05 || Math.abs(vy) > 0.05)) {
+        setTransform((prev) => {
+          const newPosX = prev.posX + vx * dt;
+          const newPosY = prev.posY + vy * dt;
+          const clamped = clampPosition(newPosX, newPosY, prev.scale);
+          if (newPosX !== clamped.x) vx = 0;
+          if (newPosY !== clamped.y) vy = 0;
+          return { ...prev, posX: clamped.x, posY: clamped.y };
+        });
+        vx *= 0.92;
+        vy *= 0.92;
+        if (Math.abs(vx) > 0.05 || Math.abs(vy) > 0.05) {
+          animationFrameRef.current = requestAnimationFrame(momentumLoop);
+        } else {
+          animationFrameRef.current = null;
+        }
+      } else {
+        animationFrameRef.current = null;
+      }
+    };
+    animationFrameRef.current = requestAnimationFrame(momentumLoop);
+  }, [clampPosition, onNavigateNext, onNavigatePrev, updateTransitionVisuals]);
   const handleTouchEnd = useCallback(() => {
     isPanningRef.current = false;
     lastPinchDistanceRef.current = null;
     if (zoomContainerRef.current) zoomContainerRef.current.style.removeProperty("touch-action");
-  }, []);
+    startMomentum();
+  }, [startMomentum]);
   const handleMouseDown = useCallback((event) => {
     if (event.button !== 0) return;
+    hasDraggedRef.current = false;
+    dragDistanceRef.current = 0;
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
     isPanningRef.current = true;
     lastPanPositionRef.current = { x: event.clientX, y: event.clientY };
+    virtualPosXRef.current = transformRef.current.posX;
+    transitionDragXRef.current = 0;
+    updateTransitionVisuals(0);
+    lastMoveTimeRef.current = performance.now();
+    lastMovePosRef.current = { x: event.clientX, y: event.clientY };
+    velocityRef.current = { x: 0, y: 0 };
     zoomContainerRef.current.classList.toggle("dragging", true);
   }, []);
   const handleMouseMove = useCallback((event) => {
@@ -1752,15 +2068,63 @@ function ImageZoom({ src, alt, isZoomed, clickFunc, outerContainerRef = null, is
     const deltaX = event.clientX - lastPanPositionRef.current.x;
     const deltaY = event.clientY - lastPanPositionRef.current.y;
     lastPanPositionRef.current = { x: event.clientX, y: event.clientY };
-    const newPosX = transform.posX + deltaX;
-    const newPosY = transform.posY + deltaY;
-    const clamped = clampPosition(newPosX, newPosY, transform.scale);
+    dragDistanceRef.current += Math.abs(deltaX) + Math.abs(deltaY);
+    if (dragDistanceRef.current > 10) {
+      hasDraggedRef.current = true;
+    }
+    const now = performance.now();
+    const dt = now - lastMoveTimeRef.current;
+    if (dt > 0) {
+      velocityRef.current = {
+        x: (event.clientX - lastMovePosRef.current.x) / dt,
+        y: (event.clientY - lastMovePosRef.current.y) / dt
+      };
+    }
+    lastMovePosRef.current = { x: event.clientX, y: event.clientY };
+    lastMoveTimeRef.current = now;
+    virtualPosXRef.current += deltaX;
+    const newPosY = transformRef.current.posY + deltaY;
+    const clamped = clampPosition(virtualPosXRef.current, newPosY, transformRef.current.scale);
+    let overPan = virtualPosXRef.current - clamped.x;
+    if (overPan < 0 && !nextSrc) overPan = 0;
+    if (overPan > 0 && !prevSrc) overPan = 0;
+    const maxWidth = zoomContainerRef.current ? zoomContainerRef.current.offsetWidth * 0.8 : window.innerWidth * 0.8;
+    if (overPan < -maxWidth) overPan = -maxWidth;
+    if (overPan > maxWidth) overPan = maxWidth;
+    virtualPosXRef.current = clamped.x + overPan;
+    transitionDragXRef.current = overPan;
+    updateTransitionVisuals(overPan);
     setTransform((prev) => ({ ...prev, posX: clamped.x, posY: clamped.y }));
   }, [transform, clampPosition]);
   const handleMouseUpOrLeave = useCallback(() => {
     isPanningRef.current = false;
-    zoomContainerRef.current.classList.toggle("dragging", false);
-  }, []);
+    if (zoomContainerRef.current) zoomContainerRef.current.classList.toggle("dragging", false);
+    startMomentum();
+  }, [startMomentum]);
+  const handleWheel = useCallback((e) => {
+    if (!isZoomed && !isImageCropper || !zoomContainerRef.current) return;
+    e.preventDefault();
+    if (e.ctrlKey) {
+      const scaleDelta = 1 - e.deltaY * WHEEL_ZOOM_SENSITIVITY;
+      updateZoom(scaleDelta, e.clientX, e.clientY);
+    } else {
+      setTransform((prev) => {
+        const newPosX = prev.posX - e.deltaX * PAN_SENSITIVITY;
+        const newPosY = prev.posY - e.deltaY * PAN_SENSITIVITY;
+        const clamped = clampPosition(newPosX, newPosY, prev.scale);
+        return { ...prev, posX: clamped.x, posY: clamped.y };
+      });
+    }
+  }, [isZoomed, isImageCropper, updateZoom, clampPosition]);
+  const handleClick = useCallback((e) => {
+    if (hasDraggedRef.current) {
+      e.preventDefault();
+      e.stopPropagation();
+      hasDraggedRef.current = false;
+      return;
+    }
+    if (clickFunc) clickFunc(e);
+  }, [clickFunc]);
   useEffect(() => {
     if (isZoomed) {
       document.body.classList.add("modal-open");
@@ -1793,27 +2157,180 @@ function ImageZoom({ src, alt, isZoomed, clickFunc, outerContainerRef = null, is
       };
     }
   }, [isZoomed, handleWheel, handleTouchEnd, handleTouchMove, handleTouchStart]);
-  return /* @__PURE__ */ jsx(
+  useEffect(() => {
+    currentSrcRef.current = src;
+    if (transitionDragXRef.current !== 0 && zoomContainerRef.current) {
+      const overlay = document.createElement("img");
+      overlay.src = smallSrc || src;
+      overlay.className = "zoom-transition-img";
+      overlay.style.display = "block";
+      overlay.style.transform = "translateX(0px)";
+      overlay.style.opacity = "1";
+      overlay.style.zIndex = "10";
+      overlay.draggable = false;
+      zoomContainerRef.current.appendChild(overlay);
+      if (tempOverlayRef.current) tempOverlayRef.current.remove();
+      tempOverlayRef.current = overlay;
+    }
+    if (zoomedImageRef.current) zoomedImageRef.current.style.opacity = 0;
+    if (slideContainerRef.current) slideContainerRef.current.style.transform = `translateX(0px)`;
+    transitionDragXRef.current = 0;
+    updateTransitionVisuals(0);
+    if (!src) {
+      setLoadedSrc(null);
+      if (tempOverlayRef.current) {
+        tempOverlayRef.current.remove();
+        tempOverlayRef.current = null;
+      }
+      return;
+    }
+    setLoadedSrc(null);
+    const targetSrc = smallSrc || src;
+    const img = new Image();
+    img.onload = () => {
+      if (currentSrcRef.current === src) {
+        const natSize = { width: img.naturalWidth, height: img.naturalHeight };
+        const initialT = calculateInitialTransform(zoomContainerRef == null ? void 0 : zoomContainerRef.current, outerContainerRef == null ? void 0 : outerContainerRef.current, natSize.width, natSize.height);
+        setNaturalSize(natSize);
+        setTransform(initialT);
+        setInitialTransform(initialT);
+        setLoadedSrc(targetSrc);
+        if (smallSrc && src !== smallSrc) {
+          const largeImg = new Image();
+          largeImg.onload = () => {
+            if (currentSrcRef.current === src) {
+              const largeNatSize = { width: largeImg.naturalWidth, height: largeImg.naturalHeight };
+              const largeInitialT = calculateInitialTransform(zoomContainerRef == null ? void 0 : zoomContainerRef.current, outerContainerRef == null ? void 0 : outerContainerRef.current, largeNatSize.width, largeNatSize.height);
+              setNaturalSize((prevNatSize) => {
+                setTransform((prevTransform) => {
+                  if (!prevNatSize) return largeInitialT;
+                  const scaleRatio = largeNatSize.width / prevNatSize.width;
+                  return {
+                    scale: prevTransform.scale / scaleRatio,
+                    posX: prevTransform.posX,
+                    posY: prevTransform.posY
+                  };
+                });
+                return largeNatSize;
+              });
+              setInitialTransform(largeInitialT);
+              setLoadedSrc(src);
+            }
+          };
+          largeImg.src = src;
+        }
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            if (tempOverlayRef.current) {
+              tempOverlayRef.current.remove();
+              tempOverlayRef.current = null;
+            }
+          });
+        });
+      }
+    };
+    img.onerror = () => {
+      if (tempOverlayRef.current) {
+        tempOverlayRef.current.remove();
+        tempOverlayRef.current = null;
+      }
+    };
+    img.src = targetSrc;
+  }, [src, smallSrc, updateTransitionVisuals, outerContainerRef, setTransform]);
+  useEffect(() => {
+    if (!isZoomed || !zoomContainerRef.current) return;
+    const focusableElements = zoomContainerRef.current.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    if (focusableElements.length > 0) {
+      focusableElements[0].focus();
+    }
+    const handleKeyDown = (e) => {
+      if (e.key === "Tab") {
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+        if (e.shiftKey) {
+          if (document.activeElement === firstElement) {
+            lastElement.focus();
+            e.preventDefault();
+          }
+        } else {
+          if (document.activeElement === lastElement) {
+            firstElement.focus();
+            e.preventDefault();
+          }
+        }
+      } else if (e.key === "Escape") {
+        clickFunc(e);
+      } else if (e.key === "ArrowRight" && onNavigateNext) {
+        onNavigateNext();
+      } else if (e.key === "ArrowLeft" && onNavigatePrev) {
+        onNavigatePrev();
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isZoomed, clickFunc, onNavigateNext, onNavigatePrev]);
+  return /* @__PURE__ */ jsxs(
     "div",
     {
       className: containerClasses,
+      role: "dialog",
+      "aria-modal": "true",
+      "aria-label": "Image gallery",
       draggable: "false",
-      onClick: clickFunc,
+      onClick: handleClick,
       ref: zoomContainerRef,
-      children: /* @__PURE__ */ jsx(
-        "img",
-        {
-          src,
-          alt,
-          draggable: "false",
-          ref: zoomedImageRef,
-          onLoad: handleImageLoad,
-          style: {
-            transform: `translate(${transform.posX}px, ${transform.posY}px) scale(${transform.scale})`,
-            transformOrigin: "top left"
+      children: [
+        /* @__PURE__ */ jsx("div", { ref: slideContainerRef, className: "zoom-slide-container", children: /* @__PURE__ */ jsx(
+          "img",
+          {
+            src: loadedSrc,
+            alt,
+            draggable: "false",
+            ref: zoomedImageRef,
+            style: {
+              transform: `translate(${transform.posX}px, ${transform.posY}px) scale(${transform.scale})`,
+              transformOrigin: "top left",
+              opacity: loadedSrc ? 1 : 0
+            }
           }
-        }
-      )
+        ) }),
+        prevSrc && /* @__PURE__ */ jsx(
+          "img",
+          {
+            src: prevSmallSrc || prevSrc,
+            ref: prevImgRef,
+            className: "zoom-transition-img",
+            alt: "Previous",
+            draggable: "false"
+          }
+        ),
+        nextSrc && /* @__PURE__ */ jsx(
+          "img",
+          {
+            src: nextSmallSrc || nextSrc,
+            ref: nextImgRef,
+            className: "zoom-transition-img",
+            alt: "Next",
+            draggable: "false"
+          }
+        ),
+        /* @__PURE__ */ jsx("button", { className: "sr-only", onClick: (e) => {
+          e.stopPropagation();
+          clickFunc(e);
+        }, children: "Close gallery" }),
+        prevSrc && /* @__PURE__ */ jsx("button", { className: "sr-only", onClick: (e) => {
+          e.stopPropagation();
+          onNavigatePrev();
+        }, children: "Previous image" }),
+        nextSrc && /* @__PURE__ */ jsx("button", { className: "sr-only", onClick: (e) => {
+          e.stopPropagation();
+          onNavigateNext();
+        }, children: "Next image" })
+      ]
     }
   );
 }
@@ -1969,8 +2486,11 @@ function AvatarSetter({ user }) {
     if (imageCropContainerRef.current && imageCropContainerRef.current.contains(e.touches[0].target)) {
       return;
     }
+    if (imageCropButtonRef.current && imageCropButtonRef.current.contains(e.touches[0].target)) {
+      return;
+    }
     closeCropperAndClearInput();
-  }, [closeCropperAndClearInput, imageCropContainerRef.current]);
+  }, [closeCropperAndClearInput, imageCropContainerRef.current, imageCropButtonRef.current]);
   useEffect(() => {
     const contContRef = imageCropContainerContainerRef.current;
     if (!contContRef) {
@@ -2063,7 +2583,7 @@ function AvatarSetter({ user }) {
           ]
         }
       ),
-      /* @__PURE__ */ jsx("img", { src: avatar, alt: "", className: "round-image" })
+      /* @__PURE__ */ jsx("img", { src: avatar, alt: `${user == null ? void 0 : user.username}'s avatar`, className: "round-image fuck" })
     ] })
   ] });
 }
@@ -2079,7 +2599,10 @@ function ProfileItem({
   isLink = false,
   isEditingThisField = false,
   onEditClick,
-  isPublic = false
+  isPublic = false,
+  isArray = false,
+  maxArrayLength = 3,
+  onAddArrayItem = null
 }) {
   const isUpdatable = onChange ? true : false;
   const inputRef = useRef(null);
@@ -2088,6 +2611,71 @@ function ProfileItem({
       inputRef.current.focus();
     }
   }, [isEditingThisField]);
+  const renderInput = (val, idx) => /* @__PURE__ */ jsx(
+    "input",
+    {
+      id: idx === 0 ? name : `${name}_${idx}`,
+      defaultValue: val,
+      disabled: !isEditingThisField || disabled,
+      onChange: (e) => onChange(e, idx),
+      ref: idx === 0 ? inputRef : null
+    }
+  );
+  const renderValue = (val) => isLink ? /* @__PURE__ */ jsx(
+    "a",
+    {
+      href: val,
+      target: "_blank",
+      children: val
+    }
+  ) : /* @__PURE__ */ jsx("span", { children: val });
+  if (isArray) {
+    const values = Array.isArray(value) ? value : [];
+    const displayValues = values.length === 0 && !isPublic ? [""] : values;
+    const labelText = displayValues.length === 1 ? "website" : "websites";
+    const nameToUse = name === "website" || name === "websites" ? labelText : name;
+    return /* @__PURE__ */ jsxs("div", { className: "profile-item-array", children: [
+      displayValues.map((val, idx) => /* @__PURE__ */ jsxs("div", { className: "inline-form-field", children: [
+        idx === 0 ? /* @__PURE__ */ jsxs("label", { htmlFor: name, className: "field-name", children: [
+          nameToUse,
+          ":"
+        ] }) : /* @__PURE__ */ jsxs("label", { className: "field-name hidden", children: [
+          nameToUse,
+          ":"
+        ] }),
+        isUpdatable ? renderInput(val, idx) : renderValue(val),
+        idx === 0 && !isPublic && /* @__PURE__ */ jsx(
+          EditButton,
+          {
+            onClick: (e) => {
+              e.preventDefault();
+              onEditClick();
+            },
+            disabled: !isUpdatable || isEditingThisField || disabled,
+            className: isUpdatable ? "" : "hidden"
+          }
+        )
+      ] }, idx)),
+      isEditingThisField && values.length < maxArrayLength && /* @__PURE__ */ jsxs("div", { className: "inline-form-field", children: [
+        /* @__PURE__ */ jsxs("label", { className: "field-name hidden", children: [
+          nameToUse,
+          ":"
+        ] }),
+        /* @__PURE__ */ jsx("div", { children: /* @__PURE__ */ jsx(
+          "button",
+          {
+            type: "button",
+            onClick: (e) => {
+              e.preventDefault();
+              if (onAddArrayItem) onAddArrayItem();
+            },
+            className: "plus-button small link-button",
+            children: "+"
+          }
+        ) })
+      ] })
+    ] });
+  }
   return /* @__PURE__ */ jsxs("div", { className: "inline-form-field", children: [
     isUpdatable ? /* @__PURE__ */ jsxs(Fragment, { children: [
       /* @__PURE__ */ jsxs("label", { htmlFor: name, className: "field-name", children: [
@@ -2126,7 +2714,7 @@ function ProfileItem({
           onEditClick();
         },
         disabled: !isUpdatable || isEditingThisField || disabled,
-        className: isUpdatable ? "" : "invisible"
+        className: isUpdatable ? "" : "hidden"
       }
     )
   ] });
@@ -2162,22 +2750,29 @@ function EditProfile() {
   ((_b = props == null ? void 0 : props.flash) == null ? void 0 : _b.from) || "/";
   const flash = (props == null ? void 0 : props.flash) || {};
   const { data, setData, post, processing, errors, setError, clearErrors } = useForm({
-    website: "",
+    websites: [],
     location: "",
     show_email_in_profile: false
   });
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
-  const [websiteField, setWebsiteField] = useState("");
+  const [websitesField, setWebsitesField] = useState([]);
   const [locationField, setLocationField] = useState("");
   const [showEmailInProfile, setShowEmailInProfile] = useState(false);
   const [editingField, setEditingField] = useState(null);
+  console.log("user", user);
   useEffect(() => {
     if (!user) return;
-    setWebsiteField(user.website || "");
+    let userWebsites = [];
+    if (user.websites && Array.isArray(user.websites)) {
+      userWebsites = user.websites;
+    } else if (typeof user.website === "string") {
+      userWebsites = [user.website];
+    }
+    setWebsitesField(userWebsites);
     setLocationField(user.location || "");
     setShowEmailInProfile(!!user.show_email_in_profile);
-    setData("website", user.website || "");
+    setData("websites", userWebsites);
     setData("location", user.location || "");
     setData("show_email_in_profile", !!user.show_email_in_profile);
   }, [user]);
@@ -2188,36 +2783,42 @@ function EditProfile() {
   const handleLogoutSubmit = (e) => {
     e.preventDefault();
     setIsLoggingOut(true);
-    router.post("/logout", {}, {
-      onFinish: () => setIsLoggingOut(false)
-    });
+    router.post(
+      "/logout",
+      {},
+      {
+        onFinish: () => setIsLoggingOut(false)
+      }
+    );
   };
   const handleProfileChangesSubmit = (e) => {
     e.preventDefault();
     clearErrors();
-    if (websiteField === user.website && locationField === user.location && showEmailInProfile === !!user.show_email_in_profile) {
+    if (JSON.stringify(websitesField) === JSON.stringify(user.websites || []) && locationField === (user.location || "") && showEmailInProfile === !!user.show_email_in_profile) {
       setError("general", "No changes to submit.");
       return;
     }
-    setData("website", websiteField || "");
-    setData("location", locationField || "");
-    setData("show_email_in_profile", !!showEmailInProfile);
-    router.post("/update-profile", {
-      website: websiteField || "",
-      location: locationField || "",
+    const currentData = {
+      websites: websitesField,
+      location: locationField,
       show_email_in_profile: !!showEmailInProfile
-    }, {
-      preserveState: true,
-      preserveScroll: true,
-      onSuccess: () => {
-        setHasChanges(false);
-        setEditingField(null);
-      },
-      onError: (err) => {
-        const displayErrorMessage = getErrorMessage(err);
-        setError("general", displayErrorMessage.trim());
+    };
+    router.post(
+      "/update-profile",
+      currentData,
+      {
+        preserveState: true,
+        preserveScroll: true,
+        onSuccess: () => {
+          setHasChanges(false);
+          setEditingField(null);
+        },
+        onError: (err) => {
+          const displayErrorMessage = getErrorMessage(err);
+          setError("general", displayErrorMessage.trim());
+        }
       }
-    });
+    );
   };
   return /* @__PURE__ */ jsxs("div", { className: "main-info-box sticky", children: [
     /* @__PURE__ */ jsx(PageHead, { title: "Edit Profile" }),
@@ -2238,16 +2839,25 @@ function EditProfile() {
       /* @__PURE__ */ jsx(
         ProfileItem,
         {
-          name: "website",
-          value: websiteField,
-          setValue: setWebsiteField,
-          onChange: (e) => {
-            setHasChanges(e.target.value !== user.website);
-            setWebsiteField(e.target.value);
+          name: "websites",
+          value: websitesField,
+          isArray: true,
+          maxArrayLength: 3,
+          onChange: (e, idx) => {
+            const newWebsites = [...websitesField];
+            newWebsites[idx] = e.target.value;
+            setHasChanges(true);
+            setWebsitesField(newWebsites);
+          },
+          onAddArrayItem: () => {
+            if (websitesField.length < 3) {
+              setWebsitesField([...websitesField, ""]);
+              setHasChanges(true);
+            }
           },
           disabled: !(user == null ? void 0 : user.is_email_verified) || processing,
-          isEditingThisField: editingField === "website",
-          onEditClick: () => handleEditClick("website")
+          isEditingThisField: editingField === "websites",
+          onEditClick: () => handleEditClick("websites")
         }
       ),
       /* @__PURE__ */ jsx(
@@ -2291,7 +2901,7 @@ function EditProfile() {
           hasChanges && /* @__PURE__ */ jsx("button", { type: "submit", disabled: processing, children: "save changes" })
         ] }),
         /* @__PURE__ */ jsxs("div", { className: "flex-column", children: [
-          (user == null ? void 0 : user.is_email_verified) && (user == null ? void 0 : user.login_type) === LoginType.Email && /* @__PURE__ */ jsx(Link, { href: "/password-change", className: "centered-content no-margin", children: "change password" }),
+          (user == null ? void 0 : user.is_email_verified) && (user == null ? void 0 : user.login_type) == LoginType.Email && /* @__PURE__ */ jsx(Link, { href: "/password-change", className: "centered-content no-margin", children: "change password" }),
           /* @__PURE__ */ jsx(Link, { href: `/${user == null ? void 0 : user.username}`, className: "centered-content no-margin", children: "preview profile" })
         ] })
       ] })
@@ -2356,7 +2966,7 @@ function EditBio() {
   return /* @__PURE__ */ jsxs("div", { className: "rte-container", children: [
     /* @__PURE__ */ jsx(PageHead, { title: "Edit Bio" }),
     /* @__PURE__ */ jsxs("div", { className: "centered-header-box", children: [
-      isInEditMode && hasBioChanged && /* @__PURE__ */ jsx("div", { className: "left-item", children: /* @__PURE__ */ jsx(
+      isInEditMode && hasBioChanged && /* @__PURE__ */ jsx("div", { className: "left-item padded", children: /* @__PURE__ */ jsx(
         "button",
         {
           className: "save-button",
@@ -2742,14 +3352,19 @@ function Tile({ post, isSliderDraggedPointerUp, user = null, isDashboard = false
       }
     ),
     /* @__PURE__ */ jsxs("div", { className: "info-panel", children: [
-      (post == null ? void 0 : post.is_hidden_by_admin) && /* @__PURE__ */ jsx("div", { className: "centered-icon red", children: /* @__PURE__ */ jsx(
+      (post == null ? void 0 : post.is_hidden_by_admin) ? /* @__PURE__ */ jsx("div", { className: "centered-icon red", children: /* @__PURE__ */ jsx(
         "i",
         {
           title: "hidden",
           className: "fa-regular fa-eye-slash"
         }
-      ) }),
-      isDashboard && !(post == null ? void 0 : post.is_hidden) && (post == null ? void 0 : post.is_private) ? /* @__PURE__ */ jsx("div", { className: "centered-icon blue", children: /* @__PURE__ */ jsx(
+      ) }) : isDashboard && (post == null ? void 0 : post.is_draft) ? /* @__PURE__ */ jsx("div", { className: "centered-icon blue", children: /* @__PURE__ */ jsx(
+        "i",
+        {
+          title: "draft",
+          className: "fa-solid fa-file-pen"
+        }
+      ) }) : isDashboard && (post == null ? void 0 : post.is_private) ? /* @__PURE__ */ jsx("div", { className: "centered-icon blue", children: /* @__PURE__ */ jsx(
         "i",
         {
           title: "private",
@@ -2790,7 +3405,7 @@ function Tile({ post, isSliderDraggedPointerUp, user = null, isDashboard = false
           /* @__PURE__ */ jsxs(
             Link,
             {
-              href: `/${post.user.username}/${post.post_url}`,
+              href: getPostUrl(post),
               className: "post-link",
               onClick: handleLinkClick,
               draggable: "false",
@@ -2916,7 +3531,7 @@ function AutoloadTilesContainer({
   loadOnScroll = true,
   maxItems = null
 }) {
-  const { props } = usePage();
+  const { props, component, version } = usePage();
   const serverPartial = props[partialProp];
   const normalize = (p) => {
     if (!p) return [];
@@ -2964,18 +3579,58 @@ function AutoloadTilesContainer({
     pendingRequestRef.current = { kind };
     isFetchingOnScroll.current = kind === "scroll";
     isFetchingOnWidthChange.current = kind === "resize";
-    router.get(window.location.pathname, query, {
-      only: [partialProp],
-      preserveState: true,
-      preserveScroll: true,
-      replace: true,
-      onSuccess: (page) => {
-        if (!isSearch && page) {
-          page.url = window.location.pathname;
-        }
+    axios.get(window.location.pathname, {
+      params: query,
+      headers: {
+        "X-Inertia": "true",
+        "X-Inertia-Partial-Data": partialProp,
+        "X-Inertia-Partial-Component": component,
+        "X-Inertia-Version": version
       }
+    }).then((response) => {
+      if (!response.data || !response.data.props) return;
+      const partial = response.data.props[partialProp];
+      const isPaginator = partial && partial.data && Array.isArray(partial.data);
+      let newItems = [];
+      if (isPaginator) {
+        newItems = partial.data;
+        const current = partial.current_page || 1;
+        const last = partial.last_page || null;
+        pageRef.current = current;
+        lastPageRef.current = last;
+        if (last && current >= last) setAreNoMorePosts(true);
+      } else if (partial && Array.isArray(partial)) {
+        newItems = partial;
+      } else {
+        newItems = [];
+      }
+      if (newItems.length === 0) {
+        setAreNoMorePosts(true);
+      } else {
+        setPosts((prev) => {
+          const existingIds = new Set(prev.map((p) => p.id));
+          const filtered = newItems.filter((p) => !existingIds.has(p.id));
+          if (fetchOrder === FetchOrder.Random) {
+            fetchExcludesRef.current = addFetchedPostsToExcludes(filtered, fetchExcludesRef.current);
+          }
+          return [...prev, ...filtered];
+        });
+      }
+      if (kind === "resize") {
+        fetchedScreenSizeRef.current = screenSize;
+      }
+    }).catch((err) => {
+      if (err.response && err.response.status === 409) {
+        window.location.reload();
+      } else {
+        console.error("Autoload error:", err);
+      }
+    }).finally(() => {
+      pendingRequestRef.current = null;
+      isFetchingOnScroll.current = false;
+      isFetchingOnWidthChange.current = false;
     });
-  }, [getPostAmount, screenSize, areNoMorePosts, fetchOrder, isSearch, searchTerm, partialProp]);
+  }, [getPostAmount, screenSize, areNoMorePosts, fetchOrder, isSearch, searchTerm, partialProp, component]);
   const handleScroll = useCallback(() => {
     if (!loadOnScroll) return;
     const yThreshold = document.documentElement.scrollHeight * 0.95;
@@ -3010,46 +3665,6 @@ function AutoloadTilesContainer({
     if (fetchOrder !== FetchOrder.Random) return;
     requestNext("resize", missing);
   }, [screenSize, posts, getPostAmount, isSearch, searchTerm, areNoMorePosts, requestNext, fetchOrder, loadOnScroll]);
-  useEffect(() => {
-    const partial = props[partialProp];
-    const pending = pendingRequestRef.current;
-    if (!pending) {
-      return;
-    }
-    const kind = pending.kind;
-    const isPaginator = partial && partial.data && Array.isArray(partial.data);
-    let newItems = [];
-    if (isPaginator) {
-      newItems = partial.data;
-      const current = partial.current_page || 1;
-      const last = partial.last_page || null;
-      pageRef.current = current;
-      lastPageRef.current = last;
-      if (last && current >= last) setAreNoMorePosts(true);
-    } else if (partial && Array.isArray(partial)) {
-      newItems = partial;
-    } else {
-      newItems = [];
-    }
-    if (newItems.length === 0) {
-      setAreNoMorePosts(true);
-    } else {
-      setPosts((prev) => {
-        const existingIds = new Set(prev.map((p) => p.id));
-        const filtered = newItems.filter((p) => !existingIds.has(p.id));
-        if (fetchOrder === FetchOrder.Random) {
-          fetchExcludesRef.current = addFetchedPostsToExcludes(filtered, fetchExcludesRef.current);
-        }
-        return [...prev, ...filtered];
-      });
-    }
-    if (kind === "resize") {
-      fetchedScreenSizeRef.current = screenSize;
-    }
-    pendingRequestRef.current = null;
-    isFetchingOnScroll.current = false;
-    isFetchingOnWidthChange.current = false;
-  }, [props[partialProp], partialProp, fetchOrder, screenSize]);
   const ppr = getPostAmount(screenSize);
   let displayAmount = Math.floor(posts.length / ppr) * ppr;
   displayAmount = displayAmount === 0 || areNoMorePosts ? posts.length : displayAmount;
@@ -3082,11 +3697,63 @@ function CarouselContainer({ size, className, children }) {
   const isDraggingRef = useRef(false);
   const isDraggedPointerUpRef = useRef(false);
   const isPointerDownRef = useRef(false);
+  const sliderEndLeftRef = useRef(null);
+  const sliderEndRightRef = useRef(null);
   const startPosRef = useRef(new Point(0, 0));
   const currentTranslateXRef = useRef(0);
   const initialTranslateXRef = useRef(0);
   const mouseDownTargetRef = useRef(null);
   const distanceThreshold = 5;
+  const lastMoveTimeRef = useRef(0);
+  const lastMoveXRef = useRef(0);
+  const velocityRef = useRef(0);
+  const animationFrameRef = useRef(null);
+  const checkBoundary = useCallback((x) => {
+    if (!innerSliderRef.current || !sliderContainerRef.current) return x;
+    const innerW = innerSliderRef.current.offsetWidth;
+    const outerW = sliderContainerRef.current.offsetWidth;
+    if (innerW < outerW) {
+      return 0;
+    }
+    const innerSliderMax = innerW - outerW;
+    let newTranslateX = Math.min(x, 0);
+    newTranslateX = Math.max(newTranslateX, -innerSliderMax);
+    return newTranslateX;
+  }, []);
+  const updateSliderEnds = useCallback(() => {
+    if (!innerSliderRef.current || !sliderContainerRef.current) {
+      return;
+    }
+    const FADE_WIDTH = 200;
+    const currentX = currentTranslateXRef.current;
+    const opacityLeft = Math.min(-currentX / FADE_WIDTH, 1);
+    const sliderLeft = sliderEndLeftRef.current;
+    sliderLeft.style.setProperty("--left-opacity", opacityLeft);
+    const innerW = innerSliderRef.current.offsetWidth;
+    const outerW = sliderContainerRef.current.offsetWidth;
+    const innerSliderMax = innerW - outerW;
+    const rightFadePoint = innerSliderMax - FADE_WIDTH;
+    const opacityRight = 1 - Math.max((-currentX - rightFadePoint) / FADE_WIDTH, 0);
+    const sliderRight = sliderEndRightRef.current;
+    sliderRight.style.setProperty("--right-opacity", opacityRight);
+  }, []);
+  useEffect(() => {
+    updateSliderEnds();
+    window.addEventListener("resize", updateSliderEnds);
+    let resizeObserver = null;
+    if (innerSliderRef.current) {
+      resizeObserver = new ResizeObserver(() => {
+        updateSliderEnds();
+      });
+      resizeObserver.observe(innerSliderRef.current);
+    }
+    return () => {
+      window.removeEventListener("resize", updateSliderEnds);
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
+    };
+  }, [updateSliderEnds]);
   const handleFocusIn = useCallback(() => {
     const focusedEl = document.activeElement;
     if (!innerSliderRef.current || !sliderContainerRef.current || !focusedEl || !innerSliderRef.current.contains(focusedEl)) {
@@ -3107,21 +3774,28 @@ function CarouselContainer({ size, className, children }) {
       currentTranslateXRef.current = checkBoundary(currentTranslateXRef.current);
       innerSliderRef.current.style.transform = `translateX(${currentTranslateXRef.current}px)`;
     }
-  }, []);
+  }, [checkBoundary]);
   const renderContent = typeof children === "function" ? children({
     isDragging: isDraggingRef,
     isDraggedPointerUp: isDraggedPointerUpRef,
     handleFocusIn
   }) : children;
   const handlePointerDown = useCallback((e) => {
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
     isPointerDownRef.current = true;
     isDraggedPointerUpRef.current = false;
     isDraggingRef.current = false;
-    sliderContainerRef.current.classList.add("dragging");
-    innerSliderRef.current.classList.add("dragging");
+    if (sliderContainerRef.current) sliderContainerRef.current.classList.add("dragging");
+    if (innerSliderRef.current) innerSliderRef.current.classList.add("dragging");
     startPosRef.current = new Point(e.pageX, e.pageY);
     initialTranslateXRef.current = currentTranslateXRef.current;
     mouseDownTargetRef.current = e.target;
+    lastMoveXRef.current = e.pageX;
+    lastMoveTimeRef.current = performance.now();
+    velocityRef.current = 0;
   }, []);
   const handlePointerMove = useCallback((e) => {
     if (!isPointerDownRef.current || !sliderContainerRef.current) {
@@ -3143,29 +3817,61 @@ function CarouselContainer({ size, className, children }) {
     isDraggedPointerUpRef.current = true;
     e.preventDefault();
     e.stopPropagation();
+    const now = performance.now();
+    const dt = now - lastMoveTimeRef.current;
+    if (dt > 0) {
+      velocityRef.current = (e.pageX - lastMoveXRef.current) / dt;
+    }
+    lastMoveXRef.current = e.pageX;
+    lastMoveTimeRef.current = now;
     const deltaX = e.pageX - startPosRef.current.x;
     let newTranslateX = initialTranslateXRef.current + deltaX;
     newTranslateX = checkBoundary(newTranslateX);
     currentTranslateXRef.current = newTranslateX;
     innerSliderRef.current.style.transform = `translateX(${currentTranslateXRef.current}px)`;
-  }, []);
+    updateSliderEnds();
+  }, [checkBoundary]);
   const handlePointerUp = useCallback(() => {
     isPointerDownRef.current = false;
-    isDraggingRef.current = false;
-    sliderContainerRef.current.classList.remove("dragging");
-    innerSliderRef.current.classList.remove("dragging");
-  }, []);
-  function checkBoundary(x) {
-    const innerW = innerSliderRef.current.offsetWidth;
-    const outerW = sliderContainerRef.current.offsetWidth;
-    if (innerW < outerW) {
-      return 0;
+    if (sliderContainerRef.current) sliderContainerRef.current.classList.remove("dragging");
+    if (innerSliderRef.current) innerSliderRef.current.classList.remove("dragging");
+    const now = performance.now();
+    if (now - lastMoveTimeRef.current > 100) {
+      velocityRef.current = 0;
     }
-    const innerSliderMax = innerW - outerW;
-    let newTranslateX = Math.min(x, 0);
-    newTranslateX = Math.max(newTranslateX, -innerSliderMax);
-    return newTranslateX;
-  }
+    if (Math.abs(velocityRef.current) > 0.1 && isDraggingRef.current) {
+      let v = velocityRef.current;
+      let lastFrameTime = performance.now();
+      const momentumLoop = (time) => {
+        if (!innerSliderRef.current || !sliderContainerRef.current) return;
+        const dt = time - lastFrameTime;
+        lastFrameTime = time;
+        if (!isPointerDownRef.current && Math.abs(v) > 0.05) {
+          let newTranslateX = currentTranslateXRef.current + v * dt;
+          let boundedX = checkBoundary(newTranslateX);
+          if (newTranslateX !== boundedX) {
+            v = 0;
+          }
+          currentTranslateXRef.current = boundedX;
+          innerSliderRef.current.style.transform = `translateX(${currentTranslateXRef.current}px)`;
+          updateSliderEnds();
+          v *= 0.92;
+          if (Math.abs(v) > 0.05) {
+            animationFrameRef.current = requestAnimationFrame(momentumLoop);
+          } else {
+            animationFrameRef.current = null;
+            isDraggingRef.current = false;
+          }
+        } else {
+          animationFrameRef.current = null;
+          isDraggingRef.current = false;
+        }
+      };
+      animationFrameRef.current = requestAnimationFrame(momentumLoop);
+    } else {
+      isDraggingRef.current = false;
+    }
+  }, [checkBoundary]);
   useEffect(() => {
     const containerElement = sliderContainerRef.current;
     if (!containerElement) return;
@@ -3195,6 +3901,7 @@ function CarouselContainer({ size, className, children }) {
       newPos = checkBoundary(newPos);
       currentTranslateXRef.current = newPos;
       innerSliderRef.current.style.transform = `translateX(${currentTranslateXRef.current}px)`;
+      updateSliderEnds();
       e.stopPropagation();
       e.preventDefault();
     };
@@ -3216,7 +3923,7 @@ function CarouselContainer({ size, className, children }) {
       }
     };
   }, [handleFocusIn]);
-  return /* @__PURE__ */ jsx("div", { className, children: /* @__PURE__ */ jsx(
+  return /* @__PURE__ */ jsx("div", { className, children: /* @__PURE__ */ jsxs(
     "div",
     {
       className: "carousel-container " + size,
@@ -3224,7 +3931,11 @@ function CarouselContainer({ size, className, children }) {
       role: "region",
       "aria-label": "",
       ref: sliderContainerRef,
-      children: /* @__PURE__ */ jsx("div", { className: "slider-container gallery-slider", children: /* @__PURE__ */ jsx("div", { className: "inner-slider", ref: innerSliderRef, children: renderContent }) })
+      children: [
+        /* @__PURE__ */ jsx("div", { className: "slider-container gallery-slider", children: /* @__PURE__ */ jsx("div", { className: "inner-slider", ref: innerSliderRef, children: renderContent }) }),
+        /* @__PURE__ */ jsx("div", { className: "slider-end-left", ref: sliderEndLeftRef }),
+        /* @__PURE__ */ jsx("div", { className: "slider-end-right", ref: sliderEndRightRef })
+      ]
     }
   ) });
 }
@@ -3275,7 +3986,7 @@ function TileCarousel({ size, category = Category.Archive, userId = null, title 
     )
   ] }) : /* @__PURE__ */ jsx(Fragment, {});
 }
-function Home({ heroPosts = [], carouselArchive = [], carouselNews = [], archivePosts = [] }) {
+function Home({ heroPosts = [], carouselArchive = [], carouselNews = [], carouselFollowing = [], archivePosts = [] }) {
   const [screenSize, setScreenSize] = useState(getScreenSize());
   useEffect(() => {
     const cleanup = monitorScreenSize(setScreenSize);
@@ -3296,8 +4007,9 @@ function Home({ heroPosts = [], carouselArchive = [], carouselNews = [], archive
         initialPosts: heroPosts
       }
     ) }),
-    /* @__PURE__ */ jsx("div", { className: "page-section carousel", children: /* @__PURE__ */ jsx(TileCarousel, { size: "small", category: Category.Archive, title: "works from new users:", initialPosts: carouselArchive }) }),
-    /* @__PURE__ */ jsx("div", { className: "page-section carousel", children: /* @__PURE__ */ jsx(TileCarousel, { size: "small", category: Category.News, title: "netart news:", initialPosts: carouselNews }) }),
+    /* @__PURE__ */ jsx("div", { className: "page-section carousel", children: /* @__PURE__ */ jsx(TileCarousel, { size: "small", category: Category.Archive, title: "newest works:", initialPosts: carouselArchive }) }),
+    carouselFollowing && carouselFollowing.length > 0 && /* @__PURE__ */ jsx("div", { className: "page-section carousel", children: /* @__PURE__ */ jsx(TileCarousel, { size: "small", category: Category.Archive, title: "users you follow:", initialPosts: carouselFollowing }) }),
+    carouselNews && carouselNews.length > 0 && /* @__PURE__ */ jsx("div", { className: "page-section carousel", children: /* @__PURE__ */ jsx(TileCarousel, { size: "small", category: Category.News, title: "netart news:", initialPosts: carouselNews }) }),
     /* @__PURE__ */ jsxs("div", { className: "page-section", children: [
       /* @__PURE__ */ jsx("h2", { className: "big-title centered-content no-margin padded", children: "explore" }),
       /* @__PURE__ */ jsx(
@@ -3327,6 +4039,18 @@ function OAuth({ headerText, onClick, originPage, isSubmittingForm, setIsSubmitt
     const authURI = `/auth/${provider}/redirect?origin_page=${originPage}`;
     window.location.href = authURI;
   }, [originPage, setIsSubmittingForm]);
+  useEffect(() => {
+    const handlePageShow = (e) => {
+      if (e.persisted) {
+        setIsSubmitting(false);
+        if (setIsSubmittingForm) {
+          setIsSubmittingForm(false);
+        }
+      }
+    };
+    window.addEventListener("pageshow", handlePageShow);
+    return () => window.removeEventListener("pageshow", handlePageShow);
+  }, [setIsSubmittingForm]);
   return /* @__PURE__ */ jsxs("div", { className: "field-group social-login-options", children: [
     /* @__PURE__ */ jsx("h3", { children: headerText }),
     /* @__PURE__ */ jsxs(
@@ -3920,7 +4644,24 @@ function ImageCarousel({ size, post, title = "" }) {
       ImageZoom,
       {
         src: isZoomed ? `${IMAGE_ROOT}/large/${imageUrls[currentSlideIndex]}` : null,
-        alt: "",
+        smallSrc: isZoomed ? `${IMAGE_ROOT}/small/${imageUrls[currentSlideIndex]}` : null,
+        nextSrc: isZoomed && currentSlideIndex < imageUrls.length - 1 ? `${IMAGE_ROOT}/large/${imageUrls[currentSlideIndex + 1]}` : null,
+        nextSmallSrc: isZoomed && currentSlideIndex < imageUrls.length - 1 ? `${IMAGE_ROOT}/small/${imageUrls[currentSlideIndex + 1]}` : null,
+        prevSrc: isZoomed && currentSlideIndex > 0 ? `${IMAGE_ROOT}/large/${imageUrls[currentSlideIndex - 1]}` : null,
+        prevSmallSrc: isZoomed && currentSlideIndex > 0 ? `${IMAGE_ROOT}/small/${imageUrls[currentSlideIndex - 1]}` : null,
+        onNavigateNext: () => {
+          var _a;
+          const newInd = Math.min(imageUrls.length - 1, currentSlideIndex + 1);
+          setCurrentSlideIndex(newInd);
+          (_a = slideRefs.current[newInd]) == null ? void 0 : _a.focus();
+        },
+        onNavigatePrev: () => {
+          var _a;
+          const newInd = Math.max(0, currentSlideIndex - 1);
+          setCurrentSlideIndex(newInd);
+          (_a = slideRefs.current[newInd]) == null ? void 0 : _a.focus();
+        },
+        alt: post == null ? void 0 : post.gallery_alts[currentSlideIndex],
         clickFunc: handleClick,
         isZoomed
       }
@@ -3928,8 +4669,9 @@ function ImageCarousel({ size, post, title = "" }) {
   ] }) });
 }
 function Comment({ comment, isDashboard = false, onReply = null, id, parentLocalId = null, currentUrl = null }) {
-  var _a;
+  var _a, _b, _c;
   const user = (_a = usePage().props.auth) == null ? void 0 : _a.user;
+  if (!comment) return null;
   const isAuthenticated = !!user;
   const [isEditing, setIsEditing] = useState(false);
   const { data, setData, put: submitUpdate, delete: submitDelete, processing, errors, clearErrors } = useForm({
@@ -3967,7 +4709,7 @@ function Comment({ comment, isDashboard = false, onReply = null, id, parentLocal
       /* @__PURE__ */ jsx(
         Link,
         {
-          href: `/${comment.post.user.username}/${comment.post.post_url}`,
+          href: getPostUrl(comment.post),
           className: "bold",
           children: comment.post.title
         }
@@ -4010,11 +4752,11 @@ function Comment({ comment, isDashboard = false, onReply = null, id, parentLocal
         ),
         " comment"
       ] }) : null,
-      isDashboard && comment.post && //post is only included when using fetchUserComments
+      isDashboard && comment.post && comment.post.user && //post is only included when using fetchUserComments
       /* @__PURE__ */ jsxs(
         Link,
         {
-          href: `/${comment.post.user.username}/${comment.post.post_url}?comment_id=${comment.id}`,
+          href: `${getPostUrl(comment.post)}?comment_id=${comment.id}`,
           className: "notice small",
           children: [
             /* @__PURE__ */ jsx("i", { className: "fa-solid fa-arrow-up-right-from-square" }),
@@ -4066,7 +4808,7 @@ function Comment({ comment, isDashboard = false, onReply = null, id, parentLocal
           }
         )
       ] }),
-      !isDashboard && user.id === comment.user.id && /* @__PURE__ */ jsx(Fragment, { children: isEditing ? /* @__PURE__ */ jsxs(Fragment, { children: [
+      !isDashboard && (user == null ? void 0 : user.id) === ((_b = comment == null ? void 0 : comment.user) == null ? void 0 : _b.id) && /* @__PURE__ */ jsx(Fragment, { children: isEditing ? /* @__PURE__ */ jsxs(Fragment, { children: [
         /* @__PURE__ */ jsx(
           "button",
           {
@@ -4095,7 +4837,7 @@ function Comment({ comment, isDashboard = false, onReply = null, id, parentLocal
           disabled: processing
         }
       ) }),
-      !isDashboard && (user.id === comment.user.id || user.member_type == MemberType.Admin || user.member_type == MemberType.Webmaster) && /* @__PURE__ */ jsx(
+      !isDashboard && ((user == null ? void 0 : user.id) === ((_c = comment == null ? void 0 : comment.user) == null ? void 0 : _c.id) || (user == null ? void 0 : user.member_type) == MemberType.Admin || (user == null ? void 0 : user.member_type) == MemberType.Webmaster) && /* @__PURE__ */ jsx(
         "button",
         {
           onClick: handleCommentDelete,
@@ -4113,6 +4855,7 @@ function CommentSection({ post, likeCount }) {
   const [originalComment, setOriginalComment] = useState(null);
   const [originalCommentElement, setOriginalCommentElement] = useState(null);
   const [quoteText, setQuoteText] = useState("");
+  const textAreaRef = useRef(null);
   const { data, setData, post: submitComment, processing, reset, errors, clearErrors } = useForm({
     content: "",
     parent_id: null
@@ -4179,6 +4922,7 @@ function CommentSection({ post, likeCount }) {
       if (!isInView) {
         scrollToElement(currentUrl, "leave-comment-container", false);
       }
+      textAreaRef.current.focus();
     }
   }, [setOriginalComment, setOriginalCommentElement, quoteText, setQuoteText]);
   const handleReplyCancel = useCallback((e) => {
@@ -4266,7 +5010,8 @@ function CommentSection({ post, likeCount }) {
             id: "comment",
             onChange: (e) => setData("content", e.target.value),
             value: data.content,
-            disabled: !isAuthenticated
+            disabled: !isAuthenticated,
+            ref: textAreaRef
           }
         )
       ] }) })
@@ -4319,7 +5064,7 @@ function HiddenPostNotice({ classes, isAdmin = false }) {
   ] });
 }
 function Post({ post }) {
-  var _a, _b, _c, _d;
+  var _a;
   const { props } = usePage();
   const appUrl = props.app_url;
   const isLiked = !!(post == null ? void 0 : post.have_liked);
@@ -4327,9 +5072,9 @@ function Post({ post }) {
   const [adminMessageIsVisible, setAdminMessageIsVisible] = useState(false);
   const [adminMessage, setAdminMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const success = (_a = props.flash) == null ? void 0 : _a.success;
-  const error = ((_b = props.errors) == null ? void 0 : _b.error) || ((_c = props.flash) == null ? void 0 : _c.error);
-  const user = (_d = props.auth) == null ? void 0 : _d.user;
+  const [adminSuccess, setAdminSuccess] = useState("");
+  const [adminError, setAdminError] = useState("");
+  const user = (_a = props.auth) == null ? void 0 : _a.user;
   const isAuthenticated = !!user;
   const isAdmin = (user == null ? void 0 : user.member_type) == MemberType.Webmaster || (user == null ? void 0 : user.member_type) == MemberType.Admin;
   useEffect(() => {
@@ -4350,6 +5095,8 @@ function Post({ post }) {
     }
   }, [post]);
   const mainImg = `${appUrl}/storage/images/uploaded/users/${post.user.username}/posts/${post.post_url}/gallery/large/${imageUrls[0]}`;
+  const mainAlt = (post == null ? void 0 : post.gallery_alts[0]) ?? "";
+  console.log("post?", post);
   const videoUrl = useMemo(() => {
     try {
       return (post == null ? void 0 : post.main_video) ?? null;
@@ -4368,6 +5115,8 @@ function Post({ post }) {
   }, [post.id]);
   const handleHideSubmit = useCallback(async (e, hide) => {
     e.preventDefault();
+    setAdminSuccess("");
+    setAdminError("");
     if (!hide) {
       const isConfirmed = window.confirm("Make post visible?");
       if (!isConfirmed) return;
@@ -4389,9 +5138,12 @@ function Post({ post }) {
             setAdminMessage("");
             setAdminMessageIsVisible(false);
             setIsSubmitting(false);
+            setAdminSuccess(hide ? "Post successfully hidden." : "Post successfully unhidden.");
           },
-          onError: () => {
+          onError: (errs) => {
             setIsSubmitting(false);
+            if (errs && errs.error) setAdminError(errs.error);
+            else setAdminError("An error occurred.");
           }
         }
       );
@@ -4399,9 +5151,8 @@ function Post({ post }) {
       setIsSubmitting(false);
     }
   }, [adminMessage, post.id]);
-  console.log("Aroo?!", props.app_url, post.user.username, post.post_url);
   const handleHideClick = useCallback(() => {
-    const adminStarterText = `<p>Your post, <a href="${props.app_url}/${post.user.username}/${post.post_url}"><em>${post.title}</em></a> has been hidden.</p>
+    const adminStarterText = `<p>Your post, <a href="${props.app_url}${getPostUrl(post)}"><em>${post.title}</em></a> has been hidden.</p>
             <p> reason: </p>    
             <p> If you wish to dispute this decision, please reply to this message.</p>
             `;
@@ -4430,8 +5181,26 @@ function Post({ post }) {
           ),
           /* @__PURE__ */ jsxs("div", { className: "image-info-container", children: [
             /* @__PURE__ */ jsx("div", { className: "main-image-container", children: /* @__PURE__ */ jsxs("div", { className: "image-link-subcontainer", children: [
-              /* @__PURE__ */ jsx("img", { className: "main-image", src: mainImg, alt: "" }),
+              /* @__PURE__ */ jsx("img", { className: "main-image", src: mainImg, alt: mainAlt }),
               /* @__PURE__ */ jsx("div", { className: "main-image-link-container", children: /* @__PURE__ */ jsxs("div", { className: "info-panel", children: [
+                (post == null ? void 0 : post.is_private) || (post == null ? void 0 : post.is_draft) ? /* @__PURE__ */ jsx(
+                  "div",
+                  {
+                    className: "big-icon blue",
+                    title: (post == null ? void 0 : post.is_private) ? "private" : "draft",
+                    children: /* @__PURE__ */ jsx("i", { className: (post == null ? void 0 : post.is_private) ? "fa-regular fa-eye-slash" : "fa-solid fa-file-pen" })
+                  }
+                ) : isAuthenticated && /* @__PURE__ */ jsx(
+                  "button",
+                  {
+                    type: "button",
+                    className: isLiked ? "like-button liked" : "like-button",
+                    onClick: handleLikeToggle,
+                    "aria-label": "Toggle Like",
+                    "aria-pressed": isLiked,
+                    children: /* @__PURE__ */ jsx("i", { className: isLiked ? "fa-solid fa-star" : "fa-regular fa-star" })
+                  }
+                ),
                 post.website ? /* @__PURE__ */ jsx("div", { className: "info-item action-links link-container", children: /* @__PURE__ */ jsxs(
                   "a",
                   {
@@ -4453,26 +5222,7 @@ function Post({ post }) {
                       /* @__PURE__ */ jsx("span", { children: "visit site" })
                     ]
                   }
-                ) }) : /* @__PURE__ */ jsx(Fragment, {}),
-                (post == null ? void 0 : post.is_private) ? /* @__PURE__ */ jsx("div", { children: /* @__PURE__ */ jsx(
-                  "div",
-                  {
-                    type: "button",
-                    className: "big-icon blue",
-                    title: "private post",
-                    children: /* @__PURE__ */ jsx("i", { className: "fa-regular fa-eye-slash" })
-                  }
-                ) }) : isAuthenticated && /* @__PURE__ */ jsx("div", { children: /* @__PURE__ */ jsx(
-                  "button",
-                  {
-                    type: "button",
-                    className: isLiked ? "like-button liked" : "like-button",
-                    onClick: handleLikeToggle,
-                    "aria-label": "Toggle Like",
-                    "aria-pressed": isLiked,
-                    children: /* @__PURE__ */ jsx("i", { className: isLiked ? "fa-solid fa-star" : "fa-regular fa-star" })
-                  }
-                ) })
+                ) }) : /* @__PURE__ */ jsx(Fragment, {})
               ] }) })
             ] }) }),
             /* @__PURE__ */ jsx("div", { className: "page-section main-info-container top-version", children: /* @__PURE__ */ jsxs("div", { className: "main-info-box", children: [
@@ -4487,6 +5237,10 @@ function Post({ post }) {
                   getDateAsYYYYMMDD(post.created_at)
                 ] })
               ] }) }),
+              post.premiere_date && /* @__PURE__ */ jsx("div", { children: /* @__PURE__ */ jsx("p", { className: "post-date", children: /* @__PURE__ */ jsxs("em", { children: [
+                "premiered on ",
+                getDateAsYYYYMMDD(post.premiere_date)
+              ] }) }) }),
               post.source_code && /* @__PURE__ */ jsx("div", { className: "source-link", children: /* @__PURE__ */ jsxs("a", { href: post.source_code, target: "_blank", children: [
                 /* @__PURE__ */ jsx("i", { className: "fa-solid fa-code" }),
                 /* @__PURE__ */ jsx("span", { children: "source" })
@@ -4502,6 +5256,10 @@ function Post({ post }) {
                 /* @__PURE__ */ jsx(UserLink, { user: post.user }),
                 " on 2025.5.12"
               ] }) }),
+              post.premiere_date && /* @__PURE__ */ jsx("div", { children: /* @__PURE__ */ jsx("p", { className: "post-date", children: /* @__PURE__ */ jsxs("em", { children: [
+                "premiered on ",
+                getDateAsYYYYMMDD(post.premiere_date)
+              ] }) }) }),
               post.source_code && /* @__PURE__ */ jsx("div", { className: "source-link", children: /* @__PURE__ */ jsxs("a", { href: post.source_code, target: "_blank", children: [
                 /* @__PURE__ */ jsx("i", { className: "fa-solid fa-code" }),
                 /* @__PURE__ */ jsx("span", { children: "source" })
@@ -4523,8 +5281,8 @@ function Post({ post }) {
       isAdmin && /* @__PURE__ */ jsxs(Fragment, { children: [
         /* @__PURE__ */ jsx("h3", { className: "centered-content", children: "admin:" }),
         /* @__PURE__ */ jsxs(Fragment, { children: [
-          error && /* @__PURE__ */ jsx("div", { className: "error", children: error }),
-          success && /* @__PURE__ */ jsx("div", { className: "notice", children: success }),
+          adminError && /* @__PURE__ */ jsx("div", { className: "error", children: adminError }),
+          adminSuccess && /* @__PURE__ */ jsx("div", { className: "notice", children: adminSuccess }),
           post.is_hidden_by_admin ? /* @__PURE__ */ jsx("div", { className: "centered-content", children: /* @__PURE__ */ jsx(
             "button",
             {
@@ -5315,7 +6073,7 @@ function UserProfile({ user: profileUserProp }) {
                 }
               ),
               /* @__PURE__ */ jsxs("div", { className: "profile-avatar-container", children: [
-                /* @__PURE__ */ jsx("img", { src: avatar, alt: "", className: "round-image" }),
+                /* @__PURE__ */ jsx("img", { src: avatar, alt: `${user == null ? void 0 : user.username}'s avatar`, className: "round-image" }),
                 user && user.id !== profileUser.id && /* @__PURE__ */ jsx(
                   "button",
                   {
@@ -5332,10 +6090,11 @@ function UserProfile({ user: profileUserProp }) {
               /* @__PURE__ */ jsx(
                 ProfileItem,
                 {
-                  name: "website",
-                  value: profileUser.website,
+                  name: "websites",
+                  value: profileUser.websites || (profileUser.website ? [profileUser.website] : []),
                   isPublic: true,
-                  isLink: true
+                  isLink: true,
+                  isArray: true
                 }
               ),
               /* @__PURE__ */ jsx(
@@ -5347,27 +6106,27 @@ function UserProfile({ user: profileUserProp }) {
                 }
               ),
               /* @__PURE__ */ jsxs("div", { className: "flex-row", children: [
-                user && (user == null ? void 0 : user.id) != (profileUser == null ? void 0 : profileUser.id) && /* @__PURE__ */ jsx("div", { children: /* @__PURE__ */ jsxs(
+                /* @__PURE__ */ jsx("span", { children: /* @__PURE__ */ jsxs(
                   Link,
                   {
                     href: "/dashboard/mail/new",
                     data: { addressee: username },
                     className: "link-with-icon",
                     children: [
-                      /* @__PURE__ */ jsx("i", { className: "fa-regular fa-envelope big-icon" }),
+                      /* @__PURE__ */ jsx("i", { className: "fa-regular fa-envelope medium-icon" }),
                       " ",
                       /* @__PURE__ */ jsx("span", { children: "send DM" })
                     ]
                   }
                 ) }),
-                !!profileUser.show_email_in_profile && /* @__PURE__ */ jsxs("div", { children: [
+                !!profileUser.show_email_in_profile && /* @__PURE__ */ jsxs("span", { children: [
                   /* @__PURE__ */ jsxs(
                     "a",
                     {
                       href: `mailto:${profileUser.email}`,
                       className: "link-with-icon",
                       children: [
-                        /* @__PURE__ */ jsx("i", { className: "fa-solid fa-envelopes-bulk big-icon" }),
+                        /* @__PURE__ */ jsx("i", { className: "fa-solid fa-envelopes-bulk medium-icon" }),
                         " ",
                         /* @__PURE__ */ jsx("span", { children: "e-mail" })
                       ]
@@ -5381,7 +6140,7 @@ function UserProfile({ user: profileUserProp }) {
                       "aria-label": "copy to clipboard",
                       title: "copy to clipboard",
                       onClick: handleCopy,
-                      children: /* @__PURE__ */ jsx("i", { className: "fa-regular fa-copy big-icon" })
+                      children: /* @__PURE__ */ jsx("i", { className: "fa-regular fa-copy medium-icon" })
                     }
                   )
                 ] })
@@ -5389,7 +6148,7 @@ function UserProfile({ user: profileUserProp }) {
             ] })
           ] }),
           /* @__PURE__ */ jsxs("div", { className: "rte-container", children: [
-            /* @__PURE__ */ jsx("div", { className: "centered-header-box", children: /* @__PURE__ */ jsx("div", { className: "centered-content", children: /* @__PURE__ */ jsx("h2", { children: "bio" }) }) }),
+            /* @__PURE__ */ jsx("div", { className: "centered-header-box", children: /* @__PURE__ */ jsx("div", { className: "centered-content top-2rem", children: /* @__PURE__ */ jsx("h2", { children: "bio" }) }) }),
             /* @__PURE__ */ jsx(
               "div",
               {
@@ -5437,6 +6196,10 @@ const __vite_glob_0_18 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.de
   default: UserProfile
 }, Symbol.toStringTag, { value: "Module" }));
 function Notification({ notification }) {
+  var _a, _b, _c;
+  if (((notification == null ? void 0 : notification.type) == NotificationType.Comment || (notification == null ? void 0 : notification.type) == NotificationType.Reply) && !notification.comment) {
+    return null;
+  }
   return notification ? /* @__PURE__ */ jsxs("div", { className: "comment", children: [
     notification.type == NotificationType.Unhidden && /* @__PURE__ */ jsxs(Fragment, { children: [
       /* @__PURE__ */ jsxs("p", { children: [
@@ -5453,7 +6216,7 @@ function Notification({ notification }) {
       /* @__PURE__ */ jsx("br", {}),
       /* @__PURE__ */ jsxs("p", { children: [
         "Your post, ",
-        /* @__PURE__ */ jsx(Link, { href: `/${notification.post.user.username}/${notification.post.post_url}`, children: notification.post.title }),
+        /* @__PURE__ */ jsx(Link, { href: getPostUrl(notification.post), children: (_a = notification.post) == null ? void 0 : _a.title }),
         ", has been unhidden."
       ] })
     ] }),
@@ -5489,8 +6252,8 @@ function Notification({ notification }) {
       /* @__PURE__ */ jsx(
         Link,
         {
-          href: `/${notification.comment.post.user.username}/${notification.comment.post.post_url}`,
-          children: notification.comment.post.title
+          href: getPostUrl(notification.comment.post),
+          children: (_b = notification.comment.post) == null ? void 0 : _b.title
         }
       ),
       " ",
@@ -5514,7 +6277,7 @@ function Notification({ notification }) {
       /* @__PURE__ */ jsx(
         Link,
         {
-          href: `/${notification.comment.post.user.username}/${notification.comment.post.post_url}?comment_id=${notification.comment.parent_id}`,
+          href: `${getPostUrl(notification.comment.post)}?comment_id=${notification.comment.parent_id}`,
           children: "your comment"
         }
       ),
@@ -5522,8 +6285,8 @@ function Notification({ notification }) {
       /* @__PURE__ */ jsx(
         Link,
         {
-          href: `/${notification.comment.user.username}/${notification.comment.post.post_url}`,
-          children: notification.comment.post.title
+          href: getPostUrl(notification.comment.post),
+          children: (_c = notification.comment.post) == null ? void 0 : _c.title
         }
       ),
       " ",
@@ -5540,7 +6303,7 @@ function Notification({ notification }) {
       /* @__PURE__ */ jsx("div", { className: "comment-notice-container", children: /* @__PURE__ */ jsxs(
         Link,
         {
-          href: `/${notification.comment.post.user.username}/${notification.comment.post.post_url}?comment_id=${notification.comment.id}`,
+          href: `${getPostUrl(notification.comment.post)}?comment_id=${notification.comment.id}`,
           className: "notice small",
           children: [
             /* @__PURE__ */ jsx("i", { className: "fa-solid fa-arrow-up-right-from-square" }),
@@ -5731,7 +6494,7 @@ function Message({
     setHasChanged(false);
     setResetKey((k) => k + 1);
   }, [initialHydratedContent]);
-  return /* @__PURE__ */ jsxs("div", { className: "comment", id: elementId, children: [
+  return /* @__PURE__ */ jsxs("div", { className: "comment dm", id: elementId, children: [
     /* @__PURE__ */ jsxs("p", { children: [
       /* @__PURE__ */ jsx(UserLink, { user: messageSender }),
       " ",
@@ -6122,7 +6885,7 @@ function Conversation({ conversation: conversationProp, addressee }) {
         index < conversation.other_users.length - 1 && ", "
       ] }, u.id))
     ] }),
-    user && user.is_email_verified ? !isNew && !conversation ? /* @__PURE__ */ jsx("p", { className: "centered-content padding-1rem", children: "Loading conversation..." }) : /* @__PURE__ */ jsxs(Fragment, { children: [
+    user && user.is_email_verified ? !isNew && !conversation ? /* @__PURE__ */ jsx("p", { className: "centered-content padding-1rem", children: "Loading conversation..." }) : /* @__PURE__ */ jsxs("div", { className: "messages-container", children: [
       conversation && ((_e = conversation == null ? void 0 : conversation.messages) == null ? void 0 : _e.map((message2, i) => {
         let parentElement = conversation.messages.findIndex((m) => m.id === message2.parent_id);
         parentElement = parentElement === -1 ? null : parentElement;
@@ -6140,7 +6903,7 @@ function Conversation({ conversation: conversationProp, addressee }) {
       })),
       /* @__PURE__ */ jsxs("form", { className: "message-form", onSubmit: handleSubmit, children: [
         error && /* @__PURE__ */ jsx("div", { className: "error", children: error }),
-        isNew && /* @__PURE__ */ jsxs("dl", { children: [
+        isNew && /* @__PURE__ */ jsxs("dl", { className: "side-padded-on-mobile", children: [
           /* @__PURE__ */ jsx("dt", { children: /* @__PURE__ */ jsx("label", { className: "main-label", htmlFor: "", children: "recipients" }) }),
           /* @__PURE__ */ jsx("dd", { children: /* @__PURE__ */ jsxs("div", { className: "tags-container", children: [
             recipients.map((r, i) => /* @__PURE__ */ jsxs("div", { className: "tag", children: [
@@ -6199,7 +6962,7 @@ function Conversation({ conversation: conversationProp, addressee }) {
             disabled: isSubmitting,
             type: "text",
             isInline: false,
-            classes: "form-field"
+            classes: "side-padded-on-mobile"
           }
         ),
         /* @__PURE__ */ jsx(
@@ -6361,11 +7124,14 @@ const __vite_glob_0_26 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.de
 const createInitialImageFields = (post = null, user, postUrl, appUrl) => {
   if (post) {
     const images = post.gallery_image_urls;
+    if (!images) {
+      return null;
+    }
     const alts = post.gallery_alts;
     return images.map((image, i) => ({
       index: i,
       image: `${appUrl}/storage/images/uploaded/users/${user.username}/posts/${postUrl}/gallery/thumb/${image}`,
-      alt: alts[i] == "null" ? "" : alts[i],
+      alt: !alts || alts[i] == "null" ? "" : alts[i],
       value: image,
       type: "old"
     }));
@@ -6395,7 +7161,9 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
     source_code: (post == null ? void 0 : post.sourceCode) || "",
     main_video: (post == null ? void 0 : post.main_video) || "",
     main_video_raw: (post == null ? void 0 : post.main_video) || "",
+    premiere_date: (post == null ? void 0 : post.premiere_date) || "",
     is_private: post ? !!post.is_private : false,
+    is_draft: post ? !!post.is_draft : true,
     is_news: post ? !!post.is_news : category == Category.News,
     statement: hydratedStatement
   });
@@ -6412,8 +7180,8 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
   const galleryContainerRef = useRef(null);
   const [imageFields, setImageFields] = useState(createInitialImageFields(post, user, (post == null ? void 0 : post.post_url) || "", appUrl));
   const dragCounterRef = useRef(0);
-  const canSubmit = data.title && isTitleValid && data.post_url && isPostUrlValid && data.subtitle && isSubtitleValid && (data.website && isWebsiteValid || !data.website) && (data.source_code && isSourceCodeValid || !data.source_code) && imageFields.length > 0 && hasImages(imageFields) && hasChanged;
-  const buttonText = isCreateForm ? "create" : "update";
+  const canSubmit = data.title && isTitleValid && data.post_url && isPostUrlValid && data.subtitle && isSubtitleValid && (data.website && isWebsiteValid || !data.website) && (data.source_code && isSourceCodeValid || !data.source_code) && imageFields.length > 0 && hasImages(imageFields) && (hasChanged || (post == null ? void 0 : post.is_draft));
+  const buttonText = !post || post.is_draft ? "publish" : "update";
   const loadingText = "loading form...";
   const isFormReady = isCreateForm || post;
   useEffect(() => {
@@ -6427,7 +7195,9 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
       source_code: post.sourceCode || "",
       main_video: post.main_video || "",
       main_video_raw: post.main_video || "",
+      premiere_date: post.premiere_date || "",
       is_private: !!post.is_private,
+      is_draft: !!post.is_draft,
       is_news: !!post.is_news,
       statement: hydr
     });
@@ -6441,7 +7211,7 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
     setImageFields(createInitialImageFields(post, user, post.post_url, appUrl));
     setHasChanged(false);
   }, [post, user, setData]);
-  const onSubmit = useCallback(async (e) => {
+  const onSubmit = useCallback(async (e, asDraft = false) => {
     e.preventDefault();
     setIsSubmitting(true);
     setSuccess("");
@@ -6453,7 +7223,7 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
         resizedGalleryImages.push(imageFields[i]);
         continue;
       }
-      const resizedBlob = await resizeImage(file);
+      const resizedBlob = await resizeImage(file, true);
       const resizedImageFile = new File([resizedBlob], file.name, { type: file.type });
       const newField = { ...imageFields[i], value: resizedImageFile };
       resizedGalleryImages.push(newField);
@@ -6469,7 +7239,9 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
       formData.append("website", data.website || "");
       formData.append("source_code", data.source_code || "");
       formData.append("main_video", data.main_video || "");
+      formData.append("premiere_date", data.premiere_date || "");
       formData.append("is_private", data.is_private ? "1" : "0");
+      formData.append("is_draft", asDraft ? "1" : "0");
       formData.append("is_news", data.is_news ? "1" : "0");
       formData.append("statement", statementWithResizedImages || "");
       resizedGalleryImages.forEach((field, idx) => {
@@ -6671,10 +7443,14 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
   return /* @__PURE__ */ jsxs("div", { className: "main-info-delete-container", children: [
     /* @__PURE__ */ jsx(PageHead, { title: "Post Form" }),
     isFormReady ? /* @__PURE__ */ jsxs(Fragment, { children: [
-      /* @__PURE__ */ jsx("div", { className: "main-info-box stretch", children: /* @__PURE__ */ jsxs("form", { onSubmit, children: [
+      /* @__PURE__ */ jsx("div", { className: "main-info-box stretch", children: /* @__PURE__ */ jsxs("form", { onSubmit: (e) => onSubmit(e, false), children: [
         /* @__PURE__ */ jsxs("div", { className: "text-fields-container", children: [
           errors.general && /* @__PURE__ */ jsx("div", { className: "error", children: errors.general }),
           success && /* @__PURE__ */ jsx("div", { className: "notice", children: success }),
+          /* @__PURE__ */ jsxs("div", { className: "horizontal-buttons-container", children: [
+            (!post || post.is_draft) && /* @__PURE__ */ jsx("button", { type: "button", onClick: (e) => onSubmit(e, true), disabled: isSubmitting || !canSubmit, children: "save draft" }),
+            /* @__PURE__ */ jsx("button", { type: "submit", disabled: isSubmitting || !canSubmit, children: buttonText })
+          ] }),
           /* @__PURE__ */ jsx("div", { className: "footnote", children: "Fields with an * are required." }),
           /* @__PURE__ */ jsx(
             FormField,
@@ -6733,6 +7509,25 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
               isInline: true,
               classes: "inline-form-field",
               error: errors.subtitle,
+              onErrorUpdate: (id, msg) => msg ? setError(id, msg) : clearErrors(id)
+            }
+          ),
+          /* @__PURE__ */ jsx(
+            FormField,
+            {
+              id: "premiere_date",
+              label: "premiere date",
+              placeholder: "e.g. YYYY-MM-DD",
+              value: data.premiere_date,
+              onChange: (e) => {
+                setHasChanged(true);
+                setData("premiere_date", e.target.value);
+              },
+              disabled: isSubmitting,
+              type: "date",
+              isInline: true,
+              classes: "inline-form-field",
+              error: errors.premiere_date,
               onErrorUpdate: (id, msg) => msg ? setError(id, msg) : clearErrors(id)
             }
           ),
@@ -6837,8 +7632,7 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
                 value: data.statement
               }
             )
-          ] }),
-          /* @__PURE__ */ jsx("button", { type: "submit", disabled: isSubmitting || !canSubmit, children: buttonText })
+          ] })
         ] }),
         /* @__PURE__ */ jsxs("div", { className: "multi-field-container", ref: galleryContainerRef, children: [
           /* @__PURE__ */ jsx("div", { className: "field-button-container top-align", children: /* @__PURE__ */ jsxs("div", { className: "main-label-container", children: [
@@ -6860,14 +7654,17 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
             },
             field.index
           )),
-          /* @__PURE__ */ jsx("button", { type: "submit", disabled: isSubmitting || !canSubmit, children: buttonText })
+          /* @__PURE__ */ jsxs("div", { className: "horizontal-buttons-container reverse-row", children: [
+            (!post || post.is_draft) && /* @__PURE__ */ jsx("button", { type: "button", onClick: (e) => onSubmit(e, true), disabled: isSubmitting || !canSubmit, children: "save draft" }),
+            /* @__PURE__ */ jsx("button", { type: "submit", disabled: isSubmitting || !canSubmit, children: buttonText })
+          ] })
         ] })
       ] }) }),
       !isCreateForm && /* @__PURE__ */ jsx(
         "button",
         {
           type: "button",
-          className: "delete-button",
+          className: "red-button",
           onClick: handleDelete,
           disabled: isSubmitting,
           children: "delete"
@@ -6977,14 +7774,14 @@ function DashboardCreateHeader({ headerText, createLink, isVerified = true }) {
   return /* @__PURE__ */ jsxs("div", { className: "centered-header-box", children: [
     /* @__PURE__ */ jsx(PageHead, { title: "Dashboard Create Header" }),
     /* @__PURE__ */ jsx("div", { className: "centered-content no-margin", children: /* @__PURE__ */ jsx("h1", { children: headerText }) }),
-    isVerified && /* @__PURE__ */ jsx(
+    isVerified && /* @__PURE__ */ jsx("div", { className: "right-item", children: /* @__PURE__ */ jsx(
       Link,
       {
         href: createLink,
-        className: "right-item link-button plus-button",
+        className: "plus-button link-button",
         children: "+"
       }
-    )
+    ) })
   ] });
 }
 const __vite_glob_0_37 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({

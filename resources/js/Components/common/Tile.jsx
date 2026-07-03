@@ -2,7 +2,7 @@ import React from 'react';
 import './Tile.css';
 import UserLink from './UserLink';
 import './UserLink.css';
-import { openPopup } from '../../utils/helpers';
+import { openPopup, getPostUrl } from '../../utils/helpers';
 import { Link, router, usePage } from '@inertiajs/react';
 function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false}) 
 {
@@ -127,7 +127,7 @@ function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false})
                     <div className="info-item action-links link-container">
                         { !post && <p>Post not loaded yet</p> }
 
-                        <Link href={`/${post.user.username}/${post.post_url}`} 
+                        <Link href={getPostUrl(post)} 
                             className="post-link"
                             onClick={handleLinkClick} 
                             draggable="false"

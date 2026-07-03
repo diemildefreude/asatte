@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, router, usePage, useRemember } from '@inertiajs/react';
+import axios from 'axios';
 import './TilesContainer.css';
 import Tile from './Tile';
 import { ScreenSize, checkIfFetchNeeded, Category, FetchOrder, addFetchedPostsToExcludes } from '../../utils/helpers';
@@ -25,7 +26,7 @@ function AutoloadTilesContainer({
     loadOnScroll = true,
     maxItems = null
 }) {
-    const { props } = usePage();
+    const { props, component, version } = usePage();
     const serverPartial = props[partialProp];
 
     const normalize = (p) => {
@@ -81,19 +82,66 @@ function AutoloadTilesContainer({
         isFetchingOnScroll.current = (kind === 'scroll');
         isFetchingOnWidthChange.current = (kind === 'resize');
 
-        router.get(window.location.pathname, query, {
-            only: [partialProp],
-            preserveState: true,
-            preserveScroll: true,
-            replace: true,
-            onSuccess: (page) => {
-                // Keep URL clean on non-search pages
-                if (!isSearch && page) {
-                    page.url = window.location.pathname;
-                }
+        axios.get(window.location.pathname, {
+            params: query,
+            headers: {
+                'X-Inertia': 'true',
+                'X-Inertia-Partial-Data': partialProp,
+                'X-Inertia-Partial-Component': component,
+                'X-Inertia-Version': version
             }
+        }).then(response => {
+            if (!response.data || !response.data.props) return;
+            const partial = response.data.props[partialProp];
+            
+            const isPaginator = partial && partial.data && Array.isArray(partial.data);
+            let newItems = [];
+            if (isPaginator) {
+                newItems = partial.data;
+                const current = partial.current_page || 1;
+                const last = partial.last_page || null;
+                pageRef.current = current;
+                lastPageRef.current = last;
+                if (last && current >= last) setAreNoMorePosts(true);
+            } else if (partial && Array.isArray(partial)) {
+                newItems = partial;
+            } else {
+                newItems = [];
+            }
+
+            if (newItems.length === 0) {
+                setAreNoMorePosts(true);
+            } 
+            else 
+            {
+                setPosts((prev) => {
+                    const existingIds = new Set(prev.map(p => p.id));
+                    const filtered = newItems.filter(p => !existingIds.has(p.id));
+                    if (fetchOrder === FetchOrder.Random) {
+                        fetchExcludesRef.current = addFetchedPostsToExcludes(filtered, fetchExcludesRef.current);
+                    }
+                    return [...prev, ...filtered];
+                });
+            }
+
+            // Mark that we've fetched for this screen size when resize-triggered
+            if (kind === 'resize') 
+            {
+                fetchedScreenSizeRef.current = screenSize;
+            }
+        }).catch(err => {
+            if (err.response && err.response.status === 409) {
+                // Inertia asset version changed, reload the page to get the latest assets
+                window.location.reload();
+            } else {
+                console.error("Autoload error:", err);
+            }
+        }).finally(() => {
+            pendingRequestRef.current = null;
+            isFetchingOnScroll.current = false;
+            isFetchingOnWidthChange.current = false;
         });
-    }, [getPostAmount, screenSize, areNoMorePosts, fetchOrder, isSearch, searchTerm, partialProp]);
+    }, [getPostAmount, screenSize, areNoMorePosts, fetchOrder, isSearch, searchTerm, partialProp, component]);
 
     const handleScroll = useCallback(() => 
     {
@@ -142,55 +190,7 @@ function AutoloadTilesContainer({
         requestNext('resize', missing);
     }, [screenSize, posts, getPostAmount, isSearch, searchTerm, areNoMorePosts, requestNext, fetchOrder, loadOnScroll]);
 
-    // React to Inertia partial updates
-    useEffect(() => {
-        const partial = props[partialProp];
-        const pending = pendingRequestRef.current;
-        if (!pending) {
-            return; // ignore updates not caused by our requests
-        }
-
-        const kind = pending.kind;
-        const isPaginator = partial && partial.data && Array.isArray(partial.data);
-        let newItems = [];
-        if (isPaginator) {
-            newItems = partial.data;
-            const current = partial.current_page || 1;
-            const last = partial.last_page || null;
-            pageRef.current = current;
-            lastPageRef.current = last;
-            if (last && current >= last) setAreNoMorePosts(true);
-        } else if (partial && Array.isArray(partial)) {
-            newItems = partial;
-        } else {
-            newItems = [];
-        }
-
-        if (newItems.length === 0) {
-            setAreNoMorePosts(true);
-        } 
-        else 
-        {
-            setPosts((prev) => {
-                const existingIds = new Set(prev.map(p => p.id));
-                const filtered = newItems.filter(p => !existingIds.has(p.id));
-                if (fetchOrder === FetchOrder.Random) {
-                    fetchExcludesRef.current = addFetchedPostsToExcludes(filtered, fetchExcludesRef.current);
-                }
-                return [...prev, ...filtered];
-            });
-        }
-
-        // Mark that we've fetched for this screen size when resize-triggered
-        if (kind === 'resize') 
-        {
-            fetchedScreenSizeRef.current = screenSize;
-        }
-
-        pendingRequestRef.current = null;
-        isFetchingOnScroll.current = false;
-        isFetchingOnWidthChange.current = false;
-    }, [props[partialProp], partialProp, fetchOrder, screenSize]);
+    // The useEffect listening to props has been removed as axios directly handles responses.
 
     // No client-side caching; always start fresh on load.
 

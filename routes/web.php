@@ -15,6 +15,7 @@ use App\Http\Controllers\SitemapController;
 
 Route::get('/', [HomeController::class, 'index']);
 Route::get('/news', [NewsController::class, 'index']);
+Route::get('/news/{date}/{post_url}', [App\Http\Controllers\PostController::class, 'showNews'])->name('news.show');
 Route::inertia('/contact', 'Contact');
 Route::post('/contact', [ContactController::class, 'sendContactMail'])->name('contact.send')->middleware('throttle:3,1');
 Route::inertia('/login', 'Login')->name('login');

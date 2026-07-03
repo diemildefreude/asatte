@@ -112,7 +112,7 @@ function UserProfile({ user: profileUserProp })
                                     )
                                 }
                                 <div className="profile-avatar-container">                                    
-                                    <img src={avatar} alt="" className="round-image" />
+                                    <img src={avatar} alt={`${user?.username}'s avatar`} className="round-image" />
                                     {
                                         user && user.id !== profileUser.id && (
                                             <button 
@@ -135,54 +135,53 @@ function UserProfile({ user: profileUserProp })
                             </div>
                             <div className="info-section">  
                                 <ProfileItem
-                                    name="website"
-                                    value={profileUser.website}
+                                    name="websites"
+                                    value={profileUser.websites || (profileUser.website ? [profileUser.website] : [])}
                                     isPublic={true}
                                     isLink={true}
+                                    isArray={true}
                                 />
                                 <ProfileItem
                                     name="location"
                                     value={profileUser.location}
                                     isPublic={true}
                                 />       
-                                <div className="flex-row">
                                 {
-                                    user && (user?.id != profileUser?.id) && (                                        
-                                    <div>
-                                        <Link href="/dashboard/mail/new" 
-                                            data={{addressee: username}}
-                                            className='link-with-icon'
+                                    (true) && (
+                                    <div className="flex-row">                                   
+                                        <span>
+                                            <Link href="/dashboard/mail/new" 
+                                                data={{addressee: username}}
+                                                className='link-with-icon'
+                                                >
+                                                <i className="fa-regular fa-envelope medium-icon"/> <span>send DM</span>
+                                            </Link>
+                                        </span>
+                                        {
+                                        !!profileUser.show_email_in_profile && (
+                                        <span>
+                                            <a href={`mailto:${profileUser.email}`}
+                                                className='link-with-icon'
                                             >
-                                            <i className="fa-regular fa-envelope big-icon"/> <span>send DM</span>
-                                        </Link>
-                                    </div>
-                                    )
+                                                <i className="fa-solid fa-envelopes-bulk medium-icon"/> <span>e-mail</span> 
+                                            </a> 
+                                            {' '}
+                                            <button className='button-link' 
+                                                aria-label="copy to clipboard" 
+                                                title="copy to clipboard"
+                                                onClick={handleCopy}
+                                            > 
+                                                <i className="fa-regular fa-copy medium-icon"/>
+                                            </button>
+                                        </span>
+                                        )}
+                                    </div>)
                                 }
-                                {
-                                    !!profileUser.show_email_in_profile && (
-                                    <div>
-                                        <a href={`mailto:${profileUser.email}`}
-                                            className='link-with-icon'
-                                        >
-                                            <i className="fa-solid fa-envelopes-bulk big-icon"/> <span>e-mail</span> 
-                                        </a> 
-                                        {' '}
-                                        <button className='button-link' 
-                                            aria-label="copy to clipboard" 
-                                            title="copy to clipboard"
-                                            onClick={handleCopy}
-                                        > 
-                                            <i className="fa-regular fa-copy big-icon"/>
-                                        </button>
-                                    </div>
-                                    )
-                                }
-                                </div>
                             </div>        
                         </div>
                         <div className="rte-container">
                             <div className="centered-header-box">       
-                                <div className="centered-content">
+                                <div className="centered-content top-2rem">
                                     <h2>bio</h2>                    
                                 </div>
                             </div>       

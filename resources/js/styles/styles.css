@@ -41,10 +41,6 @@ input:focus, textarea:focus
         scrollbar-width: auto;   
     }
 }
-#app::before
-{
-    background: black;
-}
 body::before 
 {
     content: '';
@@ -52,7 +48,7 @@ body::before
     top: 0; 
     left: 0;
     right: 0;
-    height: 100lvh;
+    height: 200lvh;
     z-index: -3;
     background: var(--indigo-gradient);
 }
@@ -449,6 +445,9 @@ button:disabled, button:disabled:hover
 {
     align-content: center;
     font-weight: 300;
+}
+.inline-form-field a
+{    
     /* overflow-wrap: break-word; */
     word-break: break-all;
 }
@@ -463,7 +462,7 @@ button:disabled, button:disabled:hover
 {
     width: clamp(1px, 400px, 100%);
     flex-basis: clamp(1px, 400px, 100%);
-    padding: 0 0.5rem;
+    padding: 0.3rem 0.5rem;
     color: black;
 }
 .edit-button, .save-button, .small-button
@@ -476,6 +475,10 @@ button:disabled, button:disabled:hover
     padding: 0.5rem 0.9rem;
     margin: 0;
     border: 2px solid white;
+}
+.plus-button.small
+{
+    padding: 0.25rem 0.7rem;
 }
 .small-button, .content:not(.touch-device) .small-button:hover
 {
@@ -602,7 +605,7 @@ button:disabled, button:disabled:hover
 }
 .centered-icon i
 {
-    font-size: 5em;
+    font-size: 3em;
     cursor: help;
 }
 .red
@@ -621,9 +624,13 @@ button:disabled, button:disabled:hover
 {
     text-decoration: underline;
 }
-.big-icon
+.medium-icon
 {
-    font-size: 2em;
+    font-size: 1.5em;
+}
+.large-icon
+{
+    font-size: 2.5em;
 }
 .flex-row, .flex-column
 {

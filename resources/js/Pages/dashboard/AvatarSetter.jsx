@@ -293,7 +293,7 @@ function AvatarSetter({user})
                 update
                 <div className="image-drag-panel"></div>
             </button>
-            <img src={avatar} alt="" className="round-image" />
+            <img src={avatar} alt={`${user?.username}'s avatar`} className="round-image fuck" />
         </div>
         </>
     );

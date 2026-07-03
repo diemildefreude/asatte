@@ -47,20 +47,18 @@
 {
     flex-direction: row-reverse;
     width: 100%;
-    height: fit-content;
+    height: 100%;
     position: relative;
-    background-color: transparent;
+    background: transparent;
     justify-content: center;
+    align-items: center;
     gap: 2rem;
     opacity: 1;
 }
-/* .main-image-link-container:hover .info-panel
-{
-    opacity: 1;
-} */
 .touch-device .main-image-container .info-panel
 {
     justify-content: space-between;
+    align-items: end;
 }
 .main-image-container .info-item
 {
@@ -280,7 +278,7 @@
 {
     color: var(--grey-yellow);
 }
-.touch-device .main-image-container .like-button i
+.touch-device .main-image-container .like-button i, .touch-device .main-image-container .big-icon i
 {    
     -webkit-text-stroke: 1px indigo;
 }

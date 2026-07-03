@@ -576,8 +576,54 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef=
 
     }, [src, smallSrc, updateTransitionVisuals, outerContainerRef, setTransform]);
 
+    useEffect(() => {
+        if (!isZoomed || !zoomContainerRef.current) return;
+
+        const focusableElements = zoomContainerRef.current.querySelectorAll(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+
+        if (focusableElements.length > 0) {
+            focusableElements[0].focus();
+        }
+
+        const handleKeyDown = (e) => {
+            if (e.key === 'Tab') {
+                const firstElement = focusableElements[0];
+                const lastElement = focusableElements[focusableElements.length - 1];
+
+                if (e.shiftKey) {
+                    if (document.activeElement === firstElement) {
+                        lastElement.focus();
+                        e.preventDefault();
+                    }
+                } else {
+                    if (document.activeElement === lastElement) {
+                        firstElement.focus();
+                        e.preventDefault();
+                    }
+                }
+            } else if (e.key === 'Escape') {
+                clickFunc(e);
+            } else if (e.key === 'ArrowRight' && onNavigateNext) {
+                onNavigateNext();
+            } else if (e.key === 'ArrowLeft' && onNavigatePrev) {
+                onNavigatePrev();
+            }
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+        
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [isZoomed, clickFunc, onNavigateNext, onNavigatePrev]);
+
     return (
         <div className={containerClasses}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Image gallery"
             draggable="false"
             onClick={handleClick}
             ref={zoomContainerRef}>
@@ -612,6 +658,11 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef=
                      draggable="false"
                 />
             )}
+            
+            <button className="sr-only" onClick={(e) => { e.stopPropagation(); clickFunc(e); }}>Close gallery</button>
+            {prevSrc && <button className="sr-only" onClick={(e) => { e.stopPropagation(); onNavigatePrev(); }}>Previous image</button>}
+            {nextSrc && <button className="sr-only" onClick={(e) => { e.stopPropagation(); onNavigateNext(); }}>Next image</button>}
+
         </div>
     )
 }

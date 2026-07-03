@@ -14,7 +14,7 @@ body
     font-weight: 1;
     line-height: 1.8rem;
     color: #000;
-    min-height: 100%;
+    min-height: 100px !important;
     margin: 0;
     padding: 0 0.4rem !important;
     box-sizing: border-box;

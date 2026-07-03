@@ -87,7 +87,8 @@ class DashboardController extends Controller
 
         $request->validate
         ([
-            'website' => ['nullable', 'string', 'max:255'],
+            'websites' => ['nullable', 'array', 'max:3'],
+            'websites.*' => ['nullable', 'string', 'max:255'],
             'location' => ['nullable', 'string', 'max:255']            
         ]);
 
@@ -95,8 +96,16 @@ class DashboardController extends Controller
         $showEmailInProfile = $request->boolean('show_email_in_profile');
 
         $user = $request->user();
-        $website = $request->input('website') ? addHttpProtocol($request->input('website', '')) : null;
-        $user->website = $website;
+        $websitesInput = $request->input('websites');
+        $websites = [];
+        if (is_array($websitesInput)) {
+            foreach ($websitesInput as $url) {
+                if (trim($url)) {
+                    $websites[] = addHttpProtocol($url);
+                }
+            }
+        }
+        $user->websites = empty($websites) ? null : $websites;
         $user->location = $request->location;
         $user->show_email_in_profile = $showEmailInProfile;
         $user->save();
@@ -108,8 +117,12 @@ class DashboardController extends Controller
     public function posts(Request $request)
     {
         $user = $request->user();
-        $amount = intval($request->query('amount', 12));
-        $page = intval($request->query('page', 1));
+        $amount = 12;
+        $page = 1;
+        if ($request->header('X-Inertia-Partial-Data')) {
+            $amount = intval($request->query('amount', 12));
+            $page = intval($request->query('page', 1));
+        }
 
         $query = Post::with('user:id,username,avatar,member_type')
             ->where('user_id', $user->id)
@@ -131,8 +144,12 @@ class DashboardController extends Controller
             return redirect()->back();
         }
 
-        $amount = intval($request->query('amount', 12));
-        $page = intval($request->query('page', 1));
+        $amount = 12;
+        $page = 1;
+        if ($request->header('X-Inertia-Partial-Data')) {
+            $amount = intval($request->query('amount', 12));
+            $page = intval($request->query('page', 1));
+        }
 
         $query = Post::with('user:id,username,avatar,member_type')
             ->where('is_news', true)

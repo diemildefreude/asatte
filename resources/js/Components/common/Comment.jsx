@@ -1,4 +1,4 @@
-import { getDateAsYYYYMMDD, getErrorMessage, getTimeAsHHMM, MemberType, sanitizeRichHtml, scrollToElement } from "../../utils/helpers";
+import { getDateAsYYYYMMDD, getErrorMessage, getTimeAsHHMM, MemberType, sanitizeRichHtml, scrollToElement, getPostUrl } from "../../utils/helpers";
 import UserLink from "./UserLink";
 import EditButton from "./EditButton";
 import { useCallback, useState } from "react";
@@ -56,7 +56,7 @@ function Comment({comment, isDashboard=false, onReply=null, id, parentLocalId=nu
         <p>
         {
             isDashboard && comment.post ? (<>
-                in <Link href={`/${comment.post?.user?.username}/${comment.post.post_url}`} //+#comment-0
+                in <Link href={getPostUrl(comment.post)} //+#comment-0
                     className="bold"
                 >
                     {comment.post.title}
@@ -88,7 +88,7 @@ function Comment({comment, isDashboard=false, onReply=null, id, parentLocalId=nu
         }
         {
             isDashboard && comment.post && comment.post.user && ( //post is only included when using fetchUserComments
-                <Link href={`/${comment.post.user.username}/${comment.post.post_url}?comment_id=${comment.id}`}
+                <Link href={`${getPostUrl(comment.post)}?comment_id=${comment.id}`}
                     className="notice small"
                 >
                     <i className="fa-solid fa-arrow-up-right-from-square"></i> go to comment

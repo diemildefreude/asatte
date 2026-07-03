@@ -198,8 +198,12 @@ class PostController extends Controller
     public function myLikedPosts(Request $request)
     {
         $userId = $request->user()->id;
-        $amount = intval($request->query('amount', 12));
-        $page = intval($request->query('page', 1));
+        $amount = 12;
+        $page = 1;
+        if ($request->header('X-Inertia-Partial-Data')) {
+            $amount = intval($request->query('amount', 12));
+            $page = intval($request->query('page', 1));
+        }
 
         $query = Post::select('posts.*', 'post_user.id as pivot_id', 'post_user.created_at as liked_at')
             ->join('post_user', 'posts.id', '=', 'post_user.post_id')
@@ -409,6 +413,81 @@ class PostController extends Controller
         if($isHidden && !$isAdminRequest && !$isPostCreatorRequest)
         {
             abort(404, 'No such post found.');
+        }        
+        
+        $post->load('comments.user');
+
+        return \Inertia\Inertia::render('Post', ['post' => $post]);
+    }
+
+    /**
+     * Display a news post.
+     */
+    public function showNews(Request $request, string $date, string $post_url)
+    {
+        if (strlen($date) !== 8) {
+            abort(404, 'Invalid date format.');
+        }
+        $formattedDate = substr($date, 0, 4) . '-' . substr($date, 4, 2) . '-' . substr($date, 6, 2);
+
+        $query = Post::with([
+            'user:id,username,avatar,member_type',
+            'comments' => function ($query) 
+            {
+                // ...and for each comment, eager load its user, selecting specific fields
+                $query->with('user:id,username,avatar');
+            }])
+            ->withCount('usersWhoLiked')
+            ->where('is_news', true)
+            ->where('post_url', $post_url)
+            ->whereDate('created_at', $formattedDate);
+
+        // The auth() helper works whether the route is protected or not.
+        $authenticatedUser = $request->user();
+        if ($authenticatedUser) 
+        {            
+            $userId = $authenticatedUser->id;
+            $query->withExists([
+                'usersWhoLiked as have_liked' => function ($query) use ($userId) 
+                {
+                    $query->where('user_id', $userId);
+                }
+            ]);
+        }
+        
+        \Illuminate\Support\Facades\Log::info("showNews query: ", [
+            'sql' => $query->toSql(),
+            'bindings' => $query->getBindings()
+        ]);
+        
+        $post = $query->first();
+
+        if (!$post) 
+        {
+            \Illuminate\Support\Facades\Log::info("showNews 404: post is null");
+            abort(404, 'No such news post found.');
+        }
+
+        $isPostCreator = $authenticatedUser && $authenticatedUser->id == $post->user_id;
+
+        if (($post->is_private || $post->is_draft) && !$isPostCreator)
+        {
+            \Illuminate\Support\Facades\Log::info("showNews 404: private/draft and not creator");
+            abort(404, 'No such news post found.');
+        }
+
+        $isHidden = $post->is_hidden_by_admin;
+        $isAdminRequest = $authenticatedUser && 
+            ($authenticatedUser->member_type == MemberType::Webmaster 
+            || $authenticatedUser->member_type == MemberType::Admin);
+            
+        $isPostCreatorRequest = $authenticatedUser && 
+            ($authenticatedUser->id == $post->user_id);
+
+        if($isHidden && !$isAdminRequest && !$isPostCreatorRequest)
+        {
+            \Illuminate\Support\Facades\Log::info("showNews 404: hidden and not admin/creator");
+            abort(404, 'No such news post found.');
         }        
         
         $post->load('comments.user');

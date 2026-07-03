@@ -20,7 +20,7 @@ header
         visibility 0.0s 0.5s;
     height: var(--header-height-narrow);
 }
-@media (min-width: 700px)
+@media (min-width: 800px)
 {
     header
     {
@@ -97,6 +97,7 @@ nav.open
 .nav-search
 {
     max-width: 200px;
+    padding: 0 0.5em;
     /* flex-basis: 200px; */
 }
 .nav-search-container button
@@ -145,7 +146,7 @@ nav.open
 .nav-half.second .nav-item:nth-child(3) {
   transform: translateX(0%);
 }
-@media (min-width: 700px)
+@media (min-width: 800px)
 {
     nav
     {
@@ -193,9 +194,11 @@ nav.open
     }
     .nav-search 
     {
-        display: none;        
+        width: 0px; 
+        padding: 0;
+        border: none;     
         /* flex-basis: 100px; */
-        max-width: 150px;
+        /* max-width: 150px; */
     }
     .nav-search-container:hover
     {
@@ -207,7 +210,8 @@ nav.open
     .nav-search-container.always-open .nav-search,
     .nav-search-container:focus-within .nav-search
     {
-        display: block;
+        width: 150px;
+        padding: 0 0.5em;
     }
     .nav-search-container button
     {
@@ -226,8 +230,6 @@ nav.open
     }
     .nav-search 
     {
-        display: none;        
-        /* flex-basis: 100px; */
         max-width: 250px;
     }
 }
@@ -291,7 +293,7 @@ nav.open
 {
     transform: translateY(calc(((var(--burger-height) * 0.5) - (var(--burger-bar-thickness) * 0.5)) * -1)) rotate(45deg);
 }
-@media (min-width: 700px)
+@media (min-width: 800px)
 {
     .nav-button
     {
@@ -317,7 +319,7 @@ nav.open
 {
     font-weight: 400;
 }
-@media (min-width: 700px)
+@media (min-width: 800px)
 {
     .user-link.nav-item
     {

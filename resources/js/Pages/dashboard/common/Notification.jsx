@@ -1,4 +1,4 @@
-import { getDateAsYYYYMMDD, getTimeAsHHMM, NotificationType, sanitizeRichHtml } from "../../../utils/helpers";
+import { getDateAsYYYYMMDD, getTimeAsHHMM, NotificationType, sanitizeRichHtml, getPostUrl } from "../../../utils/helpers";
 import { Link, router, usePage } from '@inertiajs/react';
 import UserLink from "../../../Components/common/UserLink";
 import '../../../Components/common/CommentsNotifications.css';
@@ -24,7 +24,7 @@ function Notification({notification})
                 </p>
                 <br/>
                 <p>
-                    Your post, <Link href={`/${notification.post?.user?.username}/${notification.post?.post_url}`}>
+                    Your post, <Link href={getPostUrl(notification.post)}>
                         {notification.post?.title}
                     </Link>, has been unhidden.
                 </p>
@@ -47,7 +47,7 @@ function Notification({notification})
                 notification.type == NotificationType.Comment && (
                 <p>
                     <UserLink user={notification.comment.user}
-                    /> commented on <Link href={`/${notification.comment.post?.user?.username}/${notification.comment.post?.post_url}`}
+                    /> commented on <Link href={getPostUrl(notification.comment.post)}
                     >
                         {notification.comment.post?.title}
                     </Link> <em>on {getDateAsYYYYMMDD(notification.created_at)}
@@ -58,10 +58,10 @@ function Notification({notification})
             {
                 notification.type == NotificationType.Reply && (<p>
                     <UserLink user={notification.comment.user}
-                    /> replied to <Link href={`/${notification.comment.post?.user?.username}/${notification.comment.post?.post_url}?comment_id=${notification.comment.parent_id}`}
+                    /> replied to <Link href={`${getPostUrl(notification.comment.post)}?comment_id=${notification.comment.parent_id}`}
                     >
                         your comment 
-                    </Link> in <Link href={`/${notification.comment.post?.user?.username}/${notification.comment.post?.post_url}`}
+                    </Link> in <Link href={getPostUrl(notification.comment.post)}
                     >
                         {notification.comment.post?.title}
                     </Link> <em>on {getDateAsYYYYMMDD(notification.created_at)}
@@ -71,7 +71,7 @@ function Notification({notification})
             {
                 (notification.type == NotificationType.Comment || notification.type == NotificationType.Reply) && (<>                    
                     <div className="comment-notice-container">
-                        <Link href={`/${notification.comment.post?.user?.username}/${notification.comment.post?.post_url}?comment_id=${notification.comment.id}`}
+                        <Link href={`${getPostUrl(notification.comment.post)}?comment_id=${notification.comment.id}`}
                             className="notice small"
                         >
                             <i className="fa-solid fa-arrow-up-right-from-square"></i> go to comment

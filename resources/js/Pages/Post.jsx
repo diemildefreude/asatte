@@ -1,7 +1,7 @@
     import React, { useCallback, useEffect, useMemo, useState } from 'react';
     import {  Link, router, usePage } from '@inertiajs/react';
     import PageHead from '../Components/layout/PageHead';
-    import { getDateAsYYYYMMDD, getErrorMessage, hydrateEditorImagePaths, MemberType, openPopup, processEditorImages, sanitizeRichHtml } from '../utils/helpers';
+    import { getDateAsYYYYMMDD, getErrorMessage, hydrateEditorImagePaths, MemberType, openPopup, processEditorImages, sanitizeRichHtml, getPostUrl } from '../utils/helpers';
 
     import Layout from '../Components/layout/Layout';
     import './Post.css';
@@ -60,6 +60,7 @@
 
         const mainImg = `${appUrl}/storage/images/uploaded/users/${post.user.username}/posts/${post.post_url}/gallery/large/${imageUrls[0]}`;
         const mainAlt = post?.gallery_alts[0] ?? "";
+        console.log("post?", post);
 
         const videoUrl = useMemo(() =>
         {
@@ -128,7 +129,7 @@
 
         const handleHideClick = useCallback(() =>
         {
-            const adminStarterText = `<p>Your post, <a href="${props.app_url}/${post.user.username}/${post.post_url}"><em>${post.title}</em></a> has been hidden.</p>
+            const adminStarterText = `<p>Your post, <a href="${props.app_url}${getPostUrl(post)}"><em>${post.title}</em></a> has been hidden.</p>
             <p> reason: </p>    
             <p> If you wish to dispute this decision, please reply to this message.</p>
             `;
@@ -165,18 +166,14 @@
                                         <div className="info-panel">
                                         {
                                             (post?.is_private || post?.is_draft)? (
-                                            <div>
-                                                <div
-                                                    type="button" 
-                                                    className={"big-icon blue"}
-                                                    title={post?.is_private ? "private" : "draft"}                                                   
-                                                >
-                                                    <i className="fa-regular fa-eye-slash"></i>
-                                                </div>
+                                            <div
+                                                className={"big-icon blue"}
+                                                title={post?.is_private ? "private" : "draft"}                                                   
+                                            >
+                                                <i className={post?.is_private ? "fa-regular fa-eye-slash" : "fa-solid fa-file-pen"}></i>
                                             </div>
                                             ):(
                                             isAuthenticated && (
-                                            <div>
                                                 <button 
                                                     type="button" 
                                                     className={isLiked ? "like-button liked" : "like-button"}
@@ -185,8 +182,7 @@
                                                     aria-pressed={isLiked}
                                                 >
                                                     <i className={isLiked ? "fa-solid fa-star" : "fa-regular fa-star"}></i>
-                                                </button>
-                                            </div>))
+                                                </button>))
                                         }
                                         { 
                                             post.website ?

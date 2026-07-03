@@ -969,3 +969,20 @@ export const retryOperation = async (fn, retries = 3, delay = 1000, errorMessage
         }
     }
 };
+
+/**
+ * Constructs the routing URL for a post depending on whether it is a news post.
+ * @param {Object} post - The post object containing is_news, created_at, post_url, and user.username
+ * @returns {string} The routing URL
+ */
+export function getPostUrl(post) {
+    if (!post) return '';
+    if (post.is_news && post.created_at) {
+        const date = new Date(post.created_at);
+        const yyyy = date.getUTCFullYear();
+        const mm = String(date.getUTCMonth() + 1).padStart(2, '0');
+        const dd = String(date.getUTCDate()).padStart(2, '0');
+        return `/news/${yyyy}${mm}${dd}/${post.post_url}`;
+    }
+    return `/${post.user?.username}/${post.post_url}`;
+}

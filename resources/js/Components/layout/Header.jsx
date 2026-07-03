@@ -151,9 +151,10 @@ function Header()
                         onFocus={() => searchInputRef.current?.focus()}
                         onSubmit={handleSearch} 
                         className={searchClasses}>
-                        <input id="search" name="search" className="nav-search" type="text" placeholder=" search" 
+                        <input id="search" name="search" className="nav-search" type="text" placeholder="search" 
                             onChange={e => setSearchTerm(e.target.value)} value={searchTerm}
                             ref={searchInputRef}
+                            aria-label="search"
                         />
                         <button type="submit" tabIndex="-1" aria-label="Submit search">
                             <i className="fa-solid fa-magnifying-glass" aria-hidden="true"></i>

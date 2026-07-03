@@ -107,6 +107,13 @@
 {
     margin: 1rem 0 0;
 }
+@media (min-width: 450px)
+{
+    .comment.dm
+    {
+        padding: 0 0 1rem;
+    }
+}
 .comment .user-link span
 {
     color: var(--pale-yellow);
