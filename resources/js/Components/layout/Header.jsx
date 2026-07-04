@@ -13,7 +13,7 @@ function Header()
     const unread = props?.unread ?? {};
     const hasUnread = !!unread.has_unread_notifications || !!unread.has_unread_mail;
     
-    const dashboardUrl = `${appUrl}/dashboard/`;
+    const dashboardUrl = `/dashboard`;
     
     const isClient = typeof window !== 'undefined';
     const isAuthenticated = !!user;
