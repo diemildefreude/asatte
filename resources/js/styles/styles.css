@@ -229,11 +229,19 @@ p iframe
 {
     padding: 0 1rem;
 }
+.side-margin-on-mobile
+{
+    margin: 0 1rem;
+}
 @media (min-width: 450px)
 {
     .side-padded-on-mobile
     {
         padding: 0 0;
+    }
+    .side-margin-on-mobile
+    {
+        margin: 0;
     }
 }
 .notice-container

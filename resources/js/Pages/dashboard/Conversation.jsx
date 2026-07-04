@@ -495,6 +495,7 @@ function Conversation({ conversation: conversationProp, addressee })
             <button
                 type="submit"
                 disabled={isSubmitting || !canSubmit}
+                className="side-margin-on-mobile"
             >
                 send
             </button>
