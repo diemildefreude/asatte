@@ -39,6 +39,18 @@ class SecurityHeaders
                "frame-src *; " .
                "connect-src 'self' wss: https:;";
 
+        if (app()->environment('local')) {
+            // Completely relax CSP for local development to prevent Vite/HMR conflicts
+            $csp = "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; " .
+                   "script-src * 'unsafe-inline' 'unsafe-eval' data: blob:; " .
+                   "style-src * 'unsafe-inline' data: blob:; " .
+                   "img-src * data: blob:; " .
+                   "media-src * data: blob:; " .
+                   "font-src * data: blob:; " .
+                   "frame-src *; " .
+                   "connect-src *;";
+        }
+
         $response->headers->set('Content-Security-Policy', $csp);
 
         return $response;
