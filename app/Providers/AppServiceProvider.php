@@ -33,5 +33,9 @@ class AppServiceProvider extends ServiceProvider
         { // Only force if APP_URL is actually set
             URL::forceRootUrl(config('app.url'));
         }
+        
+        if (config('app.env') === 'production') {
+            URL::forceScheme('https');
+        }
     }
 }
