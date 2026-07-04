@@ -54,7 +54,7 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
         }
       }}
       init={{
-        height: 500,
+        min_height: 100,
         convert_urls: false,
         menubar: false,
         plugins: 'autoresize image link media',

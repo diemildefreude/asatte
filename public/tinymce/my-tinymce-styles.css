@@ -2,7 +2,6 @@
 
 html 
 {
-    height: 100%;
     /* Fix Android touch-scroll bug when using autoresize */
     touch-action: pan-y;
     overflow-y: hidden !important;
