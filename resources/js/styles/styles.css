@@ -470,6 +470,10 @@ button:disabled, button:disabled:hover
     padding: 0.25rem 0.5rem;
     margin: 0;
 }
+.right-aligned
+{
+    justify-content: right;
+}
 .plus-button
 {
     padding: 0.5rem 0.9rem;

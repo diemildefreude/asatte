@@ -57,7 +57,7 @@ function ProfileItem({name, value, onChange=null, disabled=false,
                         {idx === 0 ? (
                             <label htmlFor={name} className="field-name">{nameToUse}:</label>
                         ) : (
-                            <label className="field-name hidden">{nameToUse}:</label> // Empty space for alignment
+                            <label className="field-name invisible" htmlFor={`${name}_${idx}`}>{nameToUse}:</label> // Empty space for alignment
                         )}
                         
                         {isUpdatable ? renderInput(val, idx) : renderValue(val)}
@@ -72,7 +72,7 @@ function ProfileItem({name, value, onChange=null, disabled=false,
                 ))}
                 
                 {isEditingThisField && values.length < maxArrayLength && (
-                    <div className="inline-form-field">
+                    <div className="inline-form-field right-aligned">
                         <label className="field-name hidden">{nameToUse}:</label>
                         <div>
                             <button type="button" onClick={(e) => { e.preventDefault(); if(onAddArrayItem) onAddArrayItem(); }} 
