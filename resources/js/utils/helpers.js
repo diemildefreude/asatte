@@ -56,11 +56,11 @@ export function sanitizeRichHtml(html)
 
 export function addFetchedPostsToExcludes(posts, previous)
 {
-    console.log("afpte: posts, previous", posts, previous);
+
     const excludes = previous;
     posts.forEach((post) =>
     {
-        //console.log("post?", post);
+
         excludes.push(post.id); 
     })
     return excludes;
@@ -341,40 +341,6 @@ export function resizeImage(source, isGallery = false)
 //             else 
 //             {
 //                 // It's an existing URL, just keep it as is.
-//                 processedOps.push(op);
-//             }
-//         } else {
-//             // Not an image, just add it to the new array.
-//             processedOps.push(op);
-//         }
-//     }
-
-//     // Await all image resizing promises
-//     const processedImages = await Promise.all(imagePromises);
-
-//     // Replace the placeholders with the actual processed image data
-//     for (let i = 0; i < processedOps.length; i++) 
-//     {
-//         const op = processedOps[i];
-//         if (op.insert && typeof op.insert.image === 'string' && op.insert.image.startsWith('IMAGE_PLACEHOLDER_')) 
-//         {
-//             const index = parseInt(op.insert.image.split('_')[2], 10);
-//             const imageData = processedImages[index];
-//             if (imageData.type === 'blob') 
-//             {
-//                 op.insert.image = await blobToBase64(imageData.data);
-//             } 
-//             else if (imageData.type === 'error') 
-//             {
-//                 op.insert.image = imageData.data; // Keep original URL
-//             }
-//         }
-//     }
-
-//     console.log(deltaOps, "processing to:", processedOps);
-
-//     return processedOps;
-// }
 export function dehydrateEditorImagePaths(htmlString, appUrl = '') 
 {
     if (!htmlString) return htmlString;
@@ -489,7 +455,7 @@ export function getImageFileFromInput(e) //handles Drop too
     const file = e.dataTransfer ? e.dataTransfer.items[0].getAsFile() : e.target.files[0];
     const isValid = isValidImageType(file);
 
-    //console.log("info", file.type, isValidImageType);
+
     if(!isValid)
     {        
         return null;
@@ -594,7 +560,7 @@ export function getVideoEmbedUrl(url)
     }
 
     videoId = getVideoId(url, dailyMotionPatterns);
-    console.log("dailyMotion?!", videoId);
+
     if (videoId) 
     {
         return `https://www.dailymotion.com/embed/video/${videoId}`;//?autoplay=false`;
@@ -645,7 +611,7 @@ export function getImageUrlsFromDelta(ops)
 
 export function getErrorMessage(err)
 {
-    console.log("err?", err);
+
     let displayErrorMessage = "An unexpected error occurred. Please try again.";
     if (err.response && err.response.data) 
     {
@@ -746,7 +712,7 @@ export function getDateString(date = new Date())
 
 export function openPopup(url, windowName, left, top, width, height)
 {
-    //console.log(top, left, width, height);
+
     const features = `width=${width},height=${height},left=${left},top=${top},
                       resizable=yes,scrollbars=yes,status=no,menubar=no,toolbar=no,location=no`;
     return window.open(url, windowName, features);
@@ -799,14 +765,14 @@ export function getNextFetchIndex(fetchedPosts, fetchOrder)
 {    
     const post = fetchedPosts[fetchedPosts.length - 1];
     const id = post.pivot_id ?? post.id;
-    //console.log(post, id);
+
     if(fetchOrder === FetchOrder.Ascending)
     {
         return id + 1;
     }
     if(fetchOrder === FetchOrder.Descending)
     {
-        //console.log(`setting fetchIndex: ${id - 1}`);
+
         return id - 1;
     }
     if(fetchOrder === FetchOrder.Random)
@@ -862,7 +828,7 @@ export function checkIfFetchNeeded(prevScreenSizeRef, screenSize, fetchedScreenS
     let shouldFetch = screenSize > prevScreenSize && screenSize > fetchedScreenSize.current;
     // if (shouldFetch) 
     // {
-    //     console.log("Viewport transitioned from narrow to wide, fetching more posts.");
+
     // }
 
     // Update the ref for the next render's comparison
@@ -957,7 +923,7 @@ export const retryOperation = async (fn, retries = 3, delay = 1000, errorMessage
 
             if (attempts < retries) 
             {
-                console.log(`Retrying in ${delay / 1000} seconds...`);
+
                 await new Promise(res => setTimeout(res, delay)); // Wait before retrying
                 // Optionally increase delay for exponential backoff (delay * 2)
             } 

@@ -29,7 +29,7 @@ function EditProfile()
     const [showEmailInProfile, setShowEmailInProfile] = useState(false);
     const [editingField, setEditingField] = useState(null);
 
-    console.log("user",user);
+
     useEffect(() =>
     {
         if(!user) return;

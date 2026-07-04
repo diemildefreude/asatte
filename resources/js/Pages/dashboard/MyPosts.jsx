@@ -19,7 +19,7 @@ function MyPosts()
         const cleanup = monitorScreenSize(setScreenSize);
         return cleanup;
     }, [setScreenSize]);
-    //console.log("user", user);
+
 
     return ( 
     <DashboardLayout currentTab="posts">

@@ -7,7 +7,7 @@ function UserCircle({user})
     const avatar = user?.avatar ? `${props.app_url}/storage/images/uploaded/users/${user.username}/avatar/small/${user?.avatar}` 
         : `${props.app_url}/storage/images/defaults/avatar.webp?v=1`;
 
-        //console.log("userCircle?!", user);
+
     
         return (
         user && (

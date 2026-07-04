@@ -47,7 +47,7 @@ function HeroTilesContainer({screenSize, category, fetchOrder=FetchOrder.Ascendi
         {
             if(data.status === 'no_more_posts')
             {
-                console.log("no more posts");
+
                 setAreNoMorePosts(true);
                 return;
             }

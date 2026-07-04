@@ -58,7 +58,7 @@ function CarouselContainer({size, className, children})
         const FADE_WIDTH = 200;
         const currentX = currentTranslateXRef.current;
         const opacityLeft = Math.min(-currentX / FADE_WIDTH, 1.0); //if currentX == 0, opacity = 1;
-        //console.log("opacityLeft", opacityLeft);
+
         const sliderLeft = sliderEndLeftRef.current;
         sliderLeft.style.setProperty("--left-opacity", opacityLeft);
 
@@ -67,7 +67,7 @@ function CarouselContainer({size, className, children})
         const innerSliderMax = innerW - outerW; // 264
         const rightFadePoint = innerSliderMax - FADE_WIDTH; // 164
         const opacityRight = 1.0 - Math.max((-currentX - rightFadePoint) / FADE_WIDTH, 0.0); // 164 - 164 = 0 || 264 - 164 = 100
-        //console.log("opacityRight", opacityRight);
+
         const sliderRight = sliderEndRightRef.current;
         sliderRight.style.setProperty("--right-opacity", opacityRight);
 
@@ -298,7 +298,7 @@ function CarouselContainer({size, className, children})
             {
                 return;
             }
-            //console.log("wheel?");
+
             if(innerSliderRef.current.style.left === "")
             {
                 innerSliderRef.current.style.left = "0px";

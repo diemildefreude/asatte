@@ -24,7 +24,7 @@ function CreatePostForm() {
       return response.json(); // Or response.text() if your backend returns plain text
     })
     .then(data => {
-      console.log('Data received:', data);
+
       // Process the data from your Laravel controller
     })
     .catch(error => {

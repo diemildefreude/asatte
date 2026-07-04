@@ -129,7 +129,7 @@ function About({ about, status })
                 {
                     isInEditMode ? (
                     <RichTextEditor
-                        isReadOnly={!isInEditMode || processing}
+                        disabled={!isInEditMode || processing}
                         onChange={handleStatementChange}
                         value={statement}
                         autoFocus={true}

@@ -43,7 +43,7 @@ function Paginator({itemsPerPage, totalCount, currentPage, onNumberClick})
 {
     const { url } = usePage();
     const pageCount = Math.ceil(totalCount / itemsPerPage); 
-    //console.log("totalCount, itemsPerPage, pageCount, currentPage", totalCount, itemsPerPage, pageCount, currentPage);
+
 
     const pageNumbers = getPageNumbers(currentPage, pageCount);
 
@@ -83,7 +83,7 @@ function Paginator({itemsPerPage, totalCount, currentPage, onNumberClick})
                 const isEllipsisAfter = pageNumbers[pageNumbers.length - 1] < pageCount && 
                     pageNumbers[pageNumbers.length - 1] === i;
                 
-                //console.log("currentPage?!", currentPage, i);
+
                 return (<span key={i}>                    
                 { isEllipsisBefore && (<>…</>) }
                 <a 

@@ -50,12 +50,12 @@ class CommentController extends Controller
      */
     public function store(Request $request, Post $post)
     {
-        Log::info("storing comment", ['postId' => $post->id]);
+
         $validatedFields = $request->validate([
             'content' => ['required', 'string', 'max:5000'],
             'parent_id' => ['nullable', 'exists:comments,id'], 
         ]);
-        Log::info("parent id is $request->parent_id");
+
 
         $userId = $request->user()->id;
         
@@ -112,7 +112,7 @@ class CommentController extends Controller
         {
             return back()->withErrors(['error' => "This is not your comment to edit."]);
         }
-        //Log::info("updating comment", ['postId' => $post->id]);
+
         $validatedFields = $request->validate([
             'content' => ['required', 'string', 'max:5000']
         ]);
@@ -135,7 +135,7 @@ class CommentController extends Controller
         {
             return back()->withErrors(['error' => "This is not your comment to delete."]);
         }
-        Log::info("Deleting comment $comment->id");
+
         $comment->delete();
 
         return back()->with('success', 'Comment successfully deleted.');

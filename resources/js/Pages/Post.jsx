@@ -53,14 +53,14 @@
             catch(err)
             {
                 const msg = getErrorMessage(err);
-                console.log(msg);
+
                 return [];                
             }
         }, [post]);
 
         const mainImg = `${appUrl}/storage/images/uploaded/users/${post.user.username}/posts/${post.post_url}/gallery/large/${imageUrls[0]}`;
         const mainAlt = post?.gallery_alts[0] ?? "";
-        console.log("post?", post);
+
 
         const videoUrl = useMemo(() =>
         {
@@ -71,7 +71,7 @@
             catch(err)
             {
                 const msg = getErrorMessage(err);
-                console.log(msg);
+
                 return [];                
             }
         }, [post]);
@@ -302,7 +302,7 @@
                                                 </div>
                                                 <RichTextEditor
                                                     placeholder="Let the user know why you're hiding their post."
-                                                    readOnly={isSubmitting}
+                                                    disabled={isSubmitting}
                                                     onChange={(m) => setAdminMessage(m)}
                                                     value={adminMessage}
                                                 />

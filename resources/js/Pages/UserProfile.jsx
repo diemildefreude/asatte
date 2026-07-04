@@ -25,7 +25,7 @@ function UserProfile({ user: profileUserProp })
     const [isFollowing, setIsFollowing] = useState(profileUserProp?.is_following || false);
     
 
-    //console.log("profileUser?", profileUser);
+
 
     const avatar = profileUser?.avatar ? `${appUrl}/storage/images/uploaded/users/${username}/avatar/small/${profileUser?.avatar}` 
         : `${appUrl}/storage/images/defaults/avatar.webp?v=1`;

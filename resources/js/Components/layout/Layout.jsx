@@ -5,7 +5,7 @@ import InertiaAuthBridge from '../common/InertiaAuthBridge';
 import { usePage } from '@inertiajs/react';
 function Layout({children, isDashboard=false, classes=""})
 {
-    //console.log("classes?", classes);
+
     const { props } = usePage();
     const APP_NAME = props.app_name;
     const [isTouchDevice, setIsTouchDevice] = useState();

@@ -44,7 +44,7 @@ function Message({message, onReply=null, onDelete=null, id, parentLocalId=null,
             }
         }
         setIsEditing(false);
-        console.log("m.c", initialContent);
+
         setContent(initialContent);　//reset ??
         setResetKey(k => k + 1);
     },[initialContent]);
@@ -106,7 +106,7 @@ function Message({message, onReply=null, onDelete=null, id, parentLocalId=null,
                 <RichTextEditor
                     id={id}
                     readOnly={!isEditing || isSubmitting}
-                    onChange={(editedMessage) => {console.log("initial", initialContent); console.log("edited", editedMessage); setHasChanged(editedMessage != initialContent); setContent(editedMessage)}}
+                    onChange={(editedMessage) => {setHasChanged(editedMessage != initialContent); setContent(editedMessage)}}
                     value={content}
                     quotedMessage={quoteText}
                     resetKey={resetKey}

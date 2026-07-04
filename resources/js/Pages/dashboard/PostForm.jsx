@@ -10,6 +10,8 @@ import { addImageDragListeners, Category, dehydrateEditorImagePaths, getErrorMes
     getImageUrlFromFile, getVideoEmbedUrl, hydrateEditorImagePaths, isAlphaDash, isUrl, 
     MemberType, processEditorImages, resizeImage } from '../../utils/helpers';
 
+const IMAGE_LIMIT=15;
+
 const createInitialImageFields = (post=null, user, postUrl, appUrl) => 
 {
     if(post) 
@@ -345,7 +347,7 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
     const handleAddImage = useCallback(() =>
     {
         clearErrors('general');
-        if(imageFields.length >= 15) {
+        if(imageFields.length >= IMAGE_LIMIT) {
             setError('general', "Max amount of images is 15. Input truncated.");
             return;
         }        
@@ -389,10 +391,10 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
         {
             let combined = [...prev, ...newFields];
             let reindexed = combined.map((f, i) => ({ ...f, index: i}));
-            if(reindexed.length >= 15)
+            if(reindexed.length >= IMAGE_LIMIT)
             {
                 localErr = (localErr ? localErr + ' ' : '') + "Max amount of images is 15.";
-                reindexed = reindexed.slice(0, 15);
+                reindexed = reindexed.slice(0, IMAGE_LIMIT);
             }
             if(localErr) setError('general', localErr);
             return reindexed;
@@ -562,7 +564,7 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
                                 <h3>artist statement</h3>
                             </div>
                             <RichTextEditor placeholder="description of the work"
-                                isReadOnly={isSubmitting}
+                                disabled={isSubmitting}
                                 onChange={(val) => {setData('statement', val); setHasChanged(val !== initialStatement);}}
                                 value={data.statement}
                             />
@@ -573,7 +575,11 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
                             <div className="main-label-container">
                                 <label className="main-label">gallery images*</label>
                                 <span className="button-container">
-                                    <button className="small-but" type="button" onClick={handleAddImage}>+</button>
+                                    <button className="small-but" type="button" onClick={handleAddImage}
+                                        disabled={isSubmitting || imageFields.length >= IMAGE_LIMIT}
+                                    >
+                                        +
+                                    </button>
                                 </span>   
                                 <p>drag & drop</p>
                             </div>                     
@@ -590,6 +596,7 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
                                     onImageChange={onImageChange}
                                     onAltChange={onAltChange}
                                     onRemove={() => setHasChanged(true)}
+                                    disabled={isSubmitting}
                                 />
                             ))
                         } 

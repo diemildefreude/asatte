@@ -153,7 +153,7 @@ if (!function_exists('saveEditorImages')) {
                 $pathToDelete = "$storageBase/$oldImg";
                 if (Storage::disk('public')->exists($pathToDelete)) {
                     Storage::disk('public')->delete($pathToDelete);
-                    Log::info("Deleted removed image: $pathToDelete");
+
                 }
             } else {
                 $newImgArr[] = $oldImg;
@@ -204,7 +204,7 @@ if (!function_exists('saveEditorImages')) {
                 $imageName = uniqid() . '.' . $extension;
                 $relativePath = "$storageBase/$imageName";
 
-                Log::info("Saving verified Base64 image via Intervention: $relativePath");
+
 
                 Storage::disk('public')->put($relativePath, (string) $encodedImage);
 
@@ -247,7 +247,7 @@ if (!function_exists('saveEditorImagesFromDelta')) {
         foreach($oldImgArr as $i => $oldImg)
         {  
             $relativePath = "images/uploaded/$folderPath/$oldImg";
-            Log::info("looking for $relativePath:", $contentImgs);
+
             $isFound = array_search($relativePath, $contentImgs) !== false;
             if(!$isFound)
             {
@@ -268,14 +268,14 @@ if (!function_exists('saveEditorImagesFromDelta')) {
                 $imageValue = $op->insert->image;
                 
                 $currentPath = is_object($imageValue) ? ($imageValue->image ?? '') : $imageValue;
-                Log::info("checking if string: $currentPath");
+
                 if (is_string($currentPath) && preg_match($pattern, $currentPath, $matches)) 
                 {
                     $cleanFolder = trim($folderPath, '/');
                     $imageName = uniqid() . '.' . $matches[1];
                     $relativePath = "images/uploaded/$cleanFolder/$imageName";
                     
-                    Log::info("making imageName: $relativePath");
+
 
                     Storage::disk('public')->put($relativePath, base64_decode($matches[2]));
 
@@ -340,7 +340,7 @@ if (!function_exists('deleteGalleryImages')) {
     function deleteGalleryImages($imageName, $folderPath)
     {
         $imageRoot = 'images/uploaded/' . $folderPath . '/';
-        Log::info("Deleting image at $imageRoot");
+
         Storage::disk('public')->delete($imageRoot . 'thumb/' . $imageName);
         Storage::disk('public')->delete($imageRoot . 'small/' . $imageName);
         Storage::disk('public')->delete($imageRoot . 'large/' . $imageName);

@@ -11,7 +11,7 @@ function ImageCarousel({size, post, title=""})
     const slideRefs = useRef([]);
     const IMAGE_ROOT = `${props.app_url}/storage/images/uploaded/users/${post.user.username}/posts/${post.post_url}/gallery`;
 
-    //console.log("post alts?", post.gallery_alts);
+
     slideRefs.current = [];
     const imageUrls = useMemo(() =>
     {

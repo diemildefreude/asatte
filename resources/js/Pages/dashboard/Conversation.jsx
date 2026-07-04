@@ -32,10 +32,10 @@ function Conversation({ conversation: conversationProp, addressee })
     const [doesMessageExist, setDoesMessageExist] = useState(false);
     const isNew = !conversationProp && url.startsWith("/dashboard/mail/new");
     const canSubmit = (!isNew || recipients?.length > 0) && doesMessageExist;
-    //console.log(recipients?.length, isNew, doesMessageExist);
+
 
     const [error, setError] = useState("");
-    //console.log("rec", recipients);
+
     const initialRedirectConversation = useRef(conversationProp ?? null);
     const [quotedMessage, setQuotedMessage] = useState('');
     const [originalMessage, setOriginalMessage] = useState(null);
@@ -75,20 +75,20 @@ function Conversation({ conversation: conversationProp, addressee })
 
     const handleRTEChange = useCallback((editedMessage) =>
     {
-        //console.log("edited message?", editedMessage);
+
         setDoesMessageExist(editedMessage.length > 0);
         setMessage(editedMessage);
     }, []);
 
     const handleCandidateHover = useCallback((i) =>
     {
-        console.log("hover: i", i);
+
         setSearchResultSelection(i);
     },[setSearchResultSelection]);
 
     const handleRecipientKeyPresses = useCallback((e) =>
     {
-        console.log("hrkp", searchResultSelection);
+
         const selection = window.getSelection();
         
         let caretPosition;
@@ -121,26 +121,26 @@ function Conversation({ conversation: conversationProp, addressee })
         }
         if(e.key === "Enter" || e.key === "," || e.key === "Tab")
         {
-            console.log("selection", searchResultSelection);//resultsRef.children[searchResultSelection]);
+
             if(!resultsRef.children[searchResultSelection])
             {
                 return;
             }            
             e.preventDefault();
             const link = resultsRef.children[searchResultSelection].querySelector("a");
-            console.log("clicking link", searchResultSelection);
+
             link.click();
             return;
         }
         if(e.key === "ArrowDown")
         {
-            console.log("rr.c.l", searchResults.length, resultsRef.children.length);
+
             if(searchResults.length <= 0 || resultsRef.children.length <= 0)
             {
                 return;
             }
             e.preventDefault();
-            console.log("srs", searchResultSelection);
+
             let newInd = searchResultSelection;
             if(newInd === -1)
             {
@@ -151,20 +151,20 @@ function Conversation({ conversation: conversationProp, addressee })
                 newInd = (newInd + 1) % resultsRef.children.length;           
                 //newInd = Math.max(0,Math.min(resultsRef.children.length - 1, newInd - 1));
             }         
-            //console.log("array?", resultsRef.children);
-            //console.log("newInd", newInd);
+
+
             setSearchResultSelection(newInd);
             return;
         }        
         if(e.key === "ArrowUp")
         {
-            //console.log("rr.c.l", searchResults.length, resultsRef.children.length);
+
             if(searchResults.length <= 0 || resultsRef.children.length <= 0)
             {
                 return;
             }
             e.preventDefault();
-            console.log("srs", searchResultSelection);
+
             let newInd = searchResultSelection;
             if(newInd === -1)
             {
@@ -192,7 +192,7 @@ function Conversation({ conversation: conversationProp, addressee })
     //
     const handleRecipientSelect = useCallback((e, user) =>
     {
-        //console.log(user);
+
         e.preventDefault();
         recipientSpanRef.current.innerHTML = "";
         setSearchTerm("");
@@ -225,17 +225,17 @@ function Conversation({ conversation: conversationProp, addressee })
                 setSearchResultSelection(-1);
                 return;
             }
-            console.log("has changed?", hasChanged);
+
             if(hasChanged)
             {
-                console.log("searching");
+
                 axios.get(`/api/usersearch/${encodeURIComponent(newVal)}`).then((res) => res.data).then((data) =>
                 {
                     const existingIds = new Set(recipients.map(r => r.id));
                     const filtered = data.filter(datum => !existingIds.has(datum.id) && datum.id !== user.id);
                     setSearchResults(filtered);
                     setSearchResultSelection(0);
-                    //console.log("active?", document.activeElement);
+
                 }).catch(err => console.error("Search error:", err));
             }
         }
@@ -267,7 +267,7 @@ function Conversation({ conversation: conversationProp, addressee })
     const handleSubmit = useCallback(async (e) =>
     {
         e.preventDefault();
-        console.log("submit", message, recipients, subject);
+
         const appUrl = props.app_url;
         const dehydratedMessage = dehydrateEditorImagePaths(message, appUrl);
         const messageWithResizedImages = await processEditorImages(dehydratedMessage);
@@ -351,7 +351,7 @@ function Conversation({ conversation: conversationProp, addressee })
         {
             const appUrl = props.app_url;
             const hydrated = hydrateEditorImagePaths(message.content, appUrl);
-            //console.log("hydrated?!", hydrated);
+
             
             setQuotedMessage({
                 ...message, 
@@ -400,7 +400,7 @@ function Conversation({ conversation: conversationProp, addressee })
         ):(<div className="messages-container">{              
         conversation && conversation?.messages?.map((message, i) => 
         {
-            //console.log("rerender conversation?", conversation);
+
             let parentElement = conversation.messages.findIndex(m => m.id === message.parent_id);
             parentElement = parentElement === -1 ? null : parentElement; 
             
@@ -486,7 +486,7 @@ function Conversation({ conversation: conversationProp, addressee })
             )}
             <RichTextEditor
                 placeholder="your message"
-                readOnly={isSubmitting}
+                disabled={isSubmitting}
                 onChange={handleRTEChange}
                 value={message}
                 quotedMessage={quotedMessage}

@@ -2,7 +2,7 @@ import { Editor } from '@tinymce/tinymce-react';
 import { useEffect, useRef } from 'react';
 import './RichTextEditor.css';
 
-function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApplied, placeholder=" ", autoFocus = false }) 
+function RichTextEditor({ onChange, value, quotedMessage, onQuoteApplied, placeholder=" ", autoFocus = false, disabled=false }) 
 {
     const editorRef = useRef(null);
     const localCssPath = '/tinymce/my-tinymce-styles.css';
@@ -11,7 +11,7 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
     // Add useEffect to watch for quotedMessage changes
     useEffect(() => 
     {
-      //console.log("message", quotedMessage);
+
       if (quotedMessage && editorRef.current) 
       {
           const editor = editorRef.current;
@@ -26,7 +26,7 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
               </blockquote>
               <p>&nbsp;</p>
           `;
-          console.log("editor", editor);
+
 
           const currentContent = editor.getContent() || "";
           editor.setContent(quoteHtml + currentContent);
@@ -42,7 +42,7 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
      // 1. Point to the local file in your public folder
       tinymceScriptSrc={localScriptSrc}
       onEditorChange={onChange}
-      disabled={isReadOnly}
+      disabled={disabled}
       // 2. Tell it you're using the open-source license
       licenseKey='gpl' 
       value={typeof value === 'string' ? value : ""}
@@ -59,7 +59,7 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
         menubar: false,
         plugins: 'autoresize image link media',
         autoresize_bottom_margin: 50,
-        toolbar: isReadOnly ? false : 
+        toolbar: disabled ? false : 
             ['styles | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist | image media link']
         ,
         extended_valid_elements: 'blockquote[class|data-instgrm-permalink|data-instgrm-version|data-instgrm-captioned|data-instgrm-payload-id|data-video-id|cite|data-theme|data-dnt|data-media-max-width],iframe[src|title|width|height|frameborder|allowfullscreen|scrolling|allow|style]',
@@ -188,8 +188,8 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
               const isDeleteBackward = e.type === 'beforeinput' && e.inputType === 'deleteContentBackward';
               
               if (isBackspace || isDeleteBackward) {
-                  console.log('+++ CAPTURE BACKSPACE FIRED +++');
-                  console.log('Event type:', e.type);
+
+
                   
                   const sel = editor.selection;
                   const rng = sel.getRng();
@@ -203,7 +203,7 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
 
                   if (!sel.isCollapsed()) {
                       const selectedNode = sel.getNode();
-                      console.log('Selection is NOT collapsed. Selected Node:', selectedNode ? selectedNode.nodeName : 'null');
+
                       if (isEmbedNode(selectedNode)) {
                           embedToDelete = selectedNode;
                       }
@@ -212,7 +212,7 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
                   // Evaluate previous sibling if in a block node
                   if (!embedToDelete && currentNode.nodeType === 1 && offset > 0) {
                       const prevNode = currentNode.childNodes[offset - 1];
-                      console.log('Checking Case 1 (Block). PrevNode:', prevNode ? prevNode.nodeName : 'null');
+
                       if (isEmbedNode(prevNode)) {
                           embedToDelete = prevNode;
                       } else if (prevNode && prevNode.nodeType === 1 && isEmbedNode(prevNode.lastChild)) {
@@ -223,7 +223,7 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
 
                   // Evaluate previous sibling if in a text node
                   if (!embedToDelete && currentNode.nodeType === 3 && offset === 0) {
-                      console.log('Checking Case 1 (Text). PrevSibling:', currentNode.previousSibling ? currentNode.previousSibling.nodeName : 'null');
+
                       if (currentNode.previousSibling && isEmbedNode(currentNode.previousSibling)) {
                           embedToDelete = currentNode.previousSibling;
                       } else if (currentNode.previousSibling && currentNode.previousSibling.nodeType === 1 && isEmbedNode(currentNode.previousSibling.lastChild)) {
@@ -235,7 +235,7 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
                   // Case 2: Caret is at the absolute beginning of a text node or block, look at the preceding block
                   if (!embedToDelete && offset === 0) {
                       let currentBlock = currentNode.nodeType === 3 ? currentNode.parentNode : currentNode;
-                      console.log('Checking Case 2. Current Block:', currentBlock.nodeName);
+
                       
                       while (currentBlock && !editor.dom.isBlock(currentBlock) && currentBlock.nodeName !== 'BODY') {
                           currentBlock = currentBlock.parentNode;
@@ -243,7 +243,7 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
 
                       if (currentBlock && currentBlock.previousSibling) {
                           const prevBlock = currentBlock.previousSibling;
-                          console.log('Prev Block:', prevBlock.nodeName);
+
                           
                           if (isEmbedNode(prevBlock)) {
                               embedToDelete = prevBlock;
@@ -260,10 +260,10 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
                       }
                   }
 
-                  console.log('Embed To Delete:', embedToDelete ? embedToDelete.nodeName : 'null');
+
 
                   if (embedToDelete) {
-                      console.log('EXECUTING NATIVE DELETION!');
+
                       e.preventDefault();
                       e.stopPropagation(); // Stop TinyMCE from ever seeing this event!
                       
@@ -277,7 +277,7 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
                       editor.dom.remove(embedToDelete);
                       
                       if (wrapperToClean && wrapperToClean !== embedToDelete && !wrapperToClean.textContent.trim() && !wrapperToClean.querySelector('img, iframe, video')) {
-                          console.log('Cleaning up wrapper');
+
                           editor.dom.remove(wrapperToClean);
                       }
                   }

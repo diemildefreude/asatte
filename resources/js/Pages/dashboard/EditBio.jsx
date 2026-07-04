@@ -106,7 +106,7 @@ function EditBio()
             {
             isInEditMode ? (
             <RichTextEditor
-                isReadOnly={!isInEditMode || isSubmitting }
+                disabled={!isInEditMode || isSubmitting }
                 onChange={handleBioChange}
                 value={bio}
                 autoFocus={true}

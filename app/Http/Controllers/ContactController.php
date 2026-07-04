@@ -14,13 +14,13 @@ class ContactController extends Controller
         $website = $request['website'];
         if(isset($website)) //Honeypot!
         {
-            Log::info("Gotcha, bitch!");
+
 
             return redirect()->back()->with('success', 'Your message has been received. Thank you.');
         }
 
         //sender, email, subject, website, content
-        Log::info("contact req", $request->all());
+
         $fields = $request->validate
         ([
             'name' => ['required', 'string', 'max:255'],

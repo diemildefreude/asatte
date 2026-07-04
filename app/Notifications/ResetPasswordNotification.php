@@ -50,7 +50,7 @@ class ResetPasswordNotification extends BaseResetPasswordNotification implements
         $resetUrl = $reactAppUrl . '/password-reset?token=' . $this->token . '&email=' . urlencode($notifiable->getEmailForPasswordReset());
 
         $userName = $notifiable->username;
-        Log::info("'to' address is " . $notifiable->email);
+
         // Return your custom Mailable instance
         return (new CustomResetPasswordMailable($resetUrl, $userName, $this->loginType))
             ->to($notifiable->email); // Explicitly set the recipient

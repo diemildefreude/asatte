@@ -158,7 +158,7 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef=
 
     const handleTouchStart = useCallback((event) => 
     {
-        console.log("touch start");
+
         hasDraggedRef.current = false;
         dragDistanceRef.current = 0;
 
@@ -193,7 +193,7 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef=
 
     const handleTouchMove = useCallback((event) => 
     {
-        //console.log("touches", event.touches.length);
+
         if (!zoomContainerRef.current) return;
         event.preventDefault(); 
         if (isPanningRef.current && event.touches.length === 1 && lastPanPositionRef.current) 

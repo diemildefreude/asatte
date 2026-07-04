@@ -65,7 +65,7 @@ class User extends Authenticatable implements OAuthenticatable, MustVerifyEmail
     }
     public function sendPasswordResetNotification($token) // Laravel expects this method name
     {
-        Log::info("User::sendPasswordResetNotification called");
+
         $loginType = $this->login_type ?? LoginType::Email;
         $this->notify(new ResetPasswordNotification($token, $loginType));
     }

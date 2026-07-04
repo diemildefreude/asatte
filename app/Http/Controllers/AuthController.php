@@ -51,7 +51,7 @@ class AuthController extends Controller
 
         if ($status == Password::PASSWORD_RESET) 
         {
-            Log::info("Password successfully reset for email: " . $request->email);
+
             return redirect('/dashboard')->with('success', 'Your password has been successfully reset.')
                          ->with('status', 'password_reset_success');
         }
@@ -61,14 +61,14 @@ class AuthController extends Controller
     }
     public function changePassword(Request $request)
     {
-        Log::info("changePassword method called");
+
         if(!$request->user()->hasVerifiedEmail())
         {
             Log::error("e-mail not verified");
             return back()->with('status', 'change_pass_unverified')
                          ->withErrors(['general' => 'Your email address must be verified to change your password.']);
         }
-        Log::info("e-mail is verified. Validating...");
+
         $request->validate
         ([
             'old_password' => ['required', 'string'],
@@ -81,7 +81,7 @@ class AuthController extends Controller
                     ->numbers()
             ]
         ]);
-        Log::info("input validated successfully");
+
 
         $user = $request->user();
         if (!Hash::check($request->old_password, $user->password)) 
@@ -108,7 +108,7 @@ class AuthController extends Controller
 
         if (!$user) 
         {
-            Log::info("Password reset attempt for non-existent user: " . $request->login_field);
+
             return back()->with('status', 'password_reset_link_sent')
                          ->with('message', 'If an account with that email/username exists, a recovery e-mail as been sent to you.');
         }
@@ -119,7 +119,7 @@ class AuthController extends Controller
 
         if ($status == Password::RESET_LINK_SENT) 
         {
-            Log::info("Password reset link sent to: " . $user->email);
+
             return back()->with('status', 'password_reset_link_sent')
                          ->with('success', 'If an account with that email/username exists, a password reset link has been sent.');
         }
@@ -162,7 +162,7 @@ class AuthController extends Controller
         catch (ModelNotFoundException $e) 
         {
             // User was not found, meaning they likely already cancelled or the link is invalid
-            Log::info("Attempt to verify non-existent user ID {$id}. Likely already canceled.");
+
             return redirect('/dashboard?status=verify_already_canceled'); // New status for frontend
         } 
     }
@@ -183,13 +183,13 @@ class AuthController extends Controller
             }        
 
             $user->delete(); // Delete the user record
-            Log::info("User ID {$user->id} with email {$user->email} cancelled registration.");
+
             return redirect('/login?status=cancel_success');
         }
         catch (ModelNotFoundException $e) 
         {
             // User was not found, meaning they likely already cancelled or the link is invalid
-            Log::info("Attempt to cancel non-existent user ID {$id}. Likely already canceled.");
+
             return redirect('/login?status=invalid_link'); // New status for frontend
         } 
         catch (\Exception $e) 
@@ -258,7 +258,7 @@ class AuthController extends Controller
                 'general' => ['invalid credentials provided'],
             ]);
         }
-        //Log::info('Checking target Client ID value:', ['client_id' => config('passport.client_id')]);
+
         $fieldType = filter_var($request->login_field, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
         $credentials = [$fieldType => $request->login_field, 'password' => $request->password];
 

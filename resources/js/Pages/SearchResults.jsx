@@ -13,11 +13,11 @@ function SearchResults({ searchTerm = '', searchPosts = [] })
     // const location = useLocation();
     // const [searchTerm, setSearchTerm] = useState(location.state?.query);
 
-    //console.log("search query?", searchTerm);
+
 
     // useEffect(() =>
     // {
-    //     console.log("state change", location.state?.query);
+
     //     setSearchTerm(location.state?.query);
     // },[location.state]);
 

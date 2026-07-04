@@ -17,7 +17,7 @@ class DashboardController extends Controller
 {
     public function updateAvatar(Request $request)
     {
-        // Log::info($request);
+
 
         if(!$request->user()->hasVerifiedEmail())
         {
@@ -59,10 +59,10 @@ class DashboardController extends Controller
         $userName = $user->username;
         
         $editorImageArray = $user->bio_image_urls ?? [];
-        //Log::info($user);
-        //Log::info("bio_image_urls:" . $editorImageArray);
+
+
         $bioStatementRaw = $request->input('bio');
-        //Log::info("bio:", $bioArray);
+
         $newBio = saveEditorImages($bioStatementRaw, 
             $editorImageArray, "users/$userName/bio");
         $newBio = sanitizeRichHtml($newBio);

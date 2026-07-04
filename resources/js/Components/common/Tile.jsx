@@ -35,8 +35,8 @@ function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false})
     
     function handleLinkClick(e)
     {
-        //console.log("Clicking link to post", post?.id);
-        console.log("clicking link", e);
+
+
         if(isSliderDraggedPointerUp?.current)
         {
             e.preventDefault(); // Stop the link from navigating if it was a drag

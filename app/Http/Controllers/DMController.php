@@ -40,7 +40,7 @@ class DMController extends Controller
 
         $conversations = $query->paginate($amount, ['*'], 'page', $page);
 
-        Log::info("DMs indexed", $conversations->toArray());
+
         
         return Inertia::render('dashboard/Mail', [
             'conversations' => $conversations,
@@ -65,8 +65,8 @@ class DMController extends Controller
      */
     public function store(Request $request)
     {
-        //Log::info("DM", $request->toArray());
-        //return;
+
+
         $request->validate([
             'subject' => ['nullable', 'string', 'max:255'],
             'content' => ['required', 'string'],
@@ -76,7 +76,7 @@ class DMController extends Controller
         ], [
             'recipients.max' => 'You can mail up to five people.'
         ]);
-        //return;
+
         
         $user = $request->user();
         $userName = $user->name;

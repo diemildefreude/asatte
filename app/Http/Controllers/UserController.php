@@ -17,7 +17,7 @@ class UserController extends Controller
         ->select('username', 'id', 'avatar')
         ->take(8)
         ->get();
-        //Log::info("users?", $users->toArray());
+
         return response()->json($users);
     }
     public function user(string $userName)
@@ -35,7 +35,7 @@ class UserController extends Controller
         {   
             $user->makeHidden('email');
         }
-        //Log::info("toggling follow for user", $user->toArray());
+
         
         
 

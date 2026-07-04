@@ -42,11 +42,7 @@ class AboutController extends Controller
         $imageFolder = "about";
         //$newStatementArray = json_decode($validatedFields['statement']);
         $newStatementRaw = $validatedFields['statement'];
-        Log::info("saveEditorArgs", [
-            "newStatementArray" => gettype($newStatementRaw),
-            "imageArray" => gettype($imageArray),
-            "imageFolder" => gettype($imageFolder)
-        ]);
+
         $newStatement = saveEditorImages($newStatementRaw, $imageArray, $imageFolder);
         $newStatement = sanitizeRichHtml($newStatement);
         if($about)

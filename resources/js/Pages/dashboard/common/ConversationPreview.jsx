@@ -4,7 +4,7 @@ import { Link, router, usePage } from '@inertiajs/react';
 
 function ConversationPreview({conversation})
 {
-    //console.log("This is a preview:", conversation);
+
     const { props } = usePage();
     const otherUser = conversation.other_users[0];
     const avatar = otherUser?.avatar ? `${props.app_url}/storage/images/uploaded/users/${otherUser.username}/avatar/small/${otherUser?.avatar}` 
@@ -19,7 +19,7 @@ function ConversationPreview({conversation})
 
     let avatarClasses = "convo-avatar";
     avatarClasses += conversation.is_unread ? " has-new-mail" : "";
-    console.log("conversation", conversation);
+
     return (
         conversation ? (
         <Link href={convoLink} 

@@ -76,7 +76,7 @@ class SocialiteController extends Controller
             // Socialite will throw an InvalidStateException on ->user().
             $socialiteUser = Socialite::driver($provider)->user();
 
-            Log::info("Socialite callback for {$provider}. Provider ID: {$socialiteUser->id}, Email: {$socialiteUser->email}. Origin: {$originPage}");
+
 
             // Find user by provider_id and login_type
             $user = User::where('provider_id', $socialiteUser->id)
@@ -88,19 +88,19 @@ class SocialiteController extends Controller
             if ($user) {
                 if (!$user->profile_completed) {
                     $status = 'social_registration_incomplete';
-                    Log::info("Existing {$provider} user with incomplete profile logged in: {$user->email}");
+
                 }
             } else {
                 // User does not exist, check if email already registered via other means
                 $existing = User::where('email', $socialiteUser->email)->first();
                 if ($existing) {
-                    Log::info("Social login attempted but email already registered: {$socialiteUser->email}");
+
                     return redirect('/login')->with('message', 'That email is already registered. Please login with your account.');
                 }
 
                 // New user: create account (mark profile incomplete)
                 $now = Carbon::now();
-                Log::info("Creating new {$provider} user: {$socialiteUser->email}.");
+
 
                 $user = User::forceCreate([
                     'email' => $socialiteUser->email,
@@ -138,9 +138,9 @@ class SocialiteController extends Controller
     public function completeSocialProfile(Request $request)
     {
         $now = Carbon::now();
-        Log::info("starting profile completion process at {$now}");
+
         $user = $request->user();
-        Log::info("user found when completing social profile: {$user}");
+
 
         if (!$user) 
         {
@@ -168,14 +168,14 @@ class SocialiteController extends Controller
         
         $showEmail = $request->boolean('show_email_in_profile');
 
-        //Log::info("completing social profile with {$request->username} as username and {$request->birthdate} as birthdate");
+
         $user->username = $request->username;
         $user->birthdate = $request->birthdate; // Assuming birthdate is also being set here
         $user->show_email_in_profile = $showEmail;
         $user->profile_completed = true; // <--- Mark profile as completed
         $user->accepted_terms_version = config('app.user_agreement_version');
         $user->save();
-        //Log::info("User profile completed for: " . $user->email);
+
         //$reactAppUrl = config('app.url', 'http://localhost:3000');
         $status = "social_registration_complete";
 

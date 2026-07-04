@@ -41,7 +41,7 @@ class PostController extends Controller
         $postType = PostType::tryFrom($postTypeString);
         $isNews = $postType == PostType::News;
         
-        //Log::info("Is news? $postTypeString , $isNews");
+
 
         $userId = $request->query('user_id');
         $username = $request->query('username');        
@@ -53,7 +53,7 @@ class PostController extends Controller
             : User::where('id', $userId))
             ->first();
         $userId = $user ? $user->id : null;
-        //Log::info("user info for user, id $userId or name $username", $user->toArray());
+
                     
         if((isset($userId) || isset($username)) && !$user)
         {//user was given, but not found
@@ -160,7 +160,7 @@ class PostController extends Controller
         $postType = PostType::tryFrom($postTypeString);
         $isNews = $postType == PostType::News;
 
-        Log::info($startId);
+
         $query = Post::with(relations: 'user:id,username')
             ->where('user_id', '=', $userId)
             ->where('is_news', $isNews);
@@ -301,19 +301,19 @@ class PostController extends Controller
         
         foreach($galleryImagesInput as $index => $item)
         {
-            Log::info("Processing item at index: $index");
+
             $imageSet = false;
             if(array_key_exists($index, $uploadedFiles) 
                 && $uploadedFiles[$index]['file'] instanceOf UploadedFile)
             {
-                Log::info("Found a new file to upload.");
+
                 $url = storeImageFile($uploadedFiles[$index]['file'], $galleryImageFolder);
                 array_push($galleryArray, $url);
                 $imageSet = true;
             } 
             else 
             {
-                Log::info("Item at index $index is not a file. Skipping.");
+
             }
             if($imageSet)
             {
@@ -376,7 +376,7 @@ class PostController extends Controller
 
         // The auth() helper works whether the route is protected or not.
         $authenticatedUser = $request->user();
-        //Log::info("authd?!: $authenticatedUser");
+
         if ($authenticatedUser) 
         {            
             $userId = $authenticatedUser->id;
@@ -386,7 +386,7 @@ class PostController extends Controller
                     $query->where('user_id', $userId);
                 }
             ]);
-            //Log::info("request's userId: $userId");
+
         }
         $post = $query->first();
 
@@ -455,16 +455,13 @@ class PostController extends Controller
             ]);
         }
         
-        \Illuminate\Support\Facades\Log::info("showNews query: ", [
-            'sql' => $query->toSql(),
-            'bindings' => $query->getBindings()
-        ]);
+
         
         $post = $query->first();
 
         if (!$post) 
         {
-            \Illuminate\Support\Facades\Log::info("showNews 404: post is null");
+
             abort(404, 'No such news post found.');
         }
 
@@ -472,7 +469,7 @@ class PostController extends Controller
 
         if (($post->is_private || $post->is_draft) && !$isPostCreator)
         {
-            \Illuminate\Support\Facades\Log::info("showNews 404: private/draft and not creator");
+
             abort(404, 'No such news post found.');
         }
 
@@ -486,7 +483,7 @@ class PostController extends Controller
 
         if($isHidden && !$isAdminRequest && !$isPostCreatorRequest)
         {
-            \Illuminate\Support\Facades\Log::info("showNews 404: hidden and not admin/creator");
+
             abort(404, 'No such news post found.');
         }        
         
@@ -525,7 +522,7 @@ class PostController extends Controller
             ->where('post_url', $post_url)
             ->where('user_id', $postCreator->id);
 
-        //Log::info("authd?!: $authenticatedUser");
+
         $post = $query->first();
 
         if (!$post) 
@@ -548,7 +545,7 @@ class PostController extends Controller
                 'error_message' => 'Please verify your e-mail to begin posting.'
             ]);
         }
-        Log::info($request->headers->get('content-type'));
+
         $requestData = [
             'url' => $request->fullUrl(),
             'method' => $request->method(),
@@ -558,7 +555,7 @@ class PostController extends Controller
             'ip' => $request->ip(),
             'user_agent' => $request->header('User-Agent'),
         ];
-        Log::info('Incoming request data:', $requestData);
+
         
         $basicFields = $request->validate
         ([
@@ -585,7 +582,7 @@ class PostController extends Controller
         {
             $isNews = $request->input('is_news') ? true : false;
         }
-        Log::info("isPrivate? $isPrivate _ $request->input('is_private')");       
+
 
         $post = Post::findOrFail($id);
 
@@ -650,7 +647,7 @@ class PostController extends Controller
                         throw new \Exception("Storage::move returned false without throwing an exception.");
                     }
                     
-                    Log::info("Successfully renamed post folder from {$oldDir} to {$newDir}");
+
                     $postUrl = $newUrl;
 
                 } catch (\Throwable $e) {
@@ -674,7 +671,7 @@ class PostController extends Controller
                         // Once everything is safely copied over, wipe the old directory
                         $disk->deleteDirectory($oldDir);
                         
-                        Log::info("Fallback copy/delete successful. Folder updated to {$newDir}");
+
                         $postUrl = $newUrl;
 
                     } 
@@ -707,12 +704,12 @@ class PostController extends Controller
         // Iterate through the input data array, which holds the correct order.
         foreach ($galleryImagesInput as $index => $item) 
         {
-            Log::info("Processing item at index: $index");
+
             $imageSet = false;
             if(array_key_exists($index, $uploadedFiles) 
                 && $uploadedFiles[$index]['file'] instanceOf UploadedFile)
             {
-                Log::info("Found a new file to upload.");
+
                 $url = storeImageFile($uploadedFiles[$index]['file'], $galleryImageFolder);
                 array_push($updatedGalleryUrls, $url);
                 $imageSet = true;
@@ -723,7 +720,7 @@ class PostController extends Controller
                 if (in_array($item['url'], $allowedExistingUrls)) 
                 {
                     $url = $item['url'];
-                    Log::info("Found and verified an existing image URL: $url");
+
                     array_push($updatedGalleryUrls, $url);
                     $imageSet = true;
                 } 
@@ -734,7 +731,7 @@ class PostController extends Controller
             } 
             else 
             {
-                Log::info("Item at index $index is neither a file nor a string URL. Skipping.");
+
             }
             if($imageSet)
             {
@@ -745,12 +742,12 @@ class PostController extends Controller
 
         $oldGalleryUrls = $post->gallery_image_urls;
 
-        Log::info("updated gallery urls", $updatedGalleryUrls);
+
         if (is_array($oldGalleryUrls)) 
         {
             foreach ($oldGalleryUrls as $index => $oldUrl) 
             {
-                Log::info("old url: $oldUrl");// , updated$updatedGalleryUrls[$index]")
+
                 if (!in_array($oldUrl, $updatedGalleryUrls)) 
                 {
                     deleteGalleryImages($oldUrl, $galleryImageFolder);
@@ -772,7 +769,7 @@ class PostController extends Controller
             $editorImageArray, $statementImageFolder);
         $statement = sanitizeRichHtml($statement);
                 
-        //Log::info("updating post. is_news: $isNews");
+
         $website = $request->input('website') ? addHttpProtocol($request->input('website', '')) : null;
         $sourceCode = $request->input('source_code') ? addHttpProtocol($request->input('source_code', '')) : null;
         $postFields = 

@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { addImageDragListeners, getImageFileFromInput, getImageUrlFromFile } from '../../utils/helpers';
 
 
-function ImageField({index, image=null, file=null, alt="", setArray, onImageChange, onAltChange, onRemove })
+function ImageField({index, image=null, file=null, alt="", setArray, onImageChange, onAltChange, onRemove, disabled=false })
 {
     const [previewImage, setPreviewImage] = useState(image);
     const [imageError, setImageError] = useState('');
@@ -14,7 +14,7 @@ function ImageField({index, image=null, file=null, alt="", setArray, onImageChan
 
     useEffect(() => //update preview image if image value changes. This happens on reindex.
     {
-        //console.log("image?", image);
+
         if(image)
         {
             setPreviewImage(image);
@@ -124,7 +124,7 @@ function ImageField({index, image=null, file=null, alt="", setArray, onImageChan
         <div className="sub-field">
             <div className="remove-input-container">        
                 <span className="button-container">
-                    <button type="button" onClick={removeSelf}>-</button>
+                    <button type="button" onClick={removeSelf} disabled={disabled}>-</button>
                 </span>   
                 <input type="file" 
                     accept=".jpg, .jpeg, .png, .webp, .bmp" 
@@ -132,6 +132,7 @@ function ImageField({index, image=null, file=null, alt="", setArray, onImageChan
                     id={`gal_image_${index}`}
                     onChange={handleFileChange}
                     ref={imageInputRef}
+                    disabled={disabled}
                 />    
             </div>
             <div className="alt-input-container">
@@ -141,6 +142,7 @@ function ImageField({index, image=null, file=null, alt="", setArray, onImageChan
                     id={`alt_${index}`} 
                     value={alt ?? ""}
                     onChange={handleAltChange}
+                    disabled={disabled}
                 />
             </div>
         </div>      
