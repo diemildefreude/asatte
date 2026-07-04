@@ -123,6 +123,7 @@ function Header()
             return;
         }
         const encodedQuery = encodeURIComponent(searchTerm);
+        setIsNavOpen(false);
         router.visit(`/search?q=${encodedQuery}`);
     },[searchTerm]);
 

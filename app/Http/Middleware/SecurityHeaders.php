@@ -18,14 +18,7 @@ class SecurityHeaders
     {
         $response = $next($request);
 
-        // HSTS (Strict-Transport-Security)
-        $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
 
-        // Prevent Clickjacking
-        $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
-
-        // Prevent MIME sniffing
-        $response->headers->set('X-Content-Type-Options', 'nosniff');
 
         // Content Security Policy
         // Allows external media (iframes, video, audio, images), external fonts, and external scripts (over HTTPS).
