@@ -8,11 +8,10 @@ class Message extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['conversation_id', 'sender_id', 'content'];
+    protected $fillable = ['conversation_id', 'sender_id', 'content', 'image_urls'];
 
     protected $casts = 
     [
-        //'content' => 'array', // auto decode JSON delta
         'image_urls' => 'array'
     ];
 

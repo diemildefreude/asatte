@@ -6,7 +6,7 @@ import '../DashboardProfile.css';
 import { MemberType } from '../../utils/helpers';
 import Layout from '../../Components/layout/Layout';
 
-function DashboardLayout({ currentTab, headerText, children })
+function DashboardLayout({ currentTab, headerText, children, headerHasMargin=true})
 {
     const page = usePage();
     const user = page.props?.auth?.user ?? null;
@@ -21,6 +21,7 @@ function DashboardLayout({ currentTab, headerText, children })
     const unread = page.props?.unread ?? {};
     const hasUnreadNotifications = !!unread.has_unread_notifications;
     const hasUnreadMail = !!unread.has_unread_mail;
+    const headerClasses = headerHasMargin ? "centered-content bottom-1rem" : "centered-content no-margin"
 
     useEffect(() => 
     {
@@ -222,7 +223,7 @@ function DashboardLayout({ currentTab, headerText, children })
                     
                     {
                         headerText && (    
-                            <div className="centered-content bottom-1rem">
+                            <div className={headerClasses}>
                                 <h1>{headerText}</h1>   
                             </div>
                         )

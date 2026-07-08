@@ -11,6 +11,7 @@ use App\Http\Controllers\NewsController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\SocialiteController;
+use App\Http\Controllers\MelonlandController;
 use App\Http\Controllers\SitemapController;
 
 Route::get('/', [HomeController::class, 'index']);
@@ -31,12 +32,16 @@ Route::get('/sitemap.xml', [SitemapController::class, 'index']);
 Route::post('/login', [AuthController::class, 'login'])->name('login.attempt')->middleware('throttle:5,1');
 Route::post('/register', [AuthController::class, 'register'])->name('register.attempt')->middleware('throttle:5,1');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-Route::post('/register/check', [AuthController::class, 'checkAvailability']);
+Route::post('/register/check', [AuthController::class, 'checkAvailability'])->middleware('throttle:30,1');
 Route::post('/request-recovery', [AuthController::class, 'sendRecoveryLink'])->name('password.request')->middleware('throttle:5,1');
 Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.reset')->middleware('throttle:5,1');
 Route::post('/change-password', [AuthController::class, 'changePassword'])->middleware('auth')->name('password.change');
 Route::post('/resend-verification', [AuthController::class, 'sendVerifyLink'])->middleware('auth')->name('verification.resend');
 Route::post('/complete-social-profile', [SocialiteController::class, 'completeSocialProfile'])->middleware('auth')->name('social.complete');
+
+// Melonland custom auth routes
+Route::get('/auth/melonland/redirect', [MelonlandController::class, 'redirect']);
+Route::get('/auth/melonland/callback', [MelonlandController::class, 'callback']);
 
 // Socialite (OAuth) routes
 Route::get('/auth/{provider}/redirect', [SocialiteController::class, 'redirectToProvider']);
@@ -146,6 +151,11 @@ Route::post('/dashboard/mail', [App\Http\Controllers\DMController::class, 'store
 Route::put('/dashboard/mail/{message}', [App\Http\Controllers\DMController::class, 'update'])->middleware('auth')->name('dashboard.mail.update');
 Route::delete('/dashboard/mail/{message}', [App\Http\Controllers\DMController::class, 'destroy'])->middleware('auth')->name('dashboard.mail.destroy');
 
+// Account Deletion
+Route::get('/dashboard/delete-account', [App\Http\Controllers\DashboardController::class, 'deleteAccountForm'])->middleware('auth')->name('dashboard.deleteAccount');
+Route::post('/dashboard/delete-account', [App\Http\Controllers\DashboardController::class, 'deleteAccount'])->middleware('auth')->name('dashboard.deleteAccount.post');
+Route::post('/dashboard/restore-account', [App\Http\Controllers\DashboardController::class, 'restoreAccount'])->middleware('auth')->name('dashboard.restoreAccount');
+
 // Fallback: catch-all dashboard route
 Route::inertia('/dashboard', 'Dashboard')->middleware('auth')->name('dashboard');
 Route::inertia('/dashboard/{any}', 'Dashboard')->where('any', '.*')->middleware('auth');
@@ -158,6 +168,7 @@ Route::post('/update-avatar', [App\Http\Controllers\DashboardController::class, 
 Route::post('/posts', [App\Http\Controllers\PostController::class, 'store'])->middleware('auth')->name('posts.store');
 Route::put('/posts/{post}', [App\Http\Controllers\PostController::class, 'update'])->middleware('auth')->name('posts.update');
 Route::delete('/posts/{post}', [App\Http\Controllers\PostController::class, 'destroy'])->middleware('auth')->name('posts.destroy');
+
 
 // Post/Comment interactions (migrated from API)
 Route::middleware('auth')->group(function () {

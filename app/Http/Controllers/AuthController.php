@@ -108,9 +108,8 @@ class AuthController extends Controller
 
         if (!$user) 
         {
-
             return back()->with('status', 'password_reset_link_sent')
-                         ->with('message', 'If an account with that email/username exists, a recovery e-mail as been sent to you.');
+                         ->with('success', 'If an account with that email/username exists, a password reset link has been sent.');
         }
 
         $status = Password::sendResetLink(

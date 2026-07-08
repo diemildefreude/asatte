@@ -14,6 +14,7 @@ class UserController extends Controller
     public function userSearch(string $searchTerm)
     {
         $users = User::where('username', 'LIKE', '%' . $searchTerm . '%')
+        ->whereNull('profile_hidden_at')
         ->select('username', 'id', 'avatar')
         ->take(8)
         ->get();
@@ -23,12 +24,25 @@ class UserController extends Controller
     public function user(string $userName)
     {
         $user = User::where('username', $userName)
-            ->select('id', 'username', 'avatar', 'bio', 'location', 'websites', 'show_email_in_profile', 'email')
+            ->select('id', 'username', 'avatar', 'bio', 'location', 'websites', 'show_email_in_profile', 'email', 'profile_hidden_at')
             ->first();
 
-        if (!$user) 
+        if (!$user || $user->profile_hidden_at) 
         {
              abort(404);
+        }
+
+        $authUser = auth()->user();
+        $isAdminRequest = false;
+        if ($authUser) 
+        {
+            $isAdminRequest = $authUser->member_type == MemberType::Webmaster 
+                || $authUser->member_type == MemberType::Admin;
+        }
+
+        if ($user->profile_hidden_at !== null && (!$authUser || $authUser->id !== $user->id) && !$isAdminRequest)
+        {
+            abort(404);
         }
         
         if(!$user->show_email_in_profile)
@@ -41,15 +55,9 @@ class UserController extends Controller
 
         $user->is_following = false;
 
-         /** @var \App\Models\User $authUser */
-        $authUser = auth()->user();
-        $isAdminRequest = false;
         // If the request is authenticated, check if the current user follows this one
         if ($authUser) 
         {
-            $isAdminRequest = $authUser->member_type == MemberType::Webmaster 
-                || $authUser->member_type == MemberType::Admin;
-
             $user->is_following = $authUser
                 ->following()
                 ->where('followed_id', $user->id)

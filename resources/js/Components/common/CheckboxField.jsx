@@ -1,6 +1,7 @@
 function CheckboxField({name, label, value, onChange, disabled, classes=""})
 {
     const classNames = "inline-form-field checkbox " + classes;
+
     return (
     <div className={classNames}>
         <label 

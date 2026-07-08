@@ -24,9 +24,15 @@ function Notification({notification})
                 </p>
                 <br/>
                 <p>
-                    Your post, <Link href={getPostUrl(notification.post)}>
-                        {notification.post?.title}
-                    </Link>, has been unhidden.
+                    {notification.post ? (
+                        <>
+                            Your post, <Link href={getPostUrl(notification.post)}>
+                                {notification.post.title}
+                            </Link>, has been unhidden.
+                        </>
+                    ) : (
+                        "Your post, [post not found], has been unhidden."
+                    )}
                 </p>
                 </>)
             }

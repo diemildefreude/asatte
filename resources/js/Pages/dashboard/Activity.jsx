@@ -35,7 +35,7 @@ function Activity()
             <PageHead title="Activity" />
         <div className="activity-box-container">
             <div className="notifications-comments-container">
-                <div className="main-info-box">
+                <div className="main-info-box teal-gradient-background">
                     <LoadItems
                         initialItems={initialNotifications}
                         renderMethod={(notification) =>({
@@ -47,7 +47,7 @@ function Activity()
                         viewAllLink="/dashboard/notifications"
                     />
                 </div>
-                <div className="main-info-box">
+                <div className="main-info-box lavender-gradient-background">
                     <LoadItems
                         initialItems={initialComments}
                         renderMethod={(comment, i) =>({
@@ -85,7 +85,7 @@ function Activity()
                         view all
                     </Link>
                 </div>
-                <div className="main-info-box follows">
+                <div className="main-info-box follows yellow-gradient-background">
                     {/* <h3 className="centered-content">users you follow</h3> */}
                     <LoadItems
                         initialItems={initialFollowing}

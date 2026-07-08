@@ -37,7 +37,7 @@ function PageHead({
     /* @__PURE__ */ jsx("meta", { "head-key": "twitter:image", name: "twitter:image", content: ogImage })
   ] });
 }
-function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApplied, placeholder = " ", autoFocus = false }) {
+function RichTextEditor({ onChange, value, quotedMessage, onQuoteApplied, placeholder = " ", autoFocus = false, disabled = false }) {
   const editorRef = useRef(null);
   const localCssPath = "/tinymce/my-tinymce-styles.css";
   const localScriptSrc = "/tinymce/tinymce.min.js";
@@ -54,10 +54,10 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
               </blockquote>
               <p>&nbsp;</p>
           `;
-      console.log("editor", editor);
-      const currentContent = editor.getContent() || "";
-      editor.setContent(quoteHtml + currentContent);
       editor.focus();
+      editor.selection.select(editor.getBody(), true);
+      editor.selection.collapse(true);
+      editor.execCommand("mceInsertContent", false, quoteHtml);
       onQuoteApplied();
     }
   }, [quotedMessage, onQuoteApplied]);
@@ -66,7 +66,7 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
     {
       tinymceScriptSrc: localScriptSrc,
       onEditorChange: onChange,
-      disabled: isReadOnly,
+      disabled,
       licenseKey: "gpl",
       value: typeof value === "string" ? value : "",
       editorRef,
@@ -77,12 +77,12 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
         }
       },
       init: {
-        height: 500,
+        min_height: 100,
         convert_urls: false,
         menubar: false,
         plugins: "autoresize image link media",
         autoresize_bottom_margin: 50,
-        toolbar: isReadOnly ? false : ["styles | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist | image media link"],
+        toolbar: disabled ? false : ["styles | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist | image media link"],
         extended_valid_elements: "blockquote[class|data-instgrm-permalink|data-instgrm-version|data-instgrm-captioned|data-instgrm-payload-id|data-video-id|cite|data-theme|data-dnt|data-media-max-width],iframe[src|title|width|height|frameborder|allowfullscreen|scrolling|allow|style]",
         toolbar_mode: "wrap",
         mobile: {
@@ -184,8 +184,6 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
             const isBackspace = e.type === "keydown" && (e.key === "Backspace" || e.keyCode === 8);
             const isDeleteBackward = e.type === "beforeinput" && e.inputType === "deleteContentBackward";
             if (isBackspace || isDeleteBackward) {
-              console.log("+++ CAPTURE BACKSPACE FIRED +++");
-              console.log("Event type:", e.type);
               const sel = editor.selection;
               const rng = sel.getRng();
               let currentNode = rng.startContainer;
@@ -195,14 +193,12 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
               let wrapperToClean = null;
               if (!sel.isCollapsed()) {
                 const selectedNode = sel.getNode();
-                console.log("Selection is NOT collapsed. Selected Node:", selectedNode ? selectedNode.nodeName : "null");
                 if (isEmbedNode(selectedNode)) {
                   embedToDelete = selectedNode;
                 }
               }
               if (!embedToDelete && currentNode.nodeType === 1 && offset > 0) {
                 const prevNode = currentNode.childNodes[offset - 1];
-                console.log("Checking Case 1 (Block). PrevNode:", prevNode ? prevNode.nodeName : "null");
                 if (isEmbedNode(prevNode)) {
                   embedToDelete = prevNode;
                 } else if (prevNode && prevNode.nodeType === 1 && isEmbedNode(prevNode.lastChild)) {
@@ -211,7 +207,6 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
                 }
               }
               if (!embedToDelete && currentNode.nodeType === 3 && offset === 0) {
-                console.log("Checking Case 1 (Text). PrevSibling:", currentNode.previousSibling ? currentNode.previousSibling.nodeName : "null");
                 if (currentNode.previousSibling && isEmbedNode(currentNode.previousSibling)) {
                   embedToDelete = currentNode.previousSibling;
                 } else if (currentNode.previousSibling && currentNode.previousSibling.nodeType === 1 && isEmbedNode(currentNode.previousSibling.lastChild)) {
@@ -221,13 +216,11 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
               }
               if (!embedToDelete && offset === 0) {
                 let currentBlock = currentNode.nodeType === 3 ? currentNode.parentNode : currentNode;
-                console.log("Checking Case 2. Current Block:", currentBlock.nodeName);
                 while (currentBlock && !editor.dom.isBlock(currentBlock) && currentBlock.nodeName !== "BODY") {
                   currentBlock = currentBlock.parentNode;
                 }
                 if (currentBlock && currentBlock.previousSibling) {
                   const prevBlock = currentBlock.previousSibling;
-                  console.log("Prev Block:", prevBlock.nodeName);
                   if (isEmbedNode(prevBlock)) {
                     embedToDelete = prevBlock;
                   } else if (prevBlock.lastChild && isEmbedNode(prevBlock.lastChild)) {
@@ -242,9 +235,7 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
                   }
                 }
               }
-              console.log("Embed To Delete:", embedToDelete ? embedToDelete.nodeName : "null");
               if (embedToDelete) {
-                console.log("EXECUTING NATIVE DELETION!");
                 e.preventDefault();
                 e.stopPropagation();
                 let targetBlock = wrapperToClean ? wrapperToClean.previousSibling : embedToDelete.previousSibling;
@@ -254,7 +245,6 @@ function RichTextEditor({ onChange, isReadOnly, value, quotedMessage, onQuoteApp
                 }
                 editor.dom.remove(embedToDelete);
                 if (wrapperToClean && wrapperToClean !== embedToDelete && !wrapperToClean.textContent.trim() && !wrapperToClean.querySelector("img, iframe, video")) {
-                  console.log("Cleaning up wrapper");
                   editor.dom.remove(wrapperToClean);
                 }
               }
@@ -393,11 +383,11 @@ function UserLink({ user, readOnly = false, onClick = null, additionalClasses = 
 function Header() {
   var _a;
   const { props, url } = usePage();
-  const appUrl = props.app_url;
+  props.app_url;
   const user = (_a = props == null ? void 0 : props.auth) == null ? void 0 : _a.user;
   const unread = (props == null ? void 0 : props.unread) ?? {};
   const hasUnread = !!unread.has_unread_notifications || !!unread.has_unread_mail;
-  const dashboardUrl = `${appUrl}/dashboard/`;
+  const dashboardUrl = `/dashboard`;
   const isClient = typeof window !== "undefined";
   const isAuthenticated = !!user;
   const [isNavOpen, setIsNavOpen] = useState(false);
@@ -472,6 +462,7 @@ function Header() {
         return;
       }
       const encodedQuery = encodeURIComponent(searchTerm);
+      setIsNavOpen(false);
       router.visit(`/search?q=${encodedQuery}`);
     },
     [searchTerm]
@@ -713,7 +704,6 @@ function sanitizeRichHtml(html) {
   return clean;
 }
 function addFetchedPostsToExcludes(posts, previous) {
-  console.log("afpte: posts, previous", posts, previous);
   const excludes = previous;
   posts.forEach((post) => {
     excludes.push(post.id);
@@ -1024,7 +1014,6 @@ function getVideoEmbedUrl(url) {
     return `https://player.vimeo.com/video/${videoId}?transparent=0`;
   }
   videoId = getVideoId(url, dailyMotionPatterns);
-  console.log("dailyMotion?!", videoId);
   if (videoId) {
     return `https://www.dailymotion.com/embed/video/${videoId}`;
   }
@@ -1049,7 +1038,6 @@ function getVideoId(url, patterns) {
   return videoId;
 }
 function getErrorMessage(err) {
-  console.log("err?", err);
   let displayErrorMessage = "An unexpected error occurred. Please try again.";
   if (err.response && err.response.data) {
     const apiResponseData = err.response.data;
@@ -1291,7 +1279,7 @@ function About({ about, status }) {
       isInEditMode ? /* @__PURE__ */ jsx(
         RichTextEditor,
         {
-          isReadOnly: !isInEditMode || processing,
+          disabled: !isInEditMode || processing,
           onChange: handleStatementChange,
           value: statement,
           autoFocus: true
@@ -1553,7 +1541,6 @@ function CreatePostForm() {
       }
       return response.json();
     }).then((data2) => {
-      console.log("Data received:", data2);
     }).catch((error) => {
       console.error("There was an error fetching data:", error);
     });
@@ -1595,7 +1582,7 @@ function DashboardTab({ iconClasses, tabName, currentTab, targetPath, noticeLigh
     }
   );
 }
-function DashboardLayout({ currentTab, headerText, children }) {
+function DashboardLayout({ currentTab, headerText, children, headerHasMargin = true }) {
   var _a, _b, _c, _d;
   const page = usePage();
   const user = ((_b = (_a = page.props) == null ? void 0 : _a.auth) == null ? void 0 : _b.user) ?? null;
@@ -1609,6 +1596,7 @@ function DashboardLayout({ currentTab, headerText, children }) {
   const unread = ((_c = page.props) == null ? void 0 : _c.unread) ?? {};
   const hasUnreadNotifications = !!unread.has_unread_notifications;
   const hasUnreadMail = !!unread.has_unread_mail;
+  const headerClasses = headerHasMargin ? "centered-content bottom-1rem" : "centered-content no-margin";
   useEffect(() => {
     const handlePopState = () => {
       setTimeout(() => {
@@ -1766,7 +1754,7 @@ function DashboardLayout({ currentTab, headerText, children }) {
           )
         ] }),
         /* @__PURE__ */ jsxs("main", { className: "heading-profile-container", children: [
-          headerText && /* @__PURE__ */ jsx("div", { className: "centered-content bottom-1rem", children: /* @__PURE__ */ jsx("h1", { children: headerText }) }),
+          headerText && /* @__PURE__ */ jsx("div", { className: headerClasses, children: /* @__PURE__ */ jsx("h1", { children: headerText }) }),
           children
         ] })
       ] })
@@ -1910,7 +1898,6 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef 
   }, [transform, naturalSize, initialTransform, clampPosition]);
   useRef(null);
   const handleTouchStart = useCallback((event) => {
-    console.log("touch start");
     hasDraggedRef.current = false;
     dragDistanceRef.current = 0;
     if (animationFrameRef.current) {
@@ -2639,7 +2626,7 @@ function ProfileItem({
         idx === 0 ? /* @__PURE__ */ jsxs("label", { htmlFor: name, className: "field-name", children: [
           nameToUse,
           ":"
-        ] }) : /* @__PURE__ */ jsxs("label", { className: "field-name hidden", children: [
+        ] }) : /* @__PURE__ */ jsxs("label", { className: "field-name invisible", htmlFor: `${name}_${idx}`, children: [
           nameToUse,
           ":"
         ] }),
@@ -2656,7 +2643,7 @@ function ProfileItem({
           }
         )
       ] }, idx)),
-      isEditingThisField && values.length < maxArrayLength && /* @__PURE__ */ jsxs("div", { className: "inline-form-field", children: [
+      isEditingThisField && values.length < maxArrayLength && /* @__PURE__ */ jsxs("div", { className: "inline-form-field right-aligned", children: [
         /* @__PURE__ */ jsxs("label", { className: "field-name hidden", children: [
           nameToUse,
           ":"
@@ -2752,15 +2739,16 @@ function EditProfile() {
   const { data, setData, post, processing, errors, setError, clearErrors } = useForm({
     websites: [],
     location: "",
-    show_email_in_profile: false
+    show_email_in_profile: false,
+    accepts_emails: true
   });
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [websitesField, setWebsitesField] = useState([]);
   const [locationField, setLocationField] = useState("");
   const [showEmailInProfile, setShowEmailInProfile] = useState(false);
+  const [acceptsEmails, setAcceptsEmails] = useState(true);
   const [editingField, setEditingField] = useState(null);
-  console.log("user", user);
   useEffect(() => {
     if (!user) return;
     let userWebsites = [];
@@ -2772,9 +2760,13 @@ function EditProfile() {
     setWebsitesField(userWebsites);
     setLocationField(user.location || "");
     setShowEmailInProfile(!!user.show_email_in_profile);
-    setData("websites", userWebsites);
-    setData("location", user.location || "");
-    setData("show_email_in_profile", !!user.show_email_in_profile);
+    setAcceptsEmails(!!user.accepts_emails);
+    setData({
+      websites: userWebsites,
+      location: user.location || "",
+      show_email_in_profile: !!user.show_email_in_profile,
+      accepts_emails: !!user.accepts_emails
+    });
   }, [user]);
   const handleEditClick = useCallback((fieldName) => {
     setEditingField(fieldName);
@@ -2801,7 +2793,8 @@ function EditProfile() {
     const currentData = {
       websites: websitesField,
       location: locationField,
-      show_email_in_profile: !!showEmailInProfile
+      show_email_in_profile: showEmailInProfile,
+      accepts_emails: acceptsEmails
     };
     router.post(
       "/update-profile",
@@ -2820,7 +2813,7 @@ function EditProfile() {
       }
     );
   };
-  return /* @__PURE__ */ jsxs("div", { className: "main-info-box sticky", children: [
+  return /* @__PURE__ */ jsxs("div", { className: "main-info-box transparent-background sticky", children: [
     /* @__PURE__ */ jsx(PageHead, { title: "Edit Profile" }),
     /* @__PURE__ */ jsxs("div", { className: "avatar-section", children: [
       errors.general && /* @__PURE__ */ jsx("div", { className: "error", children: errors.general }),
@@ -2895,6 +2888,19 @@ function EditProfile() {
           disabled: !(user == null ? void 0 : user.is_email_verified) || processing
         }
       ),
+      /* @__PURE__ */ jsx(
+        CheckboxField,
+        {
+          name: "accepts-emails",
+          label: "accept e-mail notifications:",
+          value: acceptsEmails,
+          onChange: (e) => {
+            setHasChanges(e.target.checked !== !!user.accepts_emails);
+            setAcceptsEmails(e.target.checked);
+          },
+          disabled: !(user == null ? void 0 : user.is_email_verified) || processing
+        }
+      ),
       /* @__PURE__ */ jsxs("div", { className: "flex-row", children: [
         /* @__PURE__ */ jsxs("div", { className: "button-container", children: [
           /* @__PURE__ */ jsx("button", { onClick: handleLogoutSubmit, disabled: processing || isLoggingOut, children: "log out" }),
@@ -2908,7 +2914,7 @@ function EditProfile() {
     ] }) })
   ] });
 }
-const __vite_glob_0_25 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const __vite_glob_0_26 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: EditProfile
 }, Symbol.toStringTag, { value: "Module" }));
@@ -2993,7 +2999,7 @@ function EditBio() {
     isInEditMode ? /* @__PURE__ */ jsx(
       RichTextEditor,
       {
-        isReadOnly: !isInEditMode || isSubmitting,
+        disabled: !isInEditMode || isSubmitting,
         onChange: handleBioChange,
         value: bio,
         autoFocus: true
@@ -3007,16 +3013,44 @@ function EditBio() {
     )
   ] });
 }
-const __vite_glob_0_23 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const __vite_glob_0_24 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: EditBio
 }, Symbol.toStringTag, { value: "Module" }));
 function Dashboard() {
-  return /* @__PURE__ */ jsxs(DashboardLayout, { currentTab: "profile", headerText: "your profile", children: [
+  const { auth } = usePage().props;
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  console.log(auth.user);
+  const handleAccountRestore = useCallback(() => {
+    setIsSubmitting(true);
+    router.post("/dashboard/restore-account", {}, {
+      onFinish: () => setIsSubmitting(false)
+    });
+  }, []);
+  return /* @__PURE__ */ jsxs(Fragment, { children: [
     /* @__PURE__ */ jsx(PageHead, { title: "Dashboard" }),
-    /* @__PURE__ */ jsxs("div", { className: "profile-boxes-container", children: [
-      /* @__PURE__ */ jsx(EditProfile, {}),
-      /* @__PURE__ */ jsx(EditBio, {})
+    /* @__PURE__ */ jsxs(DashboardLayout, { currentTab: "profile", headerText: "your profile", children: [
+      auth.user.profile_hidden_at && /* @__PURE__ */ jsxs("div", { className: "main-info-box notice-container red-gradient-background", children: [
+        /* @__PURE__ */ jsxs("p", { className: "notice", children: [
+          "Your profile is hidden and your account set to be deleted in ",
+          Math.max(0, Math.ceil((new Date(auth.user.profile_hidden_at).getTime() + 30 * 24 * 60 * 60 * 1e3 - (/* @__PURE__ */ new Date()).getTime()) / (1e3 * 60 * 60 * 24))),
+          " days."
+        ] }),
+        /* @__PURE__ */ jsx("div", { className: "centered-content no-margin", children: /* @__PURE__ */ jsx(
+          "button",
+          {
+            onClick: handleAccountRestore,
+            disabled: isSubmitting,
+            className: "yellow-button",
+            children: "Restore account"
+          }
+        ) })
+      ] }),
+      /* @__PURE__ */ jsxs("div", { className: "profile-boxes-container", children: [
+        /* @__PURE__ */ jsx(EditProfile, {}),
+        /* @__PURE__ */ jsx(EditBio, {})
+      ] }),
+      /* @__PURE__ */ jsx("div", { className: "account-deletion-section centered-content", children: !auth.user.profile_hidden_at && /* @__PURE__ */ jsx(Link, { href: "/dashboard/delete-account", className: "button", children: "delete account" }) })
     ] })
   ] });
 }
@@ -3334,7 +3368,6 @@ function Tile({ post, isSliderDraggedPointerUp, user = null, isDashboard = false
     imageUrls = [];
   }
   function handleLinkClick(e) {
-    console.log("clicking link", e);
     if (isSliderDraggedPointerUp == null ? void 0 : isSliderDraggedPointerUp.current) {
       e.preventDefault();
       e.stopPropagation();
@@ -3492,7 +3525,6 @@ function HeroTilesContainer({ screenSize, category, fetchOrder = FetchOrder.Asce
     }
     fetchMethod(params).then((data) => {
       if (data.status === "no_more_posts") {
-        console.log("no more posts");
         setAreNoMorePosts(true);
         return;
       }
@@ -4056,13 +4088,28 @@ function OAuth({ headerText, onClick, originPage, isSubmittingForm, setIsSubmitt
     /* @__PURE__ */ jsxs(
       "button",
       {
+        className: "small-text",
+        onClick: () => {
+          onClick();
+          handleSocialLogin("melonland");
+        },
+        disabled: isSubmitting || isSubmittingForm || isLoading,
+        children: [
+          /* @__PURE__ */ jsx("div", { className: "buttonContent", children: "melonland" }),
+          /* @__PURE__ */ jsx("div", { children: /* @__PURE__ */ jsx("img", { src: "https://forum.melonland.net/Themes/pimp-my-classic/images/post/xx.gif", alt: "melonland icon" }) })
+        ]
+      }
+    ),
+    /* @__PURE__ */ jsxs(
+      "button",
+      {
         onClick: () => {
           onClick();
           handleSocialLogin("google");
         },
         disabled: isSubmitting || isSubmittingForm || isLoading,
         children: [
-          /* @__PURE__ */ jsx("div", { className: "button-content", children: "continue with google" }),
+          /* @__PURE__ */ jsx("div", { className: "button-content", children: "google" }),
           /* @__PURE__ */ jsx("div", { children: /* @__PURE__ */ jsx("img", { src: "/google.png", alt: "google icon" }) })
         ]
       }
@@ -4076,7 +4123,7 @@ function OAuth({ headerText, onClick, originPage, isSubmittingForm, setIsSubmitt
         },
         disabled: isSubmitting || isSubmittingForm || isLoading,
         children: [
-          /* @__PURE__ */ jsx("div", { className: "buttonContent", children: "continue with github" }),
+          /* @__PURE__ */ jsx("div", { className: "buttonContent", children: "github" }),
           /* @__PURE__ */ jsx("div", { children: /* @__PURE__ */ jsx("img", { src: "/github.png", alt: "github icon" }) })
         ]
       }
@@ -4167,7 +4214,7 @@ function Login() {
         /* @__PURE__ */ jsx(
           OAuth,
           {
-            headerText: "or:",
+            headerText: "or continue with:",
             onClick: handleSocialLoginSubmit,
             setError: (msg) => setError("general", msg),
             isSubmittingForm: processing,
@@ -5089,20 +5136,17 @@ function Post({ post }) {
     try {
       return (post == null ? void 0 : post.gallery_image_urls) ?? [];
     } catch (err) {
-      const msg = getErrorMessage(err);
-      console.log(msg);
+      getErrorMessage(err);
       return [];
     }
   }, [post]);
   const mainImg = `${appUrl}/storage/images/uploaded/users/${post.user.username}/posts/${post.post_url}/gallery/large/${imageUrls[0]}`;
   const mainAlt = (post == null ? void 0 : post.gallery_alts[0]) ?? "";
-  console.log("post?", post);
   const videoUrl = useMemo(() => {
     try {
       return (post == null ? void 0 : post.main_video) ?? null;
     } catch (err) {
-      const msg = getErrorMessage(err);
-      console.log(msg);
+      getErrorMessage(err);
       return [];
     }
   }, [post]);
@@ -5123,13 +5167,12 @@ function Post({ post }) {
     }
     setIsSubmitting(true);
     try {
-      const messageWithProcessedPhotos = await processEditorImages(adminMessage);
       router.post(
         `/set-admin-hide/${post.id}`,
         {
           _method: "PUT",
           is_hidden_by_admin: hide,
-          message_to_user: messageWithProcessedPhotos
+          reason: adminMessage
         },
         {
           preserveScroll: true,
@@ -5152,13 +5195,9 @@ function Post({ post }) {
     }
   }, [adminMessage, post.id]);
   const handleHideClick = useCallback(() => {
-    const adminStarterText = `<p>Your post, <a href="${props.app_url}${getPostUrl(post)}"><em>${post.title}</em></a> has been hidden.</p>
-            <p> reason: </p>    
-            <p> If you wish to dispute this decision, please reply to this message.</p>
-            `;
-    setAdminMessage(adminStarterText);
+    setAdminMessage("Not Internet-related.");
     setAdminMessageIsVisible(true);
-  }, [props, post]);
+  }, []);
   return /* @__PURE__ */ jsxs(Fragment, { children: [
     /* @__PURE__ */ jsx(
       PageHead,
@@ -5300,11 +5339,13 @@ function Post({ post }) {
           ) : /* @__PURE__ */ jsxs("form", { onSubmit: (e) => handleHideSubmit(e, true), children: [
             /* @__PURE__ */ jsx("div", { className: "notice", children: /* @__PURE__ */ jsx("em", { children: "Let the user know why you're hiding their post." }) }),
             /* @__PURE__ */ jsx(
-              RichTextEditor,
+              "textarea",
               {
-                placeholder: "Let the user know why you're hiding their post.",
-                readOnly: isSubmitting,
-                onChange: (m) => setAdminMessage(m),
+                required: true,
+                className: "w-100",
+                style: { minHeight: "100px", padding: "10px" },
+                disabled: isSubmitting,
+                onChange: (e) => setAdminMessage(e.target.value),
                 value: adminMessage
               }
             ),
@@ -5736,7 +5777,7 @@ function Registration() {
         /* @__PURE__ */ jsx(
           OAuth,
           {
-            headerText: "or:",
+            headerText: "or continue with:",
             onClick: handleSocialRegistrationSubmit,
             setOnError: (msg) => setError("general", msg),
             isSubmittingForm: processing || isValidating,
@@ -6058,7 +6099,7 @@ function UserProfile({ user: profileUserProp }) {
       profileUser ? (
         // false ? (
         /* @__PURE__ */ jsxs("div", { className: "profile-boxes-container", children: [
-          /* @__PURE__ */ jsxs("div", { className: "main-info-box sticky", children: [
+          /* @__PURE__ */ jsxs("div", { className: "main-info-box yellow-gradient-background sticky", children: [
             error && /* @__PURE__ */ jsx("div", { className: "error", children: error }),
             success && /* @__PURE__ */ jsx("div", { className: "notice", children: success }),
             /* @__PURE__ */ jsxs("div", { className: "avatar-section", children: [
@@ -6147,7 +6188,7 @@ function UserProfile({ user: profileUserProp }) {
               ] })
             ] })
           ] }),
-          /* @__PURE__ */ jsxs("div", { className: "rte-container", children: [
+          /* @__PURE__ */ jsxs("div", { className: "rte-container black-gradient-background", children: [
             /* @__PURE__ */ jsx("div", { className: "centered-header-box", children: /* @__PURE__ */ jsx("div", { className: "centered-content top-2rem", children: /* @__PURE__ */ jsx("h2", { children: "bio" }) }) }),
             /* @__PURE__ */ jsx(
               "div",
@@ -6196,7 +6237,7 @@ const __vite_glob_0_18 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.de
   default: UserProfile
 }, Symbol.toStringTag, { value: "Module" }));
 function Notification({ notification }) {
-  var _a, _b, _c;
+  var _a, _b;
   if (((notification == null ? void 0 : notification.type) == NotificationType.Comment || (notification == null ? void 0 : notification.type) == NotificationType.Reply) && !notification.comment) {
     return null;
   }
@@ -6214,11 +6255,11 @@ function Notification({ notification }) {
         ] })
       ] }),
       /* @__PURE__ */ jsx("br", {}),
-      /* @__PURE__ */ jsxs("p", { children: [
+      /* @__PURE__ */ jsx("p", { children: notification.post ? /* @__PURE__ */ jsxs(Fragment, { children: [
         "Your post, ",
-        /* @__PURE__ */ jsx(Link, { href: getPostUrl(notification.post), children: (_a = notification.post) == null ? void 0 : _a.title }),
+        /* @__PURE__ */ jsx(Link, { href: getPostUrl(notification.post), children: notification.post.title }),
         ", has been unhidden."
-      ] })
+      ] }) : "Your post, [post not found], has been unhidden." })
     ] }),
     notification.type == NotificationType.Follower && /* @__PURE__ */ jsxs(Fragment, { children: [
       /* @__PURE__ */ jsx("p", { children: /* @__PURE__ */ jsx("span", { className: "bold notice", children: /* @__PURE__ */ jsx("em", { children: "new follower" }) }) }),
@@ -6253,7 +6294,7 @@ function Notification({ notification }) {
         Link,
         {
           href: getPostUrl(notification.comment.post),
-          children: (_b = notification.comment.post) == null ? void 0 : _b.title
+          children: (_a = notification.comment.post) == null ? void 0 : _a.title
         }
       ),
       " ",
@@ -6286,7 +6327,7 @@ function Notification({ notification }) {
         Link,
         {
           href: getPostUrl(notification.comment.post),
-          children: (_c = notification.comment.post) == null ? void 0 : _c.title
+          children: (_b = notification.comment.post) == null ? void 0 : _b.title
         }
       ),
       " ",
@@ -6321,7 +6362,7 @@ function Notification({ notification }) {
     ] })
   ] }) : /* @__PURE__ */ jsx("p", { children: "loading..." });
 }
-const __vite_glob_0_38 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const __vite_glob_0_39 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: Notification
 }, Symbol.toStringTag, { value: "Module" }));
@@ -6344,7 +6385,7 @@ function Activity() {
     /* @__PURE__ */ jsx(PageHead, { title: "Activity" }),
     /* @__PURE__ */ jsxs("div", { className: "activity-box-container", children: [
       /* @__PURE__ */ jsxs("div", { className: "notifications-comments-container", children: [
-        /* @__PURE__ */ jsx("div", { className: "main-info-box", children: /* @__PURE__ */ jsx(
+        /* @__PURE__ */ jsx("div", { className: "main-info-box red-gradient-background", children: /* @__PURE__ */ jsx(
           LoadItems,
           {
             initialItems: initialNotifications,
@@ -6357,7 +6398,7 @@ function Activity() {
             viewAllLink: "/dashboard/notifications"
           }
         ) }),
-        /* @__PURE__ */ jsx("div", { className: "main-info-box", children: /* @__PURE__ */ jsx(
+        /* @__PURE__ */ jsx("div", { className: "main-info-box lavender-gradient-background", children: /* @__PURE__ */ jsx(
           LoadItems,
           {
             initialItems: initialComments,
@@ -6401,7 +6442,7 @@ function Activity() {
             }
           )
         ] }),
-        /* @__PURE__ */ jsxs("div", { className: "main-info-box follows", children: [
+        /* @__PURE__ */ jsxs("div", { className: "main-info-box follows yellow-gradient-background", children: [
           /* @__PURE__ */ jsx(
             LoadItems,
             {
@@ -6468,7 +6509,6 @@ function Message({
       }
     }
     setIsEditing(false);
-    console.log("m.c", initialContent);
     setContent(initialContent);
     setResetKey((k) => k + 1);
   }, [initialContent]);
@@ -6531,8 +6571,6 @@ function Message({
         id,
         readOnly: !isEditing || isSubmitting,
         onChange: (editedMessage) => {
-          console.log("initial", initialContent);
-          console.log("edited", editedMessage);
           setHasChanged(editedMessage != initialContent);
           setContent(editedMessage);
         },
@@ -6658,11 +6696,9 @@ function Conversation({ conversation: conversationProp, addressee }) {
     setMessage(editedMessage);
   }, []);
   const handleCandidateHover = useCallback((i) => {
-    console.log("hover: i", i);
     setSearchResultSelection(i);
   }, [setSearchResultSelection]);
   const handleRecipientKeyPresses = useCallback((e) => {
-    console.log("hrkp", searchResultSelection);
     const selection = window.getSelection();
     let caretPosition;
     if (selection.rangeCount > 0) {
@@ -6687,23 +6723,19 @@ function Conversation({ conversation: conversationProp, addressee }) {
       return;
     }
     if (e.key === "Enter" || e.key === "," || e.key === "Tab") {
-      console.log("selection", searchResultSelection);
       if (!resultsRef.children[searchResultSelection]) {
         return;
       }
       e.preventDefault();
       const link = resultsRef.children[searchResultSelection].querySelector("a");
-      console.log("clicking link", searchResultSelection);
       link.click();
       return;
     }
     if (e.key === "ArrowDown") {
-      console.log("rr.c.l", searchResults.length, resultsRef.children.length);
       if (searchResults.length <= 0 || resultsRef.children.length <= 0) {
         return;
       }
       e.preventDefault();
-      console.log("srs", searchResultSelection);
       let newInd = searchResultSelection;
       if (newInd === -1) {
         newInd = 0;
@@ -6718,7 +6750,6 @@ function Conversation({ conversation: conversationProp, addressee }) {
         return;
       }
       e.preventDefault();
-      console.log("srs", searchResultSelection);
       let newInd = searchResultSelection;
       if (newInd === -1) {
         newInd = Math.max(0, resultsRef.children.length - 1);
@@ -6765,9 +6796,7 @@ function Conversation({ conversation: conversationProp, addressee }) {
         setSearchResultSelection(-1);
         return;
       }
-      console.log("has changed?", hasChanged);
       if (hasChanged) {
-        console.log("searching");
         axios.get(`/api/usersearch/${encodeURIComponent(newVal)}`).then((res) => res.data).then((data) => {
           const existingIds = new Set(recipients.map((r) => r.id));
           const filtered = data.filter((datum) => !existingIds.has(datum.id) && datum.id !== user.id);
@@ -6795,7 +6824,6 @@ function Conversation({ conversation: conversationProp, addressee }) {
   }, [handleRecipientSearchTermChange, handleRecipientKeyPresses]);
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
-    console.log("submit", message, recipients, subject);
     const appUrl = props.app_url;
     const dehydratedMessage = dehydrateEditorImagePaths(message, appUrl);
     const messageWithResizedImages = await processEditorImages(dehydratedMessage);
@@ -6920,6 +6948,7 @@ function Conversation({ conversation: conversationProp, addressee }) {
                 {
                   onClick: (e) => handleXButton(e, i),
                   className: "x-button",
+                  disabled: isSubmitting,
                   children: "x"
                 }
               ) })
@@ -6969,7 +6998,7 @@ function Conversation({ conversation: conversationProp, addressee }) {
           RichTextEditor,
           {
             placeholder: "your message",
-            readOnly: isSubmitting,
+            disabled: isSubmitting,
             onChange: handleRTEChange,
             value: message,
             quotedMessage,
@@ -6981,6 +7010,7 @@ function Conversation({ conversation: conversationProp, addressee }) {
           {
             type: "submit",
             disabled: isSubmitting || !canSubmit,
+            className: "side-margin-on-mobile",
             children: "send"
           }
         )
@@ -6992,7 +7022,55 @@ const __vite_glob_0_21 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.de
   __proto__: null,
   default: Conversation
 }, Symbol.toStringTag, { value: "Module" }));
-function ImageField({ index, image = null, file = null, alt = "", setArray, onImageChange, onAltChange, onRemove }) {
+function DeleteAccount() {
+  const { app_name } = usePage().props;
+  const [agreeVal, setAgreeVal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const onAgreeChange = (e) => {
+    setAgreeVal(e.target.checked);
+  };
+  const handleDelete = (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    router.post("/dashboard/delete-account", {}, {
+      onFinish: () => setIsSubmitting(false)
+    });
+  };
+  return /* @__PURE__ */ jsxs(DashboardLayout, { currentTab: "profile", headerText: "delete account", headerHasMargin: false, children: [
+    /* @__PURE__ */ jsx(Head, { title: "Delete Account" }),
+    /* @__PURE__ */ jsxs("div", { className: "article-text no-bottom-padding", children: [
+      /* @__PURE__ */ jsxs("p", { children: [
+        " ",
+        app_name,
+        " will keep your data for 30 days and give you the option to reverse your decision from the dashboard. "
+      ] }),
+      /* @__PURE__ */ jsx("p", { children: " Your profile and posts will all be immediately hidden from other users. " }),
+      /* @__PURE__ */ jsx("p", { children: " If no action is taken, your member information and all posts & uploaded media will be completely removed from our database after 30 days." })
+    ] }),
+    /* @__PURE__ */ jsx("form", { onSubmit: handleDelete, children: /* @__PURE__ */ jsxs("div", { className: "flex-column", children: [
+      /* @__PURE__ */ jsx(
+        CheckboxField,
+        {
+          name: "account-deletion-agree",
+          label: "Yes, I want to permanently delete my account",
+          value: agreeVal,
+          onChange: onAgreeChange,
+          disabled: isSubmitting,
+          classes: "centered-content no-margin auto-width"
+        }
+      ),
+      /* @__PURE__ */ jsxs("div", { className: "flex-row", children: [
+        /* @__PURE__ */ jsx("button", { type: "submit", className: "red-button", disabled: !agreeVal || isSubmitting, children: "delete account" }),
+        /* @__PURE__ */ jsx(Link, { href: "/dashboard", className: "link-button", children: "cancel" })
+      ] })
+    ] }) })
+  ] });
+}
+const __vite_glob_0_23 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  default: DeleteAccount
+}, Symbol.toStringTag, { value: "Module" }));
+function ImageField({ index, image = null, file = null, alt = "", setArray, onImageChange, onAltChange, onRemove, disabled = false }) {
   const [previewImage, setPreviewImage] = useState(image);
   const [imageError, setImageError] = useState("");
   const [altError, setAltError] = useState("");
@@ -7084,7 +7162,7 @@ function ImageField({ index, image = null, file = null, alt = "", setArray, onIm
     altError && /* @__PURE__ */ jsx("div", { className: "error", children: altError }),
     /* @__PURE__ */ jsxs("div", { className: "sub-field", children: [
       /* @__PURE__ */ jsxs("div", { className: "remove-input-container", children: [
-        /* @__PURE__ */ jsx("span", { className: "button-container", children: /* @__PURE__ */ jsx("button", { type: "button", onClick: removeSelf, children: "-" }) }),
+        /* @__PURE__ */ jsx("span", { className: "button-container", children: /* @__PURE__ */ jsx("button", { type: "button", onClick: removeSelf, disabled, children: "-" }) }),
         /* @__PURE__ */ jsx(
           "input",
           {
@@ -7093,7 +7171,8 @@ function ImageField({ index, image = null, file = null, alt = "", setArray, onIm
             name: "gal_images[]",
             id: `gal_image_${index}`,
             onChange: handleFileChange,
-            ref: imageInputRef
+            ref: imageInputRef,
+            disabled
           }
         )
       ] }),
@@ -7106,7 +7185,8 @@ function ImageField({ index, image = null, file = null, alt = "", setArray, onIm
             name: "alts[]",
             id: `alt_${index}`,
             value: alt ?? "",
-            onChange: handleAltChange
+            onChange: handleAltChange,
+            disabled
           }
         )
       ] })
@@ -7117,10 +7197,11 @@ function ImageField({ index, image = null, file = null, alt = "", setArray, onIm
     ] })
   ] });
 }
-const __vite_glob_0_26 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const __vite_glob_0_27 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: ImageField
 }, Symbol.toStringTag, { value: "Module" }));
+const IMAGE_LIMIT = 15;
 const createInitialImageFields = (post = null, user, postUrl, appUrl) => {
   if (post) {
     const images = post.gallery_image_urls;
@@ -7136,7 +7217,7 @@ const createInitialImageFields = (post = null, user, postUrl, appUrl) => {
       type: "old"
     }));
   } else {
-    return [{ index: 0, image: null, alt: null, value: null, type: "new" }];
+    return [];
   }
 };
 function hasImages(fields) {
@@ -7253,30 +7334,29 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
         formData.append(`gallery_images[${idx}][alt]`, field.alt || "");
       });
       if (isCreateForm) {
-        await new Promise((resolve, reject) => {
-          router.post("/posts", formData, {
-            preserveState: false,
-            preserveScroll: true,
-            onSuccess: (page) => resolve(page),
-            onError: (errs) => reject(errs),
-            onFinish: () => setIsSubmitting(false)
-          });
+        router.post("/posts", formData, {
+          preserveState: false,
+          preserveScroll: true,
+          onError: (errs) => {
+            for (const key in errs) {
+              setError(key, errs[key]);
+            }
+            setIsSubmitting(false);
+          }
         });
       } else {
         formData.append("_method", "PUT");
-        await new Promise((resolve, reject) => {
-          router.post(`/posts/${post.id}`, formData, {
-            preserveState: false,
-            preserveScroll: true,
-            onSuccess: (page) => resolve(page),
-            onError: (errs) => reject(errs),
-            onFinish: () => setIsSubmitting(false)
-          });
+        router.post(`/posts/${post.id}`, formData, {
+          preserveState: false,
+          preserveScroll: true,
+          onError: (errs) => {
+            for (const key in errs) {
+              setError(key, errs[key]);
+            }
+            setIsSubmitting(false);
+          }
         });
       }
-      setSuccess(message);
-      const targetRoute = data.is_news ? "/dashboard/news-posts" : "/dashboard/posts";
-      router.visit(targetRoute, { state: { message } });
     } catch (err) {
       if (err && typeof err === "object" && !err.response && !err.message) {
         for (const key in err) {
@@ -7286,8 +7366,6 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
         const msg = getErrorMessage(err);
         setError("general", msg);
       }
-    } finally {
-      setHasChanged(false);
       setIsSubmitting(false);
     }
   }, [isCreateForm, post, data, imageFields, clearErrors, setError]);
@@ -7306,8 +7384,6 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
           onFinish: () => setIsSubmitting(false)
         });
       });
-      const targetRoute = data.is_news ? "/dashboard/news-posts" : "/dashboard/posts";
-      router.visit(targetRoute, { state: { message: "Post successfully deleted." } });
     } catch (err) {
       if (err && typeof err === "object" && !err.response && !err.message) {
         for (const key in err) {
@@ -7393,7 +7469,7 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
   }, []);
   const handleAddImage = useCallback(() => {
     clearErrors("general");
-    if (imageFields.length >= 15) {
+    if (imageFields.length >= IMAGE_LIMIT) {
       setError("general", "Max amount of images is 15. Input truncated.");
       return;
     }
@@ -7426,9 +7502,9 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
     setImageFields((prev) => {
       let combined = [...prev, ...newFields];
       let reindexed = combined.map((f, i) => ({ ...f, index: i }));
-      if (reindexed.length >= 15) {
+      if (reindexed.length >= IMAGE_LIMIT) {
         localErr = (localErr ? localErr + " " : "") + "Max amount of images is 15.";
-        reindexed = reindexed.slice(0, 15);
+        reindexed = reindexed.slice(0, IMAGE_LIMIT);
       }
       if (localErr) setError("general", localErr);
       return reindexed;
@@ -7443,7 +7519,7 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
   return /* @__PURE__ */ jsxs("div", { className: "main-info-delete-container", children: [
     /* @__PURE__ */ jsx(PageHead, { title: "Post Form" }),
     isFormReady ? /* @__PURE__ */ jsxs(Fragment, { children: [
-      /* @__PURE__ */ jsx("div", { className: "main-info-box stretch", children: /* @__PURE__ */ jsxs("form", { onSubmit: (e) => onSubmit(e, false), children: [
+      /* @__PURE__ */ jsx("div", { className: "main-info-box transparent-background stretch", children: /* @__PURE__ */ jsxs("form", { onSubmit: (e) => onSubmit(e, false), children: [
         /* @__PURE__ */ jsxs("div", { className: "text-fields-container", children: [
           errors.general && /* @__PURE__ */ jsx("div", { className: "error", children: errors.general }),
           success && /* @__PURE__ */ jsx("div", { className: "notice", children: success }),
@@ -7624,7 +7700,7 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
               RichTextEditor,
               {
                 placeholder: "description of the work",
-                isReadOnly: isSubmitting,
+                disabled: isSubmitting,
                 onChange: (val) => {
                   setData("statement", val);
                   setHasChanged(val !== initialStatement);
@@ -7635,25 +7711,37 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
           ] })
         ] }),
         /* @__PURE__ */ jsxs("div", { className: "multi-field-container", ref: galleryContainerRef, children: [
-          /* @__PURE__ */ jsx("div", { className: "field-button-container top-align", children: /* @__PURE__ */ jsxs("div", { className: "main-label-container", children: [
-            /* @__PURE__ */ jsx("label", { className: "main-label", children: "gallery images*" }),
-            /* @__PURE__ */ jsx("span", { className: "button-container", children: /* @__PURE__ */ jsx("button", { className: "small-but", type: "button", onClick: handleAddImage, children: "+" }) }),
-            /* @__PURE__ */ jsx("p", { children: "drag & drop" })
-          ] }) }),
-          imageFields.map((field) => /* @__PURE__ */ jsx(
-            ImageField,
-            {
-              index: field.index,
-              image: field.image,
-              file: field.type === "new" ? field.value : null,
-              alt: field.alt,
-              setArray: setImageFields,
-              onImageChange,
-              onAltChange,
-              onRemove: () => setHasChanged(true)
-            },
-            field.index
-          )),
+          /* @__PURE__ */ jsxs("div", { className: "field-button-image-fields-container", children: [
+            /* @__PURE__ */ jsx("div", { className: "field-button-container top-align", children: /* @__PURE__ */ jsxs("div", { className: "main-label-container", children: [
+              /* @__PURE__ */ jsx("label", { className: "main-label", children: "gallery images*" }),
+              /* @__PURE__ */ jsx("span", { className: "button-container", children: /* @__PURE__ */ jsx(
+                "button",
+                {
+                  className: "small-but",
+                  type: "button",
+                  onClick: handleAddImage,
+                  disabled: isSubmitting || imageFields.length >= IMAGE_LIMIT,
+                  children: "+"
+                }
+              ) }),
+              /* @__PURE__ */ jsx("p", { children: "drag & drop" })
+            ] }) }),
+            imageFields.map((field) => /* @__PURE__ */ jsx(
+              ImageField,
+              {
+                index: field.index,
+                image: field.image,
+                file: field.type === "new" ? field.value : null,
+                alt: field.alt,
+                setArray: setImageFields,
+                onImageChange,
+                onAltChange,
+                onRemove: () => setHasChanged(true),
+                disabled: isSubmitting
+              },
+              field.index
+            ))
+          ] }),
           /* @__PURE__ */ jsxs("div", { className: "horizontal-buttons-container reverse-row", children: [
             (!post || post.is_draft) && /* @__PURE__ */ jsx("button", { type: "button", onClick: (e) => onSubmit(e, true), disabled: isSubmitting || !canSubmit, children: "save draft" }),
             /* @__PURE__ */ jsx("button", { type: "submit", disabled: isSubmitting || !canSubmit, children: buttonText })
@@ -7673,7 +7761,7 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
     ] }) : /* @__PURE__ */ jsx("p", { className: "loading", children: loadingText })
   ] });
 }
-const __vite_glob_0_34 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const __vite_glob_0_35 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: PostForm
 }, Symbol.toStringTag, { value: "Module" }));
@@ -7702,7 +7790,7 @@ function EditPost({ post: initialPost }) {
     }
   );
 }
-const __vite_glob_0_24 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const __vite_glob_0_25 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: EditPost
 }, Symbol.toStringTag, { value: "Module" }));
@@ -7721,7 +7809,7 @@ function LikedPosts() {
     )
   ] });
 }
-const __vite_glob_0_27 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const __vite_glob_0_28 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: LikedPosts
 }, Symbol.toStringTag, { value: "Module" }));
@@ -7735,7 +7823,6 @@ function ConversationPreview({ conversation }) {
   const convoLink = `/dashboard/mail/${conversation.id}`;
   let avatarClasses = "convo-avatar";
   avatarClasses += conversation.is_unread ? " has-new-mail" : "";
-  console.log("conversation", conversation);
   return conversation ? /* @__PURE__ */ jsxs(
     Link,
     {
@@ -7766,7 +7853,7 @@ function ConversationPreview({ conversation }) {
     }
   ) : /* @__PURE__ */ jsx("p", { children: "loading..." });
 }
-const __vite_glob_0_36 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const __vite_glob_0_37 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: ConversationPreview
 }, Symbol.toStringTag, { value: "Module" }));
@@ -7784,7 +7871,7 @@ function DashboardCreateHeader({ headerText, createLink, isVerified = true }) {
     ) })
   ] });
 }
-const __vite_glob_0_37 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const __vite_glob_0_38 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: DashboardCreateHeader
 }, Symbol.toStringTag, { value: "Module" }));
@@ -7826,7 +7913,7 @@ function Mail() {
     ] }) : /* @__PURE__ */ jsx("p", { className: "centered-content padding-1rem", children: "Please verify your e-mail to begin mailing other users." })
   ] });
 }
-const __vite_glob_0_28 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const __vite_glob_0_29 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: Mail
 }, Symbol.toStringTag, { value: "Module" }));
@@ -7863,7 +7950,7 @@ function MyPosts() {
     )
   ] });
 }
-const __vite_glob_0_29 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const __vite_glob_0_30 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: MyPosts
 }, Symbol.toStringTag, { value: "Module" }));
@@ -7883,7 +7970,7 @@ function NewNewsPost() {
     ) : /* @__PURE__ */ jsx("p", { className: "centered-content padding-1rem", children: "Verify your e-mail to begin posting." })
   ] });
 }
-const __vite_glob_0_30 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const __vite_glob_0_31 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: NewNewsPost
 }, Symbol.toStringTag, { value: "Module" }));
@@ -7909,7 +7996,7 @@ function NewPost() {
     }
   );
 }
-const __vite_glob_0_31 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const __vite_glob_0_32 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: NewPost
 }, Symbol.toStringTag, { value: "Module" }));
@@ -7946,7 +8033,7 @@ function NewsPosts() {
     )
   ] });
 }
-const __vite_glob_0_32 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const __vite_glob_0_33 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: NewsPosts
 }, Symbol.toStringTag, { value: "Module" }));
@@ -7969,7 +8056,7 @@ function Notifications() {
     )
   ] });
 }
-const __vite_glob_0_33 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const __vite_glob_0_34 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: Notifications
 }, Symbol.toStringTag, { value: "Module" }));
@@ -7994,7 +8081,7 @@ function UserComments() {
     )
   ] });
 }
-const __vite_glob_0_35 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const __vite_glob_0_36 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: UserComments
 }, Symbol.toStringTag, { value: "Module" }));
@@ -8015,7 +8102,7 @@ createServer(
     render: renderToString,
     title: (title) => `${title} - ${appName}`,
     resolve: (name) => {
-      const pagePromise = resolvePageComponent(`./Pages/${name}.jsx`, /* @__PURE__ */ Object.assign({ "./Pages/About.jsx": __vite_glob_0_0, "./Pages/Contact.jsx": __vite_glob_0_1, "./Pages/CreatePostForm.jsx": __vite_glob_0_2, "./Pages/Dashboard.jsx": __vite_glob_0_3, "./Pages/Followers.jsx": __vite_glob_0_4, "./Pages/Following.jsx": __vite_glob_0_5, "./Pages/Home.jsx": __vite_glob_0_6, "./Pages/Login.jsx": __vite_glob_0_7, "./Pages/News.jsx": __vite_glob_0_8, "./Pages/NotFound.jsx": __vite_glob_0_9, "./Pages/OAuthCallback.jsx": __vite_glob_0_10, "./Pages/PasswordChange.jsx": __vite_glob_0_11, "./Pages/PasswordRecovery.jsx": __vite_glob_0_12, "./Pages/PasswordReset.jsx": __vite_glob_0_13, "./Pages/Post.jsx": __vite_glob_0_14, "./Pages/Posts.jsx": __vite_glob_0_15, "./Pages/Registration.jsx": __vite_glob_0_16, "./Pages/SearchResults.jsx": __vite_glob_0_17, "./Pages/UserProfile.jsx": __vite_glob_0_18, "./Pages/dashboard/Activity.jsx": __vite_glob_0_19, "./Pages/dashboard/AvatarSetter.jsx": __vite_glob_0_20, "./Pages/dashboard/Conversation.jsx": __vite_glob_0_21, "./Pages/dashboard/DashboardLayout.jsx": __vite_glob_0_22, "./Pages/dashboard/EditBio.jsx": __vite_glob_0_23, "./Pages/dashboard/EditPost.jsx": __vite_glob_0_24, "./Pages/dashboard/EditProfile.jsx": __vite_glob_0_25, "./Pages/dashboard/ImageField.jsx": __vite_glob_0_26, "./Pages/dashboard/LikedPosts.jsx": __vite_glob_0_27, "./Pages/dashboard/Mail.jsx": __vite_glob_0_28, "./Pages/dashboard/MyPosts.jsx": __vite_glob_0_29, "./Pages/dashboard/NewNewsPost.jsx": __vite_glob_0_30, "./Pages/dashboard/NewPost.jsx": __vite_glob_0_31, "./Pages/dashboard/NewsPosts.jsx": __vite_glob_0_32, "./Pages/dashboard/Notifications.jsx": __vite_glob_0_33, "./Pages/dashboard/PostForm.jsx": __vite_glob_0_34, "./Pages/dashboard/UserComments.jsx": __vite_glob_0_35, "./Pages/dashboard/common/ConversationPreview.jsx": __vite_glob_0_36, "./Pages/dashboard/common/DashboardCreateHeader.jsx": __vite_glob_0_37, "./Pages/dashboard/common/Notification.jsx": __vite_glob_0_38 }));
+      const pagePromise = resolvePageComponent(`./Pages/${name}.jsx`, /* @__PURE__ */ Object.assign({ "./Pages/About.jsx": __vite_glob_0_0, "./Pages/Contact.jsx": __vite_glob_0_1, "./Pages/CreatePostForm.jsx": __vite_glob_0_2, "./Pages/Dashboard.jsx": __vite_glob_0_3, "./Pages/Followers.jsx": __vite_glob_0_4, "./Pages/Following.jsx": __vite_glob_0_5, "./Pages/Home.jsx": __vite_glob_0_6, "./Pages/Login.jsx": __vite_glob_0_7, "./Pages/News.jsx": __vite_glob_0_8, "./Pages/NotFound.jsx": __vite_glob_0_9, "./Pages/OAuthCallback.jsx": __vite_glob_0_10, "./Pages/PasswordChange.jsx": __vite_glob_0_11, "./Pages/PasswordRecovery.jsx": __vite_glob_0_12, "./Pages/PasswordReset.jsx": __vite_glob_0_13, "./Pages/Post.jsx": __vite_glob_0_14, "./Pages/Posts.jsx": __vite_glob_0_15, "./Pages/Registration.jsx": __vite_glob_0_16, "./Pages/SearchResults.jsx": __vite_glob_0_17, "./Pages/UserProfile.jsx": __vite_glob_0_18, "./Pages/dashboard/Activity.jsx": __vite_glob_0_19, "./Pages/dashboard/AvatarSetter.jsx": __vite_glob_0_20, "./Pages/dashboard/Conversation.jsx": __vite_glob_0_21, "./Pages/dashboard/DashboardLayout.jsx": __vite_glob_0_22, "./Pages/dashboard/DeleteAccount.jsx": __vite_glob_0_23, "./Pages/dashboard/EditBio.jsx": __vite_glob_0_24, "./Pages/dashboard/EditPost.jsx": __vite_glob_0_25, "./Pages/dashboard/EditProfile.jsx": __vite_glob_0_26, "./Pages/dashboard/ImageField.jsx": __vite_glob_0_27, "./Pages/dashboard/LikedPosts.jsx": __vite_glob_0_28, "./Pages/dashboard/Mail.jsx": __vite_glob_0_29, "./Pages/dashboard/MyPosts.jsx": __vite_glob_0_30, "./Pages/dashboard/NewNewsPost.jsx": __vite_glob_0_31, "./Pages/dashboard/NewPost.jsx": __vite_glob_0_32, "./Pages/dashboard/NewsPosts.jsx": __vite_glob_0_33, "./Pages/dashboard/Notifications.jsx": __vite_glob_0_34, "./Pages/dashboard/PostForm.jsx": __vite_glob_0_35, "./Pages/dashboard/UserComments.jsx": __vite_glob_0_36, "./Pages/dashboard/common/ConversationPreview.jsx": __vite_glob_0_37, "./Pages/dashboard/common/DashboardCreateHeader.jsx": __vite_glob_0_38, "./Pages/dashboard/common/Notification.jsx": __vite_glob_0_39 }));
       return pagePromise.then((module) => {
         if (module.default.layout === void 0) {
           module.default.layout = (page2) => {

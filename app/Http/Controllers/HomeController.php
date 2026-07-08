@@ -17,6 +17,7 @@ class HomeController extends Controller
 
         // Hero and carousel are small and safe to include on full renders
         $heroPosts = Post::with(['user:id,username,avatar,member_type'])
+            ->whereHas('user', fn($q) => $q->whereNull('profile_hidden_at'))
             ->where('is_news', false)
             ->where('is_private', false)
             ->where('is_hidden_by_admin', false)
@@ -26,6 +27,7 @@ class HomeController extends Controller
             ->get();
 
         $carouselArchive = Post::with(['user:id,username,avatar,member_type'])
+            ->whereHas('user', fn($q) => $q->whereNull('profile_hidden_at'))
             ->where('is_news', false)
             ->where('is_private', false)
             ->where('is_hidden_by_admin', false)
@@ -35,6 +37,7 @@ class HomeController extends Controller
             ->get();
 
         $carouselNews = Post::with(['user:id,username,avatar,member_type'])
+            ->whereHas('user', fn($q) => $q->whereNull('profile_hidden_at'))
             ->where('is_news', true)
             ->where('is_private', false)
             ->where('is_hidden_by_admin', false)
@@ -48,6 +51,7 @@ class HomeController extends Controller
             $followingIds = $user->following()->pluck('users.id');
             if ($followingIds->isNotEmpty()) {
                 $carouselFollowing = Post::with(['user:id,username,avatar,member_type'])
+                    ->whereHas('user', fn($q) => $q->whereNull('profile_hidden_at'))
                     ->whereIn('user_id', $followingIds)
                     ->where('is_news', false)
                     ->where('is_private', false)
@@ -62,6 +66,7 @@ class HomeController extends Controller
         // Archive posts - support random fetch with excludes, or paginated fetch
         $heroIds = $heroPosts->pluck('id')->toArray();
         $query = Post::with(['user:id,username,avatar,member_type'])
+            ->whereHas('user', fn($q) => $q->whereNull('profile_hidden_at'))
             ->when(!empty($heroIds), fn($q) => $q->whereNotIn('id', $heroIds))
             ->where('is_news', false)
             ->where('is_private', false)

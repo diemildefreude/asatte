@@ -110,7 +110,7 @@ function Login()
                  
           </div>
            </form>      
-          <OAuth headerText="or:"
+          <OAuth headerText="or continue with:"
               onClick={handleSocialLoginSubmit}
               setError={(msg) => setError('general', msg)}
               isSubmittingForm={processing}

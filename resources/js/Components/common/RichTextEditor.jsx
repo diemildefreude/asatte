@@ -28,11 +28,16 @@ function RichTextEditor({ onChange, value, quotedMessage, onQuoteApplied, placeh
           `;
 
 
-          const currentContent = editor.getContent() || "";
-          editor.setContent(quoteHtml + currentContent);
-          
-          // Focus the editor so the user can start typing immediately
+          // Focus the editor so we can interact with its selection
           editor.focus();
+          
+          // Move cursor to the very beginning of the editor
+          editor.selection.select(editor.getBody(), true);
+          editor.selection.collapse(true);
+          
+          // Insert the quote, which naturally leaves the caret at the end of the inserted HTML
+          editor.execCommand('mceInsertContent', false, quoteHtml);
+          
           onQuoteApplied();
       }
     }, [quotedMessage, onQuoteApplied]);

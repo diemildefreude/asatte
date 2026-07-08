@@ -13,6 +13,7 @@ function Message({message, onReply=null, onDelete=null, id, parentLocalId=null,
     const user = usePage().props.auth?.user;
     const [isEditing, setIsEditing] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState("");
 
     const { props } = usePage();
     const appUrl = props.app_url;
@@ -54,7 +55,7 @@ function Message({message, onReply=null, onDelete=null, id, parentLocalId=null,
         setIsSubmitting(true);
         const dehydratedContent = dehydrateEditorImagePaths(content, appUrl);
         const newContentWithResizedImages = await processEditorImages(dehydratedContent);
-        
+        setError("");
         router.put(`/dashboard/mail/${message.id}`, { content: newContentWithResizedImages }, {
             preserveScroll: true,
             onSuccess: () => {
@@ -63,6 +64,8 @@ function Message({message, onReply=null, onDelete=null, id, parentLocalId=null,
             },
             onError: (err) => {
                 console.error(err);
+                const errM = getErrorMessage(err);
+                setError(errM);
                 setIsSubmitting(false);
             }
         });
@@ -76,6 +79,7 @@ function Message({message, onReply=null, onDelete=null, id, parentLocalId=null,
         setResetKey(k => k + 1); 
     }, [initialHydratedContent]);
 
+    console.log("content", content);
     return (
     <div className="comment dm" id={elementId}>
         <p>
@@ -90,16 +94,7 @@ function Message({message, onReply=null, onDelete=null, id, parentLocalId=null,
                 </span>
             )
         }
-        {
-            message.parent_id && (parentLocalId != null) && currentUrl ? (
-                <span className="notice small"> replied to <a 
-                    href={`${currentUrl}/message-${parentLocalId}`}
-                    onClick={(e) => {e.preventDefault(); scrollToElement(currentUrl, parentElementId)}}
-                >
-                    this</a> message
-                </span>
-            ) : null
-        }
+        {error && (<span className="error"> {error}</span>)}
         </div>
         {
             isEditing ? (
@@ -139,7 +134,7 @@ function Message({message, onReply=null, onDelete=null, id, parentLocalId=null,
                         className="small-button"
                         onClick={handleMessageUpdate}
                         title="save"
-                        disabled={isSubmitting || !hasChanged}
+                        disabled={isSubmitting || !hasChanged || content.trim().length < 1}
                     >
                         <i className="fa-solid fa-floppy-disk"></i>
                     </button>  

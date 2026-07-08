@@ -23,9 +23,9 @@ class ContactController extends Controller
 
         $fields = $request->validate
         ([
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:255', 'regex:/^[^<>]*$/'],
             'email' => ['required', 'email'],
-            'subject' => ['string', 'max:255'],
+            'subject' => ['string', 'max:255', 'regex:/^[^<>]*$/'],
             'content' => ['string'] 
         ]);
         $senderName = $fields['name'];

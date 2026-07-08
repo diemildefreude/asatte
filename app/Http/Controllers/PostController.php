@@ -341,6 +341,19 @@ class PostController extends Controller
         $post->is_news = $isNews;
         $post->is_hidden_by_admin = false;
         $post->save();
+
+        if ($isNews && !$isDraft) {
+            $excerpt = strip_tags($statement);
+            $excerptWords = explode(' ', $excerpt);
+            $preview = implode(' ', array_slice($excerptWords, 0, 50));
+            $link = url("/{$request->user()->username}/{$post->post_url}");
+
+            \App\Models\User::where('accepts_emails', true)->chunk(50, function ($users) use ($post, $preview, $link) {
+                foreach ($users as $u) {
+                    \Illuminate\Support\Facades\Mail::to($u->email)->send(new \App\Mail\NewsNotice($post->title, $preview, $link));
+                }
+            });
+        }
         $response = [
             'status' => 'post_created',
             'message' => 'Your post has been successfully created.'
@@ -413,7 +426,12 @@ class PostController extends Controller
         if($isHidden && !$isAdminRequest && !$isPostCreatorRequest)
         {
             abort(404, 'No such post found.');
-        }        
+        }
+
+        if($post->user->profile_hidden_at !== null && !$isAdminRequest && !$isPostCreatorRequest)
+        {
+            abort(404, 'No such post found.');
+        }
         
         $post->load('comments.user');
 
@@ -786,6 +804,7 @@ class PostController extends Controller
             'statement_image_urls' => $editorImageArray//$statementImagesJson
         ];
 
+        $wasDraft = $post->is_draft;
         if ($post->is_draft && !$isDraft) {
             $post->created_at = now();
         }
@@ -795,6 +814,19 @@ class PostController extends Controller
             $post->is_news = $isNews;
         }
         $post->save();
+
+        if ($post->is_news && $wasDraft && !$isDraft) {
+            $excerpt = strip_tags($statement);
+            $excerptWords = explode(' ', $excerpt);
+            $preview = implode(' ', array_slice($excerptWords, 0, 50));
+            $link = url("/{$request->user()->username}/{$post->post_url}");
+
+            \App\Models\User::where('accepts_emails', true)->chunk(50, function ($users) use ($post, $preview, $link) {
+                foreach ($users as $u) {
+                    \Illuminate\Support\Facades\Mail::to($u->email)->send(new \App\Mail\NewsNotice($post->title, $preview, $link));
+                }
+            });
+        }
         $response = [
             'status' => 'post_updated',
             'message' => 'Your post has been successfully updated.'
@@ -845,7 +877,7 @@ class PostController extends Controller
 
         $request->validate([
             "is_hidden_by_admin" => "nullable|boolean",
-            "message_to_user" => "nullable|string"
+            "reason" => "required_if:is_hidden_by_admin,true|nullable|string"
         ]);
         
         $user = $request->user();
@@ -865,10 +897,26 @@ class PostController extends Controller
         }
         
         $hideIt = $request->boolean('is_hidden_by_admin');
-        $messageToUser = $request["message_to_user"] ?? null;
+        $reason = $request->input("reason");
         
-        if($hideIt && $messageToUser)
+        if($hideIt && $reason)
         {
+            $post->admin_hidden_at = now();
+            // Build post URL
+            $appUrl = config('app.url');
+            if ($post->is_news) {
+                $date = \Carbon\Carbon::parse($post->created_at);
+                $postUrlPath = '/news/' . $date->format('Ymd') . '/' . $post->post_url;
+            } else {
+                $postUrlPath = '/' . $post->user->username . '/' . $post->post_url;
+            }
+            $postUrl = $appUrl . $postUrlPath;
+
+            $messageToUser = "<p>Your post, <a href=\"{$postUrl}\"><em>{$post->title}</em></a> has been hidden.</p>
+            <p> reason: {$reason}</p>    
+            <p> If you wish to dispute this decision, please reply to this message.</p>
+            <p> If no action is taken, the post will be deleted in 30 days.</p>";
+
             //send a DM
             $postTitle = $post->title;
             $name = "Your post, <em>$postTitle</em>, has been hidden";
@@ -880,28 +928,23 @@ class PostController extends Controller
                 $user->id => ['last_read_at' => now()],
                 $post->user->id => ['last_read_at' => null]
             ]);
-
-            $editorImageArray = [];
-            $userName = $user->username;
-            $messageImageFolder = "users/$userName/messages";
-            $newContentRaw = $messageToUser;
-            
-            $messageToUser = saveEditorImages($newContentRaw,
-                $editorImageArray, $messageImageFolder);
                 
             $conversation->messages()->create([
                 'sender_id' => $user->id,
                 'content' => $messageToUser
             ]);
-            //send an e-mail
+
+            \Illuminate\Support\Facades\Mail::to($post->user->email)->send(new \App\Mail\PostHiddenNotice($post->title, $reason));
         }
         else if(!$hideIt)
         {
+            $post->admin_hidden_at = null;
             Notification::create([
                 'user_id' => $post->user->id,
                 'type' => NotificationType::Unhidden,
                 'data' => ['post_id' => $post->id]
             ]);
+            \Illuminate\Support\Facades\Mail::to($post->user->email)->send(new \App\Mail\PostUnhiddenNotice($post->title, $post->user->username, $post->post_url));
         }
         
         $post->is_hidden_by_admin = $hideIt;

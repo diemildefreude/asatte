@@ -111,6 +111,9 @@ class SocialiteController extends Controller
                     'profile_completed' => false,
                     'accepted_terms_version' => null,
                 ]);
+
+                \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\SocialWelcome($user->email, $provider));
+
                 $status = 'social_registration_incomplete';
             }
 

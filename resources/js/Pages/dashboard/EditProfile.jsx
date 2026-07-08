@@ -19,6 +19,7 @@ function EditProfile()
         websites: [],
         location: '',
         show_email_in_profile: false,
+        accepts_emails: true,
     });
 
     const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -27,6 +28,7 @@ function EditProfile()
     const [websitesField, setWebsitesField] = useState([]);
     const [locationField, setLocationField] = useState('');
     const [showEmailInProfile, setShowEmailInProfile] = useState(false);
+    const [acceptsEmails, setAcceptsEmails] = useState(true);
     const [editingField, setEditingField] = useState(null);
 
 
@@ -45,9 +47,13 @@ function EditProfile()
         setWebsitesField(userWebsites);
         setLocationField(user.location || '');
         setShowEmailInProfile(!!user.show_email_in_profile);
-        setData('websites', userWebsites);
-        setData('location', user.location || '');
-        setData('show_email_in_profile', !!user.show_email_in_profile);
+        setAcceptsEmails(!!user.accepts_emails);
+        setData({
+            websites: userWebsites,
+            location: user.location || '',
+            show_email_in_profile: !!user.show_email_in_profile,
+            accepts_emails: !!user.accepts_emails,
+        });
     }, [user]);
 
     const handleEditClick = useCallback((fieldName) => 
@@ -83,7 +89,8 @@ function EditProfile()
         const currentData = {
             websites: websitesField,
             location: locationField,
-            show_email_in_profile: !!showEmailInProfile
+            show_email_in_profile: showEmailInProfile,
+            accepts_emails: acceptsEmails,
         };
 
         router.post('/update-profile', currentData, 
@@ -102,7 +109,7 @@ function EditProfile()
     };
 
     return (
-    <div className="main-info-box sticky">
+    <div className="main-info-box transparent-background sticky">
             <PageHead title="Edit Profile" />
         <div className="avatar-section">
             {errors.general && (
@@ -163,6 +170,13 @@ function EditProfile()
                     label="show e-mail in profile:"
                     value={showEmailInProfile}
                     onChange={(e) => {setHasChanges(e.target.checked !== !!user.show_email_in_profile); setShowEmailInProfile(e.target.checked);}}
+                    disabled={!user?.is_email_verified || processing}
+                />
+                <CheckboxField
+                    name="accepts-emails"
+                    label="accept e-mail notifications:"
+                    value={acceptsEmails}
+                    onChange={(e) => {setHasChanges(e.target.checked !== !!user.accepts_emails); setAcceptsEmails(e.target.checked);}}
                     disabled={!user?.is_email_verified || processing}
                 />
                 <div className="flex-row">

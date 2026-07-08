@@ -98,12 +98,11 @@
             setIsSubmitting(true);
             try
             {
-                const messageWithProcessedPhotos = await processEditorImages(adminMessage);
                 router.post(`/set-admin-hide/${post.id}`, 
                 {
                     _method: 'PUT',
                     is_hidden_by_admin: hide,
-                    message_to_user: messageWithProcessedPhotos
+                    reason: adminMessage
                 }, 
                 {
                     preserveScroll: true,
@@ -129,13 +128,9 @@
 
         const handleHideClick = useCallback(() =>
         {
-            const adminStarterText = `<p>Your post, <a href="${props.app_url}${getPostUrl(post)}"><em>${post.title}</em></a> has been hidden.</p>
-            <p> reason: </p>    
-            <p> If you wish to dispute this decision, please reply to this message.</p>
-            `;
-            setAdminMessage(adminStarterText);
+            setAdminMessage("Not Internet-related.");
             setAdminMessageIsVisible(true); 
-        },[props, post]);
+        },[]);
 
         return (
         <>
@@ -300,10 +295,12 @@
                                                 <div className='notice'>
                                                     <em>Let the user know why you're hiding their post.</em>
                                                 </div>
-                                                <RichTextEditor
-                                                    placeholder="Let the user know why you're hiding their post."
+                                                <textarea
+                                                    required
+                                                    className="w-100"
+                                                    style={{minHeight: "100px", padding: "10px"}}
                                                     disabled={isSubmitting}
-                                                    onChange={(m) => setAdminMessage(m)}
+                                                    onChange={(e) => setAdminMessage(e.target.value)}
                                                     value={adminMessage}
                                                 />
                                                 <div className="horizontal-buttons-container">

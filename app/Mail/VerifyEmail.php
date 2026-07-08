@@ -33,7 +33,7 @@ class VerifyEmail extends Mailable
     {
         $appName = config('app.name');
         return new Envelope(
-            subject: "$appName: verify your email address",
+            subject: "$appName: Verify your email address",
         );
     }
 

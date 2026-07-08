@@ -79,7 +79,7 @@ class DMController extends Controller
 
         
         $user = $request->user();
-        $userName = $user->name;
+        $userName = $user->username;
         $userId = $user->id;
         
         $conversationId = $request->input('conversation_id');
@@ -119,7 +119,7 @@ class DMController extends Controller
         }
 
         $editorImageArray = [];
-        $messageImageFolder = "users/$userName/messages";
+        $messageImageFolder = "users/$userName/mail";
         $newContentRaw = $request->input('content');
         
         $content = saveEditorImages($newContentRaw,
@@ -128,8 +128,18 @@ class DMController extends Controller
 
         $conversation->messages()->create([
             'sender_id' => $userId,
-            'content' => $content
+            'content' => $content,
+            'image_urls' => $editorImageArray
         ]);
+
+        $conversation->users()->updateExistingPivot($userId, [
+            'last_read_at' => now()
+        ]);
+
+        $recipientsToEmail = $conversation->users()->where('users.id', '!=', $userId)->where('accepts_emails', true)->get();
+        foreach ($recipientsToEmail as $recipient) {
+            \Illuminate\Support\Facades\Mail::to($recipient->email)->send(new \App\Mail\NewMessageNotice($user->username));
+        }
 
         $newestMessageID = $conversation->messages()->count() - 1;
         
@@ -187,8 +197,8 @@ class DMController extends Controller
         $message = Message::where('id', $id)
             ->where('sender_id', $userId)
             ->firstOrFail();
-        $editorImageArray = $message->image_urls; 
-        $messageImageFolder = "users/$userName/messages";
+        $editorImageArray = $message->image_urls ?? []; 
+        $messageImageFolder = "users/$userName/mail";
         $newContentRaw = $request->input('content');
         $newContent = saveEditorImages($newContentRaw, 
             $editorImageArray, $messageImageFolder);
@@ -221,6 +231,16 @@ class DMController extends Controller
         if (!$conversation) 
         {
             abort(404);
+        }
+
+        if (is_array($message->image_urls)) {
+            $folder = "images/uploaded/users/{$user->username}/mail";
+            foreach ($message->image_urls as $imageFile) {
+                $path = "{$folder}/{$imageFile}";
+                if (\Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($path);
+                }
+            }
         }
 
         if($conversation->messages_count <= 1)

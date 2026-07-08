@@ -346,7 +346,7 @@ function Registration()
                             </button>
                         </div>    
                     </form>
-                    <OAuth headerText="or:"
+                    <OAuth headerText="or continue with:"
                         onClick={handleSocialRegistrationSubmit}
                         setOnError={(msg) => setError('general', msg)}
                         isSubmittingForm={processing || isValidating}

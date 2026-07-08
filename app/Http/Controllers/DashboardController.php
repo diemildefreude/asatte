@@ -108,6 +108,7 @@ class DashboardController extends Controller
         $user->websites = empty($websites) ? null : $websites;
         $user->location = $request->location;
         $user->show_email_in_profile = $showEmailInProfile;
+        $user->accepts_emails = $request->boolean('accepts_emails', true);
         $user->save();
         
         $request->session()->flash('success_profile', 'Your profile has been successfully updated.');
@@ -242,5 +243,29 @@ class DashboardController extends Controller
             'initialFollowers' => $followers,
             'initialFollowing' => $following,
         ]);
+    }
+    public function deleteAccountForm()
+    {
+        return Inertia::render('dashboard/DeleteAccount');
+    }
+
+    public function deleteAccount(Request $request)
+    {
+        $user = $request->user();
+        $user->profile_hidden_at = now();
+        $user->save();
+
+        return redirect()->route('dashboard');
+    }
+
+    public function restoreAccount(Request $request)
+    {
+        $user = $request->user();
+        $user->profile_hidden_at = null;
+        $user->save();
+
+        $request->session()->flash('success', 'Your account has been successfully restored.');
+
+        return redirect()->back();
     }
 }

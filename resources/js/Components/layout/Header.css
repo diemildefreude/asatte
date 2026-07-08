@@ -83,7 +83,7 @@ nav.open
     align-self: center;
     font-size: 1.5em;
     font-weight: 1;
-    border: 2px solid white; 
+    border: 1px solid white; 
     padding: 1rem;
 }
 .nav-search-container
@@ -114,7 +114,7 @@ nav.open
 {
     color: var(--pale-yellow);
     font-weight: 400;
-    border: 2px solid var(--pale-yellow); 
+    border: 1px solid var(--pale-yellow); 
     background: var(--blue-gradient);
 }
 .nav-item.nav-search-container:hover
@@ -173,7 +173,7 @@ nav.open
         font-size: 1.0em;
         font-weight: 300;
         color: white;        
-        border: 2px solid #00000000;
+        border: 1px solid #00000000;
     }
     .nav-half.first .nav-item:nth-child(1), .nav-half.first .nav-item:nth-child(2), .nav-half.first .nav-item:nth-child(3),
     .nav-half.second .nav-item:nth-child(1), .nav-half.second .nav-item:nth-child(2), .nav-half.second .nav-item:nth-child(3)
@@ -241,7 +241,7 @@ nav.open
 .nav-button
 {
     background-color: transparent;
-    border: 2px solid rgba(255, 255, 255, 0);
+    border: 1px solid rgba(255, 255, 255, 0);
     position: relative;
     justify-items: center;
     padding: 0.6rem 0.7rem;
@@ -340,6 +340,6 @@ nav.open
     height: 14px;
     background-color: var(--neon-pink);
     border-radius: 50%;
-    border: 2px solid var(--almost-black);
+    border: 1px solid var(--almost-black);
     z-index: 2;
 }

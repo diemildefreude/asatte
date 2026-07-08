@@ -32,8 +32,9 @@ class ResetPassword extends Mailable
      */
     public function envelope(): Envelope
     {
+        $appName = config('app.name');
         return new Envelope(
-            subject: 'password reset request for netart.io',
+            subject: "$appName: Password reset request",
         );
     }
 

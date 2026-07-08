@@ -75,7 +75,6 @@ function Conversation({ conversation: conversationProp, addressee })
 
     const handleRTEChange = useCallback((editedMessage) =>
     {
-
         setDoesMessageExist(editedMessage.length > 0);
         setMessage(editedMessage);
     }, []);
@@ -435,7 +434,8 @@ function Conversation({ conversation: conversationProp, addressee })
                                     readOnly={true}                               
                                 /> <span><button 
                                     onClick={(e) => handleXButton(e, i)}
-                                    className="x-button">x</button></span>
+                                    className="x-button"
+                                    disabled={isSubmitting}>x</button></span>
                             </div>
                         ))
                     }

@@ -4,18 +4,20 @@
     position: relative;
     display: flex;
     justify-content: center;
+    flex-grow: 5;
 }
 .main-image
 {
     width: 100%;
     aspect-ratio: 3/2;
+    height: auto;
     object-fit: cover;
 }
 .image-link-subcontainer
 {   
     position: relative;
-    border: 2px solid var(--grey-yellow);
-    width: fit-content;
+    border: 1px solid var(--grey-yellow);
+    width: 100%;
     overflow-x: hidden;
     overflow-y: hidden;
     box-sizing: border-box;
@@ -140,14 +142,6 @@
 }
 @media (min-width: 700px)
 {
-    .page-section.statement, .page-section.video
-    {
-        margin: 0 2rem 2rem;
-        width: calc(100% - 4rem);
-    }
-}
-@media (min-width: 950px)
-{
     .image-info-statement-container
     {
         display: flex;
@@ -163,17 +157,34 @@
     {
         display: flex;
         flex-direction: row;
-        gap: 1rem;        
-        align-items: stretch;
+        gap: 1rem; 
     }
-    .image-info-container .main-info-container
+    .image-info-container .main-info-container, 
+    .image-info-container .main-image-container
     {
+        flex-basis: 50%;
         flex-grow: 2;
     }
     .main-image-container
     {
         margin: 0;
         max-width: none;
+        min-height: 300px;
+        display: flex;
+        flex-direction: column;
+    }
+    .image-link-subcontainer
+    {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        aspect-ratio: 3/2;
+    }
+    .main-image
+    {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
     }
     .page-section.main-info-container
     {
@@ -214,11 +225,17 @@
     .main-image-container
     {
         flex-basis: calc(100% - 2rem);
+        max-width: 600px;
+        min-height: 400px;
+        margin: 0 auto;
     }
     .main-image
     {
-        max-height: 70svh;
         object-position: center;
+        height: 100%;
+        width: auto;
+        aspect-ratio: 3/2;
+        object-fit: cover;
     }
     .main-info-statement-container
     {
@@ -286,8 +303,9 @@
 {
     /* padding: 1rem;
     line-height: 1.8em; */
-    background-color: rgba(0, 0, 0, 0.5);
-    border: 2px solid white;
+    /* background-color: rgba(0, 0, 0, 0.5); */
+    background: var(--black-gradient);
+    border: 1px solid white;
     box-sizing: border-box;
     /* overflow-wrap: break-word; */
 }

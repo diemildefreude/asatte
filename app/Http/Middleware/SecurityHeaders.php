@@ -30,7 +30,7 @@ class SecurityHeaders
                "media-src * data: blob:; " .
                "font-src * data:; " .
                "frame-src *; " .
-               "connect-src 'self' wss: https:;";
+               "connect-src 'self' wss: https: data:;";
 
         if (app()->environment('local')) {
             // Completely relax CSP for local development to prevent Vite/HMR conflicts
@@ -41,10 +41,14 @@ class SecurityHeaders
                    "media-src * data: blob:; " .
                    "font-src * data: blob:; " .
                    "frame-src *; " .
-                   "connect-src *;";
+                   "connect-src * data: blob:;";
         }
 
         $response->headers->set('Content-Security-Policy', $csp);
+        
+        // Permissions Policy (formerly Feature Policy)
+        // Restricts access to sensitive browser features (camera, mic, geolocation, etc.)
+        $response->headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(), usb=()');
 
         return $response;
     }

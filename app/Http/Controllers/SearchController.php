@@ -18,6 +18,7 @@ class SearchController extends Controller
 
         $amount = intval($request->query('amount', 12));
         $query = Post::with(['user:id,username,avatar,member_type'])
+            ->whereHas('user', fn($q) => $q->whereNull('profile_hidden_at'))
             ->where('is_private', false)
             ->where('is_draft', false)
             ->where('is_hidden_by_admin', false)

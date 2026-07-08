@@ -32,7 +32,7 @@ const createInitialImageFields = (post=null, user, postUrl, appUrl) =>
     } 
     else 
     {
-        return [{ index: 0, image: null, alt: null, value: null, type: 'new' }];
+        return [];
     }
 };
 
@@ -178,33 +178,32 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
 
             if(isCreateForm)
             {
-                await new Promise((resolve, reject) => {
-                    router.post('/posts', formData, {
-                        preserveState: false,
-                        preserveScroll: true,
-                        onSuccess: (page) => resolve(page),
-                        onError: (errs) => reject(errs),
-                        onFinish: () => setIsSubmitting(false)
-                    });
+                router.post('/posts', formData, {
+                    preserveState: false,
+                    preserveScroll: true,
+                    onError: (errs) => {
+                        for (const key in errs) {
+                            setError(key, errs[key]);
+                        }
+                        setIsSubmitting(false);
+                    }
                 });
             }
             else
             {
                 formData.append('_method', 'PUT');
-                await new Promise((resolve, reject) => {
-                    router.post(`/posts/${post.id}`, formData, {
-                        preserveState: false,
-                        preserveScroll: true,
-                        onSuccess: (page) => resolve(page),
-                        onError: (errs) => reject(errs),
-                        onFinish: () => setIsSubmitting(false)
-                    });
+                router.post(`/posts/${post.id}`, formData, {
+                    preserveState: false,
+                    preserveScroll: true,
+                    onError: (errs) => {
+                        for (const key in errs) {
+                            setError(key, errs[key]);
+                        }
+                        setIsSubmitting(false);
+                    }
                 });
             }
 
-            setSuccess(message);
-            const targetRoute = data.is_news ? '/dashboard/news-posts' : '/dashboard/posts';
-            router.visit(targetRoute, { state:{message:message}});
         }
         catch(err)
         {
@@ -216,10 +215,6 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
                 const msg = getErrorMessage(err);
                 setError('general', msg);
             }
-        }
-        finally
-        {
-            setHasChanged(false);
             setIsSubmitting(false);
         }
     },[isCreateForm, post, data, imageFields, clearErrors, setError]);
@@ -242,8 +237,7 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
                     onFinish: () => setIsSubmitting(false)
                 });
             });
-            const targetRoute = data.is_news ? '/dashboard/news-posts' : '/dashboard/posts';
-            router.visit(targetRoute, { state:{message:"Post successfully deleted."}});
+            // Backend redirects to posts/news-posts on success
         }
         catch(err)
         {
@@ -416,7 +410,7 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
         isFormReady ?
         (
         <>
-            <div className="main-info-box stretch">
+            <div className="main-info-box transparent-background stretch">
                 <form onSubmit={(e) => onSubmit(e, false)}>
                     <div className="text-fields-container">
                         {errors.general && (
@@ -571,35 +565,37 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
                         </div>
                     </div>            
                     <div className="multi-field-container" ref={galleryContainerRef}>                                                    
-                        <div className="field-button-container top-align">
-                            <div className="main-label-container">
-                                <label className="main-label">gallery images*</label>
-                                <span className="button-container">
-                                    <button className="small-but" type="button" onClick={handleAddImage}
-                                        disabled={isSubmitting || imageFields.length >= IMAGE_LIMIT}
-                                    >
-                                        +
-                                    </button>
-                                </span>   
-                                <p>drag & drop</p>
-                            </div>                     
-                        </div>
-                        {
-                            imageFields.map((field) =>
-                            (
-                                <ImageField key={field.index}
-                                    index={field.index}
-                                    image={field.image}
-                                    file={field.type === 'new' ? field.value : null}
-                                    alt={field.alt}
-                                    setArray={setImageFields}
-                                    onImageChange={onImageChange}
-                                    onAltChange={onAltChange}
-                                    onRemove={() => setHasChanged(true)}
-                                    disabled={isSubmitting}
-                                />
-                            ))
-                        } 
+                        <div className="field-button-image-fields-container">
+                            <div className="field-button-container top-align">
+                                <div className="main-label-container">
+                                    <label className="main-label">gallery images*</label>
+                                    <span className="button-container">
+                                        <button className="small-but" type="button" onClick={handleAddImage}
+                                            disabled={isSubmitting || imageFields.length >= IMAGE_LIMIT}
+                                        >
+                                            +
+                                        </button>
+                                    </span>   
+                                    <p>drag & drop</p>
+                                </div>                     
+                            </div>
+                            {
+                                imageFields.map((field) =>
+                                (
+                                    <ImageField key={field.index}
+                                        index={field.index}
+                                        image={field.image}
+                                        file={field.type === 'new' ? field.value : null}
+                                        alt={field.alt}
+                                        setArray={setImageFields}
+                                        onImageChange={onImageChange}
+                                        onAltChange={onAltChange}
+                                        onRemove={() => setHasChanged(true)}
+                                        disabled={isSubmitting}
+                                    />
+                                ))
+                            }
+                        </div>                         
                         <div className="horizontal-buttons-container reverse-row">         
                             {(!post || post.is_draft) && (
                                 <button type="button" onClick={(e) => onSubmit(e, true)} disabled={isSubmitting || !canSubmit}>

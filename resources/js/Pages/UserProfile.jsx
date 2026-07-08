@@ -81,7 +81,7 @@ function UserProfile({ user: profileUserProp })
                 profileUser ? (
                 // false ? (
                     <div className="profile-boxes-container">
-                        <div className="main-info-box sticky">
+                        <div className="main-info-box yellow-gradient-background sticky">
                             {error && (
                             <div className="error">
                                 {error}
@@ -179,7 +179,7 @@ function UserProfile({ user: profileUserProp })
                                 }
                             </div>        
                         </div>
-                        <div className="rte-container">
+                        <div className="rte-container black-gradient-background">
                             <div className="centered-header-box">       
                                 <div className="centered-content top-2rem">
                                     <h2>bio</h2>                    
