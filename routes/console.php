@@ -9,6 +9,6 @@ Artisan::command('inspire', function ()
 })->purpose('Display an inspiring quote');
 
 use Illuminate\Support\Facades\Schedule;
-
+                                      //->everyMinute() for testing. ->daily() otherwise
 Schedule::command('posts:delete-hidden')->daily();
 Schedule::command('users:delete-hidden')->daily();

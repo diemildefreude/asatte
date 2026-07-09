@@ -68,7 +68,12 @@
     float: none !important;
 }
 
-/* 3. Text blocks */
+.rte-container iframe[src*="youtube"]
+{
+    max-width: 100% !important;
+    aspect-ratio: 16 / 9;
+    height: auto !important;
+}
 .rte-container .align-left { text-align: left; }
 .rte-container .align-center { text-align: center; }
 .rte-container .align-right { text-align: right; }

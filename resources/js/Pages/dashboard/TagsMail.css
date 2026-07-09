@@ -18,7 +18,7 @@
     border: 1px solid var(--strawberry);
     display: flow-root;
 }
-.message-text a
+.message-text a, .message-text .notice
 {
     color: var(--dark-blue);
 }

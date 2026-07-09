@@ -473,6 +473,10 @@ button, .link-button
     background: var(--yellow-gradient);
     color: var(--blood);
 }
+.yellow-gradient-background .notice
+{
+    color: var(--blue);
+}
 .content:not(.touch-device) button:not(.button-link):disabled, 
 .content:not(.touch-device) button:not(.button-link):disabled:hover
 {
@@ -694,7 +698,7 @@ button, .link-button
     width: clamp(200px, 100%, 700px);
     margin: 0 auto;
 }
-.article-text, .message-text
+.article-text, .message-text, .comment-text
 {    
     line-height: 1.8em;
     /* padding: 0 1em 1em; */
@@ -702,6 +706,12 @@ button, .link-button
     /* overflow-wrap: break-word; */
     overflow-wrap: anywhere;
     /* word-break: break-all; */
+}
+.article-text iframe[src*="youtube"], .message-text iframe[src*="youtube"], .comment-text iframe[src*="youtube"]
+{
+    max-width: 100% !important;
+    aspect-ratio: 16 / 9;
+    height: auto !important;
 }
 .article-text.no-bottom-padding
 {

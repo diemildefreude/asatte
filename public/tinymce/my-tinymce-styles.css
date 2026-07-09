@@ -63,9 +63,22 @@ blockquote
 {
     border-radius: 0px !important;
 }
-iframe, img
+iframe
 {
     pointer-events: none;
+    max-width: 100% !important;
+}
+iframe[src*="youtube"]
+{
+    aspect-ratio: 16 / 9;
+    height: auto !important;
+}
+.mce-preview-object, .mce-object
+{
+    max-width: 100% !important;
+}
+img
+{
     max-width: 100% !important;
     height:auto;
 }
