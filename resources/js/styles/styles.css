@@ -10,6 +10,8 @@
     --teal: #2cd7bd;
     --yellow: #fedca0;
     --orange: #ffb764;
+    --dark-purple: #330055;
+    --grey-purple: #5e5266;
     --indigo-gradient: linear-gradient(45deg, #0000ff 0%, #330055 60%);
     --blue-gradient: linear-gradient(45deg, #1177c0cc 0%,  #b9e2ffcc 60%);    
     --lavender-gradient: linear-gradient(45deg, #505193cc 0%, #c1b7fdcc 60%);
@@ -20,7 +22,6 @@
     --black-gradient: linear-gradient(45deg, #000000ff 0%, #0d003397 60%);
     --yellow-gradient: linear-gradient(45deg, #9d420d 0%, var(--pale-yellow) 60%);
     --paper-gradient: linear-gradient(45deg, #efd9b6 0%, white 60%);
-    --dark-purple: #330055;
     --transparent-black: rgba(0, 0, 0, 0.5);
     --header-height-wide: 60px;
     --header-height-narrow: 50px;
