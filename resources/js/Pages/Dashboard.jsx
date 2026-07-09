@@ -11,7 +11,6 @@ function Dashboard()
     const { auth } = usePage().props;
     const [isSubmitting, setIsSubmitting] = useState(false);
     
-    console.log(auth.user);
     const handleAccountRestore = useCallback(() =>
     {
         setIsSubmitting(true);

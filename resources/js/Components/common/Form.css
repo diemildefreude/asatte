@@ -67,6 +67,12 @@
     gap: 1rem;
     width: 100%;
 }
+.social-login-options .icon-container
+{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
 /* .social-login-options button.small-text
 {
     font-size: 0.85em;

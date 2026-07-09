@@ -62,6 +62,8 @@ function RichTextEditor({ onChange, value, quotedMessage, onQuoteApplied, placeh
         min_height: 100,
         convert_urls: false,
         menubar: false,
+        link_assume_external_targets: 'http',
+        link_default_protocol: 'http',
         plugins: 'autoresize image link media',
         autoresize_bottom_margin: 50,
         toolbar: disabled ? false : 

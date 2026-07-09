@@ -11,6 +11,11 @@
     display: flex;
     flex-direction: column;
 }
+.user-circle img
+{
+    border: 2px solid var(--yellow);
+    border-radius: 50%;
+}
 .user-circle span 
 {
   display: block;
@@ -19,7 +24,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 0.75em;
+  font-size: 0.85em;
 }
 .user-circle span:has(+ .round-image),
 .user-circle span:has(overflow) 
@@ -30,20 +35,35 @@
 {
   .users-container
   {
-      --circles-per-row: 6;
+      --circles-per-row: 5;
+  }
+}
+@media (min-width: 700px)
+{
+  .users-container.preview
+  {
+    --circles-per-row: 5;
   }
 }
 @media (min-width: 900px)
 {
+  .users-container.preview
+  {
+    --circles-per-row: 4;
+  }
   .users-container
   {
-    --circles-per-row: 3;
+    --circles-per-row: 8;
   }
 }
 @media (min-width: 1200px)
 {
+  .users-container.preview
+  {
+    --circles-per-row: 5;
+  }
   .users-container
   {
-    --circles-per-row: 6;
+    --circles-per-row: 10;
   }
 }

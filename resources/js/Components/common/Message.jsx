@@ -79,7 +79,6 @@ function Message({message, onReply=null, onDelete=null, id, parentLocalId=null,
         setResetKey(k => k + 1); 
     }, [initialHydratedContent]);
 
-    console.log("content", content);
     return (
     <div className="comment dm" id={elementId}>
         <p>

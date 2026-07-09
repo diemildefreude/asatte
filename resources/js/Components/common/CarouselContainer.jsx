@@ -294,7 +294,13 @@ function CarouselContainer({size, className, children})
         }
         const handleWheel = (e) =>
         {
-            if(Math.abs(e.deltaY) > Math.abs(e.deltaX))
+            let delta = e.deltaX;
+
+            if (e.shiftKey && Math.abs(e.deltaY) > Math.abs(e.deltaX)) 
+            {
+                delta = e.deltaY;
+            } 
+            else if (Math.abs(e.deltaY) > Math.abs(e.deltaX))
             {
                 return;
             }
@@ -306,7 +312,7 @@ function CarouselContainer({size, className, children})
             //const posStr = innerSliderRef.current.style.left;
             const oldPos = currentTranslateXRef.current;//Number(posStr.substring(0, posStr.length - 2));
             //innerSliderRef.current.style.left = `${e.pageX - innerStartXRef.current}px`;
-            let newPos = oldPos - e.deltaX;
+            let newPos = oldPos - delta;
             newPos = checkBoundary(newPos);
             currentTranslateXRef.current = newPos;
             innerSliderRef.current.style.transform = `translateX(${currentTranslateXRef.current}px)`;

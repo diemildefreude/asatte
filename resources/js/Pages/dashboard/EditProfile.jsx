@@ -77,10 +77,7 @@ function EditProfile()
         e.preventDefault();
         clearErrors();
         
-        if (JSON.stringify(websitesField) === JSON.stringify(user.websites || []) &&
-            locationField === (user.location || '') &&
-            showEmailInProfile === !!user.show_email_in_profile
-        )
+        if (!hasChanges)
         {
             setError('general', 'No changes to submit.');
             return;    
@@ -107,6 +104,8 @@ function EditProfile()
             }
         });
     };
+
+    console.log("user", user);
 
     return (
     <div className="main-info-box transparent-background sticky">

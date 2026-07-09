@@ -22,8 +22,10 @@ function LoadItems({
   classes = "",
   fetchAmount = 10,
   headingText = "",
-  viewAllLink = ""
-}) {
+  viewAllLink = "",
+  headerClasses= ""
+}) 
+{
   const { props } = usePage();
   const partial = isFullPage && partialProp ? props[partialProp] : null;
 
@@ -33,6 +35,7 @@ function LoadItems({
     if (Array.isArray(source)) return source;
     return [];
   };
+  const classNames = isFullPage ? classes : classes + " preview";
 
   const initialItemsFromProp = !isFullPage ? normalizeItems(initialItems) : normalizeItems(partial);
 
@@ -74,9 +77,8 @@ function LoadItems({
           onNumberClick={onNumberClick}
         />
       )}
-      {headingText && <h3 className="centered-content">{headingText}</h3>}
-      
-      <div className={`${itemString}-container ${classes}`}>
+      {headingText && <h2 className={`centered-content ${headerClasses}`}><Link href={viewAllLink}>{headingText}</Link></h2>}
+      <div className={`${itemString}-container ${classNames}`}>
         {isLoading ? (
           <p className="centered-content">loading {itemString}...</p>
         ) : (items && items.length > 0 ? (

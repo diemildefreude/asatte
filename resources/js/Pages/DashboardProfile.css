@@ -643,6 +643,21 @@
     flex-direction: column;
     gap: 1rem;
 }
+.activity-box-container h2 a
+{
+    text-decoration: none;
+}
+.activity-box-container h2:hover a
+{
+    text-decoration: underline;
+}
+@media (min-width: 700px)
+{
+    .activity-box-container .main-info-box
+    {
+        flex-direction: column;
+    }
+}
 @media (min-width: 1200px)
 {
     .activity-box-container

@@ -7,13 +7,16 @@
     --bright-blue: #28dbff;
     --strawberry: #ff4574;
     --blood: #6c0746;
+    --teal: #2cd7bd;
+    --yellow: #fedca0;
+    --orange: #ffb764;
     --indigo-gradient: linear-gradient(45deg, #0000ff 0%, #330055 60%);
-    --blue-gradient: linear-gradient(45deg, #b9e2ffcc 0%, #1177c0cc 60%);    
+    --blue-gradient: linear-gradient(45deg, #1177c0cc 0%,  #b9e2ffcc 60%);    
     --lavender-gradient: linear-gradient(45deg, #505193cc 0%, #c1b7fdcc 60%);
     --red-gradient: linear-gradient(45deg, #ff4574 0%, #6c0746 70%);
-    --teal-gradient: linear-gradient(45deg, #014734 0%, #36c7c4 70%);
+    --teal-gradient: linear-gradient(45deg, #003426 0%, #33c5c2 70%);
     --footer-gradient: linear-gradient(10deg, #000000ff 20%, #00000000 60%);
-    --dark-blue-gradient: linear-gradient(45deg, #0025b7 0%, #65bfff 60%);
+    --dark-blue-gradient: linear-gradient(45deg, #0025b7 0%, #55a2c0 60%);
     --black-gradient: linear-gradient(45deg, #000000ff 0%, #0d003397 60%);
     --yellow-gradient: linear-gradient(45deg, #9d420d 0%, var(--pale-yellow) 60%);
     --paper-gradient: linear-gradient(45deg, #efd9b6 0%, white 60%);
@@ -30,6 +33,11 @@
 {
     scrollbar-color: var(--grey-yellow) var(--dark-purple);
     scrollbar-width: thin;
+}
+p img
+{
+    max-width: 100%;
+    height: auto;
 }
 input
 {
@@ -293,6 +301,56 @@ p iframe
 {
     background: var(--black-gradient);
 }
+/*~~~~CURRENTLY JUST FOR ACTIVITY SECTION~~~~*/
+.teal-border
+{
+    border: 1px solid var(--teal);
+}
+.teal-border h2, .teal-border em, .teal-border a
+{
+    color: var(--teal)
+}
+.teal-border .comment
+{
+    border-bottom: 1px solid var(--teal);
+}
+.yellow-border
+{
+    border: 1px solid var(--yellow);
+}
+.yellow-border h2, .yellow-border em, .yellow-border a
+{
+    color: var(--yellow)
+}
+.yellow-border .comment
+{
+    border-bottom: 1px solid var(--yellow);
+}
+.bright-blue-border
+{
+    border: 1px solid var(--bright-blue);
+}
+.bright-blue-border h2, .bright-blue-border em, .bright-blue-border a
+{
+    color: var(--bright-blue)
+}
+.bright-blue-border .comment
+{
+    border-bottom: 1px solid var(--blue);
+}
+.orange-border
+{
+    border: 1px solid var(--orange);
+}
+.orange-border h2, .orange-border em, .orange-border a
+{
+    color: var(--orange)
+}
+.orange-border .comment
+{
+    border-bottom: 1px solid var(--orange);
+}
+/*~~~~~END OF COLORED BORDERS*/
 .hidden, .form-field.bonus, .checkbox.bonus
 {
     display: none;

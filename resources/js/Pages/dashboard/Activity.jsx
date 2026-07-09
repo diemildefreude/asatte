@@ -35,7 +35,7 @@ function Activity()
             <PageHead title="Activity" />
         <div className="activity-box-container">
             <div className="notifications-comments-container">
-                <div className="main-info-box teal-gradient-background">
+                <div className="main-info-box transparent-background orange-border">
                     <LoadItems
                         initialItems={initialNotifications}
                         renderMethod={(notification) =>({
@@ -45,9 +45,10 @@ function Activity()
                         itemString="notifications"
                         headingText="notifications"
                         viewAllLink="/dashboard/notifications"
+                        headerClasses="teal"
                     />
                 </div>
-                <div className="main-info-box lavender-gradient-background">
+                <div className="main-info-box transparent-background teal-border">
                     <LoadItems
                         initialItems={initialComments}
                         renderMethod={(comment, i) =>({
@@ -63,8 +64,8 @@ function Activity()
                 </div>
             </div>
             <div className="posts-follows-container">
-                <div className="main-info-box">
-                    <h3 className="centered-content">liked posts</h3>
+                <div className="main-info-box transparent-background bright-blue-border">
+                    <h2 className="centered-content"><Link href="/dashboard/liked-posts">liked posts</Link></h2>
                     <AutoloadTilesContainer
                         screenSize={screenSize}
                         initialPosts={initialLikedPosts}
@@ -85,8 +86,7 @@ function Activity()
                         view all
                     </Link>
                 </div>
-                <div className="main-info-box follows yellow-gradient-background">
-                    {/* <h3 className="centered-content">users you follow</h3> */}
+                <div className="main-info-box follows transparent-background yellow-border">
                     <LoadItems
                         initialItems={initialFollowing}
                         renderMethod={(user) =>({user})}

@@ -34,19 +34,28 @@ function OAuth({headerText, onClick, originPage, isSubmittingForm, setIsSubmitti
                 onClick={() => { onClick(); handleSocialLogin('melonland');}}
                 disabled={isSubmitting || isSubmittingForm || isLoading}
             >
-                <div className='buttonContent'>melonland</div><div><img src="https://forum.melonland.net/Themes/pimp-my-classic/images/post/xx.gif" alt="melonland icon"/></div>
+                <div className='buttonContent'>melonland</div>
+                <div className='icon-container'>
+                    <img src="https://forum.melonland.net/Themes/pimp-my-classic/images/post/xx.gif" alt="melonland icon"/>
+                </div>
             </button>
             <button
                 onClick={() => { onClick(); handleSocialLogin('google');}}
                 disabled={isSubmitting || isSubmittingForm || isLoading}
             >
-                <div className='button-content'>google</div><div><img src="/google.png" alt="google icon"/></div>
+                <div className='button-content'>google</div>
+                <div className='icon-container'>
+                    <img src="/google.png" alt="google icon"/>
+                </div>
             </button>
             <button
                 onClick={() => { onClick(); handleSocialLogin('github');}}
                 disabled={isSubmitting || isSubmittingForm || isLoading}
             >
-                <div className='buttonContent'>github</div><div><img src="/github.png" alt="github icon"/></div>
+                <div className='buttonContent'>github</div>
+                <div className='icon-container'>
+                    <img src="/github.png" alt="github icon"/>
+                </div>
             </button>            
         </div>
     );
