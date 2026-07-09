@@ -37,20 +37,13 @@
   {
       --circles-per-row: 5;
   }
-}
-@media (min-width: 700px)
-{
   .users-container.preview
   {
-    --circles-per-row: 5;
+      --circles-per-row: 6;
   }
 }
 @media (min-width: 900px)
 {
-  .users-container.preview
-  {
-    --circles-per-row: 4;
-  }
   .users-container
   {
     --circles-per-row: 8;
@@ -58,10 +51,6 @@
 }
 @media (min-width: 1200px)
 {
-  .users-container.preview
-  {
-    --circles-per-row: 5;
-  }
   .users-container
   {
     --circles-per-row: 10;

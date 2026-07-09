@@ -119,7 +119,7 @@ class UserController extends Controller
             abort(404);
         }
 
-        $amount = intval($request->query('amount', 100));
+        $amount = intval($request->query('amount', 120));
         $page = intval($request->query('page', 1));
         
         $paginator = $user->following()
@@ -139,7 +139,7 @@ class UserController extends Controller
             abort(404);
         }
 
-        $amount = intval($request->query('amount', 100));
+        $amount = intval($request->query('amount', 120));
         $page = intval($request->query('page', 1));
         
         $paginator = $user->followers()        
