@@ -19,7 +19,7 @@ function Posts({ username, archivePosts })
     return ( 
     <>
             <PageHead title="Posts" />
-        <h2 className='centered-content padded-responsive'>{`${username}'s posts`}</h2>
+        <h1 className='centered-content side-padded top-1rem-bottom-2rem'>{`${username}'s posts`}</h1>
         <AutoloadTilesContainer 
             screenSize={screenSize}
             isDashboard={false}
