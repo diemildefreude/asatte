@@ -435,19 +435,24 @@ class PostController extends Controller
         
         $post->load('comments.user');
 
-        $userPosts = Post::with('user:id,username,avatar,member_type')
-            ->where('user_id', $user->id)
+        $carouselPostsQuery = Post::with('user:id,username,avatar,member_type')
             ->where('is_private', false)
-            ->where('is_news', $post->is_news)
             ->where('is_hidden_by_admin', false)
             ->where('id', '!=', $post->id)
             ->latest()
-            ->limit(6)
-            ->get();
+            ->limit(6);
+
+        if ($post->is_news) {
+            $carouselPostsQuery->where('is_news', true);
+        } else {
+            $carouselPostsQuery->where('user_id', $user->id)->where('is_news', false);
+        }
+
+        $carouselPosts = $carouselPostsQuery->get();
 
         return \Inertia\Inertia::render('Post', [
             'post' => $post,
-            'userPosts' => $userPosts
+            'carouselPosts' => $carouselPosts
         ]);
     }
 
@@ -520,7 +525,19 @@ class PostController extends Controller
         
         $post->load('comments.user');
 
-        return \Inertia\Inertia::render('Post', ['post' => $post]);
+        $carouselPosts = Post::with('user:id,username,avatar,member_type')
+            ->where('is_private', false)
+            ->where('is_hidden_by_admin', false)
+            ->where('is_news', true)
+            ->where('id', '!=', $post->id)
+            ->latest()
+            ->limit(6)
+            ->get();
+
+        return \Inertia\Inertia::render('Post', [
+            'post' => $post,
+            'carouselPosts' => $carouselPosts
+        ]);
     }
 
     /**

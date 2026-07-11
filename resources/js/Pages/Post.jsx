@@ -15,7 +15,7 @@
     import HiddenPostNotice from '../Components/common/HiddenPostNotice';
     import RichTextEditor from '../Components/common/RichTextEditor';
 
-    function Post({ post, userPosts = [] })
+    function Post({ post, carouselPosts: userPosts = [] })
     {
         const { props } = usePage();
         const appUrl = props.app_url;
@@ -321,10 +321,10 @@
                             </>}
                         </>)
                     }
-                    <div className="page-section carousel small-heading">                        
+                    <div className={post.is_news ? "page-section carousel" : "page-section carousel small-heading"}>                        
                         <TileCarousel 
                             size="small" 
-                            title={`more from ${post.user.username}:`}
+                            title={post.is_news ? "more news:" : `more from ${post.user.username}:`}
                             posts={userPosts}
                         />
                     </div>                    

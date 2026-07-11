@@ -5093,7 +5093,7 @@ function HiddenPostNotice({ classes, isAdmin = false }) {
     ] })
   ] });
 }
-function Post({ post, userPosts = [] }) {
+function Post({ post, carouselPosts: userPosts = [] }) {
   var _a;
   const { props } = usePage();
   const appUrl = props.app_url;
@@ -5346,11 +5346,11 @@ function Post({ post, userPosts = [] }) {
           ] }) })
         ] })
       ] }),
-      /* @__PURE__ */ jsx("div", { className: "page-section carousel", children: /* @__PURE__ */ jsx(
+      /* @__PURE__ */ jsx("div", { className: post.is_news ? "page-section carousel" : "page-section carousel small-heading", children: /* @__PURE__ */ jsx(
         TileCarousel,
         {
           size: "small",
-          title: "more from this user:",
+          title: post.is_news ? "more news:" : `more from ${post.user.username}:`,
           posts: userPosts
         }
       ) })
