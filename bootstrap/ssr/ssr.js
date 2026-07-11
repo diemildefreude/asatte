@@ -80,6 +80,8 @@ function RichTextEditor({ onChange, value, quotedMessage, onQuoteApplied, placeh
         min_height: 100,
         convert_urls: false,
         menubar: false,
+        link_assume_external_targets: "http",
+        link_default_protocol: "http",
         plugins: "autoresize image link media",
         autoresize_bottom_margin: 50,
         toolbar: disabled ? false : ["styles | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist | image media link"],
@@ -2786,7 +2788,7 @@ function EditProfile() {
   const handleProfileChangesSubmit = (e) => {
     e.preventDefault();
     clearErrors();
-    if (JSON.stringify(websitesField) === JSON.stringify(user.websites || []) && locationField === (user.location || "") && showEmailInProfile === !!user.show_email_in_profile) {
+    if (!hasChanges) {
       setError("general", "No changes to submit.");
       return;
     }
@@ -2813,6 +2815,7 @@ function EditProfile() {
       }
     );
   };
+  console.log("user", user);
   return /* @__PURE__ */ jsxs("div", { className: "main-info-box transparent-background sticky", children: [
     /* @__PURE__ */ jsx(PageHead, { title: "Edit Profile" }),
     /* @__PURE__ */ jsxs("div", { className: "avatar-section", children: [
@@ -3020,7 +3023,6 @@ const __vite_glob_0_24 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.de
 function Dashboard() {
   const { auth } = usePage().props;
   const [isSubmitting, setIsSubmitting] = useState(false);
-  console.log(auth.user);
   const handleAccountRestore = useCallback(() => {
     setIsSubmitting(true);
     router.post("/dashboard/restore-account", {}, {
@@ -3171,7 +3173,8 @@ function LoadItems({
   classes = "",
   fetchAmount = 10,
   headingText = "",
-  viewAllLink = ""
+  viewAllLink = "",
+  headerClasses = ""
 }) {
   const { props } = usePage();
   const partial = isFullPage && partialProp ? props[partialProp] : null;
@@ -3181,6 +3184,7 @@ function LoadItems({
     if (Array.isArray(source)) return source;
     return [];
   };
+  const classNames = isFullPage ? classes : classes + " preview";
   const initialItemsFromProp = !isFullPage ? normalizeItems(initialItems) : normalizeItems(partial);
   const [items, setItems] = useState(initialItemsFromProp);
   const [currentPage, setCurrentPage] = useState((partial == null ? void 0 : partial.current_page) || 1);
@@ -3217,8 +3221,8 @@ function LoadItems({
         onNumberClick
       }
     ),
-    headingText && /* @__PURE__ */ jsx("h3", { className: "centered-content", children: headingText }),
-    /* @__PURE__ */ jsx("div", { className: `${itemString}-container ${classes}`, children: isLoading ? /* @__PURE__ */ jsxs("p", { className: "centered-content", children: [
+    headingText && /* @__PURE__ */ jsx("h2", { className: `centered-content ${headerClasses}`, children: /* @__PURE__ */ jsx(Link, { href: viewAllLink, children: headingText }) }),
+    /* @__PURE__ */ jsx("div", { className: `${itemString}-container ${classNames}`, children: isLoading ? /* @__PURE__ */ jsxs("p", { className: "centered-content", children: [
       "loading ",
       itemString,
       "..."
@@ -3922,14 +3926,17 @@ function CarouselContainer({ size, className, children }) {
       return;
     }
     const handleWheel = (e) => {
-      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+      let delta = e.deltaX;
+      if (e.shiftKey && Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+        delta = e.deltaY;
+      } else if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
         return;
       }
       if (innerSliderRef.current.style.left === "") {
         innerSliderRef.current.style.left = "0px";
       }
       const oldPos = currentTranslateXRef.current;
-      let newPos = oldPos - e.deltaX;
+      let newPos = oldPos - delta;
       newPos = checkBoundary(newPos);
       currentTranslateXRef.current = newPos;
       innerSliderRef.current.style.transform = `translateX(${currentTranslateXRef.current}px)`;
@@ -3971,33 +3978,9 @@ function CarouselContainer({ size, className, children }) {
     }
   ) });
 }
-function TileCarousel({ size, category = Category.Archive, userId = null, title = "", excludePostId = null, initialPosts = null, fetchMethod = null }) {
-  const carouselPostCount = 6;
-  const [posts, setPosts] = useState(initialPosts || []);
-  useEffect(() => {
-    if (initialPosts && initialPosts.length > 0) return;
-    if (!fetchMethod) return;
-    const params = new URLSearchParams();
-    const amount = carouselPostCount;
-    params.append("amount", amount);
-    params.append("start_id", 1);
-    params.append("category", category);
-    if (userId) {
-      params.append("user_id", userId);
-    }
-    fetchMethod(params).then((data) => {
-      if (data.status === "no_more_posts") {
-        return;
-      }
-      let fetchedPosts = data;
-      if (excludePostId) {
-        fetchedPosts = fetchedPosts.filter((post) => post["id"] !== excludePostId);
-      }
-      setPosts(fetchedPosts);
-    });
-  }, [category, userId, setPosts]);
+function TileCarousel({ size, title = "", posts = [] }) {
   return (posts == null ? void 0 : posts.length) > 0 ? /* @__PURE__ */ jsxs(Fragment, { children: [
-    /* @__PURE__ */ jsx("h2", { children: title }),
+    title && /* @__PURE__ */ jsx("h2", { children: title }),
     /* @__PURE__ */ jsx(
       CarouselContainer,
       {
@@ -4016,7 +3999,7 @@ function TileCarousel({ size, category = Category.Archive, userId = null, title 
         )
       }
     )
-  ] }) : /* @__PURE__ */ jsx(Fragment, {});
+  ] }) : null;
 }
 function Home({ heroPosts = [], carouselArchive = [], carouselNews = [], carouselFollowing = [], archivePosts = [] }) {
   const [screenSize, setScreenSize] = useState(getScreenSize());
@@ -4039,9 +4022,9 @@ function Home({ heroPosts = [], carouselArchive = [], carouselNews = [], carouse
         initialPosts: heroPosts
       }
     ) }),
-    /* @__PURE__ */ jsx("div", { className: "page-section carousel", children: /* @__PURE__ */ jsx(TileCarousel, { size: "small", category: Category.Archive, title: "newest works:", initialPosts: carouselArchive }) }),
-    carouselFollowing && carouselFollowing.length > 0 && /* @__PURE__ */ jsx("div", { className: "page-section carousel", children: /* @__PURE__ */ jsx(TileCarousel, { size: "small", category: Category.Archive, title: "users you follow:", initialPosts: carouselFollowing }) }),
-    carouselNews && carouselNews.length > 0 && /* @__PURE__ */ jsx("div", { className: "page-section carousel", children: /* @__PURE__ */ jsx(TileCarousel, { size: "small", category: Category.News, title: "netart news:", initialPosts: carouselNews }) }),
+    /* @__PURE__ */ jsx("div", { className: "page-section carousel", children: /* @__PURE__ */ jsx(TileCarousel, { size: "small", title: "newest works:", posts: carouselArchive }) }),
+    carouselFollowing && carouselFollowing.length > 0 && /* @__PURE__ */ jsx("div", { className: "page-section carousel", children: /* @__PURE__ */ jsx(TileCarousel, { size: "small", title: "users you follow:", posts: carouselFollowing }) }),
+    carouselNews && carouselNews.length > 0 && /* @__PURE__ */ jsx("div", { className: "page-section carousel", children: /* @__PURE__ */ jsx(TileCarousel, { size: "small", title: "netart news:", posts: carouselNews }) }),
     /* @__PURE__ */ jsxs("div", { className: "page-section", children: [
       /* @__PURE__ */ jsx("h2", { className: "big-title centered-content no-margin padded", children: "explore" }),
       /* @__PURE__ */ jsx(
@@ -4096,7 +4079,7 @@ function OAuth({ headerText, onClick, originPage, isSubmittingForm, setIsSubmitt
         disabled: isSubmitting || isSubmittingForm || isLoading,
         children: [
           /* @__PURE__ */ jsx("div", { className: "buttonContent", children: "melonland" }),
-          /* @__PURE__ */ jsx("div", { children: /* @__PURE__ */ jsx("img", { src: "https://forum.melonland.net/Themes/pimp-my-classic/images/post/xx.gif", alt: "melonland icon" }) })
+          /* @__PURE__ */ jsx("div", { className: "icon-container", children: /* @__PURE__ */ jsx("img", { src: "https://forum.melonland.net/Themes/pimp-my-classic/images/post/xx.gif", alt: "melonland icon" }) })
         ]
       }
     ),
@@ -4110,7 +4093,7 @@ function OAuth({ headerText, onClick, originPage, isSubmittingForm, setIsSubmitt
         disabled: isSubmitting || isSubmittingForm || isLoading,
         children: [
           /* @__PURE__ */ jsx("div", { className: "button-content", children: "google" }),
-          /* @__PURE__ */ jsx("div", { children: /* @__PURE__ */ jsx("img", { src: "/google.png", alt: "google icon" }) })
+          /* @__PURE__ */ jsx("div", { className: "icon-container", children: /* @__PURE__ */ jsx("img", { src: "/google.png", alt: "google icon" }) })
         ]
       }
     ),
@@ -4124,7 +4107,7 @@ function OAuth({ headerText, onClick, originPage, isSubmittingForm, setIsSubmitt
         disabled: isSubmitting || isSubmittingForm || isLoading,
         children: [
           /* @__PURE__ */ jsx("div", { className: "buttonContent", children: "github" }),
-          /* @__PURE__ */ jsx("div", { children: /* @__PURE__ */ jsx("img", { src: "/github.png", alt: "github icon" }) })
+          /* @__PURE__ */ jsx("div", { className: "icon-container", children: /* @__PURE__ */ jsx("img", { src: "/github.png", alt: "github icon" }) })
         ]
       }
     )
@@ -5110,7 +5093,7 @@ function HiddenPostNotice({ classes, isAdmin = false }) {
     ] })
   ] });
 }
-function Post({ post }) {
+function Post({ post, userPosts = [] }) {
   var _a;
   const { props } = usePage();
   const appUrl = props.app_url;
@@ -5367,11 +5350,9 @@ function Post({ post }) {
         TileCarousel,
         {
           size: "small",
-          userId: post.user.id,
           title: "more from this user:",
-          excludePostId: post.id
-        },
-        post.user.id
+          posts: userPosts
+        }
       ) })
     ] }) : /* @__PURE__ */ jsx("p", { className: "loading", children: "loading post..." }) })
   ] });
@@ -6385,7 +6366,7 @@ function Activity() {
     /* @__PURE__ */ jsx(PageHead, { title: "Activity" }),
     /* @__PURE__ */ jsxs("div", { className: "activity-box-container", children: [
       /* @__PURE__ */ jsxs("div", { className: "notifications-comments-container", children: [
-        /* @__PURE__ */ jsx("div", { className: "main-info-box red-gradient-background", children: /* @__PURE__ */ jsx(
+        /* @__PURE__ */ jsx("div", { className: "main-info-box transparent-background orange-border", children: /* @__PURE__ */ jsx(
           LoadItems,
           {
             initialItems: initialNotifications,
@@ -6395,10 +6376,11 @@ function Activity() {
             Component: Notification,
             itemString: "notifications",
             headingText: "notifications",
-            viewAllLink: "/dashboard/notifications"
+            viewAllLink: "/dashboard/notifications",
+            headerClasses: "teal"
           }
         ) }),
-        /* @__PURE__ */ jsx("div", { className: "main-info-box lavender-gradient-background", children: /* @__PURE__ */ jsx(
+        /* @__PURE__ */ jsx("div", { className: "main-info-box transparent-background teal-border", children: /* @__PURE__ */ jsx(
           LoadItems,
           {
             initialItems: initialComments,
@@ -6415,8 +6397,8 @@ function Activity() {
         ) })
       ] }),
       /* @__PURE__ */ jsxs("div", { className: "posts-follows-container", children: [
-        /* @__PURE__ */ jsxs("div", { className: "main-info-box", children: [
-          /* @__PURE__ */ jsx("h3", { className: "centered-content", children: "liked posts" }),
+        /* @__PURE__ */ jsxs("div", { className: "main-info-box transparent-background bright-blue-border", children: [
+          /* @__PURE__ */ jsx("h2", { className: "centered-content", children: /* @__PURE__ */ jsx(Link, { href: "/dashboard/liked-posts", children: "liked posts" }) }),
           /* @__PURE__ */ jsx(
             AutoloadTilesContainer,
             {
@@ -6442,7 +6424,7 @@ function Activity() {
             }
           )
         ] }),
-        /* @__PURE__ */ jsxs("div", { className: "main-info-box follows yellow-gradient-background", children: [
+        /* @__PURE__ */ jsxs("div", { className: "main-info-box follows transparent-background yellow-border", children: [
           /* @__PURE__ */ jsx(
             LoadItems,
             {
@@ -6488,6 +6470,7 @@ function Message({
   const user = (_a = usePage().props.auth) == null ? void 0 : _a.user;
   const [isEditing, setIsEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
   const { props } = usePage();
   const appUrl = props.app_url;
   const initialHydratedContent = useMemo(() => hydrateEditorImagePaths(message.content, appUrl), [message.content, appUrl]);
@@ -6496,7 +6479,6 @@ function Message({
   const [hasChanged, setHasChanged] = useState(false);
   const [resetKey, setResetKey] = useState(0);
   const elementId = `message-${id}`;
-  const parentElementId = parentLocalId ? `message-${parentLocalId}` : null;
   const messageSender = message.sender ?? { id: -27, username: "[deleted user]", avatar: null };
   const handleMessageEdit = useCallback(() => {
     setIsEditing(true);
@@ -6516,6 +6498,7 @@ function Message({
     setIsSubmitting(true);
     const dehydratedContent = dehydrateEditorImagePaths(content, appUrl);
     const newContentWithResizedImages = await processEditorImages(dehydratedContent);
+    setError("");
     router.put(`/dashboard/mail/${message.id}`, { content: newContentWithResizedImages }, {
       preserveScroll: true,
       onSuccess: () => {
@@ -6524,6 +6507,8 @@ function Message({
       },
       onError: (err) => {
         console.error(err);
+        const errM = getErrorMessage(err);
+        setError(errM);
         setIsSubmitting(false);
       }
     });
@@ -6549,21 +6534,10 @@ function Message({
     ] }),
     /* @__PURE__ */ jsxs("div", { className: "comment-notice-container", children: [
       message.created_at !== message.updated_at && /* @__PURE__ */ jsx("span", { className: "notice small greyed-out", children: "(edited)" }),
-      message.parent_id && parentLocalId != null && currentUrl ? /* @__PURE__ */ jsxs("span", { className: "notice small", children: [
-        " replied to ",
-        /* @__PURE__ */ jsx(
-          "a",
-          {
-            href: `${currentUrl}/message-${parentLocalId}`,
-            onClick: (e) => {
-              e.preventDefault();
-              scrollToElement(currentUrl, parentElementId);
-            },
-            children: "this"
-          }
-        ),
-        " message"
-      ] }) : null
+      error && /* @__PURE__ */ jsxs("span", { className: "error", children: [
+        " ",
+        error
+      ] })
     ] }),
     isEditing ? /* @__PURE__ */ jsx(
       RichTextEditor,
@@ -6604,7 +6578,7 @@ function Message({
               className: "small-button",
               onClick: handleMessageUpdate,
               title: "save",
-              disabled: isSubmitting || !hasChanged,
+              disabled: isSubmitting || !hasChanged || content.trim().length < 1,
               children: /* @__PURE__ */ jsx("i", { className: "fa-solid fa-floppy-disk" })
             }
           ),
@@ -7038,7 +7012,7 @@ function DeleteAccount() {
   };
   return /* @__PURE__ */ jsxs(DashboardLayout, { currentTab: "profile", headerText: "delete account", headerHasMargin: false, children: [
     /* @__PURE__ */ jsx(Head, { title: "Delete Account" }),
-    /* @__PURE__ */ jsxs("div", { className: "article-text no-bottom-padding", children: [
+    /* @__PURE__ */ jsxs("div", { className: "article-text no-bottom-padding limited-width", children: [
       /* @__PURE__ */ jsxs("p", { children: [
         " ",
         app_name,
@@ -7056,7 +7030,7 @@ function DeleteAccount() {
           value: agreeVal,
           onChange: onAgreeChange,
           disabled: isSubmitting,
-          classes: "centered-content no-margin auto-width"
+          classes: "centered-content no-margin auto-width wrappable"
         }
       ),
       /* @__PURE__ */ jsxs("div", { className: "flex-row", children: [

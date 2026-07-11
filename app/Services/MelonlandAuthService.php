@@ -21,7 +21,8 @@ class MelonlandAuthService
     {
         $clientKey = Cookie::get($this->cookieName);
 
-        if (!$clientKey) {
+        if (!$clientKey) 
+        {
             $clientKey = bin2hex(random_bytes(32));
             // Queue the cookie to be sent with the next response
             // Expires in 10 years (5,256,000 minutes)

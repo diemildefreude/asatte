@@ -435,7 +435,20 @@ class PostController extends Controller
         
         $post->load('comments.user');
 
-        return \Inertia\Inertia::render('Post', ['post' => $post]);
+        $userPosts = Post::with('user:id,username,avatar,member_type')
+            ->where('user_id', $user->id)
+            ->where('is_private', false)
+            ->where('is_news', $post->is_news)
+            ->where('is_hidden_by_admin', false)
+            ->where('id', '!=', $post->id)
+            ->latest()
+            ->limit(6)
+            ->get();
+
+        return \Inertia\Inertia::render('Post', [
+            'post' => $post,
+            'userPosts' => $userPosts
+        ]);
     }
 
     /**

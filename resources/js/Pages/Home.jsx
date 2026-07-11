@@ -33,16 +33,16 @@ function Home({ heroPosts = [], carouselArchive = [], carouselNews = [], carouse
             />
         </div>
         <div className="page-section carousel">
-            <TileCarousel size="small" category={Category.Archive} title="newest works:" initialPosts={carouselArchive} />
+            <TileCarousel size="small" title="newest works:" posts={carouselArchive} />
         </div>
         {carouselFollowing && carouselFollowing.length > 0 && (
             <div className="page-section carousel">
-                <TileCarousel size="small" category={Category.Archive} title="users you follow:" initialPosts={carouselFollowing} />
+                <TileCarousel size="small" title="users you follow:" posts={carouselFollowing} />
             </div>
         )}
         {carouselNews && carouselNews.length > 0 && (
             <div className="page-section carousel">
-                <TileCarousel size="small" category={Category.News} title="netart news:" initialPosts={carouselNews} />
+                <TileCarousel size="small" title="netart news:" posts={carouselNews} />
             </div>
         )}
         <div className="page-section">

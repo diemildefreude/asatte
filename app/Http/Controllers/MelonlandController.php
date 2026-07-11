@@ -32,12 +32,14 @@ class MelonlandController extends Controller
         $returnPath = parse_url(url('/auth/melonland/callback'), PHP_URL_PATH);
         $memberInfo = $this->melonlandService->getMemberInfo($returnPath, ['email']);
 
-        if ($memberInfo && !$memberInfo->authenticated && isset($memberInfo->connect_url)) {
+        if ($memberInfo && !$memberInfo->authenticated && isset($memberInfo->connect_url)) 
+        {
             return redirect($memberInfo->connect_url);
         }
 
         // If they are somehow already authenticated on the very first redirect, just send them to callback
-        if ($memberInfo && $memberInfo->authenticated) {
+        if ($memberInfo && $memberInfo->authenticated) 
+        {
             return redirect('/auth/melonland/callback');
         }
 
@@ -55,7 +57,8 @@ class MelonlandController extends Controller
             $returnPath = parse_url(url('/auth/melonland/callback'), PHP_URL_PATH);
             $memberInfo = $this->melonlandService->getMemberInfo($returnPath, ['email']);
 
-            if (!$memberInfo || !$memberInfo->authenticated) {
+            if (!$memberInfo || !$memberInfo->authenticated) 
+            {
                 Log::error("Melonland callback failed authentication.", (array) $memberInfo);
                 return redirect('/login')->with('error', 'Melonland authentication failed or was cancelled.');
             }
@@ -65,7 +68,8 @@ class MelonlandController extends Controller
             $providerId = $memberInfo->id;
             $email = $memberInfo->email ?? null;
 
-            if (!$email) {
+            if (!$email) 
+            {
                 return redirect('/login')->with('error', 'We need your email from Melonland to create an account.');
             }
 
@@ -76,11 +80,15 @@ class MelonlandController extends Controller
 
             $status = 'social_login_success';
 
-            if ($user) {
-                if (!$user->profile_completed) {
+            if ($user) 
+            {
+                if (!$user->profile_completed) 
+                {
                     $status = 'social_registration_incomplete';
                 }
-            } else {
+            } 
+            else 
+            {
                 // User does not exist, check if email already registered via other means
                 $existing = User::where('email', $email)->first();
                 if ($existing) {
@@ -110,12 +118,15 @@ class MelonlandController extends Controller
             $request->session()->regenerate();
 
             // Redirect to the dashboard
-            if (!$user->profile_completed) {
+            if (!$user->profile_completed) 
+            {
                 return redirect()->intended('/dashboard?status=' . $status);
             }
             return redirect()->intended('/dashboard');
 
-        } catch (\Exception $e) {
+        } 
+        catch (\Exception $e) 
+        {
             Log::error("Melonland callback general error: " . $e->getMessage());
             return redirect('/login')->with('message', 'An unexpected authentication error occurred.');
         }
