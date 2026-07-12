@@ -1828,6 +1828,7 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef 
   const animationFrameRef = useRef(null);
   const virtualPosXRef = useRef(0);
   const transitionDragXRef = useRef(0);
+  const openTimeRef = useRef(0);
   const updateTransitionVisuals = useCallback((dragX) => {
     const width = zoomContainerRef.current ? zoomContainerRef.current.offsetWidth : window.innerWidth;
     if (nextImgRef.current) {
@@ -2106,6 +2107,11 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef 
     }
   }, [isZoomed, isImageCropper, updateZoom, clampPosition]);
   const handleClick = useCallback((e) => {
+    if (performance.now() - openTimeRef.current < 300) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
     if (hasDraggedRef.current) {
       e.preventDefault();
       e.stopPropagation();
@@ -2116,6 +2122,7 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef 
   }, [clickFunc]);
   useEffect(() => {
     if (isZoomed) {
+      openTimeRef.current = performance.now();
       document.body.classList.add("modal-open");
     } else {
       document.body.classList.remove("modal-open");
@@ -3728,6 +3735,7 @@ class Point {
   }
 }
 function CarouselContainer({ size, className, children }) {
+  const outerWrapperRef = useRef(null);
   const sliderContainerRef = useRef(null);
   const innerSliderRef = useRef(null);
   const isDraggingRef = useRef(false);
@@ -3739,7 +3747,7 @@ function CarouselContainer({ size, className, children }) {
   const currentTranslateXRef = useRef(0);
   const initialTranslateXRef = useRef(0);
   const mouseDownTargetRef = useRef(null);
-  const distanceThreshold = 5;
+  const distanceThreshold = 15;
   const lastMoveTimeRef = useRef(0);
   const lastMoveXRef = useRef(0);
   const velocityRef = useRef(0);
@@ -3790,6 +3798,17 @@ function CarouselContainer({ size, className, children }) {
       }
     };
   }, [updateSliderEnds]);
+  useEffect(() => {
+    const wrapper = outerWrapperRef.current;
+    if (!wrapper) return;
+    const handleScroll = () => {
+      if (wrapper.scrollLeft !== 0) {
+        wrapper.scrollLeft = 0;
+      }
+    };
+    wrapper.addEventListener("scroll", handleScroll, { passive: true });
+    return () => wrapper.removeEventListener("scroll", handleScroll);
+  }, []);
   const handleFocusIn = useCallback(() => {
     const focusedEl = document.activeElement;
     if (!innerSliderRef.current || !sliderContainerRef.current || !focusedEl || !innerSliderRef.current.contains(focusedEl)) {
@@ -3869,6 +3888,9 @@ function CarouselContainer({ size, className, children }) {
   }, [checkBoundary]);
   const handlePointerUp = useCallback(() => {
     isPointerDownRef.current = false;
+    setTimeout(() => {
+      isDraggedPointerUpRef.current = false;
+    }, 50);
     if (sliderContainerRef.current) sliderContainerRef.current.classList.remove("dragging");
     if (innerSliderRef.current) innerSliderRef.current.classList.remove("dragging");
     const now = performance.now();
@@ -3891,7 +3913,7 @@ function CarouselContainer({ size, className, children }) {
           currentTranslateXRef.current = boundedX;
           innerSliderRef.current.style.transform = `translateX(${currentTranslateXRef.current}px)`;
           updateSliderEnds();
-          v *= 0.92;
+          v *= 0.94;
           if (Math.abs(v) > 0.05) {
             animationFrameRef.current = requestAnimationFrame(momentumLoop);
           } else {
@@ -3962,7 +3984,7 @@ function CarouselContainer({ size, className, children }) {
       }
     };
   }, [handleFocusIn]);
-  return /* @__PURE__ */ jsx("div", { className, children: /* @__PURE__ */ jsxs(
+  return /* @__PURE__ */ jsx("div", { className, ref: outerWrapperRef, children: /* @__PURE__ */ jsxs(
     "div",
     {
       className: "carousel-container " + size,
@@ -4602,6 +4624,14 @@ function ImageCarousel({ size, post, title = "" }) {
       return [];
     }
   }, [post]);
+  const prevZoomedRef = useRef(false);
+  useEffect(() => {
+    var _a;
+    if (!isZoomed && prevZoomedRef.current) {
+      (_a = slideRefs.current[currentSlideIndex]) == null ? void 0 : _a.focus();
+    }
+    prevZoomedRef.current = isZoomed;
+  }, [isZoomed, currentSlideIndex]);
   function handleClick(e) {
     setIsZoomed((prev) => !prev);
   }
@@ -4619,10 +4649,9 @@ function ImageCarousel({ size, post, title = "" }) {
             ref: (el) => slideRefs.current[i] = el,
             tabIndex: "0",
             onFocus: () => setCurrentSlideIndex(i),
-            onClick: (e) => {
+            onPointerUp: (e) => {
+              if (e.button !== 0) return;
               if (isDragging.current || isDraggedPointerUp.current) {
-                e.preventDefault();
-                e.stopPropagation();
                 return;
               }
               setCurrentSlideIndex(i);
@@ -5370,7 +5399,7 @@ function Posts({ username, archivePosts }) {
   }, [setScreenSize]);
   return /* @__PURE__ */ jsxs(Fragment, { children: [
     /* @__PURE__ */ jsx(PageHead, { title: "Posts" }),
-    /* @__PURE__ */ jsx("h2", { className: "centered-content padded-responsive", children: `${username}'s posts` }),
+    /* @__PURE__ */ jsx("h1", { className: "centered-content side-padded top-1rem-bottom-2rem", children: `${username}'s posts` }),
     /* @__PURE__ */ jsx(
       AutoloadTilesContainer,
       {

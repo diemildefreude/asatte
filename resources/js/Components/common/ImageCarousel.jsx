@@ -25,6 +25,15 @@ function ImageCarousel({size, post, title=""})
         }
     }, [post]);
 
+    const prevZoomedRef = useRef(false);
+
+    useEffect(() => {
+        if (!isZoomed && prevZoomedRef.current) {
+            slideRefs.current[currentSlideIndex]?.focus();
+        }
+        prevZoomedRef.current = isZoomed;
+    }, [isZoomed, currentSlideIndex]);
+
     function handleClick(e)
     {      
         setIsZoomed(prev => !prev);
@@ -44,12 +53,11 @@ function ImageCarousel({size, post, title=""})
                             ref={el => slideRefs.current[i] = el}
                             tabIndex="0"
                             onFocus={() => setCurrentSlideIndex(i)}                    
-                            onClick={(e) => 
+                            onPointerUp={(e) => 
                             {
+                                if (e.button !== 0) return; // Only left clicks/taps
                                 if (isDragging.current || isDraggedPointerUp.current) 
                                 {
-                                    e.preventDefault();
-                                    e.stopPropagation();
                                     return;
                                 }
                                 setCurrentSlideIndex(i);

@@ -61,6 +61,7 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef=
 
     const virtualPosXRef = useRef(0);
     const transitionDragXRef = useRef(0);
+    const openTimeRef = useRef(0);
 
     const updateTransitionVisuals = useCallback((dragX) => {
         const width = zoomContainerRef.current ? zoomContainerRef.current.offsetWidth : window.innerWidth;
@@ -432,6 +433,11 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef=
     }, [isZoomed, isImageCropper, updateZoom, clampPosition]);
 
     const handleClick = useCallback((e) => {
+        if (performance.now() - openTimeRef.current < 300) {
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+        }
         if (hasDraggedRef.current) {
             e.preventDefault();
             e.stopPropagation();
@@ -445,6 +451,7 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef=
     {
         if (isZoomed) 
         {
+            openTimeRef.current = performance.now();
             document.body.classList.add('modal-open');
         } else {
             document.body.classList.remove('modal-open');

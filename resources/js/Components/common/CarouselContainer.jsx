@@ -18,6 +18,7 @@ class Point
 
 function CarouselContainer({size, className, children})
 {
+    const outerWrapperRef = useRef(null);
     const sliderContainerRef = useRef(null);
     const innerSliderRef = useRef(null); 
     const isDraggingRef = useRef(false);
@@ -29,7 +30,7 @@ function CarouselContainer({size, className, children})
     const currentTranslateXRef = useRef(0); // Stores the current horizontal position (translateX value)
     const initialTranslateXRef = useRef(0); // Stores the translateX value when the drag starts
     const mouseDownTargetRef = useRef(null);
-    const distanceThreshold = 5;
+    const distanceThreshold = 15;
 
     const lastMoveTimeRef = useRef(0);
     const lastMoveXRef = useRef(0);
@@ -94,6 +95,20 @@ function CarouselContainer({size, className, children})
             }
         };
     },[updateSliderEnds]);
+
+    useEffect(() => {
+        const wrapper = outerWrapperRef.current;
+        if (!wrapper) return;
+
+        const handleScroll = () => {
+            if (wrapper.scrollLeft !== 0) {
+                wrapper.scrollLeft = 0;
+            }
+        };
+        
+        wrapper.addEventListener('scroll', handleScroll, { passive: true });
+        return () => wrapper.removeEventListener('scroll', handleScroll);
+    }, []);
 
     const handleFocusIn = useCallback(() =>
     {
@@ -206,6 +221,10 @@ function CarouselContainer({size, className, children})
     {
         isPointerDownRef.current = false;
         
+        setTimeout(() => {
+            isDraggedPointerUpRef.current = false;
+        }, 50);
+
         if (sliderContainerRef.current) sliderContainerRef.current.classList.remove('dragging');
         if (innerSliderRef.current) innerSliderRef.current.classList.remove('dragging'); 
 
@@ -243,7 +262,7 @@ function CarouselContainer({size, className, children})
                     innerSliderRef.current.style.transform = `translateX(${currentTranslateXRef.current}px)`;
                     updateSliderEnds();
 
-                    v *= 0.92; // Friction
+                    v *= 0.94; // Friction
 
                     if (Math.abs(v) > 0.05) 
                     {
@@ -353,7 +372,7 @@ function CarouselContainer({size, className, children})
     
 
     return (
-        <div className={className}>
+        <div className={className} ref={outerWrapperRef}>
             <div className={"carousel-container " + size}
                 tabIndex="0" role="region" aria-label=""
                 ref={sliderContainerRef}
