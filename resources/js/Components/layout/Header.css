@@ -59,7 +59,7 @@ nav
     overflow-y: auto;
     z-index: -1;
 }
-@media (orientation: landscape ) and (min-width: 800px) 
+@media (orientation: landscape) 
 {
     nav 
     {

@@ -1,10 +1,10 @@
 :root
 {
     --carousel-w: 100vw;     
-    --mobile-small-height: calc((100vw / 2.2) + 2rem);
-    --mobile-medium-height: calc((100vw / 1.777) + 2rem);
-    --small-height: clamp(5rem, 30vh, 100rem);
-    --medium-height: clamp(20rem, 50vh, 100rem);
+    --mobile-small-height: clamp(152px, calc((100vw / 2.2) + 2rem), 200px);
+    --mobile-medium-height: clamp(200px, calc((100vw / 1.777) + 2rem), 300px);
+    /* --small-height: clamp(150px, 30vh, 200px);
+    --medium-height: clamp(20rem, 50vh, 100rem); */
     --zoom-scale: 1.0;
     --zoom-origin: center center;
     --zoom-x: 0px;
@@ -117,7 +117,7 @@
 {
     .carousel-container.small
     {   
-        height: var(--small-height);
+        height: var(--mobile-small-height);
     }
 }
 /* @media (min-width: 700px)

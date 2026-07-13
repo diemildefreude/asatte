@@ -563,8 +563,8 @@ function Layout({ children, isDashboard = false, classes = "" }) {
     const updateFooter = () => {
       if (footerElement) {
         const rect = footerElement.getBoundingClientRect();
-        const bottomOffset = window.innerHeight - rect.bottom;
-        document.body.style.setProperty("--footer-bottom", `${bottomOffset}px`);
+        const translateY = Math.max(0, rect.bottom - window.innerHeight);
+        document.body.style.setProperty("--footer-translate-y", `${translateY}px`);
       }
     };
     const handleResize = () => {
@@ -602,7 +602,7 @@ function Layout({ children, isDashboard = false, classes = "" }) {
           });
         },
         {
-          rootMargin: "500px"
+          rootMargin: "2000px"
         }
       );
       observer.observe(footerElement);

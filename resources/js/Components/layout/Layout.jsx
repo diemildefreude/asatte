@@ -17,11 +17,12 @@ function Layout({children, isDashboard=false, classes=""})
         let isFooterVisible = false;
         const footerElement = document.querySelector('footer');
 
-        const updateFooter = () => {
+        const updateFooter = () => 
+        {
             if (footerElement) {
                 const rect = footerElement.getBoundingClientRect();
-                const bottomOffset = window.innerHeight - rect.bottom;
-                document.body.style.setProperty('--footer-bottom', `${bottomOffset}px`);
+                const translateY = Math.max(0, rect.bottom - window.innerHeight);
+                document.body.style.setProperty('--footer-translate-y', `${translateY}px`);
             }
         };
 
@@ -48,14 +49,16 @@ function Layout({children, isDashboard=false, classes=""})
         };
 
         const handleScroll = () => {
-            if (!ticking) {
+            if (!ticking) 
+            {
                 window.requestAnimationFrame(onScroll);
                 ticking = true;
             }
         };
 
         let observer;
-        if (footerElement) {
+        if (footerElement) 
+        {
             // Start tracking position 500px before the footer enters the viewport 
             // to prevent any pop-in during fast scrolling
             observer = new IntersectionObserver((entries) => 
@@ -70,7 +73,7 @@ function Layout({children, isDashboard=false, classes=""})
                 });
             }, 
             {
-                rootMargin: '500px' 
+                rootMargin: '2000px' 
             });
             observer.observe(footerElement);
         }
