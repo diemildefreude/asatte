@@ -51,13 +51,17 @@ footer
 {
   position: fixed;
   bottom: 0;
-  left: -50vw;
-  width: 200vw;
+  left: 0;
+  right: 0;
   height: 500px;
   background: var(--footer-gradient);
-  transform: translate(var(--scroll-x, 0px), var(--footer-translate-y, 0px));
   z-index: -2;
   pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+}
+body.at-bottom .footer-background {
+  opacity: 1;
 }
 
 .copyright

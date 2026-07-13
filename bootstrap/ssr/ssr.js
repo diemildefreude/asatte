@@ -558,30 +558,28 @@ function Layout({ children, isDashboard = false, classes = "" }) {
   classNames += ` ${classes}`;
   useEffect(() => {
     let ticking = false;
-    let isFooterVisible = false;
-    const footerElement = document.querySelector("footer");
-    const updateFooter = () => {
-      if (footerElement) {
-        const rect = footerElement.getBoundingClientRect();
-        const translateY = Math.max(0, rect.bottom - window.innerHeight);
-        document.body.style.setProperty("--footer-translate-y", `${translateY}px`);
-      }
-    };
     const handleResize = () => {
       const isCurrentlyTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
       setIsTouchDevice(isCurrentlyTouch);
-      updateFooter();
     };
     handleResize();
+    const footerElement = document.querySelector("footer");
+    let observer;
+    if (footerElement) {
+      observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            document.body.classList.add("at-bottom");
+          } else {
+            document.body.classList.remove("at-bottom");
+          }
+        });
+      }, {
+        rootMargin: "200px"
+      });
+      observer.observe(footerElement);
+    }
     const onScroll = () => {
-      if (window.scrollX !== 0) {
-        document.body.style.setProperty("--scroll-x", `-${window.scrollX}px`);
-      } else {
-        document.body.style.removeProperty("--scroll-x");
-      }
-      if (isFooterVisible) {
-        updateFooter();
-      }
       ticking = false;
     };
     const handleScroll = () => {
@@ -590,30 +588,10 @@ function Layout({ children, isDashboard = false, classes = "" }) {
         ticking = true;
       }
     };
-    let observer;
-    if (footerElement) {
-      observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            isFooterVisible = entry.isIntersecting;
-            if (isFooterVisible) {
-              updateFooter();
-            }
-          });
-        },
-        {
-          rootMargin: "2000px"
-        }
-      );
-      observer.observe(footerElement);
-    }
     window.addEventListener("resize", handleResize);
     window.addEventListener("scroll", handleScroll, { passive: true });
-    onScroll();
     return () => {
-      if (observer && footerElement) {
-        observer.unobserve(footerElement);
-      }
+      if (observer) observer.disconnect();
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("scroll", handleScroll);
     };
