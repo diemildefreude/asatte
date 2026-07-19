@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Notification;
 use App\Models\Post;
 use App\Models\Comment;
+use App\Models\ProfileComment;
 use App\Models\User;
 use App\Enums\MemberType;
 use App\Enums\NotificationType;
@@ -201,7 +202,7 @@ class DashboardController extends Controller
             ->where('post_user.user_id', $user->id)
             ->with('user:id,username,avatar')
             ->orderBy('post_user.created_at', 'desc')
-            ->limit(4)->get();
+            ->limit(6)->get();
 
         $comments = Comment::with(['post:id,title,post_url,user_id', 'post.user:id,username'])
             ->where('user_id', $user->id)
@@ -217,6 +218,9 @@ class DashboardController extends Controller
                 if (($type == NotificationType::Comment || $type == NotificationType::Reply) && isset($data['comment_id'])) {
                     $comment = Comment::with(['user:id,username,avatar', 'post:id,title,post_url,user_id', 'post.user:id,username'])->find($data['comment_id']);
                     $notification->setRelation('comment', $comment);
+                } else if (($type == NotificationType::ProfileComment || $type == NotificationType::ProfileReply) && isset($data['profile_comment_id'])) {
+                    $comment = ProfileComment::with(['user:id,username,avatar', 'profile:id,username'])->find($data['profile_comment_id']);
+                    $notification->setRelation('profile_comment', $comment);
                 } else if ($type == NotificationType::Unhidden && isset($data['post_id'])) {
                     $post = Post::with(['user:id,username'])->select(['id', 'post_url', 'title', 'user_id'])->find($data['post_id']);
                     $notification->setRelation('post', $post);

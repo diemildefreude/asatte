@@ -129,11 +129,26 @@ class CommentController extends Controller
     public function destroy(Request $request, Post $post, Comment $comment)
     {
         $requestingUser = $request->user();
-        $isAdminRequest = $requestingUser->member_type == MemberType::Webmaster 
-                || $requestingUser->member_type == MemberType::Admin;
-        if($requestingUser->id != $comment->user_id && !$isAdminRequest)
-        {
-            return back()->withErrors(['error' => "This is not your comment to delete."]);
+        $isWebmaster = $requestingUser->member_type == MemberType::Webmaster;
+        $isAdmin = $requestingUser->member_type == MemberType::Admin;
+
+        $commentAuthor = $comment->user;
+        $authorMemberType = $commentAuthor->member_type;
+
+        $canDelete = false;
+
+        if ($requestingUser->id == $comment->user_id) {
+            $canDelete = true;
+        } else if ($isWebmaster) {
+            $canDelete = true;
+        } else if ($isAdmin) {
+            if ($authorMemberType != MemberType::Webmaster && $authorMemberType != MemberType::Admin) {
+                $canDelete = true;
+            }
+        }
+
+        if (!$canDelete) {
+            return back()->withErrors(['error' => "You do not have permission to delete this comment."]);
         }
 
         $comment->delete();

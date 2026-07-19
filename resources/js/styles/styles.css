@@ -220,7 +220,7 @@ p iframe
 
 .bold
 {
-    font-weight: 900;
+    font-weight: 400;
 }
 .top-offset
 {
@@ -556,9 +556,9 @@ button, .link-button
 {
     display: flex;
     justify-content: space-between;
-    /* flex-grow: 4; */
     gap: 1rem;
     width: 100%;
+    word-break: break-all;
 }
 .inline-form-field span, .inline-form-field a
 {

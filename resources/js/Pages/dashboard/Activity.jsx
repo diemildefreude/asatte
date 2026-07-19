@@ -76,7 +76,7 @@ function Activity()
                             [ScreenSize.Narrow]: 3, 
                             [ScreenSize.Small]: 4,
                             [ScreenSize.Mid]: 4,
-                            [ScreenSize.Wide]: 4
+                            [ScreenSize.Wide]: 6
                         }}
                     />
                     

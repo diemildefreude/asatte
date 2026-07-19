@@ -4,6 +4,7 @@ import {  Link, router, usePage } from '@inertiajs/react';
 import PageHead from '../Components/layout/PageHead';
 import ProfileItem from '../Components/common/ProfileItem';
 import AutoloadTilesContainer from '../Components/common/AutoloadTilesContainer';
+import CommentSection from '../Components/common/CommentSection';
 import './DashboardProfile.css';
 import '../Components/common/RichTextEditor.css';
 import { FetchOrder, getErrorMessage, getScreenSize, monitorScreenSize, ScreenSize,
@@ -24,7 +25,8 @@ function UserProfile({ user: profileUserProp })
     const [error, setError] = useState('');
     const [isFollowing, setIsFollowing] = useState(profileUserProp?.is_following || false);
     
-
+    const profileComments = props.profileComments || [];
+    const canDeleteAnyComment = !!user && user.id === profileUser?.id;
 
 
     const avatar = profileUser?.avatar ? `${appUrl}/storage/images/uploaded/users/${username}/avatar/small/${profileUser?.avatar}` 
@@ -222,6 +224,15 @@ function UserProfile({ user: profileUserProp })
                         view all
                     </Link>
                 </div>    
+                
+                <div className="page-section comment-section" style={{marginTop: "2rem"}}>
+                    <CommentSection 
+                        comments={profileComments}
+                        apiRoutePrefix={`/users/${profileUser.id}`}
+                        canDeleteAnyComment={canDeleteAnyComment}
+                        isUserProfile={true}
+                    />
+                </div>
             </>):(null)
         }
     </>);

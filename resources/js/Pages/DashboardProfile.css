@@ -190,7 +190,11 @@
 {
    width: 38px;
    height: 38px;
-   border-width: 1px;
+   /* border-width: 1px;
+   border-color: black; */
+   border: 1px solid var(--dark-blue);
+   color: var(--dark-blue);
+   background: transparent;
 }
 .content.touch-device .avatar-button.public-hover
 {

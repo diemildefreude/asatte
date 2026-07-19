@@ -64,7 +64,6 @@ nav
     nav 
     {
         flex-wrap: wrap;
-        gap: 0;
     }
 }
 .nav-half
@@ -311,7 +310,7 @@ nav.open
 {
     margin: 0;
     height: var(--header-height-narrow);
-    padding: 2.5rem 1rem 2.5rem 1rem;
+    padding: 2.5rem 0.3rem 2.5rem 1rem;
     flex-grow: 2;
     font-size: 1.3em;
 }
@@ -323,7 +322,8 @@ nav.open
 {
     .user-link.nav-item
     {
-        padding: 0 1rem 0;
+        /* padding: 0 1rem 0; */
+        padding: 0 0 0 1rem;
         margin: 0 0 0 -0.5rem; /*because of the avatar*/
         box-sizing:border-box;
         height: var(--header-height-wide);

@@ -13,9 +13,11 @@ function UserAgreement({onAgreeChange, onHumanChange, onRobotChange,
             <h2>user agreement</h2>
         </div>
         <div className="footnote bottom-1rem">version {AGREEMENT_VERSION}</div>
-        <p>As a member of {APP_NAME}, you agree to only post content qualifying as Internet Art. As outlined in the <Link href="/about">about</Link> section, this is any work that requires the Internet for its realization. Furthermore, all posted work should be primarily artistic in nature. Eg. a work can contain nudity but should distinguish itself clearly from pornography in its concept and realization. Likewise, any post whose primary goal is to promote a business or make money is not acceptable. In any and all cases, it is at the final discretion of the webmaster and administrators to temporarily hide or delete any content or user found to not abide by these principles.</p>
+        <p>As a member of {APP_NAME}, you agree to only post content qualifying as Internet Art. As outlined in the <Link href="/about">about</Link> section, this is any work for which the Internet is an essential element of its realization. Furthermore, all posted work should be primarily artistic in nature. Eg. a work can contain nudity but should distinguish itself clearly from pornography in its concept and realization. Likewise, any post whose primary goal is to promote a business or make money is not acceptable. In any and all cases, it is at the final discretion of the webmaster and administrators to temporarily hide or delete any content or user found to not abide by these principles.</p>
 
         <p>Users whose content has been temporarily hidden will be notified so that they can make changes or appeal the decision.</p>
+
+        <p>Malicious comments or SPAM will lead to comment-deletion and potentially account-deletion, at the discretion of the webmaster & admins.</p>
 
         <p>Users must have the right to archive the work they post. {APP_NAME} complies with DMCA takedown requests and will remove infringing material upon valid notice.</p>
 
@@ -25,11 +27,11 @@ function UserAgreement({onAgreeChange, onHumanChange, onRobotChange,
 
         <ol>
             <li>The posts themselves on the website</li>
-            <li>Images of posts may appear in screenshots of the {APP_NAME} without explicit credit.</li>
-            <li>For any promotional content that explicitly highlights the work of a {APP_NAME} user, credit will be given.</li>
+            <li>Images of posts may appear in screenshots of {APP_NAME} shared on other platforms without explicit credit.</li>
+            <li>For any promotional content that explicitly highlights the work of an {APP_NAME} user, credit will be given.</li>
         </ol>
 
-        <p>{APP_NAME} is not responsible for any user-generated content that violates our terms or is otherwise perceived as offensive. Once discovered, we will hide or delete such content as we see fit.</p>
+        <p>{APP_NAME} is not responsible for any user-generated content that violates our terms or is otherwise perceived as offensive. Once discovered, we will hide or delete such content when and as we see fit.</p>
 
         <p>Users posting their own work are the copyright-holders thereof and {APP_NAME} makes no claim thereto.</p>
         </div>          

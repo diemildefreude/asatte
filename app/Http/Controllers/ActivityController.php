@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\NotificationType;
 use App\Models\Comment;
+use App\Models\ProfileComment;
 use App\Models\Notification;
 use App\Models\Post;
 use App\Models\PostView;
@@ -100,6 +101,16 @@ class ActivityController extends Controller
                 ])->find($data['comment_id']);
 
                 $notification->setRelation('comment', $comment);
+            }
+            else if (($type == NotificationType::ProfileComment || $type == NotificationType::ProfileReply)
+                && isset($data['profile_comment_id'])) 
+            {
+                $comment = ProfileComment::with([
+                    'user:id,username,avatar',
+                    'profile:id,username'
+                ])->find($data['profile_comment_id']);
+
+                $notification->setRelation('profile_comment', $comment);
             }            
             else if($type == NotificationType::Unhidden && isset($data['post_id']))
             {

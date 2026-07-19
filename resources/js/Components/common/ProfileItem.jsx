@@ -42,7 +42,8 @@ function ProfileItem({name, value, onChange=null, disabled=false,
         )
     );
 
-    if (isArray) {
+    if (isArray) 
+    {
         const values = Array.isArray(value) ? value : [];
         // If there are no values, we at least render one empty input or label when not public
         const displayValues = (values.length === 0 && !isPublic) ? [''] : values;

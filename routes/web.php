@@ -178,9 +178,14 @@ Route::middleware('auth')->group(function () {
     Route::post('/{user}/follow', [App\Http\Controllers\ActivityController::class, 'toggleFollow'])->name('users.follow');
     
     // Comments
-    Route::post('/posts/{post}/comments', [App\Http\Controllers\CommentController::class, 'store'])->name('posts.comments.store');
-    Route::put('/posts/{post}/comments/{comment}', [App\Http\Controllers\CommentController::class, 'update'])->name('posts.comments.update');
+    Route::post('/posts/{post}/comments', [App\Http\Controllers\CommentController::class, 'store'])->name('posts.comments.store')->middleware('throttle:3,1');
+    Route::put('/posts/{post}/comments/{comment}', [App\Http\Controllers\CommentController::class, 'update'])->name('posts.comments.update')->middleware('throttle:3,1');
     Route::delete('/posts/{post}/comments/{comment}', [App\Http\Controllers\CommentController::class, 'destroy'])->name('posts.comments.destroy');
+    
+    // Profile Comments
+    Route::post('/users/{user}/comments', [App\Http\Controllers\ProfileCommentController::class, 'store'])->name('users.comments.store')->middleware('throttle:3,1');
+    Route::put('/users/{user}/comments/{comment}', [App\Http\Controllers\ProfileCommentController::class, 'update'])->name('users.comments.update')->middleware('throttle:3,1');
+    Route::delete('/users/{user}/comments/{comment}', [App\Http\Controllers\ProfileCommentController::class, 'destroy'])->name('users.comments.destroy');
 
     // Migrated from api.php
     Route::put('/api/update-about', [App\Http\Controllers\AboutController::class, 'update']);

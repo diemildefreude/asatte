@@ -4,7 +4,7 @@ import { getErrorMessage, scrollToElement } from '../../utils/helpers';
 import Comment from './Comment';
 import { Link, router, usePage, useForm } from '@inertiajs/react';
 
-function CommentSection({post, likeCount})
+function CommentSection({comments, apiRoutePrefix, likeCount, viewCount, canDeleteAnyComment, isUserProfile=false})
 {
     const [originalComment, setOriginalComment] = useState(null);
     const [originalCommentElement, setOriginalCommentElement] = useState(null);
@@ -21,7 +21,6 @@ function CommentSection({post, likeCount})
     const isAuthenticated = !!user;
     const page = usePage();
     const success = page.props.flash?.success;
-    const comments = post.comments || [];
     const parsed = typeof window !== 'undefined' 
         ? new URL(page.url || window.location.href, window.location.origin)
         : new URL(page.url, page.props.app_url || 'http://localhost');
@@ -55,9 +54,9 @@ function CommentSection({post, likeCount})
     const handleCommentSubmit = useCallback((e)=>
     {
         e.preventDefault();
-        if(!post) return;
+        if(!apiRoutePrefix) return;
         
-        submitComment(`/posts/${post.id}/comments`, {
+        submitComment(`${apiRoutePrefix}/comments`, {
             preserveScroll: true,
             onSuccess: () => {
                 reset();
@@ -65,7 +64,7 @@ function CommentSection({post, likeCount})
                 setOriginalCommentElement(null);
             }
         });
-    },[data, post.id]);
+    },[data, apiRoutePrefix]);
 
     const handleReply = useCallback((comment, elementId, isQuote=false) =>
     {
@@ -120,23 +119,29 @@ function CommentSection({post, likeCount})
         setData('parent_id', null);
     },[setOriginalComment, setOriginalCommentElement]);
 
-    return ((post || comments) &&
+    return ((comments) &&
     <>
         <div className="icons-leave-comment-container">
-            <div className="icon-group">
+            {
+                !isUserProfile && (<div className="icon-group">
+                {viewCount !== undefined && (
                 <div className="icon">
                     <i className="fa-regular fa-eye"></i>
-                    <span className='metric-number'> {post.view_count}</span>
+                    <span className='metric-number'> {viewCount}</span>
                 </div>
+                )}
                 <div className="icon">
                     <i className="fa-regular fa-comment"></i>
                     <span className='metric-number'> {comments.length}</span>
                 </div>
+                {likeCount !== undefined && (
                 <div className="icon">
                     <i className="fa-regular fa-star"></i>
                     <span className='metric-number'> {likeCount}</span>
                 </div>
-            </div>
+                )}
+            </div>)
+            }            
             <div className="leave-comment-container" id="leave-comment-container">
                 <form onSubmit={handleCommentSubmit}>
                     <div className="header-button-container">
@@ -210,6 +215,8 @@ function CommentSection({post, likeCount})
                                 onReply={handleReply}
                                 parentLocalId={parentElement}
                                 currentUrl={currentUrl}
+                                apiRoutePrefix={apiRoutePrefix}
+                                canDeleteAnyComment={canDeleteAnyComment}
                             />
                 })
             }

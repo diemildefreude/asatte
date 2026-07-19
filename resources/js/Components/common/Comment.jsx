@@ -5,7 +5,7 @@ import { useCallback, useState } from "react";
 import { Link, router, usePage, useForm } from '@inertiajs/react';
 import "./CommentsNotifications.css";
 
-function Comment({comment, isDashboard=false, onReply=null, id, parentLocalId=null, currentUrl=null})
+function Comment({comment, isDashboard=false, onReply=null, id, parentLocalId=null, currentUrl=null, apiRoutePrefix, canDeleteAnyComment})
 {
     const user = usePage().props.auth?.user;
     if (!comment) return null;
@@ -36,31 +36,31 @@ function Comment({comment, isDashboard=false, onReply=null, id, parentLocalId=nu
 
     const handleCommentUpdate = useCallback(() =>
     {
-        submitUpdate(`/posts/${comment.post_id}/comments/${comment.id}`, {
+        submitUpdate(`${apiRoutePrefix}/comments/${comment.id}`, {
             preserveScroll: true,
             onSuccess: () => setIsEditing(false)
         });
-    },[submitUpdate, comment]);
+    },[submitUpdate, comment, apiRoutePrefix]);
 
     const handleCommentDelete = useCallback(() =>
     {
         const isConfirmed = window.confirm("Delete comment?");
         if(!isConfirmed) return;
-        submitDelete(`/posts/${comment.post_id}/comments/${comment.id}`, {
+        submitDelete(`${apiRoutePrefix}/comments/${comment.id}`, {
             preserveScroll: true
         });
-    },[submitDelete, comment]);
+    },[submitDelete, comment, apiRoutePrefix]);
 
     return (
     <div className="comment" id={elementId}>
         <p>
         {
             isDashboard && comment.post ? (<>
-                in <Link href={getPostUrl(comment.post)} //+#comment-0
+                in <em><Link href={getPostUrl(comment.post)} //+#comment-0
                     className="bold"
                 >
                     {comment.post.title}
-                </Link> <em>on {getDateAsYYYYMMDD(comment.created_at)}
+                </Link></em> on<em> {getDateAsYYYYMMDD(comment.created_at)}
                 <span className="notice small"> at {getTimeAsHHMM(comment.created_at)}</span></em> 
             </>):(<>
                 <UserLink user={comment.user}/> <em>on {getDateAsYYYYMMDD(comment.created_at)}
@@ -166,17 +166,36 @@ function Comment({comment, isDashboard=false, onReply=null, id, parentLocalId=nu
                     }</>)
                 }
                 {
-                    !isDashboard && (user?.id === comment?.user?.id || user?.member_type == MemberType.Admin ||
-                        user?.member_type == MemberType.Webmaster) && (
-                        <button 
-                            onClick={handleCommentDelete}
-                            className="small-button"
-                            title="delete"
-                            disabled={processing}
-                        >
-                            <i className="fa-solid fa-trash"></i>
-                        </button>
-                    )
+                    !isDashboard && (() => {
+                        const isCommentOwner = user?.id === comment?.user?.id;
+                        const isWebmaster = user?.member_type === MemberType.Webmaster;
+                        const isAdmin = user?.member_type === MemberType.Admin;
+                        const authorMemberType = comment?.user?.member_type;
+                        
+                        let canDelete = false;
+                        if (isCommentOwner) {
+                            canDelete = true;
+                        } else if (canDeleteAnyComment) {
+                            canDelete = true;
+                        } else if (isWebmaster) {
+                            canDelete = true;
+                        } else if (isAdmin) {
+                            if (authorMemberType !== MemberType.Webmaster && authorMemberType !== MemberType.Admin) {
+                                canDelete = true;
+                            }
+                        }
+
+                        return canDelete && (
+                            <button 
+                                onClick={handleCommentDelete}
+                                className="small-button"
+                                title="delete"
+                                disabled={processing}
+                            >
+                                <i className="fa-solid fa-trash"></i>
+                            </button>
+                        );
+                    })()
                 }
             </div>)
         }        

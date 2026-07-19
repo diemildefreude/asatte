@@ -6,6 +6,49 @@ export const LoginType =
   Github: 'github',
   Google: 'google',
 };
+export const MemberType = 
+{
+    Standard: 'standard',
+    Pro: 'pro',
+    Admin: 'admin',
+    Webmaster: 'web_master'
+}
+export const ScreenSize = 
+{
+    Nothing: 0,
+    Narrow: 1, 
+    Small: 2,
+    Mid: 3,
+    Wide: 4,
+}
+export const Category =
+{
+    News: 'news',
+    Archive: 'archive'
+}
+
+export const FetchOrder =
+{
+    Ascending: 'ascending',
+    Descending: 'descending',
+    Random: 'random'
+}
+
+export const NotificationType =
+{
+    Comment: 'comment',
+    Reply: 'reply',
+    Follower: 'follower',
+    Unhidden: 'unhidden',
+    ProfileComment: 'profile_comment'
+}
+
+export const HistoryEntryType =
+{
+    Push: 'push',
+    Replace: 'replace',
+    Nothing: 'nothing'
+}
 
 function isSafeVideoIframeSrc(src) 
 {
@@ -246,10 +289,40 @@ function handleResizeWithCanvas(img, mimeType, isGallery = false)
         canvas.height = height;
         ctx.drawImage(img, 0, 0, width, height);
 
-        canvas.toBlob((blob) => 
+        const targetSize = 2000 * 1024; // slightly under 2048 KB for safety
+        let type = mimeType;
+        if (type === 'image/png' || type === 'image/gif') {
+            type = 'image/jpeg';
+        }
+
+        let quality = 0.8;
+        
+        const getBlob = (w, h, q) => new Promise(res => {
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = w;
+            tempCanvas.height = h;
+            tempCanvas.getContext('2d').drawImage(canvas, 0, 0, w, h);
+            tempCanvas.toBlob(res, type, q);
+        });
+
+        canvas.toBlob(async (blob) => 
         {
-            resolve(blob);
-        }, mimeType, 0.7);
+            let currentBlob = blob;
+            while (currentBlob.size > targetSize && quality > 0.2) {
+                quality -= 0.1;
+                currentBlob = await getBlob(width, height, quality);
+            }
+            if (currentBlob.size > targetSize) {
+                let scale = 0.8;
+                while (currentBlob.size > targetSize && scale > 0.3) {
+                    const nw = Math.floor(width * scale);
+                    const nh = Math.floor(height * scale);
+                    currentBlob = await getBlob(nw, nh, quality);
+                    scale -= 0.2;
+                }
+            }
+            resolve(currentBlob);
+        }, type, quality);
     });    
 }
 export function resizeImage(source, isGallery = false)
@@ -718,49 +791,6 @@ export function openPopup(url, windowName, left, top, width, height)
     return window.open(url, windowName, features);
 }
 
-export const MemberType = 
-{
-    Standard: 'standard',
-    Pro: 'pro',
-    Admin: 'admin',
-    Webmaster: 'web_master'
-}
-export const ScreenSize = 
-{
-    Nothing: 0,
-    Narrow: 1, 
-    Small: 2,
-    Mid: 3,
-    Wide: 4,
-}
-
-export const Category =
-{
-    News: 'news',
-    Archive: 'archive'
-}
-
-export const FetchOrder =
-{
-    Ascending: 'ascending',
-    Descending: 'descending',
-    Random: 'random'
-}
-
-export const NotificationType =
-{
-    Comment: 'comment',
-    Reply: 'reply',
-    Follower: 'follower',
-    Unhidden: 'unhidden'
-}
-
-export const HistoryEntryType =
-{
-    Push: 'push',
-    Replace: 'replace',
-    Nothing: 'nothing'
-}
 export function getNextFetchIndex(fetchedPosts, fetchOrder) 
 {    
     const post = fetchedPosts[fetchedPosts.length - 1];

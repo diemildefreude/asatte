@@ -85,8 +85,12 @@
 {
     margin: 0;
     padding: 0;
+    width: 100%; 
+    font-size: 1.3em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
-
 .leave-comment-container .button-container
 {
     display: flex;
@@ -112,6 +116,11 @@
     .comment.dm
     {
         padding: 0 0 1rem;
+    }
+    .leave-comment-container .header-button-container h2
+    {
+        font-size: 1.6em;
+        justify-content: start;
     }
 }
 .comment .user-link span

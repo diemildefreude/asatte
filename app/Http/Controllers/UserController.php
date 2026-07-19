@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Post;
+use App\Models\ProfileComment;
 use App\Enums\MemberType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -74,9 +75,15 @@ class UserController extends Controller
             ->limit(12)
             ->get();
 
+        $profileComments = ProfileComment::with('user:id,username,avatar,member_type')
+            ->where('profile_id', $user->id)
+            ->latest()
+            ->get();
+
         return \Inertia\Inertia::render('UserProfile', [
             'user' => $user,
-            'initialPosts' => $posts
+            'initialPosts' => $posts,
+            'profileComments' => $profileComments
         ]);
     }
 

@@ -29,7 +29,7 @@ function OAuth({headerText, onClick, originPage, isSubmittingForm, setIsSubmitti
 
     return (
         <div className="field-group social-login-options">
-            <h3>{headerText}</h3>
+            <h2>{headerText}</h2>
             <button className='small-text'
                 onClick={() => { onClick(); handleSocialLogin('melonland');}}
                 disabled={isSubmitting || isSubmittingForm || isLoading}

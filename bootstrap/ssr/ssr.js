@@ -380,7 +380,7 @@ function UserLink({ user, readOnly = false, onClick = null, additionalClasses = 
         /* @__PURE__ */ jsx("span", { className: "username", children: user.username })
       ]
     }
-  ) : /* @__PURE__ */ jsx("span", { className: "loading bold", children: /* @__PURE__ */ jsx("em", { children: "deleted user" }) }) });
+  ) : /* @__PURE__ */ jsx("span", { className: "", children: /* @__PURE__ */ jsx("em", { children: "deleted user " }) }) });
 }
 function Header() {
   var _a;
@@ -612,6 +612,33 @@ function Layout({ children, isDashboard = false, classes = "" }) {
 const LoginType = {
   Email: "email"
 };
+const MemberType = {
+  Admin: "admin",
+  Webmaster: "web_master"
+};
+const ScreenSize = {
+  Nothing: 0,
+  Narrow: 1,
+  Small: 2,
+  Mid: 3,
+  Wide: 4
+};
+const Category = {
+  News: "news",
+  Archive: "archive"
+};
+const FetchOrder = {
+  Ascending: "ascending",
+  Descending: "descending",
+  Random: "random"
+};
+const NotificationType = {
+  Comment: "comment",
+  Reply: "reply",
+  Follower: "follower",
+  Unhidden: "unhidden",
+  ProfileComment: "profile_comment"
+};
 function isSafeVideoIframeSrc(src) {
   try {
     const url = new URL(src, window.location.origin);
@@ -767,9 +794,36 @@ function handleResizeWithCanvas(img, mimeType, isGallery = false) {
     canvas.width = width;
     canvas.height = height;
     ctx.drawImage(img, 0, 0, width, height);
-    canvas.toBlob((blob) => {
-      resolve(blob);
-    }, mimeType, 0.7);
+    const targetSize = 2e3 * 1024;
+    let type = mimeType;
+    if (type === "image/png" || type === "image/gif") {
+      type = "image/jpeg";
+    }
+    let quality = 0.8;
+    const getBlob = (w, h, q) => new Promise((res) => {
+      const tempCanvas = document.createElement("canvas");
+      tempCanvas.width = w;
+      tempCanvas.height = h;
+      tempCanvas.getContext("2d").drawImage(canvas, 0, 0, w, h);
+      tempCanvas.toBlob(res, type, q);
+    });
+    canvas.toBlob(async (blob) => {
+      let currentBlob = blob;
+      while (currentBlob.size > targetSize && quality > 0.2) {
+        quality -= 0.1;
+        currentBlob = await getBlob(width, height, quality);
+      }
+      if (currentBlob.size > targetSize) {
+        let scale = 0.8;
+        while (currentBlob.size > targetSize && scale > 0.3) {
+          const nw = Math.floor(width * scale);
+          const nh = Math.floor(height * scale);
+          currentBlob = await getBlob(nw, nh, quality);
+          scale -= 0.2;
+        }
+      }
+      resolve(currentBlob);
+    }, type, quality);
   });
 }
 function resizeImage(source, isGallery = false) {
@@ -1080,32 +1134,6 @@ function openPopup(url, windowName, left, top, width, height) {
                       resizable=yes,scrollbars=yes,status=no,menubar=no,toolbar=no,location=no`;
   return window.open(url, windowName, features);
 }
-const MemberType = {
-  Admin: "admin",
-  Webmaster: "web_master"
-};
-const ScreenSize = {
-  Nothing: 0,
-  Narrow: 1,
-  Small: 2,
-  Mid: 3,
-  Wide: 4
-};
-const Category = {
-  News: "news",
-  Archive: "archive"
-};
-const FetchOrder = {
-  Ascending: "ascending",
-  Descending: "descending",
-  Random: "random"
-};
-const NotificationType = {
-  Comment: "comment",
-  Reply: "reply",
-  Follower: "follower",
-  Unhidden: "unhidden"
-};
 function getNextFetchIndex(fetchedPosts, fetchOrder) {
   const post = fetchedPosts[fetchedPosts.length - 1];
   const id = post.pivot_id ?? post.id;
@@ -2896,7 +2924,7 @@ function EditProfile() {
         ] }),
         /* @__PURE__ */ jsxs("div", { className: "flex-column", children: [
           (user == null ? void 0 : user.is_email_verified) && (user == null ? void 0 : user.login_type) == LoginType.Email && /* @__PURE__ */ jsx(Link, { href: "/password-change", className: "centered-content no-margin", children: "change password" }),
-          /* @__PURE__ */ jsx(Link, { href: `/${user == null ? void 0 : user.username}`, className: "centered-content no-margin", children: "preview profile" })
+          /* @__PURE__ */ jsx(Link, { href: `/${user == null ? void 0 : user.username}`, className: "centered-content no-margin", children: "view profile" })
         ] })
       ] })
     ] }) })
@@ -4067,7 +4095,7 @@ function OAuth({ headerText, onClick, originPage, isSubmittingForm, setIsSubmitt
     return () => window.removeEventListener("pageshow", handlePageShow);
   }, [setIsSubmittingForm]);
   return /* @__PURE__ */ jsxs("div", { className: "field-group social-login-options", children: [
-    /* @__PURE__ */ jsx("h3", { children: headerText }),
+    /* @__PURE__ */ jsx("h2", { children: headerText }),
     /* @__PURE__ */ jsxs(
       "button",
       {
@@ -4705,8 +4733,8 @@ function ImageCarousel({ size, post, title = "" }) {
     )
   ] }) });
 }
-function Comment({ comment, isDashboard = false, onReply = null, id, parentLocalId = null, currentUrl = null }) {
-  var _a, _b, _c;
+function Comment({ comment, isDashboard = false, onReply = null, id, parentLocalId = null, currentUrl = null, apiRoutePrefix, canDeleteAnyComment }) {
+  var _a, _b;
   const user = (_a = usePage().props.auth) == null ? void 0 : _a.user;
   if (!comment) return null;
   const isAuthenticated = !!user;
@@ -4728,32 +4756,32 @@ function Comment({ comment, isDashboard = false, onReply = null, id, parentLocal
     setData("content", comment.content);
   }, [setIsEditing, setData, comment]);
   const handleCommentUpdate = useCallback(() => {
-    submitUpdate(`/posts/${comment.post_id}/comments/${comment.id}`, {
+    submitUpdate(`${apiRoutePrefix}/comments/${comment.id}`, {
       preserveScroll: true,
       onSuccess: () => setIsEditing(false)
     });
-  }, [submitUpdate, comment]);
+  }, [submitUpdate, comment, apiRoutePrefix]);
   const handleCommentDelete = useCallback(() => {
     const isConfirmed = window.confirm("Delete comment?");
     if (!isConfirmed) return;
-    submitDelete(`/posts/${comment.post_id}/comments/${comment.id}`, {
+    submitDelete(`${apiRoutePrefix}/comments/${comment.id}`, {
       preserveScroll: true
     });
-  }, [submitDelete, comment]);
+  }, [submitDelete, comment, apiRoutePrefix]);
   return /* @__PURE__ */ jsxs("div", { className: "comment", id: elementId, children: [
     /* @__PURE__ */ jsx("p", { children: isDashboard && comment.post ? /* @__PURE__ */ jsxs(Fragment, { children: [
       "in ",
-      /* @__PURE__ */ jsx(
+      /* @__PURE__ */ jsx("em", { children: /* @__PURE__ */ jsx(
         Link,
         {
           href: getPostUrl(comment.post),
           className: "bold",
           children: comment.post.title
         }
-      ),
-      " ",
+      ) }),
+      " on",
       /* @__PURE__ */ jsxs("em", { children: [
-        "on ",
+        " ",
         getDateAsYYYYMMDD(comment.created_at),
         /* @__PURE__ */ jsxs("span", { className: "notice small", children: [
           " at ",
@@ -4874,20 +4902,39 @@ function Comment({ comment, isDashboard = false, onReply = null, id, parentLocal
           disabled: processing
         }
       ) }),
-      !isDashboard && ((user == null ? void 0 : user.id) === ((_c = comment == null ? void 0 : comment.user) == null ? void 0 : _c.id) || (user == null ? void 0 : user.member_type) == MemberType.Admin || (user == null ? void 0 : user.member_type) == MemberType.Webmaster) && /* @__PURE__ */ jsx(
-        "button",
-        {
-          onClick: handleCommentDelete,
-          className: "small-button",
-          title: "delete",
-          disabled: processing,
-          children: /* @__PURE__ */ jsx("i", { className: "fa-solid fa-trash" })
+      !isDashboard && (() => {
+        var _a2, _b2;
+        const isCommentOwner = (user == null ? void 0 : user.id) === ((_a2 = comment == null ? void 0 : comment.user) == null ? void 0 : _a2.id);
+        const isWebmaster = (user == null ? void 0 : user.member_type) === MemberType.Webmaster;
+        const isAdmin = (user == null ? void 0 : user.member_type) === MemberType.Admin;
+        const authorMemberType = (_b2 = comment == null ? void 0 : comment.user) == null ? void 0 : _b2.member_type;
+        let canDelete = false;
+        if (isCommentOwner) {
+          canDelete = true;
+        } else if (canDeleteAnyComment) {
+          canDelete = true;
+        } else if (isWebmaster) {
+          canDelete = true;
+        } else if (isAdmin) {
+          if (authorMemberType !== MemberType.Webmaster && authorMemberType !== MemberType.Admin) {
+            canDelete = true;
+          }
         }
-      )
+        return canDelete && /* @__PURE__ */ jsx(
+          "button",
+          {
+            onClick: handleCommentDelete,
+            className: "small-button",
+            title: "delete",
+            disabled: processing,
+            children: /* @__PURE__ */ jsx("i", { className: "fa-solid fa-trash" })
+          }
+        );
+      })()
     ] })
   ] });
 }
-function CommentSection({ post, likeCount }) {
+function CommentSection({ comments, apiRoutePrefix, likeCount, viewCount, canDeleteAnyComment, isUserProfile = false }) {
   var _a, _b;
   const [originalComment, setOriginalComment] = useState(null);
   const [originalCommentElement, setOriginalCommentElement] = useState(null);
@@ -4901,7 +4948,6 @@ function CommentSection({ post, likeCount }) {
   const isAuthenticated = !!user;
   const page = usePage();
   const success = (_b = page.props.flash) == null ? void 0 : _b.success;
-  const comments = post.comments || [];
   const parsed = typeof window !== "undefined" ? new URL(page.url || window.location.href, window.location.origin) : new URL(page.url, page.props.app_url || "http://localhost");
   const currentUrl = `${parsed.origin}${parsed.pathname}${parsed.search}`;
   const queryParams = new URLSearchParams(parsed.search);
@@ -4922,8 +4968,8 @@ function CommentSection({ post, likeCount }) {
   }, [commentId, comments]);
   const handleCommentSubmit = useCallback((e) => {
     e.preventDefault();
-    if (!post) return;
-    submitComment(`/posts/${post.id}/comments`, {
+    if (!apiRoutePrefix) return;
+    submitComment(`${apiRoutePrefix}/comments`, {
       preserveScroll: true,
       onSuccess: () => {
         reset();
@@ -4931,7 +4977,7 @@ function CommentSection({ post, likeCount }) {
         setOriginalCommentElement(null);
       }
     });
-  }, [data, post.id]);
+  }, [data, apiRoutePrefix]);
   const handleReply = useCallback((comment, elementId, isQuote = false) => {
     clearErrors();
     setOriginalComment(comment);
@@ -4968,14 +5014,14 @@ function CommentSection({ post, likeCount }) {
     setOriginalCommentElement(null);
     setData("parent_id", null);
   }, [setOriginalComment, setOriginalCommentElement]);
-  return (post || comments) && /* @__PURE__ */ jsxs(Fragment, { children: [
+  return comments && /* @__PURE__ */ jsxs(Fragment, { children: [
     /* @__PURE__ */ jsxs("div", { className: "icons-leave-comment-container", children: [
-      /* @__PURE__ */ jsxs("div", { className: "icon-group", children: [
-        /* @__PURE__ */ jsxs("div", { className: "icon", children: [
+      !isUserProfile && /* @__PURE__ */ jsxs("div", { className: "icon-group", children: [
+        viewCount !== void 0 && /* @__PURE__ */ jsxs("div", { className: "icon", children: [
           /* @__PURE__ */ jsx("i", { className: "fa-regular fa-eye" }),
           /* @__PURE__ */ jsxs("span", { className: "metric-number", children: [
             " ",
-            post.view_count
+            viewCount
           ] })
         ] }),
         /* @__PURE__ */ jsxs("div", { className: "icon", children: [
@@ -4985,7 +5031,7 @@ function CommentSection({ post, likeCount }) {
             comments.length
           ] })
         ] }),
-        /* @__PURE__ */ jsxs("div", { className: "icon", children: [
+        likeCount !== void 0 && /* @__PURE__ */ jsxs("div", { className: "icon", children: [
           /* @__PURE__ */ jsx("i", { className: "fa-regular fa-star" }),
           /* @__PURE__ */ jsxs("span", { className: "metric-number", children: [
             " ",
@@ -5065,7 +5111,9 @@ function CommentSection({ post, likeCount }) {
             id: i,
             onReply: handleReply,
             parentLocalId: parentElement,
-            currentUrl
+            currentUrl,
+            apiRoutePrefix,
+            canDeleteAnyComment
           },
           i
         );
@@ -5101,7 +5149,7 @@ function HiddenPostNotice({ classes, isAdmin = false }) {
   ] });
 }
 function Post({ post, carouselPosts: userPosts = [] }) {
-  var _a;
+  var _a, _b;
   const { props } = usePage();
   const appUrl = props.app_url;
   const isLiked = !!(post == null ? void 0 : post.have_liked);
@@ -5113,7 +5161,17 @@ function Post({ post, carouselPosts: userPosts = [] }) {
   const [adminError, setAdminError] = useState("");
   const user = (_a = props.auth) == null ? void 0 : _a.user;
   const isAuthenticated = !!user;
-  const isAdmin = (user == null ? void 0 : user.member_type) == MemberType.Webmaster || (user == null ? void 0 : user.member_type) == MemberType.Admin;
+  const isWebmaster = (user == null ? void 0 : user.member_type) === MemberType.Webmaster;
+  const isAdmin = (user == null ? void 0 : user.member_type) === MemberType.Admin;
+  let canHidePost = false;
+  if (isWebmaster) {
+    canHidePost = true;
+  } else if (isAdmin) {
+    const authorMemberType = (_b = post == null ? void 0 : post.user) == null ? void 0 : _b.member_type;
+    if (authorMemberType !== MemberType.Webmaster && authorMemberType !== MemberType.Admin) {
+      canHidePost = true;
+    }
+  }
   useEffect(() => {
     if (!post) return;
     router.post(`/posts/${post.id}/record-view`, {}, {
@@ -5306,8 +5364,16 @@ function Post({ post, carouselPosts: userPosts = [] }) {
         videoUrl && /* @__PURE__ */ jsx("div", { className: "page-section video", children: /* @__PURE__ */ jsx(VideoIframe, { url: videoUrl }) }),
         /* @__PURE__ */ jsx("div", { className: "page-section carousel", children: /* @__PURE__ */ jsx(ImageCarousel, { size: "small", post, title: "gallery:" }) })
       ] }),
-      /* @__PURE__ */ jsx("div", { className: "page-section comment-section", children: /* @__PURE__ */ jsx(CommentSection, { post, likeCount }) }),
-      isAdmin && /* @__PURE__ */ jsxs(Fragment, { children: [
+      /* @__PURE__ */ jsx("div", { className: "page-section comment-section", children: /* @__PURE__ */ jsx(
+        CommentSection,
+        {
+          comments: post.comments,
+          likeCount,
+          viewCount: post.view_count,
+          apiRoutePrefix: `/posts/${post.id}`
+        }
+      ) }),
+      canHidePost && /* @__PURE__ */ jsxs(Fragment, { children: [
         /* @__PURE__ */ jsx("h3", { className: "centered-content", children: "admin:" }),
         /* @__PURE__ */ jsxs(Fragment, { children: [
           adminError && /* @__PURE__ */ jsx("div", { className: "error", children: adminError }),
@@ -5421,9 +5487,10 @@ function UserAgreement({
         APP_NAME,
         ", you agree to only post content qualifying as Internet Art. As outlined in the ",
         /* @__PURE__ */ jsx(Link, { href: "/about", children: "about" }),
-        " section, this is any work that requires the Internet for its realization. Furthermore, all posted work should be primarily artistic in nature. Eg. a work can contain nudity but should distinguish itself clearly from pornography in its concept and realization. Likewise, any post whose primary goal is to promote a business or make money is not acceptable. In any and all cases, it is at the final discretion of the webmaster and administrators to temporarily hide or delete any content or user found to not abide by these principles."
+        " section, this is any work for which the Internet is an essential element of its realization. Furthermore, all posted work should be primarily artistic in nature. Eg. a work can contain nudity but should distinguish itself clearly from pornography in its concept and realization. Likewise, any post whose primary goal is to promote a business or make money is not acceptable. In any and all cases, it is at the final discretion of the webmaster and administrators to temporarily hide or delete any content or user found to not abide by these principles."
       ] }),
       /* @__PURE__ */ jsx("p", { children: "Users whose content has been temporarily hidden will be notified so that they can make changes or appeal the decision." }),
+      /* @__PURE__ */ jsx("p", { children: "Malicious comments or SPAM will lead to comment-deletion and potentially account-deletion, at the discretion of the webmaster & admins." }),
       /* @__PURE__ */ jsxs("p", { children: [
         "Users must have the right to archive the work they post. ",
         APP_NAME,
@@ -5443,19 +5510,19 @@ function UserAgreement({
       /* @__PURE__ */ jsxs("ol", { children: [
         /* @__PURE__ */ jsx("li", { children: "The posts themselves on the website" }),
         /* @__PURE__ */ jsxs("li", { children: [
-          "Images of posts may appear in screenshots of the ",
+          "Images of posts may appear in screenshots of ",
           APP_NAME,
-          " without explicit credit."
+          " shared on other platforms without explicit credit."
         ] }),
         /* @__PURE__ */ jsxs("li", { children: [
-          "For any promotional content that explicitly highlights the work of a ",
+          "For any promotional content that explicitly highlights the work of an ",
           APP_NAME,
           " user, credit will be given."
         ] })
       ] }),
       /* @__PURE__ */ jsxs("p", { children: [
         APP_NAME,
-        " is not responsible for any user-generated content that violates our terms or is otherwise perceived as offensive. Once discovered, we will hide or delete such content as we see fit."
+        " is not responsible for any user-generated content that violates our terms or is otherwise perceived as offensive. Once discovered, we will hide or delete such content when and as we see fit."
       ] }),
       /* @__PURE__ */ jsxs("p", { children: [
         "Users posting their own work are the copyright-holders thereof and ",
@@ -6040,6 +6107,8 @@ function UserProfile({ user: profileUserProp }) {
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
   const [isFollowing, setIsFollowing] = useState((profileUserProp == null ? void 0 : profileUserProp.is_following) || false);
+  const profileComments = props.profileComments || [];
+  const canDeleteAnyComment = !!user && user.id === (profileUser == null ? void 0 : profileUser.id);
   const avatar = (profileUser == null ? void 0 : profileUser.avatar) ? `${appUrl}/storage/images/uploaded/users/${username}/avatar/small/${profileUser == null ? void 0 : profileUser.avatar}` : `${appUrl}/storage/images/defaults/avatar.webp?v=1`;
   useEffect(() => {
     const cleanup = monitorScreenSize(setScreenSize);
@@ -6215,6 +6284,15 @@ function UserProfile({ user: profileUserProp }) {
           href: `/${username}/posts`,
           children: "view all"
         }
+      ) }),
+      /* @__PURE__ */ jsx("div", { className: "page-section comment-section", style: { marginTop: "2rem" }, children: /* @__PURE__ */ jsx(
+        CommentSection,
+        {
+          comments: profileComments,
+          apiRoutePrefix: `/users/${profileUser.id}`,
+          canDeleteAnyComment,
+          isUserProfile: true
+        }
       ) })
     ] }) : null
   ] });
@@ -6226,7 +6304,11 @@ const __vite_glob_0_18 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.de
 }, Symbol.toStringTag, { value: "Module" }));
 function Notification({ notification }) {
   var _a, _b;
+  console.log("notification", notification);
   if (((notification == null ? void 0 : notification.type) == NotificationType.Comment || (notification == null ? void 0 : notification.type) == NotificationType.Reply) && !notification.comment) {
+    return null;
+  }
+  if (((notification == null ? void 0 : notification.type) == NotificationType.ProfileComment || (notification == null ? void 0 : notification.type) == NotificationType.ProfileReply) && !notification.profile_comment) {
     return null;
   }
   return notification ? /* @__PURE__ */ jsxs("div", { className: "comment", children: [
@@ -6278,16 +6360,16 @@ function Notification({ notification }) {
         }
       ),
       " commented on ",
-      /* @__PURE__ */ jsx(
+      /* @__PURE__ */ jsx("em", { className: "bold", children: /* @__PURE__ */ jsx(
         Link,
         {
           href: getPostUrl(notification.comment.post),
           children: (_a = notification.comment.post) == null ? void 0 : _a.title
         }
-      ),
-      " ",
+      ) }),
+      " on",
       /* @__PURE__ */ jsxs("em", { children: [
-        "on ",
+        " ",
         getDateAsYYYYMMDD(notification.created_at),
         /* @__PURE__ */ jsxs("span", { className: "notice small", children: [
           " at ",
@@ -6311,16 +6393,75 @@ function Notification({ notification }) {
         }
       ),
       " in ",
-      /* @__PURE__ */ jsx(
+      /* @__PURE__ */ jsx("em", { className: "bold", children: /* @__PURE__ */ jsx(
         Link,
         {
           href: getPostUrl(notification.comment.post),
           children: (_b = notification.comment.post) == null ? void 0 : _b.title
         }
-      ),
-      " ",
+      ) }),
+      " on ",
       /* @__PURE__ */ jsxs("em", { children: [
-        "on ",
+        getDateAsYYYYMMDD(notification.created_at),
+        /* @__PURE__ */ jsxs("span", { className: "notice small", children: [
+          " at ",
+          getTimeAsHHMM(notification.created_at)
+        ] })
+      ] })
+    ] }),
+    notification.type == NotificationType.ProfileComment && /* @__PURE__ */ jsxs("p", { children: [
+      /* @__PURE__ */ jsx(
+        UserLink,
+        {
+          user: notification.profile_comment.user
+        }
+      ),
+      " commented on ",
+      /* @__PURE__ */ jsx("em", { className: "bold", children: /* @__PURE__ */ jsx(
+        Link,
+        {
+          href: `/${notification.profile_comment.profile.username}`,
+          children: "your profile"
+        }
+      ) }),
+      " on",
+      /* @__PURE__ */ jsxs("em", { children: [
+        " ",
+        getDateAsYYYYMMDD(notification.created_at),
+        /* @__PURE__ */ jsxs("span", { className: "notice small", children: [
+          " at ",
+          getTimeAsHHMM(notification.created_at)
+        ] })
+      ] })
+    ] }),
+    notification.type == NotificationType.ProfileReply && /* @__PURE__ */ jsxs("p", { children: [
+      /* @__PURE__ */ jsx(
+        UserLink,
+        {
+          user: notification.profile_comment.user
+        }
+      ),
+      " replied to ",
+      /* @__PURE__ */ jsx(
+        Link,
+        {
+          href: `/${notification.profile_comment.profile.username}?comment_id=${notification.profile_comment.parent_id}`,
+          children: "your comment"
+        }
+      ),
+      " on ",
+      /* @__PURE__ */ jsx("em", { className: "bold", children: /* @__PURE__ */ jsxs(
+        Link,
+        {
+          href: `/${notification.profile_comment.profile.username}`,
+          children: [
+            notification.profile_comment.profile.username,
+            "'s profile"
+          ]
+        }
+      ) }),
+      " on ",
+      /* @__PURE__ */ jsxs("em", { children: [
         getDateAsYYYYMMDD(notification.created_at),
         /* @__PURE__ */ jsxs("span", { className: "notice small", children: [
           " at ",
@@ -6345,6 +6486,26 @@ function Notification({ notification }) {
         {
           className: "comment-text",
           dangerouslySetInnerHTML: { __html: sanitizeRichHtml(notification.comment.content_html) }
+        }
+      )
+    ] }),
+    (notification.type == NotificationType.ProfileComment || notification.type == NotificationType.ProfileReply) && /* @__PURE__ */ jsxs(Fragment, { children: [
+      /* @__PURE__ */ jsx("div", { className: "comment-notice-container", children: /* @__PURE__ */ jsxs(
+        Link,
+        {
+          href: `/${notification.profile_comment.profile.username}?comment_id=${notification.profile_comment.id}`,
+          className: "notice small",
+          children: [
+            /* @__PURE__ */ jsx("i", { className: "fa-solid fa-arrow-up-right-from-square" }),
+            " go to comment"
+          ]
+        }
+      ) }),
+      /* @__PURE__ */ jsx(
+        "p",
+        {
+          className: "comment-text",
+          dangerouslySetInnerHTML: { __html: sanitizeRichHtml(notification.profile_comment.content_html) }
         }
       )
     ] })
@@ -6418,7 +6579,7 @@ function Activity() {
                 [ScreenSize.Narrow]: 3,
                 [ScreenSize.Small]: 4,
                 [ScreenSize.Mid]: 4,
-                [ScreenSize.Wide]: 4
+                [ScreenSize.Wide]: 6
               }
             }
           ),
@@ -7286,7 +7447,13 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
         continue;
       }
       const resizedBlob = await resizeImage(file, true);
-      const resizedImageFile = new File([resizedBlob], file.name, { type: file.type });
+      let fileName = file.name;
+      if (resizedBlob.type === "image/jpeg" && !fileName.match(/\.jpe?g$/i)) {
+        fileName = fileName.replace(/\.[^/.]+$/, "") + ".jpg";
+      } else if (resizedBlob.type === "image/webp" && !fileName.match(/\.webp$/i)) {
+        fileName = fileName.replace(/\.[^/.]+$/, "") + ".webp";
+      }
+      const resizedImageFile = new File([resizedBlob], fileName, { type: resizedBlob.type });
       const newField = { ...imageFields[i], value: resizedImageFile };
       resizedGalleryImages.push(newField);
     }
@@ -7316,7 +7483,7 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
       });
       if (isCreateForm) {
         router.post("/posts", formData, {
-          preserveState: false,
+          preserveState: true,
           preserveScroll: true,
           onError: (errs) => {
             for (const key in errs) {
@@ -7328,7 +7495,7 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
       } else {
         formData.append("_method", "PUT");
         router.post(`/posts/${post.id}`, formData, {
-          preserveState: false,
+          preserveState: true,
           preserveScroll: true,
           onError: (errs) => {
             for (const key in errs) {
@@ -7502,7 +7669,7 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
     isFormReady ? /* @__PURE__ */ jsxs(Fragment, { children: [
       /* @__PURE__ */ jsx("div", { className: "main-info-box transparent-background stretch", children: /* @__PURE__ */ jsxs("form", { onSubmit: (e) => onSubmit(e, false), children: [
         /* @__PURE__ */ jsxs("div", { className: "text-fields-container", children: [
-          errors.general && /* @__PURE__ */ jsx("div", { className: "error", children: errors.general }),
+          Object.keys(errors).length > 0 && /* @__PURE__ */ jsx("div", { className: "error-container", children: Object.keys(errors).map((key) => /* @__PURE__ */ jsx("div", { className: "error", children: key === "general" ? errors[key] : `${key}: ${errors[key]}` }, key)) }),
           success && /* @__PURE__ */ jsx("div", { className: "notice", children: success }),
           /* @__PURE__ */ jsxs("div", { className: "horizontal-buttons-container", children: [
             (!post || post.is_draft) && /* @__PURE__ */ jsx("button", { type: "button", onClick: (e) => onSubmit(e, true), disabled: isSubmitting || !canSubmit, children: "save draft" }),

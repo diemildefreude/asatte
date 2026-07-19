@@ -31,9 +31,18 @@
         const user = props.auth?.user;
         const isAuthenticated = !!user;
 
-        const isAdmin = (user?.member_type == MemberType.Webmaster 
-                            || user?.member_type == MemberType.Admin);
+        const isWebmaster = user?.member_type === MemberType.Webmaster;
+        const isAdmin = user?.member_type === MemberType.Admin;
         
+        let canHidePost = false;
+        if (isWebmaster) {
+            canHidePost = true;
+        } else if (isAdmin) {
+            const authorMemberType = post?.user?.member_type;
+            if (authorMemberType !== MemberType.Webmaster && authorMemberType !== MemberType.Admin) {
+                canHidePost = true;
+            }
+        }
         useEffect(() =>
         {
             if(!post) return;
@@ -257,10 +266,15 @@
                     </div>       
                     </article>                
                     <div className="page-section comment-section">
-                        <CommentSection post={post} likeCount={likeCount}/>
+                        <CommentSection 
+                            comments={post.comments} 
+                            likeCount={likeCount}
+                            viewCount={post.view_count}
+                            apiRoutePrefix={`/posts/${post.id}`}
+                        />
                     </div>
                     {
-                        isAdmin &&
+                        canHidePost &&
                         (<>
                             <h3 className='centered-content'>admin:</h3>
                             {<>

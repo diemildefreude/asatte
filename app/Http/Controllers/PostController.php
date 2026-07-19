@@ -234,8 +234,8 @@ class PostController extends Controller
         $user = $request->user();
         if(!$user->email_verified_at)
         {
-            return back()->withInput()->with([
-                'error_message' => 'Please verify your e-mail to begin posting.'
+            return back()->withInput()->withErrors([
+                'general' => 'Please verify your e-mail to begin posting.'
             ]);
         }
 
@@ -252,8 +252,8 @@ class PostController extends Controller
 
         if($isNews && $user->member_type != MemberType::Webmaster)
         {
-            return back()->withInput()->with([
-                'error_message' => 'Only webmasters can make news posts.'
+            return back()->withInput()->withErrors([
+                'general' => 'Only webmasters can make news posts.'
             ]);
         }
         
@@ -589,8 +589,8 @@ class PostController extends Controller
         $user = $request->user();
         if(!$user->email_verified_at)
         {
-            return back()->withInput()->with([
-                'error_message' => 'Please verify your e-mail to begin posting.'
+            return back()->withInput()->withErrors([
+                'general' => 'Please verify your e-mail to begin posting.'
             ]);
         }
 
@@ -636,8 +636,8 @@ class PostController extends Controller
 
         if($request->user()->id != $post->user_id)
         {
-            return back()->withInput()->with([
-                'error_message' => 'This is not your post to edit.'
+            return back()->withInput()->withErrors([
+                'general' => 'This is not your post to edit.'
             ]);
         }
 
@@ -878,8 +878,8 @@ class PostController extends Controller
                 || $requestingUser->member_type == MemberType::Admin;
         if($requestingUser->id != $post->user_id && !$isAdminRequest)
         {
-            return back()->withInput()->with([
-                'error_message' => 'This is not your post to delete.'
+            return back()->withErrors([
+                'general' => 'This is not your post to delete.'
             ]);
         }
         $userName = $requestingUser->username;
@@ -918,12 +918,14 @@ class PostController extends Controller
                 "error" => "Only the webmaster and admins can hide posts."
             ]);
         }
-        if($user->member_type != MemberType::Webmaster
-         && $post->user->member_type == MemberType::Webmaster)
+        if($user->member_type == MemberType::Admin)
         {
-            return back()->withErrors([
-                "error" => "An admin cannot hide the webmaster's posts."
-            ]);
+            if($post->user->member_type == MemberType::Webmaster || $post->user->member_type == MemberType::Admin)
+            {
+                return back()->withErrors([
+                    "error" => "An admin cannot hide the posts of the webmaster or other admins."
+                ]);
+            }
         }
         
         $hideIt = $request->boolean('is_hidden_by_admin');

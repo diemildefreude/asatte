@@ -142,7 +142,13 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
                 continue;
             }
             const resizedBlob = await resizeImage(file, true);
-            const resizedImageFile = new File([resizedBlob], file.name, { type: file.type });
+            let fileName = file.name;
+            if (resizedBlob.type === 'image/jpeg' && !fileName.match(/\.jpe?g$/i)) {
+                fileName = fileName.replace(/\.[^/.]+$/, "") + ".jpg";
+            } else if (resizedBlob.type === 'image/webp' && !fileName.match(/\.webp$/i)) {
+                fileName = fileName.replace(/\.[^/.]+$/, "") + ".webp";
+            }
+            const resizedImageFile = new File([resizedBlob], fileName, { type: resizedBlob.type });
             const newField = {...imageFields[i], value: resizedImageFile};
             resizedGalleryImages.push(newField);
         };
@@ -179,7 +185,7 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
             if(isCreateForm)
             {
                 router.post('/posts', formData, {
-                    preserveState: false,
+                    preserveState: true,
                     preserveScroll: true,
                     onError: (errs) => {
                         for (const key in errs) {
@@ -193,7 +199,7 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
             {
                 formData.append('_method', 'PUT');
                 router.post(`/posts/${post.id}`, formData, {
-                    preserveState: false,
+                    preserveState: true,
                     preserveScroll: true,
                     onError: (errs) => {
                         for (const key in errs) {
@@ -413,10 +419,14 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
             <div className="main-info-box transparent-background stretch">
                 <form onSubmit={(e) => onSubmit(e, false)}>
                     <div className="text-fields-container">
-                        {errors.general && (
-                        <div className="error">
-                            {errors.general}
-                        </div>
+                        {Object.keys(errors).length > 0 && (
+                            <div className="error-container">
+                                {Object.keys(errors).map(key => (
+                                    <div key={key} className="error">
+                                        {key === 'general' ? errors[key] : `${key}: ${errors[key]}`}
+                                    </div>
+                                ))}
+                            </div>
                         )}
                         {success && (
                         <div className="notice">

@@ -195,7 +195,7 @@ function EditProfile()
                         )
                     }
                     <Link href={`/${user?.username}`} className="centered-content no-margin">
-                        preview profile
+                        view profile
                     </Link>
 
                     </div>
