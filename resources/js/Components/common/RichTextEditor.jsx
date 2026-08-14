@@ -391,7 +391,6 @@ function RichTextEditor({ onChange, value, quotedMessage, onQuoteApplied, placeh
             input.click();
         },
 
-        toolbar_mode: 'wrap', 
         object_resizing: 'img,iframe,video,figure',
         content_css: localCssPath + '?v=' + new Date().getTime(),
 

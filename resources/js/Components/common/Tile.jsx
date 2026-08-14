@@ -131,7 +131,7 @@ function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false})
                             className="post-link"
                             onClick={handleLinkClick} 
                             draggable="false"
-                            aria-label={`View ${post.is_news ? 'news ' : ''}post`}
+                            aria-label={`View ${post.is_news ? 'news ' : ''}post: ${post.title}. ${post.subtitle}`}
                         >
                             {
                                 post.is_news ? (

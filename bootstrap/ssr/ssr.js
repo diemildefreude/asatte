@@ -324,7 +324,6 @@ function RichTextEditor({ onChange, value, quotedMessage, onQuoteApplied, placeh
           });
           input.click();
         },
-        toolbar_mode: "wrap",
         object_resizing: "img,iframe,video,figure",
         content_css: localCssPath + "?v=" + (/* @__PURE__ */ new Date()).getTime()
       }
@@ -365,19 +364,20 @@ function UserLink({ user, readOnly = false, onClick = null, additionalClasses = 
       draggable: "false",
       onClick: handleOnClickOverride,
       children: [
-        /* @__PURE__ */ jsxs("span", { className: "avatar-container", children: [
+        /* @__PURE__ */ jsxs("span", { className: "avatar-container", "aria-hidden": "true", children: [
           /* @__PURE__ */ jsx(
             "img",
             {
               className: "round-image",
               src: avatar,
-              alt: `${user.username}'s avatar`,
+              alt: "",
               draggable: "false"
             }
           ),
           /* @__PURE__ */ jsx("span", { className: "notice-light small" })
         ] }),
-        /* @__PURE__ */ jsx("span", { className: "username", children: user.username })
+        /* @__PURE__ */ jsx("span", { className: "sr-only", children: user.username.replace(/_/g, " ") }),
+        /* @__PURE__ */ jsx("span", { className: "username", "aria-hidden": "true", children: user.username })
       ]
     }
   ) : /* @__PURE__ */ jsx("span", { className: "", children: /* @__PURE__ */ jsx("em", { children: "deleted user " }) }) });
@@ -470,6 +470,7 @@ function Header() {
     [searchTerm]
   );
   return /* @__PURE__ */ jsxs("header", { ref: headerRef, children: [
+    /* @__PURE__ */ jsx("a", { href: "#main-content", className: "skip-link", children: "skip to main content" }),
     /* @__PURE__ */ jsx("div", { className: buttonClasses, children: /* @__PURE__ */ jsx(
       "button",
       {
@@ -557,6 +558,14 @@ function Layout({ children, isDashboard = false, classes = "" }) {
   let classNames = isTouchDevice ? "touch-device content" : "content";
   classNames += ` ${classes}`;
   useEffect(() => {
+    const removeNavigateListener = router.on("navigate", () => {
+      const topFocus = document.querySelector(".skip-link");
+      if (topFocus) {
+        topFocus.focus();
+      } else if (document.activeElement && document.activeElement !== document.body) {
+        document.activeElement.blur();
+      }
+    });
     let ticking = false;
     const handleResize = () => {
       const isCurrentlyTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
@@ -591,6 +600,7 @@ function Layout({ children, isDashboard = false, classes = "" }) {
     window.addEventListener("resize", handleResize);
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => {
+      removeNavigateListener();
       if (observer) observer.disconnect();
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("scroll", handleScroll);
@@ -599,13 +609,10 @@ function Layout({ children, isDashboard = false, classes = "" }) {
   return /* @__PURE__ */ jsxs(Fragment, { children: [
     /* @__PURE__ */ jsx(Header, {}),
     /* @__PURE__ */ jsx(InertiaAuthBridge, {}),
-    /* @__PURE__ */ jsx("div", { className: classNames, children: isDashboard ? children : /* @__PURE__ */ jsx("main", { children }) }),
+    /* @__PURE__ */ jsx("div", { className: classNames, children: isDashboard ? children : /* @__PURE__ */ jsx("main", { id: "main-content", children }) }),
     /* @__PURE__ */ jsxs("footer", { children: [
       /* @__PURE__ */ jsx("div", { className: "footer-background" }),
-      /* @__PURE__ */ jsx("div", { className: "copyright", children: /* @__PURE__ */ jsxs("small", { children: [
-        APP_NAME,
-        " © 2026"
-      ] }) })
+      /* @__PURE__ */ jsx("div", { className: "copyright", children: /* @__PURE__ */ jsx("small", { children: `${APP_NAME} © 2026` }) })
     ] })
   ] });
 }
@@ -1761,7 +1768,7 @@ function DashboardLayout({ currentTab, headerText, children, headerHasMargin = t
             }
           )
         ] }),
-        /* @__PURE__ */ jsxs("main", { className: "heading-profile-container", children: [
+        /* @__PURE__ */ jsxs("main", { id: "main-content", className: "heading-profile-container", children: [
           headerText && /* @__PURE__ */ jsx("div", { className: headerClasses, children: /* @__PURE__ */ jsx("h1", { children: headerText }) }),
           children
         ] })
@@ -1807,6 +1814,17 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef 
   const tempOverlayRef = useRef(null);
   const [loadedSrc, setLoadedSrc] = useState(null);
   const currentSrcRef = useRef(src);
+  const [liveAlt, setLiveAlt] = useState("");
+  useEffect(() => {
+    if (isZoomed) {
+      const timer = setTimeout(() => {
+        setLiveAlt(alt || "Zoomed image");
+      }, 100);
+      return () => clearTimeout(timer);
+    } else {
+      setLiveAlt("");
+    }
+  }, [isZoomed, alt]);
   const [transform, setTransformState] = useState({ scale: 1, posX: 0, posY: 0 });
   const transformRef = useRef({ scale: 1, posX: 0, posY: 0 });
   const setTransform = useCallback((newTransform) => {
@@ -2281,7 +2299,7 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef 
       className: containerClasses,
       role: "dialog",
       "aria-modal": "true",
-      "aria-label": "Image gallery",
+      "aria-label": alt || "Zoomed image",
       draggable: "false",
       onClick: handleClick,
       ref: zoomContainerRef,
@@ -2331,7 +2349,8 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef 
         nextSrc && /* @__PURE__ */ jsx("button", { className: "sr-only", onClick: (e) => {
           e.stopPropagation();
           onNavigateNext();
-        }, children: "Next image" })
+        }, children: "Next image" }),
+        /* @__PURE__ */ jsx("div", { className: "sr-only", "aria-live": "polite", children: liveAlt })
       ]
     }
   );
@@ -2828,7 +2847,6 @@ function EditProfile() {
       }
     );
   };
-  console.log("user", user);
   return /* @__PURE__ */ jsxs("div", { className: "main-info-box transparent-background sticky", children: [
     /* @__PURE__ */ jsx(PageHead, { title: "Edit Profile" }),
     /* @__PURE__ */ jsxs("div", { className: "avatar-section", children: [
@@ -3459,7 +3477,7 @@ function Tile({ post, isSliderDraggedPointerUp, user = null, isDashboard = false
               className: "post-link",
               onClick: handleLinkClick,
               draggable: "false",
-              "aria-label": `View ${post.is_news ? "news " : ""}post`,
+              "aria-label": `View ${post.is_news ? "news " : ""}post: ${post.title}. ${post.subtitle}`,
               children: [
                 post.is_news ? /* @__PURE__ */ jsx("i", { className: "fa-brands fa-readme" }) : /* @__PURE__ */ jsx("i", { className: "fa-solid fa-magnifying-glass" }),
                 /* @__PURE__ */ jsx("span", { children: viewText })
@@ -3994,9 +4012,6 @@ function CarouselContainer({ size, className, children }) {
     "div",
     {
       className: "carousel-container " + size,
-      tabIndex: "0",
-      role: "region",
-      "aria-label": "",
       ref: sliderContainerRef,
       children: [
         /* @__PURE__ */ jsx("div", { className: "slider-container gallery-slider", children: /* @__PURE__ */ jsx("div", { className: "inner-slider", ref: innerSliderRef, children: renderContent }) }),
@@ -4038,7 +4053,7 @@ function Home({ heroPosts = [], carouselArchive = [], carouselNews = [], carouse
   return /* @__PURE__ */ jsxs(Fragment, { children: [
     /* @__PURE__ */ jsx(PageHead, { title: "home" }),
     /* @__PURE__ */ jsxs("div", { className: "hero", children: [
-      /* @__PURE__ */ jsx("h1", { children: "asatte.io" }),
+      /* @__PURE__ */ jsx("h1", { children: `asatte.io` }),
       /* @__PURE__ */ jsx("p", { children: "the premier hub for internet art" })
     ] }),
     /* @__PURE__ */ jsx("div", { className: "page-section top-tile-grid", children: /* @__PURE__ */ jsx(
@@ -4649,11 +4664,12 @@ function ImageCarousel({ size, post, title = "" }) {
         className: "carousel-container-container image-carousel",
         size,
         children: ({ isDragging, isDraggedPointerUp, handleFocusIn }) => imageUrls.map((url, i) => /* @__PURE__ */ jsx(
-          "div",
+          "button",
           {
+            type: "button",
             className: "slide",
             ref: (el) => slideRefs.current[i] = el,
-            tabIndex: "0",
+            "aria-label": post.gallery_alts[i] || `Image ${i + 1} of ${imageUrls.length}`,
             onFocus: () => setCurrentSlideIndex(i),
             onPointerUp: (e) => {
               if (e.button !== 0) return;
@@ -4665,7 +4681,7 @@ function ImageCarousel({ size, post, title = "" }) {
             },
             onKeyDown: (e) => {
               var _a, _b;
-              if (e.key === "Enter") {
+              if (e.key === "Enter" || e.key === " ") {
                 e.preventDefault();
                 setCurrentSlideIndex(i);
                 handleClick();
@@ -4726,7 +4742,7 @@ function ImageCarousel({ size, post, title = "" }) {
           setCurrentSlideIndex(newInd);
           (_a = slideRefs.current[newInd]) == null ? void 0 : _a.focus();
         },
-        alt: post == null ? void 0 : post.gallery_alts[currentSlideIndex],
+        alt: (post == null ? void 0 : post.gallery_alts[currentSlideIndex]) || `Image ${currentSlideIndex + 1} of ${imageUrls.length}`,
         clickFunc: handleClick,
         isZoomed
       }
@@ -5137,14 +5153,12 @@ function VideoIframe({ url }) {
 }
 function HiddenPostNotice({ classes, isAdmin = false }) {
   const classNames = "red-gradient-background main-info-box centered-content " + classes;
+  const notice = isAdmin ? "Post has been hidden by a webmaster." : "Post has been hidden by an admin.";
   return /* @__PURE__ */ jsxs("div", { className: classNames, children: [
-    /* @__PURE__ */ jsx("h3", { children: "Post has been hidden by an admin." }),
-    !isAdmin && /* @__PURE__ */ jsxs("p", { children: [
+    /* @__PURE__ */ jsx("h3", { children: notice }),
+    /* @__PURE__ */ jsxs("p", { children: [
       "To contest this, please reply to the message in your ",
-      /* @__PURE__ */ jsx(Link, { href: "/dashboard/mail", children: "mailbox" }),
-      " or use the ",
-      /* @__PURE__ */ jsx(Link, { href: "/contact", children: "contact form" }),
-      "."
+      /* @__PURE__ */ jsx(Link, { href: "/dashboard/mail", children: "mailbox." })
     ] })
   ] });
 }
@@ -5164,10 +5178,10 @@ function Post({ post, carouselPosts: userPosts = [] }) {
   const isWebmaster = (user == null ? void 0 : user.member_type) === MemberType.Webmaster;
   const isAdmin = (user == null ? void 0 : user.member_type) === MemberType.Admin;
   let canHidePost = false;
+  const authorMemberType = (_b = post == null ? void 0 : post.user) == null ? void 0 : _b.member_type;
   if (isWebmaster) {
     canHidePost = true;
   } else if (isAdmin) {
-    const authorMemberType = (_b = post == null ? void 0 : post.user) == null ? void 0 : _b.member_type;
     if (authorMemberType !== MemberType.Webmaster && authorMemberType !== MemberType.Admin) {
       canHidePost = true;
     }
@@ -5263,7 +5277,7 @@ function Post({ post, carouselPosts: userPosts = [] }) {
             HiddenPostNotice,
             {
               classes: "top-3rem",
-              isAdmin: true
+              isAdmin: authorMemberType === MemberType.Admin
             }
           ),
           /* @__PURE__ */ jsxs("div", { className: "image-info-container", children: [
@@ -6073,7 +6087,7 @@ function SearchResults({ searchTerm = "", searchPosts = [] }) {
   return /* @__PURE__ */ jsxs(Fragment, { children: [
     /* @__PURE__ */ jsx(PageHead, { title: "Search Results" }),
     /* @__PURE__ */ jsxs("div", { className: "page-section", children: [
-      /* @__PURE__ */ jsx("h3", { className: "padded centered-content", children: searchTerm ? `search results for "${searchTerm}"` : "Please enter a search term." }),
+      /* @__PURE__ */ jsx("h1", { className: "padded centered-content", children: searchTerm ? `search results for "${searchTerm}"` : "Please enter a search term." }),
       /* @__PURE__ */ jsx(
         AutoloadTilesContainer,
         {
@@ -6304,7 +6318,6 @@ const __vite_glob_0_18 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.de
 }, Symbol.toStringTag, { value: "Module" }));
 function Notification({ notification }) {
   var _a, _b;
-  console.log("notification", notification);
   if (((notification == null ? void 0 : notification.type) == NotificationType.Comment || (notification == null ? void 0 : notification.type) == NotificationType.Reply) && !notification.comment) {
     return null;
   }

@@ -4,6 +4,14 @@
     padding: 0rem 1rem 2rem;
     line-height: 3em;
 }
+.hero-text-container
+{
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 0rem 1rem 0rem;
+}
 .hero h1
 {
     font-weight: 400;
@@ -11,6 +19,25 @@
 .hero p
 {
     line-height: 1.2em;
+}
+.hero-logo-container
+{
+    padding: 0rem 1rem 0rem;
+    width: 100%;
+    display: flex;
+    justify-content: end;
+    color: white;
+}
+.hero-logo
+{
+    position: relative;
+    width: 80%;    
+    height: auto;
+    aspect-ratio: auto;
+    object-fit: cover;
+    opacity: 0.5;
+    /* color: white; does not work on <img> tags! We use a filter instead */
+    filter: brightness(0) invert(1);
 }
 .page-section.carousel
 {

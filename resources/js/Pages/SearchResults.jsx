@@ -25,13 +25,13 @@ function SearchResults({ searchTerm = '', searchPosts = [] })
         <>
             <PageHead title="Search Results" />
             <div className="page-section">
-                <h3 className='padded centered-content'>
+                <h1 className='padded centered-content'>
                     {
                         searchTerm 
                         ? `search results for "${searchTerm}"` 
                         : "Please enter a search term."
                     }
-                </h3>
+                </h1>
                 <AutoloadTilesContainer 
                     key={searchTerm}
                     screenSize={screenSize} 

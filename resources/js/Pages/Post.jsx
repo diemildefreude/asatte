@@ -35,10 +35,13 @@
         const isAdmin = user?.member_type === MemberType.Admin;
         
         let canHidePost = false;
-        if (isWebmaster) {
+        const authorMemberType = post?.user?.member_type;
+        if (isWebmaster) 
+        {
             canHidePost = true;
-        } else if (isAdmin) {
-            const authorMemberType = post?.user?.member_type;
+        } 
+        else if (isAdmin) 
+        {            
             if (authorMemberType !== MemberType.Webmaster && authorMemberType !== MemberType.Admin) {
                 canHidePost = true;
             }
@@ -158,7 +161,7 @@
                             post.is_hidden_by_admin && (                
                             <HiddenPostNotice 
                                 classes="top-3rem"
-                                isAdmin={true}
+                                isAdmin={authorMemberType === MemberType.Admin}
                             />
                             )
                         }

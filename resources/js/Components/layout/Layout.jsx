@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import './Layout.css';
 import Header from './Header';
 import InertiaAuthBridge from '../common/InertiaAuthBridge';
-import { usePage } from '@inertiajs/react';
+import { usePage, router } from '@inertiajs/react';
 function Layout({children, isDashboard=false, classes=""})
 {
 
@@ -13,6 +13,15 @@ function Layout({children, isDashboard=false, classes=""})
     classNames += ` ${classes}`;
     useEffect(() =>
     {
+        const removeNavigateListener = router.on('navigate', () => {
+            const topFocus = document.querySelector('.skip-link');
+            if (topFocus) {
+                topFocus.focus();
+            } else if (document.activeElement && document.activeElement !== document.body) {
+                document.activeElement.blur();
+            }
+        });
+
         let ticking = false;
 
         const handleResize = () => 
@@ -56,6 +65,7 @@ function Layout({children, isDashboard=false, classes=""})
         window.addEventListener('scroll', handleScroll, { passive: true });
         
         return () => {
+            removeNavigateListener();
             if (observer) observer.disconnect();
             window.removeEventListener('resize', handleResize);
             window.removeEventListener('scroll', handleScroll);
@@ -71,13 +81,13 @@ function Layout({children, isDashboard=false, classes=""})
             isDashboard ? (
                 children
             ):(
-                <main>{children}</main>
+                <main id="main-content">{children}</main>
             )
         }
         </div>
         <footer>
             <div className="footer-background"></div>
-            <div className="copyright"><small>{APP_NAME} © 2026</small></div> 
+            <div className="copyright"><small>{`${APP_NAME} © 2026`}</small></div> 
         </footer>
         </>
     );

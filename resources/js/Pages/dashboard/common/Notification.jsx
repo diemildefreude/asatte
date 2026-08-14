@@ -4,9 +4,7 @@ import UserLink from "../../../Components/common/UserLink";
 import '../../../Components/common/CommentsNotifications.css';
 
 function Notification({notification})
-{
-    console.log("notification", notification);
-    
+{    
     if ((notification?.type == NotificationType.Comment || notification?.type == NotificationType.Reply) && !notification.comment) {
         return null; // Handle orphaned notifications from deleted comments
     }

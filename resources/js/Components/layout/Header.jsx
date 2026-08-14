@@ -129,6 +129,7 @@ function Header()
 
     return (
         <header ref={headerRef}>
+            <a href="#main-content" className="skip-link sr-only">skip to main content</a>
             <div className={buttonClasses}>
                 <button
                 title="nav-button"
@@ -146,6 +147,7 @@ function Header()
                 </button>
             </div>
             <nav className={navClasses}>
+                {/* <div className="nav-second-gradient"></div> */}
                 <div className="nav-half first">
                     <form
                         tabIndex="0"

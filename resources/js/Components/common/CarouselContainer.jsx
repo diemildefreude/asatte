@@ -374,7 +374,6 @@ function CarouselContainer({size, className, children})
     return (
         <div className={className} ref={outerWrapperRef}>
             <div className={"carousel-container " + size}
-                tabIndex="0" role="region" aria-label=""
                 ref={sliderContainerRef}
             >
                 <div className="slider-container gallery-slider">            

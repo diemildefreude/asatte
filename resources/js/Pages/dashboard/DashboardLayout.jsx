@@ -219,7 +219,7 @@ function DashboardLayout({ currentTab, headerText, children, headerHasMargin=tru
                         currentTab={currentTab}
                     />    
                 </div>                        
-                <main className="heading-profile-container">
+                <main id="main-content" className="heading-profile-container">
                     
                     {
                         headerText && (    

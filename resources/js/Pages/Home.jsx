@@ -5,11 +5,14 @@ import HeroTilesContainer from '../Components/common/HeroTilesContainer';
 import AutoloadTilesContainer from '../Components/common/AutoloadTilesContainer';
 import TileCarousel from '../Components/common/TileCarousel';
 import Layout from '../Components/layout/Layout';
+import { usePage } from '@inertiajs/react';
 import { Category, FetchOrder, getScreenSize, monitorScreenSize } from '../utils/helpers';
 
 function Home({ heroPosts = [], carouselArchive = [], carouselNews = [], carouselFollowing = [], archivePosts = [] })
-{    
+{        
     const [screenSize, setScreenSize] = useState(getScreenSize());
+    const { props } = usePage();
+    const directory = `${props.app_url}/images/`;
 
     useEffect(() => //check screen size at regular intervals.
     {   
@@ -21,8 +24,13 @@ function Home({ heroPosts = [], carouselArchive = [], carouselNews = [], carouse
         <>
         <PageHead title="home"/>
         <div className="hero">
-            <h1>asatte.io</h1>
-            <p>the premier hub for internet art</p>
+            <div className='hero-text-container'>
+                <h1>{`asatte.io`}</h1>
+                <p>the premier hub for internet art</p>     
+            </div>
+            <div className='hero-logo-container'>
+                <img className="hero-logo" src={directory + "logo/blue.svg"} alt="asatte logo" />
+            </div>                   
         </div>
         <div className="page-section top-tile-grid">
             <HeroTilesContainer 

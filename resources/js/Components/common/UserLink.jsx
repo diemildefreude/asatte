@@ -37,14 +37,15 @@ function UserLink({user, readOnly=false, onClick=null, additionalClasses="", url
                     draggable="false" 
                     onClick={handleOnClickOverride}
                 >
-                    <span className="avatar-container">
+                    <span className="avatar-container" aria-hidden="true">
                         <img className="round-image" src={avatar} 
-                            alt={`${user.username}'s avatar`} 
+                            alt="" 
                             draggable="false"
                         />
                         <span className="notice-light small"></span>
                     </span> 
-                    <span className='username'>{user.username}</span>
+                    <span className="sr-only">{user.username.replace(/_/g, ' ')}</span>
+                    <span className='username' aria-hidden="true">{user.username}</span>
                 </Link>
             ) :
             (

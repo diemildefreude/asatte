@@ -105,8 +105,6 @@ function EditProfile()
         });
     };
 
-    console.log("user", user);
-
     return (
     <div className="main-info-box transparent-background sticky">
             <PageHead title="Edit Profile" />

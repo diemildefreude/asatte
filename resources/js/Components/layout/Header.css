@@ -7,6 +7,25 @@
     --burger-bar-thickness: 2px;
     /* --x-bar-length: calc(var(--header-height)/ 3.361); */
 }
+.skip-link {
+    position: absolute;
+    top: -100px;
+    left: 0;
+    background: #000;
+    color: #fff;
+    padding: 10px;
+    z-index: 9999;
+    text-decoration: none;
+    font-size: 1.0em;
+    font-weight: 300;
+    border: 2px solid var(--neon-pink);
+    border-radius: 0%;
+    transition: top 0.2s ease-in-out;
+}
+.skip-link:focus-visible 
+{
+    top: 0;
+}
 header
 {
     position: fixed;
@@ -17,6 +36,7 @@ header
     visibility: visible;
     transition: 
         opacity 0.5s 0.0s, 
+        transform 0.0s 0.5s,
         visibility 0.0s 0.5s;
     height: var(--header-height-narrow);
 }
@@ -30,13 +50,20 @@ header
     {
         /* top: -100px; */
         opacity: 0.0;
-        visibility:hidden;
+        transform: translateY(-100%);
+        pointer-events: none;
     }
-    header.header-in
+    header.header-in, header:focus-within
     {
         transition: 
             opacity 0.5s 0.0s, 
+            transform 0.0s 0.0s,
             visibility 0.0s 0.0s;
+    }
+    header:focus-within {
+        opacity: 1.0 !important;
+        transform: translateY(0) !important;
+        pointer-events: auto !important;
     }
 }
 /*NAV--------------*/
@@ -44,7 +71,7 @@ nav
 {
     background: linear-gradient(45deg, #000000 0%, #330055 60%);
     background: -webkit-linear-gradient(45deg, #000000 0%, #330055 60%); /* Chrome10-25,Safari5.1-6 */
-    background: linear-gradient(45deg, #000000 0%, #330055 60%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */        
+    background: linear-gradient(45deg, #000000 0%, #330055 60%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */ 
     position: fixed;
     top: 0;
     right: 0;
@@ -151,7 +178,7 @@ nav.open
     {
         background: linear-gradient(45deg, #00000000 0%, #330055 60%);
         background: -webkit-linear-gradient(45deg, #000000 0%, #330055 60%); /* Chrome10-25,Safari5.1-6 */
-        background: linear-gradient(45deg, #00000000 0%, #330055 60%);      
+        background: linear-gradient(45deg, #00000000 0%, #330055 60%);            
         position: relative;
         width: fit-content;
         height: 100%;
@@ -161,6 +188,15 @@ nav.open
         padding: 0rem;
         z-index: auto;
         gap: 0rem;
+    }
+    .nav-second-gradient
+    {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(-175deg, rgb(249, 251, 210) 0%, rgba(249, 251, 210, 0) 50%);  
     }
     .nav-half
     {

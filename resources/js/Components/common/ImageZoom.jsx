@@ -28,6 +28,18 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef=
     const tempOverlayRef = useRef(null);
     const [loadedSrc, setLoadedSrc] = useState(null);
     const currentSrcRef = useRef(src);
+    const [liveAlt, setLiveAlt] = useState("");
+
+    useEffect(() => {
+        if (isZoomed) {
+            const timer = setTimeout(() => {
+                setLiveAlt(alt || "Zoomed image");
+            }, 100);
+            return () => clearTimeout(timer);
+        } else {
+            setLiveAlt("");
+        }
+    }, [isZoomed, alt]);
 
     const [transform, setTransformState] = useState({ scale: 1, posX: 0, posY: 0 });
     const transformRef = useRef({ scale: 1, posX: 0, posY: 0 });
@@ -630,7 +642,7 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef=
         <div className={containerClasses}
             role="dialog"
             aria-modal="true"
-            aria-label="Image gallery"
+            aria-label={alt || "Zoomed image"}
             draggable="false"
             onClick={handleClick}
             ref={zoomContainerRef}>
@@ -669,7 +681,7 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef=
             <button className="sr-only" onClick={(e) => { e.stopPropagation(); clickFunc(e); }}>Close gallery</button>
             {prevSrc && <button className="sr-only" onClick={(e) => { e.stopPropagation(); onNavigatePrev(); }}>Previous image</button>}
             {nextSrc && <button className="sr-only" onClick={(e) => { e.stopPropagation(); onNavigateNext(); }}>Next image</button>}
-
+            <div className="sr-only" aria-live="polite">{liveAlt}</div>
         </div>
     )
 }

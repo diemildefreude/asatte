@@ -48,10 +48,10 @@ function ImageCarousel({size, post, title=""})
             {
                 ({ isDragging, isDraggedPointerUp, handleFocusIn }) => 
                     imageUrls.map((url, i) => (
-                        <div className="slide" 
+                        <button type="button" className="slide" 
                             key={i} 
                             ref={el => slideRefs.current[i] = el}
-                            tabIndex="0"
+                            aria-label={post.gallery_alts[i] || `Image ${i + 1} of ${imageUrls.length}`}
                             onFocus={() => setCurrentSlideIndex(i)}                    
                             onPointerUp={(e) => 
                             {
@@ -65,7 +65,7 @@ function ImageCarousel({size, post, title=""})
                             }}
                             onKeyDown={(e) =>
                             {
-                                if(e.key === "Enter")
+                                if(e.key === "Enter" || e.key === " ")
                                 {
                                     e.preventDefault();
                                     setCurrentSlideIndex(i);
@@ -102,7 +102,7 @@ function ImageCarousel({size, post, title=""})
                                 alt={post.gallery_alts[i]}
                                 draggable="false"
                             />
-                        </div>
+                        </button>
                 ))       
             }
             </CarouselContainer>        
@@ -122,7 +122,7 @@ function ImageCarousel({size, post, title=""})
                     setCurrentSlideIndex(newInd);
                     slideRefs.current[newInd]?.focus();
                 }}
-                alt={post?.gallery_alts[currentSlideIndex]}
+                alt={post?.gallery_alts[currentSlideIndex] || `Image ${currentSlideIndex + 1} of ${imageUrls.length}`}
                 clickFunc={handleClick}
                 isZoomed={isZoomed}
             />
