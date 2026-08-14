@@ -8,7 +8,7 @@ function ConversationPreview({conversation})
     const { props } = usePage();
     const otherUser = conversation.other_users[0];
     const avatar = otherUser?.avatar ? `${props.app_url}/storage/images/uploaded/users/${otherUser.username}/avatar/small/${otherUser?.avatar}` 
-        : `${props.app_url}/storage/images/defaults/avatar.webp?v=1`;
+        : `${props.app_url}/images/defaults/avatar.webp`;
     const avatarAlt = otherUser?.username ? `${otherUser.username}'s avatar` : "Deleted user. Showing default avatar.";
     const latestSenderName = conversation.latest_message.sender ? conversation.latest_message.sender.username : "[deleted user]";
     const usersString = conversation.users

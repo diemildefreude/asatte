@@ -89,7 +89,7 @@ function AvatarSetter({user})
     const avatarContainerRef = useRef(null);
 
     const avatar = user?.avatar ? `${props.app_url}/storage/images/uploaded/users/${user.username}/avatar/small/${user?.avatar}` 
-        : `${props.app_url}/storage/images/defaults/avatar.webp?v=2`;
+        : `${props.app_url}/images/defaults/avatar.webp?v=2`;
     const { data, setData, post, processing, errors, setError, clearErrors } = useForm({ avatar: null });
 
     const closeCropperAndClearInput = useCallback(() => 

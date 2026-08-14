@@ -5,7 +5,7 @@ function UserCircle({user})
 {
     const { props } = usePage();
     const avatar = user?.avatar ? `${props.app_url}/storage/images/uploaded/users/${user.username}/avatar/small/${user?.avatar}` 
-        : `${props.app_url}/storage/images/defaults/avatar.webp?v=1`;
+        : `${props.app_url}/images/defaults/avatar.webp?v=1`;
 
 
     

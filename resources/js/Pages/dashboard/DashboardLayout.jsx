@@ -167,7 +167,7 @@ function DashboardLayout({ currentTab, headerText, children, headerHasMargin=tru
             {
                 user && !user?.is_email_verified &&
                 (                        
-                <div className="main-info-box notice-container">
+                <div className="main-info-box notice-container centered-content no-margin">
                     <p className="notice">Please check your e-mail to verify your address.</p> 
                     <button onClick={handleResendVerificationEmail} disabled={processing}>resend</button>
                 </div>

@@ -10,7 +10,7 @@ function UserLink({user, readOnly=false, onClick=null, additionalClasses="", url
     const target = url ?? `/${user?.username}/profile`;
     
     const avatar = user?.avatar ? `${props.app_url}/storage/images/uploaded/users/${user.username}/avatar/thumb/${user?.avatar}` 
-        : `${props.app_url}/storage/images/defaults/avatar.webp?v=1`;
+        : `${props.app_url}/images/defaults/avatar.webp?v=1`;
         
     let classes = `user-link ${additionalClasses}`;
     classes = readOnly ? classes + " read-only" : classes;
