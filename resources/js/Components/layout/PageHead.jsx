@@ -10,7 +10,7 @@ function PageHead({
     const { url } = usePage();
     const fullUrl = `${usePage().props.app_url}${url}`; 
     const domain = usePage().props.app_url;
-    const ogImage = ogImg ?? `${domain}/storage/images/og_image.webp`;
+    const ogImage = ogImg ?? `${domain}/images/og_image.webp`;
 
     return(
         <Head title={title}>
