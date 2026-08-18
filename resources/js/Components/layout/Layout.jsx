@@ -3,6 +3,8 @@ import './Layout.css';
 import Header from './Header';
 import InertiaAuthBridge from '../common/InertiaAuthBridge';
 import { usePage, router } from '@inertiajs/react';
+import LogoSpikedClean from './LogoSpikedClean';
+
 function Layout({children, isDashboard=false, classes=""})
 {
 
@@ -14,7 +16,7 @@ function Layout({children, isDashboard=false, classes=""})
     useEffect(() =>
     {
         const removeNavigateListener = router.on('navigate', () => {
-            const topFocus = document.querySelector('.skip-link');
+            const topFocus = document.getElementById('top-focus-anchor');
             if (topFocus) {
                 topFocus.focus();
             } else if (document.activeElement && document.activeElement !== document.body) {
@@ -87,7 +89,10 @@ function Layout({children, isDashboard=false, classes=""})
         </div>
         <footer>
             <div className="footer-background"></div>
-            <div className="copyright"><small>{`${APP_NAME} © 2026`}</small></div> 
+            <div className="copyright">
+                <small>{`${APP_NAME} © 2026`}</small>
+                <LogoSpikedClean className="footer-logo" alt={`${props.app_name} logo`}/>
+            </div> 
         </footer>
         </>
     );

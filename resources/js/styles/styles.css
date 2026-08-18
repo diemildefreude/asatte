@@ -1,6 +1,6 @@
 :root
 {
-    --pale-yellow: rgb(249, 251, 210);
+    --pale-yellow: rgb(255, 228, 175);
     --grey-yellow: rgb(201, 201, 175);
     --dark-blue: #0025b7;
     --blue: #1177c0;
@@ -9,16 +9,17 @@
     --blood: #6c0746;
     --teal: #2cd7bd;
     --yellow: #fedca0;
-    --orange: #ffb764;
+    --orange: orange;
+    /* --orange: #ffb764; */
     --dark-purple: #330055;
     --grey-purple: #5e5266;
-    --indigo-gradient: linear-gradient(45deg, #0000ff 0%, #330055 60%);
-    --blue-gradient: linear-gradient(45deg, #1177c0cc 0%,  #b9e2ffcc 60%);    
+    --indigo-gradient: linear-gradient(45deg, #0000ff 0%, var(--dark-purple) 60%);
+    --blue-gradient: linear-gradient(45deg, var(--blue) 0%,  #a5f0ffcc 60%);    
     --lavender-gradient: linear-gradient(45deg, #505193cc 0%, #c1b7fdcc 60%);
     --red-gradient: linear-gradient(45deg, #ff4574 0%, #6c0746 70%);
     --teal-gradient: linear-gradient(45deg, #003426 0%, #33c5c2 70%);
     --footer-gradient: linear-gradient(10deg, #000000ff 20%, #00000000 60%);
-    --dark-blue-gradient: linear-gradient(45deg, #0025b7 0%, #55a2c0 60%);
+    --dark-blue-gradient: linear-gradient(45deg, var(--dark-blue) 0%, #1fbcdb 60%);
     --black-gradient: linear-gradient(45deg, #000000ff 0%, #0d003397 60%);
     --yellow-gradient: linear-gradient(45deg, #9d420d 0%, var(--pale-yellow) 60%);
     --carousel-gradient: linear-gradient(110deg, rgba(0, 0, 0, 0) 0%, #000000 50% ,rgba(0, 0, 0, 0) 100%);
@@ -33,7 +34,7 @@
 }
 *
 {
-    scrollbar-color: var(--grey-yellow) var(--dark-purple);
+    scrollbar-color: var(--yellow) var(--dark-purple);
     scrollbar-width: thin;
 }
 p img
@@ -68,6 +69,8 @@ body::before
     height: 200lvh;
     z-index: -3;
     background: var(--indigo-gradient);
+    /* background: #464646; */
+    /* background: #ffffff; */
 }
 html, body
 {
@@ -364,6 +367,10 @@ p iframe
 .hidden, .form-field.bonus, .checkbox.bonus
 {
     display: none;
+}
+.invisible
+{
+    opacity: 0.001;
 }
 .padding-1rem
 {

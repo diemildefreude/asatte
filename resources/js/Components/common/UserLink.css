@@ -51,6 +51,7 @@
     text-overflow: ellipsis;
     flex-basis: 100%;
     max-width: 200px;
+    color: var(--pale-yellow);
 }
 .user-link.read-only
 {

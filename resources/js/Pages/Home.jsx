@@ -7,6 +7,7 @@ import TileCarousel from '../Components/common/TileCarousel';
 import Layout from '../Components/layout/Layout';
 import { usePage } from '@inertiajs/react';
 import { Category, FetchOrder, getScreenSize, monitorScreenSize } from '../utils/helpers';
+import LogoTwoToneGradientNamed from '../Components/layout/LogoTwoToneGradientNamed';
 
 function Home({ heroPosts = [], carouselArchive = [], carouselNews = [], carouselFollowing = [], archivePosts = [] })
 {        
@@ -23,14 +24,20 @@ function Home({ heroPosts = [], carouselArchive = [], carouselNews = [], carouse
     return (
         <>
         <PageHead title="home"/>
-        <div className="hero">
-            <div className='hero-text-container'>
-                <h1>{`asatte.io`}</h1>
-                <p>the premier hub for internet art</p>     
-            </div>
+        <div className="hero">            
             <div className='hero-logo-container'>
-                <img className="hero-logo" src={directory + "logo/blue.svg"} alt="asatte logo" />
-            </div>                   
+                {/* <img className="hero-logo" src={directory + "logo/gradient_named.svg"} alt="asatte logo"></img> */}
+                <LogoTwoToneGradientNamed className="hero-logo" alt={`${props.app_name} logo`}/>
+            </div>      
+            <div className='hero-text-container'>
+                <h1 className='invisible'>{`asatte.io`}</h1>
+                <div className="hero-subtitle-1">
+                    <p>the premier hub</p>     
+                </div>
+                <div className="hero-subtitle-2">
+                    <p>for internet art</p>     
+                </div>
+            </div>             
         </div>
         <div className="page-section top-tile-grid">
             <HeroTilesContainer 

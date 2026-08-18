@@ -182,18 +182,37 @@
         font-size: 0.9rem;          
         border-top: none;
         padding: 0 0 1.5rem;
-    }
-    
+    }    
 }
 /*~~~~~~~~~~~USER AGREEMENT~~~~~~~~~~~~*/
+.user-agreement-container
+{
+    position: relative;
+    height: 300px;
+    max-width: 600px;
+    background: var(--black-gradient);
+}
 .user-agreement
 {
-    height: 300px;
-    max-width: 600px; 
+    height: 100%;
+    width: 100%;
     margin: 0 auto;
     padding: 1em;
     border: 1px solid var(--bright-blue);
     overflow-y: scroll;
     scrollbar-width: thin;
     scrollbar-color: var(--transparent-black) var(--bright-blue);  
+    z-index: 2;
+}
+.user-agreement-logo
+{
+    position: absolute;
+    width: 40%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    color: var(--blue);
+    --logo-secondary-color: var(--bright-blue);
+    opacity: 0.3;
+    z-index: 1;
 }

@@ -1,7 +1,8 @@
 main
 {
   display: flex;
-  flex-direction: column;
+  flex-direction: column;  
+  overflow-x: hidden; 
 }
 .content
 {        
@@ -31,7 +32,7 @@ body.no-scroll
 {
   overflow: hidden;
 }
-@media (max-width: 699px)
+@media (max-width: 799px)
 {
   body.nav-open
   {
@@ -72,11 +73,28 @@ body.at-bottom .footer-background {
   padding: 1rem;
   font-size: 1.7em;
   font-weight: 1;
+  width: 100%;
+  height: 100px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.copyright small
+{
+  align-self:flex-end;
+}
+.footer-logo
+{
+  color: rgba(255, 255, 255, 0.819);
+  height: 100%;
+  aspect-ratio: auto;
+  width: auto;
 }
 @media (min-width: 800px)
 {
   .copyright
   {
     padding: 2rem;
+    height: 130px;
   }
 }

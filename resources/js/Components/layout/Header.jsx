@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './Header.css';
 import '../../Pages/DashboardProfile.css';
 import { Link, router, usePage } from '@inertiajs/react';
-
+import LogoTwoToneGradientClean from './LogoTwoToneGradientClean';
 import UserLink from '../common/UserLink';
+import LogoSpikedClean from './LogoSpikedClean';
 
 function Header()
 {
@@ -38,6 +39,7 @@ function Header()
     searchClasses = isSearchPage || searchTerm.length > 0 ? searchClasses + ' always-open' : searchClasses;
     //const [isSearching, setIsSearching] = useState(false);
     
+    const directory = `${props.app_url}/images/`;
 
     const toggleMenu = () =>
     {
@@ -77,7 +79,11 @@ function Header()
             }
 
             const scrollTop = window.scrollY;
-            const diff = Math.abs(lastScrollTopRef - scrollTop);
+            
+            // Add a class when not at the very top of the viewport
+            headerRef.current.classList.toggle("scrolled-down", scrollTop > 0);
+
+            const diff = Math.abs(lastScrollTopRef.current - scrollTop);
 
             if(diff <= scrollDeltaThreshold)
             {
@@ -129,7 +135,9 @@ function Header()
 
     return (
         <header ref={headerRef}>
-            <a href="#main-content" className="skip-link sr-only">skip to main content</a>
+            {/* Dead anchor to catch auto-focus on page load/refresh */}
+            <a id="top-focus-anchor" href="#" className="sr-only" aria-hidden="true"></a>
+            <a href="#main-content" className="skip-link">skip to main content</a>
             <div className={buttonClasses}>
                 <button
                 title="nav-button"
@@ -147,8 +155,18 @@ function Header()
                 </button>
             </div>
             <nav className={navClasses}>
-                {/* <div className="nav-second-gradient"></div> */}
-                <div className="nav-half first">
+                <div className="nav-logo-mobile">
+                    <LogoTwoToneGradientClean alt={`${props.app_name} logo`}/>
+                </div>
+                {
+                    (url != "/") && (
+                        <div className="nav-logo-desktop">
+                            <LogoTwoToneGradientClean alt={`${props.app_name} logo`}/>
+                        </div>
+                    )
+                }
+                <div className="nav-halves">
+                    <div className="nav-half first">
                     <form
                         tabIndex="0"
                         onFocus={() => searchInputRef.current?.focus()}
@@ -182,7 +200,8 @@ function Header()
                             <Link href="/login" className="nav-item" onClick={() => setIsNavOpen(false)}>log in</Link>
                         )
                     }
-                </div>                                
+                </div>
+                </div>                                                
             </nav>
         </header>
 

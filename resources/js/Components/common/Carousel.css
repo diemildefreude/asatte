@@ -133,7 +133,7 @@ button.slide
 } */
 .slider-end-left, .slider-end-right
 {
-    --solid-color: var(--pale-yellow);
+    --solid-color: var(--yellow);
     --faded-color: #ffffff00;
     position: absolute;
     height: 100%;

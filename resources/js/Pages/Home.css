@@ -3,41 +3,119 @@
     font-size: 1.7rem;
     padding: 0rem 1rem 2rem;
     line-height: 3em;
-}
-.hero-text-container
-{
-    width: 100%;
-    position: absolute;
-    top: 0;
-    left: 0;
-    padding: 0rem 1rem 0rem;
-}
-.hero h1
-{
-    font-weight: 400;
-}
-.hero p
-{
-    line-height: 1.2em;
+    display: grid;
+    max-height: 50dvh;
 }
 .hero-logo-container
 {
     padding: 0rem 1rem 0rem;
     width: 100%;
+    height: 100%;
     display: flex;
     justify-content: end;
-    color: white;
+    grid-area: 1/1;
+}
+@media (min-width: 800px)
+{
+    .hero-logo-container
+    {
+        justify-content: center;
+    }
 }
 .hero-logo
 {
     position: relative;
-    width: 80%;    
+    max-width: 80%;    
     height: auto;
+    max-height: calc(50dvh - 2rem);
     aspect-ratio: auto;
-    object-fit: cover;
-    opacity: 0.5;
-    /* color: white; does not work on <img> tags! We use a filter instead */
-    filter: brightness(0) invert(1);
+    object-fit: contain;
+    opacity: 1.0;
+    color: white;
+    --logo-secondary-color: var(--orange);
+}
+.hero-text-container
+{
+    width: 100%;
+    height: 100%;
+    position: relative;
+    left: 0;
+    padding: 0rem 1rem 0rem;
+    grid-area: 1/1; 
+}
+.hero h1
+{
+    font-weight: 400;
+}
+@keyframes scrolling-1
+{
+    0%
+    {
+        transform: translate(100vw, 100%);
+        opacity: 0.0;
+    }
+    20%
+    {
+        opacity: 0.0;
+    }
+    50%
+    {
+        opacity: 1.0;
+    }
+    80%
+    {
+        opacity: 0.0;
+    }
+    100%
+    {
+        transform: translate(-100%, -200%);
+        opacity: 0.0;
+    }
+}
+@keyframes scrolling-2
+{
+    0%
+    {
+        transform: translate(100vw, -250%);
+        opacity: 0.0;
+    }
+    20%
+    {
+        opacity: 0.0;
+    }
+    50%
+    {
+        opacity: 1.0;
+    }
+    80%
+    {
+        opacity: 0.0;
+    }
+    100%
+    {
+        transform: translate(-100%, 150%);
+        opacity: 0.0;
+    }
+}
+.hero-subtitle-1, .hero-subtitle-2
+{
+    position: absolute;
+    color: var(--bright-blue);
+    top: 50%;
+    /* transform: translate(0%,-50%); */
+}
+.hero-subtitle-1
+{
+    animation: 8s linear 0s infinite alternate running scrolling-1;
+}
+.hero-subtitle-2
+{
+    animation: 10s linear 0s infinite alternate running scrolling-2;
+}
+.hero-subtitle p
+{
+    line-height: 1.2em;
+    text-wrap: nowrap;
 }
 .page-section.carousel
 {
