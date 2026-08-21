@@ -305,8 +305,8 @@ if (!function_exists('saveAvatarImage')) {
         Storage::disk('public')->deleteDirectory($imageRoot . 'thumb');
         Storage::disk('public')->deleteDirectory($imageRoot . 'small');
 
-        Storage::disk('public')->put($imageRoot . 'thumb/' . $imageName, (string) $thumb->encode());
-        Storage::disk('public')->put($imageRoot . 'small/' . $imageName, (string) $small->encode());
+        Storage::disk('public')->put($imageRoot . 'thumb/' . $imageName, (string) $thumb->encodeByExtension($file->extension(), quality: 90));
+        Storage::disk('public')->put($imageRoot . 'small/' . $imageName, (string) $small->encodeByExtension($file->extension(), quality: 92));
 
         return $imageName;
     }
@@ -357,8 +357,8 @@ if (!function_exists('deleteGalleryImages')) {
     }
 }
 
-if (!function_exists('avatarThumb')) { function avatarThumb() { return 150;} }
-if (!function_exists('avatarSmall')) { function avatarSmall() { return 500;} }
+if (!function_exists('avatarThumb')) { function avatarThumb() { return 240;} }
+if (!function_exists('avatarSmall')) { function avatarSmall() { return 600;} }
 if (!function_exists('thumbSize')) { function thumbSize(){ return 240;} }
 if (!function_exists('smallW')) { function smallW(){ return 640;} }
 if (!function_exists('smallH')) { function smallH(){ return 480;} }

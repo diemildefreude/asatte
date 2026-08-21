@@ -287,6 +287,8 @@ function handleResizeWithCanvas(img, mimeType, isGallery = false)
         }            
         canvas.width = width;
         canvas.height = height;
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(img, 0, 0, width, height);
 
         const targetSize = 2000 * 1024; // slightly under 2048 KB for safety
@@ -301,7 +303,10 @@ function handleResizeWithCanvas(img, mimeType, isGallery = false)
             const tempCanvas = document.createElement('canvas');
             tempCanvas.width = w;
             tempCanvas.height = h;
-            tempCanvas.getContext('2d').drawImage(canvas, 0, 0, w, h);
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCtx.imageSmoothingEnabled = true;
+            tempCtx.imageSmoothingQuality = 'high';
+            tempCtx.drawImage(canvas, 0, 0, w, h);
             tempCanvas.toBlob(res, type, q);
         });
 

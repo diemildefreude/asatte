@@ -18,63 +18,90 @@ function parseTransformString(transformString)
 function getCroppedImage(cropperElement)
 {
     const img = cropperElement.querySelector("img");
+    if (!img || !img.naturalWidth || !img.naturalHeight) return null;
 
     const transformString = img.style.transform;
-    const imageTransform = parseTransformString(transformString);
-    const imageNaturalSize = { width: img.naturalWidth, height: img.naturalHeight };
+    const { scale, posX, posY } = parseTransformString(transformString);
 
-    const cropperWidth = cropperElement.clientWidth;
-    const cropperHeight = cropperElement.clientHeight;
+    const W_nat = img.naturalWidth;
+    const H_nat = img.naturalHeight;
+    const C_w = cropperElement.clientWidth;
+    const C_h = cropperElement.clientHeight;
 
-    // Desired output width/height for the cropped image (e.g., for a profile picture)
-    const outputSize = 300;
+    const outputSize = 800;
+
+    // Convert cropper viewport coordinates to natural image coordinate space
+    const sx = (0 - posX) / scale;
+    const sy = (0 - posY) / scale;
+    const sw = C_w / scale;
+    const sh = C_h / scale;
+
     const canvas = document.createElement('canvas');
     canvas.width = outputSize;
     canvas.height = outputSize;
     const ctx = canvas.getContext('2d');
 
-    let sx = (0 - imageTransform.posX) / imageTransform.scale;
-    if (sx < 0) sx = 0; // Ensure sx is not negative
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
 
-    let sy = (0 - imageTransform.posY) / imageTransform.scale;
-    if (sy < 0) sy = 0; // Ensure sy is not negative
+    // Fill background solid black to eliminate transparent border artifacts on WebP/JPEG export
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, outputSize, outputSize);
 
-    let sWidth = cropperWidth / imageTransform.scale;
-    // Ensure sWidth doesn't exceed natural width from current sx
-    if (sx + sWidth > imageNaturalSize.width) {
-        sWidth = imageNaturalSize.width - sx;
+    // Map natural source crop (sx, sy, sw, sh) -> destination (dx, dy, dw, dh)
+    let srcX = sx;
+    let srcY = sy;
+    let srcW = sw;
+    let srcH = sh;
+
+    let dstX = 0;
+    let dstY = 0;
+    let dstW = outputSize;
+    let dstH = outputSize;
+
+    // Proportional clamping for out-of-bounds panning
+    if (srcX < 0) {
+        const overflowRatio = Math.abs(srcX) / sw;
+        dstX = outputSize * overflowRatio;
+        dstW -= dstX;
+        srcW += srcX;
+        srcX = 0;
+    }
+    if (srcY < 0) {
+        const overflowRatio = Math.abs(srcY) / sh;
+        dstY = outputSize * overflowRatio;
+        dstH -= dstY;
+        srcH += srcY;
+        srcY = 0;
+    }
+    if (srcX + srcW > W_nat) {
+        const overflowRatio = (srcX + srcW - W_nat) / sw;
+        dstW -= outputSize * overflowRatio;
+        srcW = W_nat - srcX;
+    }
+    if (srcY + srcH > H_nat) {
+        const overflowRatio = (srcY + srcH - H_nat) / sh;
+        dstH -= outputSize * overflowRatio;
+        srcH = H_nat - srcY;
     }
 
-    let sHeight = cropperHeight / imageTransform.scale;
-    // Ensure sHeight doesn't exceed natural height from current sy
-    if (sy + sHeight > imageNaturalSize.height) {
-        sHeight = imageNaturalSize.height - sy;
+    if (srcW > 0 && srcH > 0 && dstW > 0 && dstH > 0) {
+        ctx.drawImage(img, srcX, srcY, srcW, srcH, dstX, dstY, dstW, dstH);
     }
 
-    const dx = 0;
-    const dy = 0;
-    const dWidth = canvas.width;
-    const dHeight = canvas.height;
+    const dataURL = canvas.toDataURL("image/webp", 0.95);
 
-    ctx.drawImage(img, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
-
-    const dataURL = canvas.toDataURL("image/webp");
-
-    // 1. Extract Base64 and Mime Type
     const arr = dataURL.split(',');
-    const mime = arr[0].match(/:(.*?);/)[1]; // e.g., "image/webp"
+    const mime = arr[0].match(/:(.*?);/)[1];
     const base64Data = arr[1];
 
-    // 2. Convert base64 to Blob
     const bstr = atob(base64Data);
     let n = bstr.length;
     const u8arr = new Uint8Array(n);
     while (n--) {
         u8arr[n] = bstr.charCodeAt(n);
     }
-    const blob = new Blob([u8arr], { type: mime });
-
-    return blob;
+    return new Blob([u8arr], { type: mime });
 }
 
 function AvatarSetter({user})
