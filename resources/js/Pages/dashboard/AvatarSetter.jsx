@@ -134,6 +134,7 @@ function AvatarSetter({user})
         
         setIsImageCropperOpen(true);
         const selectedFileUrl = await getImageUrlFromFile(file);
+        console.log("selectedFileUrl", selectedFileUrl);
         setSelectedAvatar(selectedFileUrl);
     },[setIsImageCropperOpen, setSelectedAvatar, clearErrors, setError]);
 
@@ -278,7 +279,7 @@ function AvatarSetter({user})
         {errors.avatar && (
             <div className="error">{errors.avatar}</div>
         )}
-        <div className="profile-avatar-container" ref={avatarContainerRef}>
+        <div className="profile-avatar-container dashboard-avatar" ref={avatarContainerRef}>
             <label htmlFor="profile_image" className="hidden"
             ></label>
             <input type="file" accept=".jpg, .jpeg, .png, .webp, .bmp" name="profile_image" 
@@ -293,7 +294,7 @@ function AvatarSetter({user})
                 update
                 <div className="image-drag-panel"></div>
             </button>
-            <img src={avatar} alt={`${user?.username}'s avatar`} className="round-image fuck" />
+            <img src={avatar} alt={`${user?.username}'s avatar`} className="round-image" />
         </div>
         </>
     );

@@ -552,7 +552,7 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef=
 
     useEffect(() => 
     {
-        if (!isZoomed) {
+        if (!isZoomed && !isImageCropper) {
             transitionDragXRef.current = 0;
             prevSrcRef.current = null;
             return;
@@ -667,7 +667,7 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef=
         };
         img.src = targetSrc;
 
-    }, [src, smallSrc, updateTransitionVisuals, outerContainerRef, setTransform]);
+    }, [src, smallSrc, isZoomed, isImageCropper, updateTransitionVisuals, outerContainerRef, setTransform]);
 
     useEffect(() => {
         if (!isZoomed || !zoomContainerRef.current) return;

@@ -684,7 +684,7 @@
                 "symfony/polyfill-intl-idn": "^1.26"
             },
             "require-dev": {
-                "phpunit/phpunit": "^10.2",
+                "phpunit/phnit": "^10.2",
                 "vimeo/psalm": "^5.12"
             },
             "suggest": {
