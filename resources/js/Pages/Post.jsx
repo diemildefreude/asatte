@@ -146,7 +146,7 @@
 
         return (
         <>
-            <PageHead title={`${post.title} by ${post.user.username}`}
+            <PageHead title={`'${post.title}' by ${post.user.username} | ${props.app_name}`}
                 description={post.subtitle}
                 ogType="article"
                 ogImg={mainImg}

@@ -23,7 +23,7 @@ function Home({ heroPosts = [], carouselArchive = [], carouselNews = [], carouse
 
     return (
         <>
-        <PageHead title="home"/>
+        <PageHead title={`${props.app_name}`}/>
         <div className="hero">            
             <div className='hero-logo-container'>
                 {/* <img className="hero-logo" src={directory + "logo/gradient_named.svg"} alt="asatte logo"></img> */}

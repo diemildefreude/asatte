@@ -10,7 +10,8 @@ function PageHead({
     const { url } = usePage();
     const fullUrl = `${usePage().props.app_url}${url}`; 
     const domain = usePage().props.app_url;
-    const ogImage = ogImg ?? `${domain}/images/og_image.webp`;
+    const randOgInd = Math.floor(Math.random() * 2);
+    const ogImage = ogImg ?? `${domain}/images/og_image${randOgInd}.webp`;
 
     return(
         <Head title={title}>
@@ -20,7 +21,7 @@ function PageHead({
             {/* Open Graph / Facebook / LinkedIn / Discord */}
             <meta head-key="og:url" property="og:url" content={fullUrl} />
             <meta head-key="og:type" property="og:type" content={ogType} />
-            <meta head-key="og:title" property="og:title" content={title || "asatte.io"} />
+            <meta head-key="og:title" property="og:title" content={title || domain} />
             <meta head-key="og:description" property="og:description" content={description} />
             <meta head-key="og:image" property="og:image" content={ogImage} />
             <meta head-key="og:image:width" property="og:image:width" content="1920" />
