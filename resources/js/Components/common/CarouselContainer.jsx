@@ -60,15 +60,14 @@ function CarouselContainer({size, className, children})
         const currentX = currentTranslateXRef.current;
         const opacityLeft = Math.min(-currentX / FADE_WIDTH, 1.0); //if currentX == 0, opacity = 1;
 
-        const sliderLeft = sliderEndLeftRef.current;
-        sliderLeft.style.setProperty("--left-opacity", opacityLeft);
-
         const innerW = innerSliderRef.current.offsetWidth;
         const outerW = sliderContainerRef.current.offsetWidth;
         const innerSliderMax = innerW - outerW; // 264
         const rightFadePoint = innerSliderMax - FADE_WIDTH; // 164
         const opacityRight = 1.0 - Math.max((-currentX - rightFadePoint) / FADE_WIDTH, 0.0); // 164 - 164 = 0 || 264 - 164 = 100
 
+        const sliderLeft = sliderEndLeftRef.current;
+        sliderLeft.style.setProperty("--left-opacity", opacityLeft);
         const sliderRight = sliderEndRightRef.current;
         sliderRight.style.setProperty("--right-opacity", opacityRight);
 
@@ -141,7 +140,9 @@ function CarouselContainer({size, className, children})
             currentTranslateXRef.current = checkBoundary(currentTranslateXRef.current);
             innerSliderRef.current.style.transform = `translateX(${currentTranslateXRef.current}px)`;
         }
-    }, [checkBoundary]);
+
+        updateSliderEnds();
+    }, [checkBoundary, updateSliderEnds]);
 
     const renderContent = typeof children === 'function'
         ? children({

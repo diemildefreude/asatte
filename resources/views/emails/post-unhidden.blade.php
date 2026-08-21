@@ -2,7 +2,7 @@
 @section('title', config('app.name') . ": Post restored.")
 @section('header', "Post restored.")
 @section('content')
-<p style="font-size: 18px; font-weight: 100; line-height: 28px; color: {{ $mainTextColor }}; margin: 16px 0; text-align: center;">Hello. Your post, <em>{{ $postTitle }}</em>, has been restored by an administrator.</p>
+<p style="font-size: 18px; font-weight: 100; line-height: 28px; color: {{ $mainTextColor }}; margin: 16px 0; text-align: center;">Hello, {{ $username }}. Your post, <em>{{ $postTitle }}</em>, has been restored by an administrator.</p>
 @endsection
 @section('button')
 <div style="text-align: center; padding: 20px 0;">

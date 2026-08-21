@@ -13,16 +13,18 @@ class PostHiddenNotice extends Mailable
     use Queueable, SerializesModels;
 
     public $postTitle;
+    public $username;
     public $reasonGivenByAdmin;
     public $linkToMailInbox;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($postTitle, $reasonGivenByAdmin)
+    public function __construct($postTitle, $reasonGivenByAdmin, $username = null)
     {
         $this->postTitle = $postTitle;
         $this->reasonGivenByAdmin = $reasonGivenByAdmin;
+        $this->username = $username;
         $this->linkToMailInbox = url('/dashboard/mail');
     }
 
@@ -45,6 +47,7 @@ class PostHiddenNotice extends Mailable
             view: 'emails.post-hidden',
             with: [
                 'postTitle' => $this->postTitle,
+                'username' => $this->username,
                 'reasonGivenByAdmin' => $this->reasonGivenByAdmin,
                 'linkToMailInbox' => $this->linkToMailInbox,
             ],

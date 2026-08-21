@@ -14,6 +14,7 @@ class PostUnhiddenNotice extends Mailable
     use Queueable, SerializesModels;
 
     public $postTitle;
+    public $username;
     public $linkToUnhiddenPost;
 
     /**
@@ -22,6 +23,7 @@ class PostUnhiddenNotice extends Mailable
     public function __construct($postTitle, $username, $postUrl)
     {
         $this->postTitle = $postTitle;
+        $this->username = $username;
         $this->linkToUnhiddenPost = url("/$username/$postUrl");
     }
 
@@ -44,6 +46,7 @@ class PostUnhiddenNotice extends Mailable
             view: 'emails.post-unhidden',
             with: [
                 'postTitle' => $this->postTitle,
+                'username' => $this->username,
                 'linkToUnhiddenPost' => $this->linkToUnhiddenPost,
             ],
         );

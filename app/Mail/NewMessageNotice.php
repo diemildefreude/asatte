@@ -13,14 +13,16 @@ class NewMessageNotice extends Mailable
     use Queueable, SerializesModels;
 
     public $senderName;
+    public $username;
     public $linkToInbox;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($senderName)
+    public function __construct($senderName, $username = null)
     {
         $this->senderName = $senderName;
+        $this->username = $username;
         $this->linkToInbox = url('/dashboard/mail');
     }
 
@@ -43,6 +45,7 @@ class NewMessageNotice extends Mailable
             view: 'emails.new-message',
             with: [
                 'senderName' => $this->senderName,
+                'username' => $this->username,
                 'linkToInbox' => $this->linkToInbox,
             ],
         );

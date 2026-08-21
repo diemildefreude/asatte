@@ -966,7 +966,7 @@ class PostController extends Controller
                 'content' => $messageToUser
             ]);
 
-            \Illuminate\Support\Facades\Mail::to($post->user->email)->send(new \App\Mail\PostHiddenNotice($post->title, $reason));
+            \Illuminate\Support\Facades\Mail::to($post->user->email)->send(new \App\Mail\PostHiddenNotice($post->title, $reason, $post->user->username));
         }
         else if(!$hideIt)
         {

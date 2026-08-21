@@ -97,6 +97,10 @@
     
     border: none;
 }
+.content:not(.touch-device) button.slide:not(.button-link):hover
+{
+    border: none;
+}
 .slide .work-tile
 {
     width: 100%;

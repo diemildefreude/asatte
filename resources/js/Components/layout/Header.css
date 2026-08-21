@@ -142,7 +142,8 @@ nav.open
 .nav-search-container button
 {
     margin: 0;
-    aspect-ratio: 1/1;
+    aspect-ratio: 1 / 1;
+    padding: 1rem;
 }
 .nav-item, .nav-item:link, .nav-item:visited
 {    
@@ -189,11 +190,53 @@ nav.open
     align-self: flex-end;
   transform: translateX(-2vw);
 }
-@media (orientation: landscape) 
+@media (orientation: landscape) and (max-width: 799px)
 {
+    nav
+    {
+        padding: 1.5rem 2.5rem;
+        gap: 0;
+    }
     .nav-halves
     {
-        flex-wrap: wrap;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+        gap: 0;
+    }
+    .nav-half
+    {
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+        justify-content: center;
+    }
+    .nav-half.first
+    {
+        align-items: flex-start;
+    }
+    .nav-half.second
+    {
+        align-items: flex-end;
+    }
+    .nav-search-container
+    {
+        padding: 0;
+        border: none;
+    }
+    .nav-half.first .nav-item:nth-child(2) {
+        transform: translateX(4vw);
+    }
+    .nav-half.second .nav-item:nth-child(1) {
+        transform: translateX(-4vw);
+    }
+    .nav-half.second .nav-item:nth-child(2) {
+        transform: translateX(-2vw);
+    }
+    .nav-half.second .nav-item:nth-child(3) {
+        transform: translateX(0%);
     }
 }
 @media (min-width: 700px) 

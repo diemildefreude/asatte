@@ -138,7 +138,7 @@ class DMController extends Controller
 
         $recipientsToEmail = $conversation->users()->where('users.id', '!=', $userId)->where('accepts_emails', true)->get();
         foreach ($recipientsToEmail as $recipient) {
-            \Illuminate\Support\Facades\Mail::to($recipient->email)->send(new \App\Mail\NewMessageNotice($user->username));
+            \Illuminate\Support\Facades\Mail::to($recipient->email)->send(new \App\Mail\NewMessageNotice($user->username, $recipient->username));
         }
 
         $newestMessageID = $conversation->messages()->count() - 1;
