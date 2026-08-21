@@ -575,6 +575,7 @@
         /* width: clamp(1px, 400px, 50%); */        
         top: 0;
         position: sticky;        
+        align-self: flex-start;
     }
     .main-info-box.stretch
     {
@@ -644,6 +645,8 @@
         flex-direction: column;
         max-width: 400px;
         position: sticky;
+        top: calc(var(--header-height-wide) + 1rem);
+        align-self: flex-start;
     }
 }
 .activity-box-container
