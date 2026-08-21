@@ -216,7 +216,7 @@
         justify-content: space-around;
     }
 }
-@media (min-width: 1200px)
+@media (min-width: 1000px)
 {
     .image-info-statement-container
     {
@@ -252,7 +252,7 @@
     }
     .page-section.main-info-container.sticky-version
     {
-        flex-basis: calc(30% - 2rem);      
+        flex-basis: calc(40% - 2rem);      
         display: flex; 
         flex-direction: column;  
         justify-content: center;
