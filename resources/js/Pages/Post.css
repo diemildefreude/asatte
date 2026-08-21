@@ -74,7 +74,7 @@
 }
 .like-button
 {
-    color: var(--grey-yellow);
+    color: var(--yellow);
 }
 .content:not(.touch-device) .main-image-container button.like-button:hover
 {
@@ -293,7 +293,7 @@
 }
 .post-date
 {
-    color: var(--grey-yellow);
+    color: white;
 }
 .touch-device .main-image-container .like-button i, .touch-device .main-image-container .big-icon i
 {    

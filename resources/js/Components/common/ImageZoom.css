@@ -7,7 +7,7 @@
     width: 100%;
     height: 100%;
     background-color: black;
-    z-index: 99;
+    z-index: 10000;
     cursor: zoom-out;
 }
 .zoomed-image img
@@ -33,7 +33,7 @@
     will-change: transform;
 }
 
-.zoom-transition-img {
+.zoomed-image img.zoom-transition-img {
     position: absolute;
     top: 0;
     left: 0;

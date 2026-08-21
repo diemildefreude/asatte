@@ -37,5 +37,18 @@ class AppServiceProvider extends ServiceProvider
         if (config('app.env') === 'production') {
             URL::forceScheme('https');
         }
+
+        // Share default email theme variables across all emails.* Blade views
+        \Illuminate\Support\Facades\View::composer('emails.*', function ($view) 
+        {
+            $view->with([
+                'mainTextColor' => $view->getData()['mainTextColor'] ?? '#ffffff',
+                'buttonTextColor' => $view->getData()['buttonTextColor'] ?? '#28dbff',
+                'footnoteColor' => $view->getData()['footnoteColor'] ?? '#cdcdcd',
+                'fontFamily' => $view->getData()['fontFamily'] ?? "'Cascadia Code', ui-monospace, 'SF Mono', Menlo, Monaco, Consolas, 'Courier New', monospace",
+                'buttonHoverTextColor' => $view->getData()['buttonHoverTextColor'] ?? '#FFE4AF',
+                'buttonHoverFallbackColor' => $view->getData()['buttonHoverFallbackColor'] ?? '#1177c0',
+            ]);
+        });
     }
 }

@@ -4,7 +4,6 @@ import '../../Pages/DashboardProfile.css';
 import { Link, router, usePage } from '@inertiajs/react';
 import LogoTwoToneGradientClean from './LogoTwoToneGradientClean';
 import UserLink from '../common/UserLink';
-import LogoSpikedClean from './LogoSpikedClean';
 
 function Header()
 {

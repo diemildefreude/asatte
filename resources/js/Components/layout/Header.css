@@ -244,6 +244,7 @@ nav.open
         justify-content: end;
         margin-left: auto;         
         min-width: 75vw;
+        gap: 0rem;
     }
     .nav-half
     {
@@ -331,9 +332,9 @@ nav.open
 }
 @media (min-width: 950px)
 {
-    nav, .nav-half
+    .nav-halves, .nav-half
     {
-        gap: 1.5rem;
+        
     }
     .user-link > span.username
     {

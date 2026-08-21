@@ -25,7 +25,7 @@ class UserController extends Controller
     public function user(string $userName)
     {
         $user = User::where('username', $userName)
-            ->select('id', 'username', 'avatar', 'bio', 'location', 'websites', 'show_email_in_profile', 'email', 'profile_hidden_at')
+            ->select('id', 'username', 'avatar', 'bio', 'location', 'websites', 'show_email_in_profile', 'email', 'profile_hidden_at', 'member_type')
             ->first();
 
         if (!$user || $user->profile_hidden_at) 

@@ -1,7 +1,8 @@
 :root
 {
-    --pale-yellow: rgb(255, 228, 175);
-    --grey-yellow: rgb(201, 201, 175);
+    --pale-yellow: #FFE4AF;
+    --grey-yellow: #C9C9AF;
+    --navy: #001550;
     --dark-blue: #0025b7;
     --blue: #1177c0;
     --bright-blue: #28dbff;
@@ -9,12 +10,12 @@
     --blood: #6c0746;
     --teal: #2cd7bd;
     --yellow: #fedca0;
-    --orange: orange;
+    --orange: #FFA500;
     /* --orange: #ffb764; */
     --dark-purple: #330055;
     --grey-purple: #5e5266;
     --indigo-gradient: linear-gradient(45deg, #0000ff 0%, var(--dark-purple) 60%);
-    --blue-gradient: linear-gradient(45deg, var(--blue) 0%,  #a5f0ffcc 60%);    
+    --blue-gradient: linear-gradient(45deg, var(--blue) 0%,  var(--bright-blue) 60%);    
     --lavender-gradient: linear-gradient(45deg, #505193cc 0%, #c1b7fdcc 60%);
     --red-gradient: linear-gradient(45deg, #ff4574 0%, #6c0746 70%);
     --teal-gradient: linear-gradient(45deg, #003426 0%, #33c5c2 70%);
@@ -601,7 +602,7 @@ button, .link-button
 .main-info-box.yellow-gradient-background h2,
 .main-info-box.yellow-gradient-background h1
 {
-    color: #001550;
+    color: var(--navy);
 }
 .inline-form-field input
 {

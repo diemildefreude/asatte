@@ -1941,7 +1941,8 @@ button::-moz-focus-inner {
 .tox .tox-user__avatar svg {
   fill: rgba(34, 47, 62, 0.7);
 }
-.tox .tox-user__avatar img {
+.tox .tox-user__avatar img 
+{
   border-radius: 50%;
   height: 36px;
   object-fit: cover;

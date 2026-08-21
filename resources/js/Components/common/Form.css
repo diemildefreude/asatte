@@ -191,6 +191,7 @@
     height: 300px;
     max-width: 600px;
     background: var(--black-gradient);
+    z-index: 0;
 }
 .user-agreement
 {
@@ -202,7 +203,6 @@
     overflow-y: scroll;
     scrollbar-width: thin;
     scrollbar-color: var(--transparent-black) var(--bright-blue);  
-    z-index: 2;
 }
 .user-agreement-logo
 {
@@ -213,6 +213,10 @@
     transform: translate(-50%,-50%);
     color: var(--blue);
     --logo-secondary-color: var(--bright-blue);
-    opacity: 0.3;
-    z-index: 1;
+    opacity: 0.55;
+    z-index: -1;
+}
+.user-agreement .article-text
+{
+    z-index: 2;
 }

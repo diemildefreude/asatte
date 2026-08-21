@@ -8,7 +8,8 @@ import CommentSection from '../Components/common/CommentSection';
 import './DashboardProfile.css';
 import '../Components/common/RichTextEditor.css';
 import { FetchOrder, getErrorMessage, getScreenSize, monitorScreenSize, ScreenSize,
-    sanitizeRichHtml, hydrateEditorImagePaths } from '../utils/helpers';
+    sanitizeRichHtml, hydrateEditorImagePaths, 
+    MemberType} from '../utils/helpers';
 
 
 function UserProfile({ user: profileUserProp })
@@ -28,9 +29,10 @@ function UserProfile({ user: profileUserProp })
     const profileComments = props.profileComments || [];
     const canDeleteAnyComment = !!user && user.id === profileUser?.id;
 
-
     const avatar = profileUser?.avatar ? `${appUrl}/storage/images/uploaded/users/${username}/avatar/small/${profileUser?.avatar}` 
         : `${appUrl}/images/defaults/avatar.webp?v=1`;
+
+    console.log('pu',profileUser);
 
     useEffect(() => //check screen size at regular intervals.
     {   
@@ -81,7 +83,6 @@ function UserProfile({ user: profileUserProp })
             <div className='centered-content vert-1rem'><h1>{username}</h1></div>
             {
                 profileUser ? (
-                // false ? (
                     <div className="profile-boxes-container">
                         <div className="main-info-box yellow-gradient-background sticky">
                             {error && (
@@ -136,6 +137,18 @@ function UserProfile({ user: profileUserProp })
                                 </div>
                             </div>
                             <div className="info-section">  
+                                {
+                                    (profileUser.member_type == MemberType.Webmaster) && (
+                                    <div className='member-type centered-content no-margin'>
+                                        <span>webmaster</span>
+                                    </div>)
+                                }
+                                {
+                                    (profileUser.member_type == MemberType.Admin) && (
+                                    <div className='member-type admin centered-content no-margin'>
+                                        <span>admin</span>
+                                    </div>)
+                                }
                                 <ProfileItem
                                     name="websites"
                                     value={profileUser.websites || (profileUser.website ? [profileUser.website] : [])}
@@ -201,7 +214,6 @@ function UserProfile({ user: profileUserProp })
         </div>
         {
             profileUser ? (<>
-            {/* false ? (<> */}
                 <h2 className='centered-content padded'>{`${username}'s posts`}</h2>
                 <AutoloadTilesContainer
                     screenSize={screenSize}

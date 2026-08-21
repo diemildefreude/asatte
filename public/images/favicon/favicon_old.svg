@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg version="1.1" id="favicon" width="174" height="174" viewBox="0 0 174 174" xmlns="http://www.w3.org/2000/svg">
+  <defs id="defs1">
+    <style>
+      /* Default / Light Mode */
+      .primary-shape { fill: #0025b7; }       /* var(--blue) */
+      .secondary-shape { fill: rgb(255, 165, 0); } /* var(--orange) */
+
+      /* Dark Mode (OS / Browser Theme) */
+      @media (prefers-color-scheme: dark) {
+        .primary-shape { fill: #28dbff; }     /* var(--bright-blue) */
+        .secondary-shape { fill: rgb(255, 189, 68); }
+      }
+    </style>
+  </defs>
+
+  <g id="layer-circle-mark" transform="translate(-301.81365, -83.48387)">
+    <!-- Primary Outer Circle Ring -->
+    <path
+      id="path-circle-ring"
+      class="primary-shape"
+      fill-opacity="1"
+      fill-rule="nonzero"
+      stroke="none"
+      stroke-width="1.33333"
+      d="m 388.81365,238.65986 c -37.65333,0 -68.176,-30.524 -68.176,-68.176 0,-37.65333 30.52267,-68.17733 68.176,-68.17733 37.652,0 68.176,30.524 68.176,68.17733 0,37.652 -30.524,68.176 -68.176,68.176 m 0,-153.05199 c -46.876,0 -84.876,37.99999 -84.876,84.87599 0,46.87467 38,84.87467 84.876,84.87467 46.876,0 84.876,-38 84.876,-84.87467 0,-46.876 -38,-84.87599 -84.876,-84.87599"
+    />
+
+    <!-- Secondary Inner Semi-Circle Fill -->
+    <path
+      id="path-semi-circle"
+      class="secondary-shape"
+      fill-opacity="1"
+      fill-rule="nonzero"
+      stroke="none"
+      stroke-width="1.33333"
+      d="m 320.63005,170.48333 c -10e-4,0.14933 -0.012,0.29733 -0.012,0.44667 0,37.65333 30.524,68.17733 68.17733,68.17733 37.652,0 68.176,-30.524 68.176,-68.17733 0,-0.14934 -0.0107,-0.29734 -0.0107,-0.44667 z"
+    />
+  </g>
+</svg>

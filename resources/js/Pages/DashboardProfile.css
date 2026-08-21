@@ -160,6 +160,7 @@
 {
     max-width: 50vw;
     margin: 0 auto;
+    border: 2px solid var(--navy);
     border-radius: 100%;
     overflow: hidden;
     position: relative;
@@ -732,4 +733,27 @@
     align-items: center;
     justify-content: center;
     padding: 0.25em;
+}
+/*~~~~MEMBER TYPE~~~~*/
+.main-info-box .member-type span
+{
+    font-size: 1.2em;
+    font-weight: 300;
+    color: var(--bright-blue);
+    text-shadow: 5px -5px 12px var(--orange),
+                 -5px 5px 12px var(--blood),                 
+                 5px -5px 12px var(--orange),
+                 -5px 5px 12px var(--orange),
+                 0px 0px 12px rgb(255, 72, 0),
+                 0px 0px 12px rgb(255, 72, 0);
+}
+.main-info-box .member-type.admin span
+{   
+    color: var(--strawberry);
+    text-shadow: 5px -5px 12px var(--bright-blue),
+                 -5px 5px 12px var(--dark-blue),                 
+                 5px -5px 12px var(--bright-blue),
+                 -5px 5px 12px var(--bright-blue),
+                 0px 0px 12px var(--blue),
+                 0px 0px 12px var(--blue);
 }

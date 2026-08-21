@@ -7,7 +7,7 @@
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
 
         <!-- Favicons & App Manifest -->
-        <link rel="icon" type="image/svg+xml" href="/images/favicon/favicon.svg" sizes="any">
+        <link rel="icon" type="image/svg+xml" href="/images/favicon/favicon_old.svg" sizes="any">
         <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon/apple-touch-icon.png">
         <link rel="manifest" crossorigin="use-credentials" href="/images/favicon/site.webmanifest">
         <!-- Fonts -->

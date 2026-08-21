@@ -1,138 +1,69 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', config('app.name'))</title>
     <style>
-        /* General styles for the entire email body */
-        body, html {
-            margin: 0;
-            padding: 0;
-            /* Provide a solid background color fallback */
-            background-color: #330055; /* A dark color from your gradient */
-            font-family: Tahoma, sans-serif;
-            color: white;
-            font-size: 1rem;
-        }
-        /* The main container table for the email */
-        .full-width-table {
-            width: 100%;
-            border-collapse: collapse;
-            mso-table-lspace: 0pt; /* Outlook specific */
-            mso-table-rspace: 0pt; /* Outlook specific */
-            /* Apply the background color here as a fallback */
-            background-color: #330055;
-        }
-        .gradient-cell {
-            /* This is where you'd try to apply the gradient, but it's not widely supported */
-            /* For clients that support it, you can put it here */
-            background: linear-gradient(45deg, #0000ff 0%, #330055 60%);
-            /* Fallback for clients that don't support gradients */
-            background-color: #330055;
-        }
-        h1, p, a, td { /* <--- Apply to common text containers and cells */
-            color: #FFFFFF !important; /* Force white color, !important for inlining */
-        }
-        /* Styles for the message-container, using table-based layout */
-        .message-container-table 
-        {
-            width: 100%;
-            max-width: 700px; /* Match your main-text-button-container max-width */
-            border-collapse: collapse;
-            margin: 2rem auto; /* Center the table */
-            padding: 20px; /* Add some padding around content */
-            text-align: center; /* Center text/inline elements within */
-        }
-        .message-container-table td 
-        {
-            padding: 20px; /* Cell padding */
-            vertical-align: top; /* Align content to top of cell */
-        }
-        h1 
-        {
-            font-size: 2.5em;
-            text-align: center;
+        /* Fallbacks & hover states for supporting email clients */
+        html, body { 
+            margin: 0; 
+            padding: 0; 
+            width: 100%; 
+            height: 100%; 
+            min-height: 100%; 
+            background-color: #330055; 
+            background: linear-gradient(45deg, #0000ff 0%, #330055 60%); 
             font-weight: 1;
-            color: #FFFFFF !important; /* <--- Explicitly set for h1 */
         }
-        .message-container-table p
+        a { text-decoration: underline; color: {{ $buttonTextColor }}; }
+        .button 
         {
-            line-height: 2.5em;
-            font-size: 1.5rem;
-            font-weight: 1;
-            color: #FFFFFF !important;
-            margin: 0;
-        }
-        /* For the button, make sure its parent has text-align: center */
-        .button-cell 
-        {
-            text-align: center; /* Center the button horizontally */
-            padding-top: 20px; /* Space above button */
-            padding-bottom: 20px; /* Space below button */
-        }
-        .button {
-            background: transparent;
-            text-decoration: none;
-            color: #FFFFFF !important;
-            border: 1px solid white;
-            cursor: pointer;
-            font-size: 1.5em;
-            padding: 1.5em 2rem; /* Adjusted padding for better button appearance */
-            display: inline-block; /* Use inline-block for buttons in email, then center parent text */
-            margin: 0 auto; /* Will work if parent is block and has text-align: center */
-            width: fit-content; /* Helps with centering */
-            text-align: center; /* Ensure text inside button is centered */
+            color: {{ $buttonTextColor }};
+            border-color: {{ $buttonTextColor }};
         }
         .button:hover 
         {
-            background: linear-gradient(45deg, #88CDFFCC 0%, #1177c0cc 60%);
-            background: -webkit-linear-gradient(45deg, #88CDFFCC 0%, #1177c0cc 60%);
-            color: #F9FBD2 !important;
-            border: 1px solid #F9FBD2;
-        }
-        .not-me-container {
-            text-align: center; /* Center the text in this div */
-        }
-        .message-container-table .not-me-container p
-        {            
-            font-size: 1em;
-        }
-        .message-box
-        {
-            padding: 1em;
-        }
-        .message
-        {
-            border: 1px solid #F9FBD2;
-            padding: 0.5rem;
+            background-color: {{ $buttonHoverFallbackColor }} !important;
+            background: linear-gradient(45deg, {{ $buttonHoverFallbackColor }} 0%, {{ $buttonTextColor }} 60%) !important;
+            color: {{ $buttonHoverTextColor }} !important;
+            border-color: {{ $buttonHoverTextColor }} !important;
         }
     </style>
 </head>
-<body>
+<body style="margin: 0; padding: 0; width: 100%; min-height: 100%; background-color: #330055; background: linear-gradient(45deg, #330055 0%, #330055 20%, #FFA500 100%); font-family: {{ $fontFamily }}; color: {{ $mainTextColor }};">
     <!-- Outer table for full width background and centering -->
-    <table class="full-width-table" role="presentation" border="0" cellpadding="0" cellspacing="0">
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" height="100%" style="width: 100%; min-width: 100%; height: 100%; border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; background: transparent;">
         <tr>
-            <td class="gradient-cell">
+            <td align="center" style="padding: 0; background: transparent; vertical-align: top;">
                 <!-- Inner table for content alignment and max-width -->
-                <table class="message-container-table" role="presentation" border="0" cellpadding="0" cellspacing="0">
+                <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="width: 100%; max-width: 600px; border-collapse: collapse; margin: 0 auto; text-align: center;">
                     <tr>
-                        <td style="padding-top: 40px;">
-                            <h1>@yield('header')</h1>
+                        <td align="center" style="padding: 0 16px; vertical-align: top;">
+                            <div style="padding: 24px 0 12px; margin: 0 auto;">
+                                <img src="{{ isset($message) ? $message->embed(public_path('images/logo/email_purple_blue_no_inner_outline.png')) : asset('images/logo/email_purple_blue_no_inner_outline.png') }}" alt="Asatte Logo" style="width: 220px; max-width: 100%; height: auto; display: block; margin: 0 auto; border: 0;">
+                            </div>
+                            <h1 style="font-size: 28px; line-height: 36px; text-align: center; font-weight: 300; color: {{ $mainTextColor }}; margin: 16px 0 12px; font-family: {{ $fontFamily }};">
+                                @yield('header')
+                            </h1>
                         </td>
                     </tr>
                     <tr>
-                        <td style="padding-bottom: 20px;">
+                        <td align="center" style="padding: 0 16px; vertical-align: top;">
                             @yield('content')
                         </td>
                     </tr>
                     @hasSection('button')
                     <tr>
-                        @yield('button')
+                        <td align="center" style="padding: 0 16px; vertical-align: top;">
+                            @yield('button')
+                        </td>
                     </tr>
                     @endif
                     @hasSection('footer')
                     <tr>
-                        <td>
-                            <div class="not-me-container">
+                        <td align="center" style="padding: 0 16px; vertical-align: top;">
+                            <div style="text-align: center; margin: 16px 0;">
                                 @yield('footer')
                             </div>
                         </td>

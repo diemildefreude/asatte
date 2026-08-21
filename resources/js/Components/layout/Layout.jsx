@@ -90,7 +90,7 @@ function Layout({children, isDashboard=false, classes=""})
         <footer>
             <div className="footer-background"></div>
             <div className="copyright">
-                <small>{`${APP_NAME} © 2026`}</small>
+                <small>{`${APP_NAME} © 2026+`}</small>
                 <LogoSpikedClean className="footer-logo" alt={`${props.app_name} logo`}/>
             </div> 
         </footer>

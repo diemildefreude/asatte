@@ -7,7 +7,7 @@ import TileCarousel from '../Components/common/TileCarousel';
 import Layout from '../Components/layout/Layout';
 import { usePage } from '@inertiajs/react';
 import { Category, FetchOrder, getScreenSize, monitorScreenSize } from '../utils/helpers';
-import LogoTwoToneGradientNamed from '../Components/layout/LogoTwoToneGradientNamed';
+import LogoThreeToneGradientFrameOutlineNamed from '../Components/layout/LogoThreeToneGradientFrameOutlineNamed';
 
 function Home({ heroPosts = [], carouselArchive = [], carouselNews = [], carouselFollowing = [], archivePosts = [] })
 {        
@@ -27,7 +27,7 @@ function Home({ heroPosts = [], carouselArchive = [], carouselNews = [], carouse
         <div className="hero">            
             <div className='hero-logo-container'>
                 {/* <img className="hero-logo" src={directory + "logo/gradient_named.svg"} alt="asatte logo"></img> */}
-                <LogoTwoToneGradientNamed className="hero-logo" alt={`${props.app_name} logo`}/>
+                <LogoThreeToneGradientFrameOutlineNamed className="hero-logo" alt={`${props.app_name} logo`}/>
             </div>      
             <div className='hero-text-container'>
                 <h1 className='invisible'>{`asatte.io`}</h1>

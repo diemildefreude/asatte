@@ -44,7 +44,7 @@ function UserLink({user, readOnly=false, onClick=null, additionalClasses="", url
                         />
                         <span className="notice-light small"></span>
                     </span> 
-                    <span className="sr-only">{user.username.replace(/_/g, ' ')}</span>
+                    <span className="sr-only">{user.username ? user.username.replace(/_/g, ' ') : ' '}</span>
                     <span className='username' aria-hidden="true">{user.username}</span>
                 </Link>
             ) :

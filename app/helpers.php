@@ -2,9 +2,9 @@
 
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Intervention\Image\Drivers\Imagick\Driver;
+//use Intervention\Image\Drivers\Imagick\Driver;
 use Intervention\Image\ImageManager;
-//use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\Drivers\Gd\Driver;
 //----HELPER FUNCTIONS----
 /**
  * Sanitize rich HTML from TinyMCE. Allows safe formatting, images, links,
@@ -322,11 +322,21 @@ if (!function_exists('storeImageFile')) {
         $thumb = $manager->read($filePath);
         $small = $manager->read($filePath);
         $large = $manager->read($filePath);
-
+        $isLandscape = $thumb->width() >= $thumb->height();
+        
         $thumb->scaleDown(height: thumbSize());
-        $small->scaleDown(height: smallH());
-        $large->scaleDown(width: largeW());
-
+        
+        if($isLandscape)
+        {
+            $small->scaleDown(height: smallH());
+            $large->scaleDown(height: largeH());
+        }
+        else
+        {
+            $small->scaleDown(height: smallW());
+            $large->scaleDown(height: largeW());
+        }
+        
         $imageRoot = 'images/uploaded/' . $folder . '/';
         Storage::disk('public')->put($imageRoot . 'thumb/' . $imageName, (string) $thumb->encode());
         Storage::disk('public')->put($imageRoot . 'small/' . $imageName, (string) $small->encode());

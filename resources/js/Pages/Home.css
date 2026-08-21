@@ -33,6 +33,13 @@
     opacity: 1.0;
     color: white;
     --logo-secondary-color: var(--orange);
+    --frame-outline-color: var(--bright-blue);
+}
+.hero-logo path
+{
+    /* stroke: var(--bright-blue); */
+    /* stroke-width: px; */
+    /* paint-order: stroke fill; */
 }
 .hero-text-container
 {

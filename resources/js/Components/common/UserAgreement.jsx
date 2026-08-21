@@ -20,7 +20,7 @@ function UserAgreement({onAgreeChange, onHumanChange, onRobotChange,
 
             <p>Users whose content has been temporarily hidden will be notified so that they can make changes or appeal the decision.</p>
 
-            <p>Malicious comments or SPAM will lead to comment-deletion and potentially account-deletion, at the discretion of the webmaster & admins.</p>
+            <p>Malicious content or SPAM will lead to content-deletion and potentially account-deletion, at the discretion of the webmaster & admins.</p>
 
             <p>Users must have the right to archive the work they post. {APP_NAME} complies with DMCA takedown requests and will remove infringing material upon valid notice.</p>
 

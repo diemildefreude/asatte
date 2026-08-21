@@ -4,7 +4,7 @@ import UserLink from './UserLink';
 import './UserLink.css';
 import { openPopup, getPostUrl } from '../../utils/helpers';
 import { Link, router, usePage } from '@inertiajs/react';
-function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false}) 
+function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false, size="small"}) 
 {
     const { props } = usePage();
     if (!post || (!user && !post.user)) return null;
@@ -20,7 +20,7 @@ function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false})
         viewText = "read";
     }
 
-    const directory = `${props.app_url}/storage/images/uploaded/users/${author.username}/posts/${post.post_url}/gallery/small`;
+    const directory = `${props.app_url}/storage/images/uploaded/users/${author.username}/posts/${post.post_url}/gallery/${size}`;
 
     let imageUrls = [];
     try 

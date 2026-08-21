@@ -50,8 +50,43 @@ Route::get('/auth/{provider}/callback', [SocialiteController::class, 'handleProv
 Route::get('/api/auth/{provider}/redirect', [SocialiteController::class, 'redirectToProvider']);
 Route::get('/api/auth/{provider}/callback', [SocialiteController::class, 'handleProviderCallback']);
 
-Route::view('/verify', 'emails.verify-email'); //limited use for testing e-mail appearance
-
+// Temporary routes for testing email templates
+Route::prefix('test-emails')->group(function () {
+    $dummyData = [
+        // contact-email
+        'senderName' => 'Alice Art',
+        'rawSubject' => 'Partnership Inquiry',
+        'content' => 'I would love to partner with you on a new art project.',
+        // new-message
+        'linkToInbox' => url('/dashboard/mail'),
+        // news-notice
+        'newsPostTitle' => 'A New Feature Announcement',
+        'previewOfNewsPostStatement' => 'We are excited to announce our newest feature for the platform.',
+        'linkToNewsPost' => url('/news/today/feature'),
+        // post-hidden / unhidden
+        'postTitle' => 'My Amazing Artwork',
+        'reasonGivenByAdmin' => 'Violation of community guidelines regarding content.',
+        'linkToMailInbox' => url('/dashboard/mail'),
+        'linkToUnhiddenPost' => url('/dashboard/posts'),
+        // reset-password / verify-email / social-welcome
+        'loginType' => \App\Enums\LoginType::Melonland ?? 'Melonland', 
+        'username' => 'alice_art',
+        'resetUrl' => url('/password-reset'),
+        'linkToHomePage' => url('/'),
+        'verificationUrl' => url('/verify'),
+        'cancelRegistrationUrl' => url('/cancel'),
+    ];
+    
+    Route::get('/contact', fn() => view('emails.contact-email', $dummyData));
+    Route::get('/layout', fn() => view('emails.layout', $dummyData));
+    Route::get('/new-message', fn() => view('emails.new-message', $dummyData));
+    Route::get('/news-notice', fn() => view('emails.news-notice', $dummyData));
+    Route::get('/post-hidden', fn() => view('emails.post-hidden', $dummyData));
+    Route::get('/post-unhidden', fn() => view('emails.post-unhidden', $dummyData));
+    Route::get('/reset-password', fn() => view('emails.reset-password', $dummyData));
+    Route::get('/social-welcome', fn() => view('emails.social-welcome', $dummyData));
+    Route::get('/verify-email', fn() => view('emails.verify-email', $dummyData));
+});
 Route::get('/email/verify/{id}/{hash}', [App\Http\Controllers\AuthController::class, 'verifyEmail'])
     ->middleware(['signed'])
     ->name('verification.verify');

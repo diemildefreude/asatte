@@ -71,9 +71,9 @@ function HeroTilesContainer({screenSize, category, fetchOrder=FetchOrder.Ascendi
     {
         postsToDisplay.length > 0 ?
         (
-            postsToDisplay.map((post) =>
+            postsToDisplay.map((post, index) =>
             {
-                return <Tile post={post} key={post.id}/>
+                return <Tile post={post} key={post.id} size={index < 2 ? "large" : "small"}/>
             })
             
         ) :
