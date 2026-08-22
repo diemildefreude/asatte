@@ -739,12 +739,9 @@ button, .link-button
 {
     padding: 1rem 1rem 0;
 }
-.article-text h1, .article-text h2, .article-text h3, .article-text h4
+.article-text h1, .article-text h2, .article-text h3, .article-text h4, .article-text p, .article-text ol, .article-text .ul
 {
     width: 100%;
-}
-.article-text p
-{
     padding: 0.4em;
 }
 .article-text p:not(:last-child), .article-text ol:not(:last-child), .message-text p:not(:last-child), .message-text ol:not(:last-child)

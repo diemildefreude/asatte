@@ -161,7 +161,6 @@ function AvatarSetter({user})
         
         setIsImageCropperOpen(true);
         const selectedFileUrl = await getImageUrlFromFile(file);
-        console.log("selectedFileUrl", selectedFileUrl);
         setSelectedAvatar(selectedFileUrl);
     },[setIsImageCropperOpen, setSelectedAvatar, clearErrors, setError]);
 

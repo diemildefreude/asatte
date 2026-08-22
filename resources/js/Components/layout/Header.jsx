@@ -159,9 +159,9 @@ function Header()
                 </div>
                 {
                     (url != "/") && (
-                        <div className="nav-logo-desktop">
-                            <LogoTwoToneGradientClean alt={`${props.app_name} logo`}/>
-                        </div>
+                        <Link href="/" className="nav-logo-desktop" onClick={() => setIsNavOpen(false)}>
+                    <LogoTwoToneGradientClean alt={`${props.app_name} logo`}/>
+                </Link>
                     )
                 }
                 <div className="nav-halves">

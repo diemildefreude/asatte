@@ -249,7 +249,7 @@
                                 <div className="main-info-box">
                                     <div className='centered-content no-margin'><h1>{post.title}</h1></div>
                                     <div><p><em>{post.subtitle}</em></p></div>   
-                                    <div><p className="post-date"> posted by <UserLink user={post.user}/> on 2025.5.12</p></div>    
+                                    <div><p className="post-date"> posted by <UserLink user={post.user}/> on {getDateAsYYYYMMDD(post.created_at)}</p></div>    
                                     {
                                         post.premiere_date && (
                                             <div><p className="post-date"><em>premiered on {getDateAsYYYYMMDD(post.premiere_date)}</em></p></div> 

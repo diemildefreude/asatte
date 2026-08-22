@@ -159,37 +159,34 @@ function UserProfile({ user: profileUserProp })
                                     value={profileUser.location}
                                     isPublic={true}
                                 />       
-                                {
-                                    (true) && (
-                                    <div className="flex-row">                                   
-                                        <span>
-                                            <Link href="/dashboard/mail/new" 
-                                                data={{addressee: username}}
-                                                className='link-with-icon'
-                                                >
-                                                <i className="fa-regular fa-envelope medium-icon"/> <span>send DM</span>
-                                            </Link>
-                                        </span>
-                                        {
-                                        !!profileUser.show_email_in_profile && (
-                                        <span>
-                                            <a href={`mailto:${profileUser.email}`}
-                                                className='link-with-icon'
+                                <div className="flex-row">                                   
+                                    <span>
+                                        <Link href="/dashboard/mail/new" 
+                                            data={{addressee: username}}
+                                            className='link-with-icon'
                                             >
-                                                <i className="fa-solid fa-envelopes-bulk medium-icon"/> <span>e-mail</span> 
-                                            </a> 
-                                            {' '}
-                                            <button className='button-link' 
-                                                aria-label="copy to clipboard" 
-                                                title="copy to clipboard"
-                                                onClick={handleCopy}
-                                            > 
-                                                <i className="fa-regular fa-copy medium-icon"/>
-                                            </button>
-                                        </span>
-                                        )}
-                                    </div>)
-                                }
+                                            <i className="fa-regular fa-envelope medium-icon"/> <span>send DM</span>
+                                        </Link>
+                                    </span>
+                                    {
+                                    !!profileUser.show_email_in_profile && (
+                                    <span>
+                                        <a href={`mailto:${profileUser.email}`}
+                                            className='link-with-icon'
+                                        >
+                                            <i className="fa-solid fa-envelopes-bulk medium-icon"/> <span>e-mail</span> 
+                                        </a> 
+                                        {' '}
+                                        <button className='button-link' 
+                                            aria-label="copy to clipboard" 
+                                            title="copy to clipboard"
+                                            onClick={handleCopy}
+                                        > 
+                                            <i className="fa-regular fa-copy medium-icon"/>
+                                        </button>
+                                    </span>
+                                    )}
+                                </div>
                             </div>        
                         </div>
                         <div className="rte-container black-gradient-background">
