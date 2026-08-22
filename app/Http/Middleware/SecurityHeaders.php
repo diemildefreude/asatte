@@ -16,6 +16,11 @@ class SecurityHeaders
      */
     public function handle(Request $request, Closure $next)
     {
+        // Enforce HTTPS redirect for non-secure HTTP requests in production
+        if (!app()->environment('local') && !$request->secure() && $request->header('X-Forwarded-Proto') !== 'https') {
+            return redirect()->secure($request->getRequestUri(), 301);
+        }
+
         $response = $next($request);
 
 
@@ -42,6 +47,11 @@ class SecurityHeaders
                    "font-src * data: blob:; " .
                    "frame-src *; " .
                    "connect-src * data: blob:;";
+        }
+
+        if (!app()->environment('local')) {
+            $csp = "upgrade-insecure-requests; " . $csp;
+            $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
         }
 
         $response->headers->set('Content-Security-Policy', $csp);
