@@ -20,7 +20,6 @@ function CommentSection({comments, apiRoutePrefix, likeCount, viewCount, canDele
     const user = usePage().props.auth?.user;
     const isAuthenticated = !!user;
     const page = usePage();
-    const success = page.props.flash?.success;
     const parsed = typeof window !== 'undefined' 
         ? new URL(page.url || window.location.href, window.location.origin)
         : new URL(page.url, page.props.app_url || 'http://localhost');
@@ -150,11 +149,6 @@ function CommentSection({comments, apiRoutePrefix, likeCount, viewCount, canDele
                             {errors.content && (
                             <div className="error">
                                 {errors.content}
-                            </div>
-                            )}
-                            {success && (
-                            <div className="notice">
-                                {success}
                             </div>
                             )}
                             {!isAuthenticated && (
