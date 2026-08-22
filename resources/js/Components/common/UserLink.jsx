@@ -3,7 +3,7 @@ import './UserLink.css';
 import { Link, router, usePage } from '@inertiajs/react';
 import { useCallback } from 'react';
 
-function UserLink({user, readOnly=false, onClick=null, additionalClasses="", url=null, returnUser=false})
+function UserLink({user, readOnly=false, onClick=null, additionalClasses="", url=null, returnUser=false, isSliderDraggedPointerUp=false})
 {   
     const { props } = usePage();
     
@@ -17,6 +17,19 @@ function UserLink({user, readOnly=false, onClick=null, additionalClasses="", url
 
     const handleOnClickOverride = useCallback((e) => 
     { 
+        const isDragged = typeof isSliderDraggedPointerUp === 'object' && isSliderDraggedPointerUp !== null
+            ? isSliderDraggedPointerUp.current 
+            : !!isSliderDraggedPointerUp;
+
+        if (isDragged)
+        {
+            e.preventDefault();
+            e.stopPropagation();
+            if (e.currentTarget && typeof e.currentTarget.blur === 'function') {
+                e.currentTarget.blur();
+            }
+            return;
+        }
         if(onClick && returnUser)
         {
             onClick(e, user);
@@ -25,7 +38,7 @@ function UserLink({user, readOnly=false, onClick=null, additionalClasses="", url
         {
             onClick(e);
         }
-    },[onClick, user, readOnly, returnUser]);
+    },[onClick, user, readOnly, returnUser, isSliderDraggedPointerUp]);
 
     return (   
         <>

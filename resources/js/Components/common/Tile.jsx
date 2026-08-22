@@ -35,12 +35,13 @@ function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false, siz
     
     function handleLinkClick(e)
     {
-
-
         if(isSliderDraggedPointerUp?.current)
         {
             e.preventDefault(); // Stop the link from navigating if it was a drag
             e.stopPropagation(); // Stop event from bubbling up further
+            if (e.currentTarget && typeof e.currentTarget.blur === 'function') {
+                e.currentTarget.blur();
+            }
             return;
         }
     }
@@ -102,7 +103,10 @@ function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false, siz
                     {
                         !isDashboard && (
                             <div className="info-item link-container">
-                                <UserLink user={author}/>
+                                <UserLink 
+                                    user={author}
+                                    isSliderDraggedPointerUp={isSliderDraggedPointerUp}
+                                />
                             </div>
                         )
                     }
@@ -157,6 +161,9 @@ function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false, siz
                                         {
                                             e.stopPropagation();
                                             e.preventDefault();
+                                            if (e.currentTarget && typeof e.currentTarget.blur === 'function') {
+                                                e.currentTarget.blur();
+                                            }
                                             return;
                                         }
                                         e.preventDefault();

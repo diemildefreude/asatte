@@ -222,6 +222,10 @@ function CarouselContainer({size, className, children})
     {
         isPointerDownRef.current = false;
         
+        if (isDraggingRef.current && document.activeElement && typeof document.activeElement.blur === 'function') {
+            document.activeElement.blur();
+        }
+
         setTimeout(() => {
             isDraggedPointerUpRef.current = false;
         }, 50);
