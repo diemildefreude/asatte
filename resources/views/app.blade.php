@@ -57,8 +57,6 @@
                     $ogImage = url('/storage/images/uploaded/users/' . $profileUser['username'] . '/avatar/' . $profileUser['avatar_path']);
                 }
                 $ogType = 'profile';
-            }
-        @endphp
         <meta property="og:site_name" content="asatte.io">
         <meta property="og:url" content="{{ url()->current() }}">
         <meta property="og:type" content="{{ $ogType }}">
