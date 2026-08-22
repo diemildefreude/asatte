@@ -32,7 +32,7 @@ body[contenteditable="false"]
     color: #6b7280;
     cursor: not-allowed;
 }
-body::before, p
+body::before
 {
     margin: 0;
     padding: 0.2rem 0.4rem !important;
@@ -42,7 +42,7 @@ p
 {
     line-height: 1.6;  
     margin: 0;
-    padding: 0.2em 0 !important;  
+    padding: 0.4em 0 !important;  
 }
 img 
 {
