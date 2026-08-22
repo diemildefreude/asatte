@@ -170,6 +170,7 @@
 .profile-avatar-container.dashboard-avatar
 {
     border: 2px solid var(--pale-yellow);
+    max-width: 200px;
 }
 .avatar-section
 {
