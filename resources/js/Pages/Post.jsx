@@ -1,7 +1,7 @@
     import React, { useCallback, useEffect, useMemo, useState } from 'react';
     import {  Link, router, usePage } from '@inertiajs/react';
     import PageHead from '../Components/layout/PageHead';
-    import { getDateAsYYYYMMDD, getErrorMessage, hydrateEditorImagePaths, MemberType, openPopup, processEditorImages, sanitizeRichHtml, getPostUrl } from '../utils/helpers';
+    import { getDateAsYYYYMMDD, getErrorMessage, hydrateEditorImagePaths, MemberType, openPopup, processEditorImages, sanitizeRichHtml, getPostUrl, copyToClipboard } from '../utils/helpers';
 
     import Layout from '../Components/layout/Layout';
     import './Post.css';
@@ -194,7 +194,7 @@
                                         { 
                                             post.website ?
                                             (
-                                                <div className="info-item action-links link-container">
+                                                <div className="info-item action-links link-container group">
                                                     <a className="post-link" 
                                                         href={post.website}
                                                         onClick={(e) =>
@@ -208,6 +208,17 @@
                                                         <i className="fa-solid fa-arrow-up-right-from-square"></i>
                                                         <span>visit site</span>
                                                     </a>
+                                                    {' '}
+                                                    <button className='button-link' 
+                                                        aria-label="copy URL to clipboard" 
+                                                        title={`copy ${post.website} to clipboard`}
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            copyToClipboard(post.website, 'Website URL copied to clipboard!');
+                                                        }}
+                                                    > 
+                                                        <i className="fa-regular fa-copy medium-icon"/>
+                                                    </button>
                                                 </div>
                                             ) : ( <></>)
                                         }

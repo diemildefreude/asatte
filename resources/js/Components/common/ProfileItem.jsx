@@ -1,6 +1,7 @@
 import { useRef, useEffect } from "react";
 import EditButton from "./EditButton";
 import { Link } from '@inertiajs/react';
+import { stripProtocol } from "../../utils/helpers";
 
 function ProfileItem({name, value, onChange=null, disabled=false, 
     isLink=false, isEditingThisField=false, onEditClick, isPublic=false,
@@ -34,7 +35,7 @@ function ProfileItem({name, value, onChange=null, disabled=false,
                 href={val}
                 target="_blank"
             >
-                {val}
+                {stripProtocol(val)}
             </a>
         ):
         (
@@ -109,7 +110,7 @@ function ProfileItem({name, value, onChange=null, disabled=false,
                             href={value}
                             target="_blank"
                         >
-                            {value}
+                            {stripProtocol(value)}
                         </a>
                     ):
                     (

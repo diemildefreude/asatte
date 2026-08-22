@@ -95,6 +95,12 @@
     position: relative;
     top: 5px;
 }
+.link-container.group
+{
+    display: flex;
+    flex-direction: row;
+    gap: 1em;
+}
 .link-container a
 {
     gap: 0.5rem;

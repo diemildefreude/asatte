@@ -2,7 +2,7 @@ import React from 'react';
 import './Tile.css';
 import UserLink from './UserLink';
 import './UserLink.css';
-import { openPopup, getPostUrl } from '../../utils/helpers';
+import { openPopup, getPostUrl, copyToClipboard } from '../../utils/helpers';
 import { Link, router, usePage } from '@inertiajs/react';
 function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false, size="small"}) 
 {
@@ -146,7 +146,7 @@ function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false, siz
                     {
                         post.website && !isDashboard && 
                         (
-                            <div className="info-item action-links link-container">
+                            <div className="info-item action-links link-container group">
                                 <a href={post.website} 
                                     className="post-link"
                                     draggable="false"
@@ -167,8 +167,8 @@ function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false, siz
                                 }>
                                     <i className="fa-solid fa-arrow-up-right-from-square"></i>
                                     <span>visit</span>                                            
-                                </a>
-                                </div>
+                                </a>                                
+                            </div>
                         )
                     }                                    
                 </div>

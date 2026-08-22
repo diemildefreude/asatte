@@ -988,3 +988,30 @@ export function getPostUrl(post) {
     }
     return `/${post.user?.username}/${post.post_url}`;
 }
+
+/**
+ * Strips http:// or https:// from a URL string for display purposes.
+ * @param {string} url - The URL to format
+ * @returns {string} The URL string without http:// or https://
+ */
+export function stripProtocol(url) {
+    if (!url || typeof url !== 'string') return url;
+    return url.replace(/^https?:\/\//i, '');
+}
+
+/**
+ * Copies text to the clipboard and shows an optional alert message.
+ * @param {string} text - The text to copy
+ * @param {string} [successMessage] - Optional message to alert upon success
+ */
+export async function copyToClipboard(text, successMessage = null) {
+    if (!text) return;
+    try {
+        await navigator.clipboard.writeText(text);
+        if (successMessage) {
+            alert(successMessage);
+        }
+    } catch (err) {
+        console.error('Failed to copy to clipboard: ', err);
+    }
+}
