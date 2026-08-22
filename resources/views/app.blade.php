@@ -20,8 +20,8 @@
         <script src="https://kit.fontawesome.com/dfd3e08cad.js" crossorigin="anonymous"></script>
         <!-- Scripts -->
         
-        <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-        <script>eruda.init();</script>
+        <!-- <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+        <script>eruda.init();</script> -->
 
         @viteReactRefresh
         @vite(['resources/js/app.jsx', "resources/js/Pages/{$page['component']}.jsx"])
