@@ -129,7 +129,7 @@
 .tox .tox-editor-container .tox-tbtn--enabled
 {
     border: 1px solid white !important;
-    background: var(--red-gradient) !important;
+    background: var(--yellow-gradient) !important;
 }
 .tox .tox-editor-container button svg path, 
 .tox .tox-editor-container button svg g

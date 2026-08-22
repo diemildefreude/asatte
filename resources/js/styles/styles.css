@@ -22,7 +22,7 @@
     --footer-gradient: linear-gradient(10deg, #000000ff 20%, #00000000 60%);
     --dark-blue-gradient: linear-gradient(45deg, var(--dark-blue) 0%, #1fbcdb 60%);
     --black-gradient: linear-gradient(45deg, #000000ff 0%, #0d003397 60%);
-    --yellow-gradient: linear-gradient(45deg, #9d420d 0%, var(--pale-yellow) 60%);
+    --yellow-gradient: linear-gradient(45deg, #fa6400 0%, var(--yellow) 60%);
     --carousel-gradient: linear-gradient(110deg, rgba(0, 0, 0, 0) 0%, #000000 50% ,rgba(0, 0, 0, 0) 100%);
     --paper-gradient: linear-gradient(45deg, #efd9b6 0%, white 60%);
     --transparent-black: rgba(0, 0, 0, 0.5);

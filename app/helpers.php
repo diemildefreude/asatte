@@ -74,7 +74,7 @@ if (!function_exists('sanitizeRichHtml')) {
   );
   
   $config->set('HTML.Nofollow', true);
-  $config->set('HTML.TargetBlank', true);
+  $config->set('Attr.AllowedFrameTargets', ['_blank', '_self']);
   $config->set('URI.AllowedSchemes', ['http' => true, 'https' => true]);
   
   $config->set('HTML.SafeIframe', true);

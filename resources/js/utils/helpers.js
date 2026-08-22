@@ -90,6 +90,7 @@ export function sanitizeRichHtml(html)
       'style', 'class', 'frameborder', 'allowfullscreen', 'allow',
       'referrerpolicy', 'scrolling',
     ],
+    ADD_ATTR: ['target'],
     ALLOW_DATA_ATTR: true,
   });
 

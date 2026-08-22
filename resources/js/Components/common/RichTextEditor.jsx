@@ -64,6 +64,11 @@ function RichTextEditor({ onChange, value, quotedMessage, onQuoteApplied, placeh
         menubar: false,
         link_assume_external_targets: 'http',
         link_default_protocol: 'http',
+        target_list: [
+          { title: 'Current window', value: '' },
+          { title: 'New window', value: '_blank' }
+        ],
+        default_link_target: '_blank',
         plugins: 'autoresize image link media',
         autoresize_bottom_margin: 50,
         toolbar: disabled ? false : 
