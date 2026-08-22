@@ -4,7 +4,9 @@ function PageHead({
     title="", 
     description="The premiere hub for internet art.",
     ogType="website",
-    ogImg
+    ogImg,
+    ogWidth=1200,
+    ogHeight=630
     })
 {
     const { url } = usePage();
@@ -24,8 +26,8 @@ function PageHead({
             <meta head-key="og:title" property="og:title" content={title || domain} />
             <meta head-key="og:description" property="og:description" content={description} />
             <meta head-key="og:image" property="og:image" content={ogImage} />
-            <meta head-key="og:image:width" property="og:image:width" content="1920" />
-            <meta head-key="og:image:height" property="og:image:height" content="1080" />
+            <meta head-key="og:image:width" property="og:image:width" content={ogWidth} />
+            <meta head-key="og:image:height" property="og:image:height" content={ogHeight} />
             {/* Twitter */}
             <meta head-key="twitter:card" name="twitter:card" content="summary_large_image" />
             <meta head-key="twitter:domain" property="twitter:domain" content={domain} />

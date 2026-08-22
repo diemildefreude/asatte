@@ -23,6 +23,54 @@
         <!-- <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
         <script>eruda.init();</script> -->
 
+        <!-- Dynamic Open Graph / Twitter Meta Tags for Scrapers & Social Shares -->
+        @php
+            $post = $page['props']['post'] ?? null;
+            $profileUser = $page['props']['profileUser'] ?? null;
+            
+            $ogTitle = config('app.name', 'asatte.io');
+            $ogDesc = 'The premiere hub for internet art.';
+            $ogImage = url('/images/og_image0.webp');
+            $ogType = 'website';
+
+            if ($post) {
+                $ogTitle = ($post['title'] ?? '') . ($post['subtitle'] ? ' - ' . $post['subtitle'] : '');
+                if (!empty($post['statement'])) {
+                    $ogDesc = \Illuminate\Support\Str::limit(trim(strip_tags($post['statement'])), 160);
+                }
+                $gallery = $post['gallery_image_urls'] ?? [];
+                if (!empty($gallery) && isset($post['user']['username'])) {
+                    $username = $post['user']['username'];
+                    $postUrl = $post['post_url'];
+                    $firstImg = is_array($gallery) ? $gallery[0] : (json_decode($gallery, true)[0] ?? null);
+                    if ($firstImg) {
+                        $ogImage = url("/storage/images/uploaded/users/{$username}/posts/{$postUrl}/gallery/large/{$firstImg}");
+                    }
+                }
+                $ogType = 'article';
+            } elseif ($profileUser) {
+                $ogTitle = ($profileUser['username'] ?? '') . ' on asatte.io';
+                if (!empty($profileUser['bio'])) {
+                    $ogDesc = \Illuminate\Support\Str::limit(trim(strip_tags($profileUser['bio'])), 160);
+                }
+                if (!empty($profileUser['avatar_path'])) {
+                    $ogImage = url('/storage/images/uploaded/users/' . $profileUser['username'] . '/avatar/' . $profileUser['avatar_path']);
+                }
+                $ogType = 'profile';
+            }
+        @endphp
+        <meta property="og:site_name" content="asatte.io">
+        <meta property="og:type" content="{{ $ogType }}">
+        <meta property="og:title" content="{{ $ogTitle }}">
+        <meta property="og:description" content="{{ $ogDesc }}">
+        <meta property="og:image" content="{{ $ogImage }}">
+        <meta property="og:image:width" content="1200">
+        <meta property="og:image:height" content="630">
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="{{ $ogTitle }}">
+        <meta name="twitter:description" content="{{ $ogDesc }}">
+        <meta name="twitter:image" content="{{ $ogImage }}">
+
         @viteReactRefresh
         @vite(['resources/js/app.jsx', "resources/js/Pages/{$page['component']}.jsx"])
         @inertiaHead
