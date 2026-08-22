@@ -60,6 +60,7 @@
             }
         @endphp
         <meta property="og:site_name" content="asatte.io">
+        <meta property="og:url" content="{{ url()->current() }}">
         <meta property="og:type" content="{{ $ogType }}">
         <meta property="og:title" content="{{ $ogTitle }}">
         <meta property="og:description" content="{{ $ogDesc }}">
@@ -67,6 +68,7 @@
         <meta property="og:image:width" content="1200">
         <meta property="og:image:height" content="630">
         <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:url" content="{{ url()->current() }}">
         <meta name="twitter:title" content="{{ $ogTitle }}">
         <meta name="twitter:description" content="{{ $ogDesc }}">
         <meta name="twitter:image" content="{{ $ogImage }}">
