@@ -720,10 +720,14 @@ button, .link-button
 {    
     line-height: 1.8em;
     /* padding: 0 1em 1em; */
-    padding: 1rem;
+    padding: 0.5rem 0;
     /* overflow-wrap: break-word; */
     overflow-wrap: anywhere;
     /* word-break: break-all; */
+}
+.message-text, .comment-text
+{
+    padding: 1rem;
 }
 .article-text iframe[src*="youtube"], .message-text iframe[src*="youtube"], .comment-text iframe[src*="youtube"]
 {
@@ -739,6 +743,10 @@ button, .link-button
 {
     width: 100%;
 }
+.article-text p
+{
+    padding: 0.4em;
+}
 .article-text p:not(:last-child), .article-text ol:not(:last-child), .message-text p:not(:last-child), .message-text ol:not(:last-child)
 {
     margin-bottom: 1.5em;
@@ -748,6 +756,7 @@ button, .link-button
     display: inline-block;
     max-width: 100%;
     height: auto;
+    padding: 0.4em !important;
 }
 .centered-icon
 {
