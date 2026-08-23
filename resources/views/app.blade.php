@@ -29,7 +29,7 @@
             $profileUser = $page['props']['profileUser'] ?? null;
             
             $ogTitle = config('app.name', 'asatte.io');
-            $ogDesc = 'The premiere hub for internet art.';
+            $ogDesc = 'The premiere hub for Internet Art.';
             $ogImage = url('/images/og_image0.webp');
             $ogType = 'website';
 

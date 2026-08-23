@@ -8,8 +8,12 @@ services:
     restart: unless-stopped
     environment:
       - PHP_OPCACHE_ENABLE=1
+      - PHP_FPM_PM_MAX_CHILDREN=20
       - APP_ENV=production
       - APP_DEBUG=false
+      - CACHE_DRIVER=redis
+      - SESSION_DRIVER=redis
+      - REDIS_HOST=sep-common-redis-1
       - DB_CONNECTION=mysql
       - DB_HOST=sep-common-db-1
       - DB_PORT=3306
@@ -35,6 +39,9 @@ services:
       - PHP_OPCACHE_ENABLE=1
       - APP_ENV=production
       - APP_DEBUG=false
+      - CACHE_DRIVER=redis
+      - SESSION_DRIVER=redis
+      - REDIS_HOST=sep-common-redis-1
       - DB_CONNECTION=mysql
       - DB_HOST=sep-common-db-1
       - DB_PORT=3306

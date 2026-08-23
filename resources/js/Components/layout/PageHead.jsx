@@ -2,7 +2,7 @@ import { Head, usePage } from '@inertiajs/react';
 
 function PageHead({
     title="", 
-    description="The premiere hub for internet art.",
+    description="The premiere hub for Internet Art.",
     ogType="website",
     ogImg,
     ogWidth=1200,
