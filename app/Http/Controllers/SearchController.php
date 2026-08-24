@@ -24,13 +24,13 @@ class SearchController extends Controller
             ->where('is_hidden_by_admin', false)
             ->where(function ($q) use ($searchTerm) {
                 $q->where('title', 'LIKE', "%{$searchTerm}%")
-                    ->orWhere('post_url', 'LIKE', "%{$searchTerm}%")
+                    ->orWhere('slug', 'LIKE', "%{$searchTerm}%")
                     ->orWhere('subtitle', 'LIKE', "%{$searchTerm}%")
                     ->orWhere('website', 'LIKE', "%{$searchTerm}%")
                     ->orWhere('statement', 'LIKE', "%{$searchTerm}%");
             })
             ->orderByRaw(
-                "CASE WHEN title LIKE ? THEN 1 WHEN post_url LIKE ? THEN 2 WHEN subtitle LIKE ? THEN 3 WHEN website LIKE ? THEN 4 WHEN statement LIKE ? THEN 5 ELSE 6 END ASC",
+                "CASE WHEN title LIKE ? THEN 1 WHEN slug LIKE ? THEN 2 WHEN subtitle LIKE ? THEN 3 WHEN website LIKE ? THEN 4 WHEN statement LIKE ? THEN 5 ELSE 6 END ASC",
                 ["%{$searchTerm}%", "%{$searchTerm}%", "%{$searchTerm}%", "%{$searchTerm}%", "%{$searchTerm}%"]
             );
 

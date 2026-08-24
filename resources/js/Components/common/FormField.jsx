@@ -1,7 +1,8 @@
 import './Form.css';
 
 function FormField({ classes='', id, label, placeholder, value="", 
-    onChange, onBlur, disabled, min, max, type = "text", onValidate, isTextArea=false, error="", onErrorUpdate = () => {} }) 
+    onChange, onBlur, disabled, min, max, type = "text", onValidate, 
+    isTextArea=false, sideText="", error="", onErrorUpdate = () => {} }) 
 {
     let fieldClasses = 'form-field ';
     fieldClasses = isTextArea ? fieldClasses + "text-area " : fieldClasses;
@@ -49,18 +50,33 @@ function FormField({ classes='', id, label, placeholder, value="",
             disabled={disabled}
             placeholder={placeholder}
         />
-        ):(
-        <input type={type} 
-            placeholder={placeholder}
-            name={id}
-            value={value}
-            min={min}
-            max={max}
-            id={id}
-            onChange={handleInternalChange}
-            onBlur={onBlur}
-            disabled={disabled}
-        />
+        ):( sideText ? (
+            <div className='side-text-and-input-container'>
+                <span>{sideText}</span>
+                <input type={type} 
+                    placeholder={placeholder}
+                    name={id}
+                    value={value}
+                    min={min}
+                    max={max}
+                    id={id}
+                    onChange={handleInternalChange}
+                    onBlur={onBlur}
+                    disabled={disabled}
+                />
+            </div>
+            ):(
+            <input type={type} 
+                placeholder={placeholder}
+                name={id}
+                value={value}
+                min={min}
+                max={max}
+                id={id}
+                onChange={handleInternalChange}
+                onBlur={onBlur}
+                disabled={disabled}
+            />)
         )
     }            
         </div>

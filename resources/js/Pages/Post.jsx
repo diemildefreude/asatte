@@ -70,7 +70,7 @@
             }
         }, [post]);
 
-        const mainImg = `${appUrl}/storage/images/uploaded/users/${post.user.username}/posts/${post.post_url}/gallery/large/${imageUrls[0]}`;
+        const mainImg = `${appUrl}/storage/images/uploaded/users/${post.user.username}/posts/${post.slug}/gallery/large/${imageUrls[0]}`;
         const mainAlt = post?.gallery_alts[0] ?? "";
 
 

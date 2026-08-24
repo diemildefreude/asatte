@@ -96,7 +96,7 @@ class ActivityController extends Controller
             {
                 $comment = Comment::with([
                     'user:id,username,avatar',
-                    'post:id,title,post_url,user_id',
+                    'post:id,title,slug,user_id',
                     'post.user:id,username'
                 ])->find($data['comment_id']);
 
@@ -116,7 +116,7 @@ class ActivityController extends Controller
             {
                 $post = Post::with([
                     'user:id,username'
-                ])->select(['id', 'post_url', 'title', 'user_id'])->find($data['post_id']);
+                ])->select(['id', 'slug', 'title', 'user_id'])->find($data['post_id']);
                 $notification->setRelation('post', $post);
                 $notification->unhidden_at = Carbon::now()->toDateTimeString();
             }

@@ -41,7 +41,7 @@
                 $gallery = $post['gallery_image_urls'] ?? [];
                 if (!empty($gallery) && isset($post['user']['username'])) {
                     $username = $post['user']['username'];
-                    $postUrl = $post['post_url'];
+                    $postUrl = $post['slug'];
                     $firstImg = is_array($gallery) ? $gallery[0] : (json_decode($gallery, true)[0] ?? null);
                     if ($firstImg) {
                         $ogImage = url("/storage/images/uploaded/users/{$username}/posts/{$postUrl}/gallery/large/{$firstImg}");

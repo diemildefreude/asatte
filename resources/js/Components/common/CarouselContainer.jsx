@@ -30,7 +30,7 @@ function CarouselContainer({size, className, children})
     const currentTranslateXRef = useRef(0); // Stores the current horizontal position (translateX value)
     const initialTranslateXRef = useRef(0); // Stores the translateX value when the drag starts
     const mouseDownTargetRef = useRef(null);
-    const distanceThreshold = 15;
+    const distanceThreshold = 5;
 
     const lastMoveTimeRef = useRef(0);
     const lastMoveXRef = useRef(0);

@@ -20,7 +20,7 @@ function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false, siz
         viewText = "read";
     }
 
-    const directory = `${props.app_url}/storage/images/uploaded/users/${author.username}/posts/${post.post_url}/gallery/${size}`;
+    const directory = `${props.app_url}/storage/images/uploaded/users/${author.username}/posts/${post.slug}/gallery/${size}`;
 
     let imageUrls = [];
     try 
@@ -116,7 +116,7 @@ function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false, siz
                         isDashboard &&
                         (
                             <div className="info-item action-links link-container">
-                                <Link href={`/dashboard/edit-post/${post.post_url}`}
+                                <Link href={`/dashboard/edit-post/${post.slug}`}
                                     className="post-link"
                                     onClick={handleLinkClick} 
                                     draggable="false"

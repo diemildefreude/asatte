@@ -126,6 +126,18 @@
 {
     width: 100%;
 }
+.form-field .side-text-and-input-container
+{
+    display: flex;
+    gap: 0em;
+    justify-content: space-between;
+}
+.form-field .side-text-and-input-container span, .form-field .side-text-and-input-container input
+{
+    width: fit-content;
+    flex-grow: 4;
+    text-wrap: nowrap;
+}
 .form-container form
 {
     display: flex;

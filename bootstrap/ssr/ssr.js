@@ -11,24 +11,27 @@ import createServer from "@inertiajs/react/server";
 import { renderToString } from "react-dom/server";
 function PageHead({
   title = "",
-  description = "The premiere hub for internet art.",
+  description = "The premiere hub for Internet Art.",
   ogType = "website",
-  ogImg
+  ogImg,
+  ogWidth = 1200,
+  ogHeight = 630
 }) {
   const { url } = usePage();
   const fullUrl = `${usePage().props.app_url}${url}`;
   const domain = usePage().props.app_url;
-  const ogImage = ogImg ?? `${domain}/storage/images/og_image.webp`;
+  const randOgInd = Math.floor(Math.random() * 2);
+  const ogImage = ogImg ?? `${domain}/images/og_image${randOgInd}.webp`;
   return /* @__PURE__ */ jsxs(Head, { title, children: [
     /* @__PURE__ */ jsx("meta", { "head-key": "description", name: "description", content: description }),
     /* @__PURE__ */ jsx("link", { "head-key": "canonical", rel: "canonical", href: fullUrl }),
     /* @__PURE__ */ jsx("meta", { "head-key": "og:url", property: "og:url", content: fullUrl }),
     /* @__PURE__ */ jsx("meta", { "head-key": "og:type", property: "og:type", content: ogType }),
-    /* @__PURE__ */ jsx("meta", { "head-key": "og:title", property: "og:title", content: title || "asatte.io" }),
+    /* @__PURE__ */ jsx("meta", { "head-key": "og:title", property: "og:title", content: title || domain }),
     /* @__PURE__ */ jsx("meta", { "head-key": "og:description", property: "og:description", content: description }),
     /* @__PURE__ */ jsx("meta", { "head-key": "og:image", property: "og:image", content: ogImage }),
-    /* @__PURE__ */ jsx("meta", { "head-key": "og:image:width", property: "og:image:width", content: "1920" }),
-    /* @__PURE__ */ jsx("meta", { "head-key": "og:image:height", property: "og:image:height", content: "1080" }),
+    /* @__PURE__ */ jsx("meta", { "head-key": "og:image:width", property: "og:image:width", content: ogWidth }),
+    /* @__PURE__ */ jsx("meta", { "head-key": "og:image:height", property: "og:image:height", content: ogHeight }),
     /* @__PURE__ */ jsx("meta", { "head-key": "twitter:card", name: "twitter:card", content: "summary_large_image" }),
     /* @__PURE__ */ jsx("meta", { "head-key": "twitter:domain", property: "twitter:domain", content: domain }),
     /* @__PURE__ */ jsx("meta", { "head-key": "twitter:url", property: "twitter:url", content: fullUrl }),
@@ -82,6 +85,11 @@ function RichTextEditor({ onChange, value, quotedMessage, onQuoteApplied, placeh
         menubar: false,
         link_assume_external_targets: "http",
         link_default_protocol: "http",
+        target_list: [
+          { title: "Current window", value: "" },
+          { title: "New window", value: "_blank" }
+        ],
+        default_link_target: "_blank",
         plugins: "autoresize image link media",
         autoresize_bottom_margin: 50,
         toolbar: disabled ? false : ["styles | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist | image media link"],
@@ -343,17 +351,23 @@ function EditButton({ onClick, disabled = false, className = "" }) {
     }
   );
 }
-function LogoGradientNamed({ color, className = "", ...props }) {
+function LogoTwoToneGradientClean({
+  color,
+  secondaryColor,
+  className = "",
+  ...props
+}) {
   const rawId = useId();
   const uniqueId = rawId.replace(/:/g, "_");
-  const gradientId = `linearGradient121_${uniqueId}`;
+  const gradientId = `linearGradient125_${uniqueId}`;
   const clipPathId = `clipPath22-4_${uniqueId}`;
-  const stopColorValue = color || "currentColor";
+  const primaryFill = color || "currentColor";
+  const secondaryFill = secondaryColor || "var(--logo-secondary-color, #000080)";
   return /* @__PURE__ */ jsxs(
     "svg",
     {
       className,
-      viewBox: "0 0 584.80627 529.39947",
+      viewBox: "0 0 582.58978 538",
       xmlns: "http://www.w3.org/2000/svg",
       xmlnsXlink: "http://www.w3.org/1999/xlink",
       ...props,
@@ -363,7 +377,7 @@ function LogoGradientNamed({ color, className = "", ...props }) {
             "path",
             {
               d: "M 535.832,517.27067 317.72533,660.292 l 310.088,-81.18267 26.45067,-65.34266 -8.44933,-116.276 -98.72934,-0.024 z",
-              id: "path22-8"
+              id: "path22-8-6"
             }
           ) }),
           /* @__PURE__ */ jsxs(
@@ -378,22 +392,22 @@ function LogoGradientNamed({ color, className = "", ...props }) {
               y2: "0",
               spreadMethod: "pad",
               children: [
-                /* @__PURE__ */ jsx("stop", { stopColor: stopColorValue, stopOpacity: "0", offset: "0" }),
-                /* @__PURE__ */ jsx("stop", { stopColor: stopColorValue, stopOpacity: "0.65367967", offset: "0.35765961" }),
-                /* @__PURE__ */ jsx("stop", { stopColor: stopColorValue, stopOpacity: "0.90476191", offset: "0.56201202" }),
-                /* @__PURE__ */ jsx("stop", { stopColor: stopColorValue, stopOpacity: "1", offset: "0.65000927" }),
-                /* @__PURE__ */ jsx("stop", { stopColor: stopColorValue, stopOpacity: "1", offset: "1" })
+                /* @__PURE__ */ jsx("stop", { stopColor: secondaryFill, stopOpacity: "0", offset: "0" }),
+                /* @__PURE__ */ jsx("stop", { stopColor: secondaryFill, stopOpacity: "0.65", offset: "0.35765961" }),
+                /* @__PURE__ */ jsx("stop", { stopColor: secondaryFill, stopOpacity: "0.9", offset: "0.56201202" }),
+                /* @__PURE__ */ jsx("stop", { stopColor: secondaryFill, stopOpacity: "1", offset: "0.65000927" }),
+                /* @__PURE__ */ jsx("stop", { stopColor: secondaryFill, stopOpacity: "1", offset: "1" })
               ]
             }
           )
         ] }),
-        /* @__PURE__ */ jsxs("g", { id: "layer-MC1", transform: "translate(-90.678771,-583.29304)", children: [
+        /* @__PURE__ */ jsxs("g", { id: "layer-MC1", transform: "translate(-90.794984,-22.710987)", children: [
           /* @__PURE__ */ jsx(
             "path",
             {
-              id: "path1-4",
-              d: "m 614.66812,1080.2377 -0.11733,-0.049 c -0.456,-0.2374 -0.86134,-0.4307 -1.216,-0.58 -0.96267,-0.4027 -1.608,-0.684 -1.93467,-0.8454 l -0.796,-0.3333 -0.384,-0.1627 c -0.536,1.0027 -0.98667,1.9947 -1.352,2.9747 -0.59867,1.4827 -0.992,2.892 -1.18,4.2227 -0.184,1.5426 -0.0467,2.7573 0.41467,3.644 0.41333,0.8906 1.18266,1.5373 2.30933,1.94 l 0.0893,0.039 0.088,0.036 c 0.02,0.01 0.0507,0.016 0.0947,0.023 0.044,0.01 0.0853,0.017 0.124,0.035 0.68133,0.1946 1.41067,10e-4 2.18533,-0.576 0.88267,-0.6707 1.62934,-1.6534 2.24134,-2.9467 0.62266,-1.2653 1.00133,-2.5227 1.132,-3.776 0.132,-1.2507 -0.016,-2.14 -0.44267,-2.6667 -0.36933,-0.3853 -0.788,-0.712 -1.256,-0.9773 m -13.90533,8.5 c -1.09467,-1.084 -1.668,-2.504 -1.71734,-4.26 -0.0893,-1.6093 0.24534,-3.1813 1.00534,-4.7133 0.81866,-1.6227 1.87466,-2.788 3.16666,-3.4974 1.47067,-0.8613 3.03867,-1.0133 4.70134,-0.4546 0.028,-0.012 0.0813,-10e-4 0.16,0.032 1.66133,0.6733 2.688,1.0906 3.08133,1.256 l 0.82667,0.3466 c 0.32666,0.1614 0.96133,0.4387 1.90533,0.8347 0.39333,0.1653 0.85733,0.3827 1.392,0.652 0.04,0.017 0.12667,0.059 0.26,0.1267 0.13333,0.068 0.25867,0.1266 0.37733,0.176 0.18934,0.1026 0.4,0.2026 0.636,0.3026 0.60267,0.2747 0.106934,0.4014 1.40267,0.3787 0.30533,-0.011 0.548,-0.232 0.73067,-0.6653 l 1.34,0.528 c -0.38534,0.972 -1.032,1.4973 -1.94534,1.5773 -0.096,0.01 -0.25866,0.01 -0.488,0 0.24934,0.7293 0.32134,1.6053 0.21867,2.6253 -0.136,1.424 -0.56533,2.8627 -1.29067,4.3174 -0.75066,1.5133 -1.63866,2.6666 -2.66533,3.4613 -0.996,0.7173 -1.97867,1.0213 -2.952,0.9133 -0.028,0.012 -0.0693,0.013 -0.12267,10e-4 -0.052,-0.011 -0.0893,-0.021 -0.10933,-0.028 -0.0973,-0.043 -0.18,-0.064 -0.248,-0.069 -0.0387,-0.017 -0.0947,-0.035 -0.168,-0.053 -0.0733,-0.02 -0.12,-0.033 -0.13867,-0.041 -1.584,-0.5253 -2.69333,-1.4427 -3.32533,-2.7467 -0.59733,-1.2226 -0.772,-2.7066 -0.52533,-4.4546 0.148,-1.2334 0.56533,-2.7574 1.25866,-4.5734 0.392,-0.992 0.84267,-1.9826 1.35067,-2.9733 l -1.328,-0.5573 c -1.25333,-0.4307 -2.45467,-0.3227 -3.60667,0.328 -1.06933,0.616 -1.93733,1.5826 -2.604,2.8986 -0.628,1.332 -0.92266,2.6667 -0.88133,4.0027 0.064,1.392 0.50667,2.4907 1.324,3.2973 z",
-              fill: "currentColor",
+              id: "path10-7-3",
+              d: "m 388.81365,238.65986 c -37.65333,0 -68.176,-30.524 -68.176,-68.176 0,-37.65333 30.52267,-68.17733 68.176,-68.17733 37.652,0 68.176,30.524 68.176,68.17733 0,37.652 -30.524,68.176 -68.176,68.176 m 0,-153.05199 c -46.876,0 -84.876,37.99999 -84.876,84.87599 0,46.87467 38,84.87467 84.876,84.87467 46.876,0 84.876,-38 84.876,-84.87467 0,-46.876 -38,-84.87599 -84.876,-84.87599",
+              fill: primaryFill,
               fillOpacity: 1,
               fillRule: "nonzero",
               stroke: "none",
@@ -403,9 +417,9 @@ function LogoGradientNamed({ color, className = "", ...props }) {
           /* @__PURE__ */ jsx(
             "path",
             {
-              id: "path2-2",
-              d: "m 613.35492,1057.9655 c -0.94133,0.091 -1.76267,0.5107 -2.46933,1.2547 -0.64934,0.7227 -1.08,1.584 -1.29067,2.5813 -0.17067,1.0174 -0.0787,1.9 0.27733,2.6494 0.37867,0.808 1.03067,1.3226 1.95334,1.548 0.73866,0.1706 1.51466,-0.024 2.32666,-0.5854 0.53067,-0.3787 1.34534,-1.1933 2.448,-2.4426 0.008,-0.02 0.0267,-0.035 0.0547,-0.047 0.008,-0.02 0.0267,-0.036 0.0547,-0.047 0.46,-0.548 0.98,-1.1267 1.56133,-1.74 0.676,-0.6187 1.268,-1.064 1.776,-1.3374 1.48667,-0.788 2.98667,-0.5866 4.5,0.604 0.84933,0.68 1.35733,1.7014 1.524,3.068 0.1,1.1973 -0.0587,2.4267 -0.47067,3.688 -0.43066,1.3013 -1.06533,2.3773 -1.908,3.2253 -0.892,0.968 -1.932,1.4934 -3.12133,1.5707 l -0.0827,-1.4573 c 0.75334,-0.031 1.47334,-0.3987 2.16267,-1.1054 0.68933,-0.7053 1.21733,-1.6066 1.584,-2.7013 0.36667,-1.0947 0.5,-2.1147 0.39867,-3.06 -0.10134,-0.944 -0.42934,-1.6386 -0.98534,-2.0786 -1.02,-0.8214 -1.996,-0.976 -2.928,-0.464 -0.416,0.2186 -0.89333,0.5853 -1.432,1.0986 -0.484,0.4907 -0.988,1.032 -1.51333,1.6213 -0.008,0.019 -0.0267,0.036 -0.0547,0.047 l -0.024,0.06 c -0.488,0.5574 -0.92133,1.036 -1.296,1.4334 -0.41066,0.4293 -0.88133,0.8346 -1.41066,1.212 -1.16667,0.8533 -2.348,1.1333 -3.544,0.84 -1.352,-0.3587 -2.31334,-1.1307 -2.88,-2.3174 -0.52134,-1.0746 -0.648,-2.2613 -0.38,-3.5613 0.25066,-1.2586 0.804,-2.3573 1.65866,-3.2946 0.94534,-1.0374 2.07334,-1.6054 3.38667,-1.7027 z",
-              fill: "currentColor",
+              id: "path12-1-7",
+              d: "m 536.43678,289.82298 23.856,-253.991993 74.99733,-0.596 18.24533,251.083993 -94.31866,232.99861 c -1.79467,4.2707 -2.64533,4.1094 -4.212,-0.252 l -10.34267,-35.2719 c -1.216,-4.0827 -5.572,-6.348 -9.61333,-4.9974 l -0.616,0.2054 c -4.912,1.6413 -7.55867,6.9573 -5.90933,11.8666 l 18.65733,56.384 c 2.44,6.3507 14.86933,6.5147 17.54267,0.2587 L 673.38478,289.00298 649.82744,23.009647 H 544.56345 v -0.29866 l -26.76534,257.494663 -361.93865,236.17334 -50.992,-26.836 -3.204,-0.832 c -2.092002,-0.5453 -4.328012,-0.1613 -6.094672,1.0853 -2.216,1.564 -3.81734,3.8587 -4.528,6.46 -0.70534,2.576 0.144,5.3334 2.07866,7.176 l 2.39734,2.2813 61.685332,32.7881 z",
+              fill: primaryFill,
               fillOpacity: 1,
               fillRule: "nonzero",
               stroke: "none",
@@ -415,117 +429,9 @@ function LogoGradientNamed({ color, className = "", ...props }) {
           /* @__PURE__ */ jsx(
             "path",
             {
-              id: "path3-3",
-              d: "m 631.13945,1040.9603 -0.11867,-0.049 c -0.45466,-0.2373 -0.86,-0.4306 -1.21466,-0.58 -0.96267,-0.4026 -1.608,-0.684 -1.93467,-0.8453 l -0.796,-0.3333 -0.384,-0.1627 c -0.536,1.0027 -0.98667,1.9947 -1.352,2.9747 -0.59867,1.4826 -0.992,2.892 -1.18,4.2226 -0.18533,1.5427 -0.0467,2.7574 0.41467,3.644 0.41333,0.8907 1.18266,1.5374 2.30933,1.94 l 0.0893,0.039 0.0867,0.036 c 0.0213,0.01 0.052,0.016 0.096,0.023 0.0427,0.01 0.0853,0.017 0.12267,0.035 0.68266,0.1947 1.412,10e-4 2.18666,-0.576 0.88267,-0.6706 1.62934,-1.6533 2.24134,-2.9466 0.62266,-1.2654 1,-2.5227 1.132,-3.776 0.132,-1.2507 -0.016,-2.14 -0.444,-2.6667 -0.36934,-0.3853 -0.788,-0.712 -1.25467,-0.9773 m -13.90533,8.5 c -1.09467,-1.084 -1.668,-2.504 -1.71867,-4.26 -0.088,-1.6094 0.24667,-3.1814 1.00533,-4.7134 0.82,-1.6226 1.87467,-2.788 3.16667,-3.4973 1.472,-0.8613 3.04,-1.0133 4.70267,-0.4547 0.0267,-0.012 0.0813,-10e-4 0.16,0.032 1.66133,0.6734 2.688,1.0907 3.08133,1.256 l 0.82667,0.3467 c 0.32533,0.1613 0.96,0.4387 1.90533,0.8347 0.39333,0.1653 0.85733,0.3826 1.392,0.652 0.0387,0.017 0.12667,0.059 0.25867,0.1266 0.13333,0.068 0.26,0.1267 0.37733,0.176 0.18933,0.1027 0.40133,0.2027 0.63733,0.3027 0.60267,0.2747 1.06934,0.4013 1.40267,0.3787 0.30533,-0.011 0.548,-0.232 0.73067,-0.6654 l 1.34,0.528 c -0.38534,0.972 -1.03334,1.4974 -1.94534,1.5774 -0.096,0.01 -0.25866,0.01 -0.488,0 0.24934,0.7293 0.32134,1.6053 0.21734,2.6253 -0.13467,1.424 -0.564,2.8627 -1.28934,4.3173 -0.75066,1.5134 -1.63866,2.6667 -2.66666,3.4614 -0.99467,0.7173 -1.97734,1.0213 -2.95067,0.9133 -0.028,0.012 -0.0693,0.013 -0.12267,0 -0.0533,-0.011 -0.0893,-0.021 -0.10933,-0.028 -0.0973,-0.043 -0.18133,-0.064 -0.248,-0.069 -0.0387,-0.017 -0.0947,-0.035 -0.168,-0.053 -0.0733,-0.02 -0.12,-0.033 -0.14,-0.041 -1.584,-0.5254 -2.692,-1.4427 -3.324,-2.7467 -0.59733,-1.2227 -0.772,-2.7067 -0.52667,-4.4547 0.148,-1.2333 0.56667,-2.7573 1.26,-4.5733 0.392,-0.992 0.84134,-1.9827 1.34934,-2.9733 l -1.32667,-0.5573 c -1.25333,-0.4307 -2.456,-0.3227 -3.608,0.328 -1.068,0.6159 -1.936,1.5826 -2.604,2.8986 -0.62667,1.332 -0.92133,2.6667 -0.88,4.0027 0.064,1.392 0.50533,2.4906 1.324,3.2973 z",
-              fill: "currentColor",
-              fillOpacity: 1,
-              fillRule: "nonzero",
-              stroke: "none",
-              strokeWidth: 1.33333
-            }
-          ),
-          /* @__PURE__ */ jsx(
-            "path",
-            {
-              id: "path4-2",
-              d: "m 643.34719,1023.3509 c -0.40533,1.9586 -1.31467,3.5213 -2.728,4.6866 -1.776,1.476 -3.76667,1.6707 -5.97067,0.584 -1.2,-0.504 -3.44,-1.4773 -6.72133,-2.9226 -0.13733,-0.057 -0.28267,-0.124 -0.436,-0.2014 -0.15333,-0.075 -0.26,-0.124 -0.31867,-0.1493 l -1.12133,-0.4707 c -0.43733,1.0427 -0.77733,1.8827 -1.02267,2.52 l -1.34,-0.5266 c 0.244,-0.6387 0.59334,-1.4974 1.04667,-2.58 -1.05333,-0.4654 -2.42533,-1.052 -4.11867,-1.7614 l 0.55734,-1.328 c 1.692,0.7094 3.064,1.296 4.11866,1.7614 l 0.61867,-1.4747 0.136,-0.3267 0.916,-2.1826 1.328,0.5573 -0.928,2.2133 -0.136,0.324 -0.61867,1.4747 1.15067,0.484 c 0.0587,0.024 0.16533,0.075 0.31867,0.1507 0.15333,0.076 0.29866,0.1426 0.436,0.2 3.63466,1.5946 6.07066,2.6506 7.31066,3.1706 1.40534,0.5654 2.696,0.356 3.87334,-0.6306 1.16133,-0.948 1.912,-2.2414 2.252,-3.8787 z",
-              fill: "currentColor",
-              fillOpacity: 1,
-              fillRule: "nonzero",
-              stroke: "none",
-              strokeWidth: 1.33333
-            }
-          ),
-          /* @__PURE__ */ jsx(
-            "path",
-            {
-              id: "path5-2",
-              d: "m 650.48719,1006.3235 c -0.40533,1.96 -1.31333,3.5227 -2.728,4.6867 -1.77467,1.476 -3.76667,1.672 -5.97067,0.584 -1.2,-0.504 -3.44,-1.4773 -6.72,-2.9213 -0.13733,-0.059 -0.284,-0.1254 -0.43733,-0.2014 -0.152,-0.075 -0.25867,-0.1253 -0.31867,-0.1506 l -1.12133,-0.4694 c -0.43733,1.0427 -0.77733,1.8827 -1.02267,2.52 l -1.34,-0.528 c 0.244,-0.6373 0.59334,-1.4973 1.048,-2.58 -1.05466,-0.4653 -2.42666,-1.052 -4.12,-1.7613 l 0.55734,-1.328 c 1.692,0.7093 3.06533,1.296 4.11866,1.7613 l 0.61867,-1.4746 0.136,-0.3254 0.916,-2.1826 1.328,0.556 -0.928,2.2133 -0.136,0.324 -0.61867,1.476 1.15067,0.4827 c 0.0587,0.024 0.16533,0.075 0.31867,0.1506 0.15333,0.077 0.29866,0.1427 0.436,0.2 3.63466,1.5947 6.072,2.652 7.31066,3.1707 1.40667,0.5667 2.696,0.356 3.87467,-0.6307 1.16,-0.948 1.91067,-2.2413 2.25067,-3.8786 z",
-              fill: "currentColor",
-              fillOpacity: 1,
-              fillRule: "nonzero",
-              stroke: "none",
-              strokeWidth: 1.33333
-            }
-          ),
-          /* @__PURE__ */ jsx(
-            "path",
-            {
-              id: "path6-1",
-              d: "m 645.21825,995.05792 c 1.436,-3.42266 3.04933,-7.32666 4.84133,-11.71066 -1.97733,-0.968 -3.79866,-1.11867 -5.46533,-0.45334 -1.584,0.632 -2.70533,1.81467 -3.364,3.552 -0.66667,1.756 -0.624,3.45067 0.124,5.084 0.72667,1.576 2.016,2.752 3.864,3.528 m 1.35333,0.49733 c 2.088,0.64534 3.89467,0.64134 5.42,-0.0173 1.368,-0.55867 2.39334,-1.59733 3.07734,-3.116 0.61733,-1.36 0.82133,-2.76 0.616,-4.2 -0.20667,-1.44 -0.73734,-2.40933 -1.592,-2.90666 l 0.73333,-1.25334 c 1.21333,0.69334 1.96533,1.93467 2.256,3.72267 0.29067,1.788 0.0587,3.528 -0.69867,5.224 -0.81466,1.832 -2.096,3.124 -3.844,3.87066 -1.91466,0.81734 -4.17333,0.79467 -6.77333,-0.0653 l -0.0293,-0.012 c -2.79467,-0.89333 -4.69067,-2.44 -5.688,-4.64133 -0.92934,-2.03067 -0.98667,-4.10267 -0.17067,-6.21333 0.784,-2.14534 2.188,-3.616 4.20933,-4.41067 2.18134,-0.84267 4.56,-0.58667 7.136,0.77067 l 0.0293,0.0133 c 0.17733,0.0747 0.30266,0.20267 0.37733,0.384 0.0747,0.18133 0.0853,0.36533 0.0307,0.54933 -1.95734,4.77867 -3.65467,8.87867 -5.08934,12.30133",
-              fill: "currentColor",
-              fillOpacity: 1,
-              fillRule: "nonzero",
-              stroke: "none",
-              strokeWidth: 1.33333
-            }
-          ),
-          /* @__PURE__ */ jsx(
-            "path",
-            {
-              id: "path7-6",
-              d: "m 663.65439,976.00192 c -0.16133,0.604 -0.49867,1.06267 -1.012,1.38 -0.51467,0.316 -1.07733,0.404 -1.68933,0.26133 -0.612,-0.14 -1.076,-0.47866 -1.39467,-1.016 -0.31867,-0.54 -0.39733,-1.10933 -0.23733,-1.71333 0.14266,-0.612 0.48133,-1.076 1.01866,-1.39466 0.53867,-0.31867 1.1,-0.40134 1.684,-0.24934 0.604,0.16134 1.06534,0.51067 1.38134,1.048 0.31866,0.54 0.40133,1.10133 0.24933,1.684",
-              fill: "currentColor",
-              fillOpacity: 1,
-              fillRule: "nonzero",
-              stroke: "none",
-              strokeWidth: 1.33333
-            }
-          ),
-          /* @__PURE__ */ jsx(
-            "path",
-            {
-              id: "path8-8",
-              d: "m 651.94679,958.08006 2.036,0.85333 c 2.656,1.11467 4.492,1.896 5.50667,2.34267 4.072,1.70933 6.97866,2.916 8.71733,3.62133 l -0.528,1.34134 c -1.73867,-0.70534 -4.65467,-1.91734 -8.74667,-3.63334 -1.01466,-0.448 -2.85066,-1.22933 -5.50666,-2.344 l -2.036,-0.85466 z m -5.28933,-1.456 c 0.17333,-0.412 0.46266,-0.70133 0.868,-0.86667 0.404,-0.16533 0.80266,-0.16666 1.19733,-10e-4 0.41333,0.17333 0.70267,0.46267 0.86667,0.86667 0.16666,0.40533 0.16266,0.81466 -0.0107,1.22666 -0.16533,0.39467 -0.44933,0.67467 -0.85467,0.83867 -0.40533,0.16667 -0.81333,0.16267 -1.22666,-0.0107 -0.39334,-0.16533 -0.67334,-0.45066 -0.83867,-0.85466 -0.16533,-0.404 -0.16667,-0.804 -10e-4,-1.19867",
-              fill: "currentColor",
-              fillOpacity: 1,
-              fillRule: "nonzero",
-              stroke: "none",
-              strokeWidth: 1.33333
-            }
-          ),
-          /* @__PURE__ */ jsx(
-            "path",
-            {
-              id: "path9-5",
-              d: "m 673.74039,948.72326 c 0.51067,-1.38133 0.33333,-2.88933 -0.532,-4.52533 -0.82933,-1.55067 -2.104,-2.81333 -3.824,-3.78933 -1.75733,-0.99067 -3.47333,-1.34134 -5.14667,-1.048 -1.888,0.36533 -3.42666,1.524 -4.616,3.47733 -1.14533,1.904 -1.29466,3.80533 -0.45066,5.70933 0.80133,1.84133 2.19066,3.24533 4.16666,4.212 2.02,1.03333 3.972,1.26133 5.85467,0.68533 2.024,-0.632 3.524,-2.14266 4.50267,-4.53066 0.008,-0.02 0.0173,-0.052 0.0227,-0.096 0.007,-0.0427 0.0147,-0.0747 0.0227,-0.0947 m 1.45067,0.26267 c 0.003,0.0467 -0.0147,0.12 -0.0573,0.21866 -1.13066,2.97334 -2.976,4.836 -5.536,5.59067 -2.22933,0.68267 -4.532,0.436 -6.90533,-0.74533 -2.27467,-1.13867 -3.88933,-2.776 -4.84533,-4.912 -1.02934,-2.39734 -0.852,-4.752 0.53333,-7.06267 1.45067,-2.35333 3.31867,-3.72133 5.608,-4.10266 2.01067,-0.384 4.044,0.007 6.10133,1.16933 1.928,1.08667 3.38667,2.544 4.37867,4.37067 1.04267,1.87066 1.28267,3.69466 0.72267,5.47333",
-              fill: "currentColor",
-              fillOpacity: 1,
-              fillRule: "nonzero",
-              stroke: "none",
-              strokeWidth: 1.33333
-            }
-          ),
-          /* @__PURE__ */ jsx(
-            "path",
-            {
-              id: "path10-7",
-              d: "m 388.69739,799.24187 c -37.65333,0 -68.176,-30.524 -68.176,-68.176 0,-37.65333 30.52267,-68.17733 68.176,-68.17733 37.652,0 68.176,30.524 68.176,68.17733 0,37.652 -30.524,68.176 -68.176,68.176 m 0,-153.05199 c -46.876,0 -84.876,37.99999 -84.876,84.87599 0,46.87467 38,84.87467 84.876,84.87467 46.876,0 84.876,-38 84.876,-84.87467 0,-46.876 -38,-84.87599 -84.876,-84.87599",
-              fill: "currentColor",
-              fillOpacity: 1,
-              fillRule: "nonzero",
-              stroke: "none",
-              strokeWidth: 1.33333
-            }
-          ),
-          /* @__PURE__ */ jsx(
-            "path",
-            {
-              id: "path11-6",
-              d: "m 320.51379,731.06534 c -10e-4,0.14933 -0.012,0.29733 -0.012,0.44667 0,37.65333 30.524,68.17733 68.17733,68.17733 37.652,0 68.176,-30.524 68.176,-68.17733 0,-0.14934 -0.0107,-0.29734 -0.0107,-0.44667 z",
-              fill: "currentColor",
-              fillOpacity: 1,
-              fillRule: "nonzero",
-              stroke: "none",
-              strokeWidth: 1.33333
-            }
-          ),
-          /* @__PURE__ */ jsx(
-            "path",
-            {
-              id: "path12-1",
-              d: "m 536.32052,850.40499 23.856,-253.99199 74.99733,-0.596 18.24533,251.08399 -94.31866,232.99861 c -1.79467,4.2707 -2.64533,4.1094 -4.212,-0.252 l -10.34267,-35.2719 c -1.216,-4.0827 -5.572,-6.348 -9.61333,-4.9974 l -0.616,0.2054 c -4.912,1.6413 -7.55867,6.9573 -5.90933,11.8666 l 18.65733,56.384 c 2.44,6.3507 14.86933,6.5147 17.54267,0.2587 L 673.26852,849.58499 649.71118,583.59166 H 544.44719 V 583.293 L 517.68185,840.78766 155.7432,1076.961 l -50.992,-26.836 -3.204,-0.832 c -2.092005,-0.5453 -4.328008,-0.1613 -6.094675,1.0853 -2.216,1.564 -3.817333,3.8587 -4.528,6.46 -0.705333,2.576 0.144,5.3334 2.078667,7.176 l 2.397333,2.2813 61.685335,32.7881 z",
-              fill: "currentColor",
+              id: "path11-6-8",
+              d: "m 320.63005,170.48333 c -10e-4,0.14933 -0.012,0.29733 -0.012,0.44667 0,37.65333 30.524,68.17733 68.17733,68.17733 37.652,0 68.176,-30.524 68.176,-68.17733 0,-0.14934 -0.0107,-0.29734 -0.0107,-0.44667 z",
+              fill: secondaryFill,
               fillOpacity: 1,
               fillRule: "nonzero",
               stroke: "none",
@@ -535,16 +441,16 @@ function LogoGradientNamed({ color, className = "", ...props }) {
           /* @__PURE__ */ jsx(
             "g",
             {
-              id: "g21-8",
+              id: "g21-8-4",
               clipPath: `url(#${clipPathId})`,
-              transform: "translate(-0.3266846,333.67619)",
+              transform: "translate(-0.2104216,-226.90582)",
               children: /* @__PURE__ */ jsx(
                 "path",
                 {
                   d: "m 401.874,453.937 -163.58,-107.266 232.566,60.887 19.838,49.007 -6.337,87.207 -74.047,0.018 z",
                   fill: `url(#${gradientId})`,
                   stroke: "none",
-                  id: "path21-9",
+                  id: "path21-9-2",
                   transform: "matrix(1.3333333,0,0,-1.3333333,0,1122.52)"
                 }
               )
@@ -555,19 +461,28 @@ function LogoGradientNamed({ color, className = "", ...props }) {
     }
   );
 }
-function UserLink({ user, readOnly = false, onClick = null, additionalClasses = "", url = null, returnUser = false }) {
+function UserLink({ user, readOnly = false, onClick = null, additionalClasses = "", url = null, returnUser = false, isSliderDraggedPointerUp = false }) {
   const { props } = usePage();
   const target = url ?? `/${user == null ? void 0 : user.username}/profile`;
   const avatar = (user == null ? void 0 : user.avatar) ? `${props.app_url}/storage/images/uploaded/users/${user.username}/avatar/thumb/${user == null ? void 0 : user.avatar}` : `${props.app_url}/images/defaults/avatar.webp?v=1`;
   let classes = `user-link ${additionalClasses}`;
   classes = readOnly ? classes + " read-only" : classes;
   const handleOnClickOverride = useCallback((e) => {
+    const isDragged = typeof isSliderDraggedPointerUp === "object" && isSliderDraggedPointerUp !== null ? isSliderDraggedPointerUp.current : !!isSliderDraggedPointerUp;
+    if (isDragged) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.currentTarget && typeof e.currentTarget.blur === "function") {
+        e.currentTarget.blur();
+      }
+      return;
+    }
     if (onClick && returnUser) {
       onClick(e, user);
     } else if (onClick) {
       onClick(e);
     }
-  }, [onClick, user, readOnly, returnUser]);
+  }, [onClick, user, readOnly, returnUser, isSliderDraggedPointerUp]);
   return /* @__PURE__ */ jsx(Fragment, { children: user ? /* @__PURE__ */ jsxs(
     Link,
     {
@@ -588,68 +503,11 @@ function UserLink({ user, readOnly = false, onClick = null, additionalClasses = 
           ),
           /* @__PURE__ */ jsx("span", { className: "notice-light small" })
         ] }),
-        /* @__PURE__ */ jsx("span", { className: "sr-only", children: user.username.replace(/_/g, " ") }),
+        /* @__PURE__ */ jsx("span", { className: "sr-only", children: user.username ? user.username.replace(/_/g, " ") : " " }),
         /* @__PURE__ */ jsx("span", { className: "username", "aria-hidden": "true", children: user.username })
       ]
     }
   ) : /* @__PURE__ */ jsx("span", { className: "", children: /* @__PURE__ */ jsx("em", { children: "deleted user " }) }) });
-}
-function LogoSpikedClean({ className = "", ...props }) {
-  return /* @__PURE__ */ jsx(
-    "svg",
-    {
-      className,
-      viewBox: "0 0 272.5733 247.6575",
-      xmlns: "http://www.w3.org/2000/svg",
-      ...props,
-      children: /* @__PURE__ */ jsxs("g", { transform: "translate(-866.43561,-385.45853)", children: [
-        /* @__PURE__ */ jsx(
-          "path",
-          {
-            d: "m 1006.3144,486.47559 c -17.61467,0 -31.89333,-14.27867 -31.89333,-31.89467 0,-17.61466 14.27866,-31.89333 31.89333,-31.89333 17.616,0 31.8947,14.27867 31.8947,31.89333 0,17.616 -14.2787,31.89467 -31.8947,31.89467 m 0,-71.60133 c -21.928,0 -39.70533,17.77733 -39.70533,39.70666 0,21.92934 17.77733,39.70667 39.70533,39.70667 21.9293,0 39.7067,-17.77733 39.7067,-39.70667 0,-21.92933 -17.7774,-39.70666 -39.7067,-39.70666",
-            fill: "currentColor",
-            fillOpacity: 1,
-            fillRule: "nonzero",
-            stroke: "none",
-            strokeWidth: 1.33333
-          }
-        ),
-        /* @__PURE__ */ jsx(
-          "path",
-          {
-            d: "m 974.41733,454.58119 c 0,0.0707 -0.005,0.13867 -0.005,0.20933 0,17.61467 14.28,31.89467 31.89467,31.89467 17.6146,0 31.8946,-14.28 31.8946,-31.89467 0,-0.0707 -0.01,-0.13866 -0.01,-0.20933 z",
-            fill: "currentColor",
-            fillOpacity: 1,
-            fillRule: "nonzero",
-            stroke: "none",
-            strokeWidth: 1.33333
-          }
-        ),
-        /* @__PURE__ */ jsx(
-          "path",
-          {
-            d: "M 0,0 95.012,26.736 10.243,6.8 96.836,31.015 28.62,13.763 97.955,33.78 93.148,21.906 Z M 99.578,37.791 97.96,33.792 35.894,18.267 Z m -29.761,95.187 26.315,0.209 6.401,-88.097 -2.952,-7.293 -55.941,-14.952 57.082,18.39 -52.219,-14.81 53.318,16.906 -47.293,-11.869 47.749,13.225 -39.586,-8.346 35.898,8.544 -29.573,-5.075 22.97,4.92 -17.709,-2.32 12.185,2.225 -9.422,-0.926 4.164,0.743 -19.745,-0.473 z m 31.415,4.499 H 64.299 v 0.105 L 54.908,47.235 -72.084,-35.63 l -17.892,9.416 -1.124,0.292 c -0.734,0.191 -1.518,0.056 -2.138,-0.381 -0.778,-0.549 -1.339,-1.354 -1.589,-2.266 -0.247,-0.905 0.051,-1.871 0.729,-2.518 l 0.841,-0.801 21.644,-11.505 L -15.688,-6.72 93.145,21.897 69.44,-36.661 c -0.629,-1.498 -0.928,-1.442 -1.478,0.088 l -3.628,12.376 c -0.428,1.432 -1.956,2.227 -3.373,1.754 l -0.217,-0.073 c -1.723,-0.576 -2.652,-2.441 -2.073,-4.163 l 6.546,-19.784 c 0.856,-2.227 5.218,-2.285 6.174,-0.047 l 38.126,90.702 z",
-            fill: "currentColor",
-            fillOpacity: 1,
-            fillRule: "nonzero",
-            stroke: "none",
-            transform: "matrix(1.3333333,0,0,-1.3333333,992.98627,568.9012)"
-          }
-        ),
-        /* @__PURE__ */ jsx(
-          "path",
-          {
-            d: "m 0,0 -41.086,-1.229 3.931,41.845 h 34.344 z",
-            fill: "currentColor",
-            fillOpacity: 1,
-            fillRule: "nonzero",
-            stroke: "none",
-            transform: "matrix(1.3333333,0,0,-1.3333333,1129.6972,508.7808)"
-          }
-        )
-      ] })
-    }
-  );
 }
 function Header() {
   var _a;
@@ -760,8 +618,8 @@ function Header() {
       }
     ) }),
     /* @__PURE__ */ jsxs("nav", { className: navClasses, children: [
-      /* @__PURE__ */ jsx("div", { className: "nav-logo-mobile", children: /* @__PURE__ */ jsx(LogoGradientNamed, { alt: `${props.app_name} logo` }) }),
-      url != "/" && /* @__PURE__ */ jsx("div", { className: "nav-logo-desktop", children: /* @__PURE__ */ jsx(LogoSpikedClean, { alt: `${props.app_name} logo` }) }),
+      /* @__PURE__ */ jsx("div", { className: "nav-logo-mobile", children: /* @__PURE__ */ jsx(LogoTwoToneGradientClean, { alt: `${props.app_name} logo` }) }),
+      url != "/" && /* @__PURE__ */ jsx(Link, { href: "/", className: "nav-logo-desktop", onClick: () => setIsNavOpen(false), children: /* @__PURE__ */ jsx(LogoTwoToneGradientClean, { alt: `${props.app_name} logo` }) }),
       /* @__PURE__ */ jsxs("div", { className: "nav-halves", children: [
         /* @__PURE__ */ jsxs("div", { className: "nav-half first", children: [
           /* @__PURE__ */ jsxs(
@@ -827,6 +685,63 @@ function InertiaAuthBridge() {
   }, [inertiaUser, syncInertiaUser]);
   return null;
 }
+function LogoSpikedClean({ className = "", ...props }) {
+  return /* @__PURE__ */ jsx(
+    "svg",
+    {
+      className,
+      viewBox: "0 0 272.5733 253",
+      xmlns: "http://www.w3.org/2000/svg",
+      ...props,
+      children: /* @__PURE__ */ jsxs("g", { transform: "translate(-866.43561,-385.45853)", children: [
+        /* @__PURE__ */ jsx(
+          "path",
+          {
+            d: "m 1006.3144,486.47559 c -17.61467,0 -31.89333,-14.27867 -31.89333,-31.89467 0,-17.61466 14.27866,-31.89333 31.89333,-31.89333 17.616,0 31.8947,14.27867 31.8947,31.89333 0,17.616 -14.2787,31.89467 -31.8947,31.89467 m 0,-71.60133 c -21.928,0 -39.70533,17.77733 -39.70533,39.70666 0,21.92934 17.77733,39.70667 39.70533,39.70667 21.9293,0 39.7067,-17.77733 39.7067,-39.70667 0,-21.92933 -17.7774,-39.70666 -39.7067,-39.70666",
+            fill: "currentColor",
+            fillOpacity: 1,
+            fillRule: "nonzero",
+            stroke: "none",
+            strokeWidth: 1.33333
+          }
+        ),
+        /* @__PURE__ */ jsx(
+          "path",
+          {
+            d: "m 974.41733,454.58119 c 0,0.0707 -0.005,0.13867 -0.005,0.20933 0,17.61467 14.28,31.89467 31.89467,31.89467 17.6146,0 31.8946,-14.28 31.8946,-31.89467 0,-0.0707 -0.01,-0.13866 -0.01,-0.20933 z",
+            fill: "currentColor",
+            fillOpacity: 1,
+            fillRule: "nonzero",
+            stroke: "none",
+            strokeWidth: 1.33333
+          }
+        ),
+        /* @__PURE__ */ jsx(
+          "path",
+          {
+            d: "M 0,0 95.012,26.736 10.243,6.8 96.836,31.015 28.62,13.763 97.955,33.78 93.148,21.906 Z M 99.578,37.791 97.96,33.792 35.894,18.267 Z m -29.761,95.187 26.315,0.209 6.401,-88.097 -2.952,-7.293 -55.941,-14.952 57.082,18.39 -52.219,-14.81 53.318,16.906 -47.293,-11.869 47.749,13.225 -39.586,-8.346 35.898,8.544 -29.573,-5.075 22.97,4.92 -17.709,-2.32 12.185,2.225 -9.422,-0.926 4.164,0.743 -19.745,-0.473 z m 31.415,4.499 H 64.299 v 0.105 L 54.908,47.235 -72.084,-35.63 l -17.892,9.416 -1.124,0.292 c -0.734,0.191 -1.518,0.056 -2.138,-0.381 -0.778,-0.549 -1.339,-1.354 -1.589,-2.266 -0.247,-0.905 0.051,-1.871 0.729,-2.518 l 0.841,-0.801 21.644,-11.505 L -15.688,-6.72 93.145,21.897 69.44,-36.661 c -0.629,-1.498 -0.928,-1.442 -1.478,0.088 l -3.628,12.376 c -0.428,1.432 -1.956,2.227 -3.373,1.754 l -0.217,-0.073 c -1.723,-0.576 -2.652,-2.441 -2.073,-4.163 l 6.546,-19.784 c 0.856,-2.227 5.218,-2.285 6.174,-0.047 l 38.126,90.702 z",
+            fill: "currentColor",
+            fillOpacity: 1,
+            fillRule: "nonzero",
+            stroke: "none",
+            transform: "matrix(1.3333333,0,0,-1.3333333,992.98627,568.9012)"
+          }
+        ),
+        /* @__PURE__ */ jsx(
+          "path",
+          {
+            d: "m 0,0 -41.086,-1.229 3.931,41.845 h 34.344 z",
+            fill: "currentColor",
+            fillOpacity: 1,
+            fillRule: "nonzero",
+            stroke: "none",
+            transform: "matrix(1.3333333,0,0,-1.3333333,1129.6972,508.7808)"
+          }
+        )
+      ] })
+    }
+  );
+}
 function Layout({ children, isDashboard = false, classes = "" }) {
   const { props } = usePage();
   const APP_NAME = props.app_name;
@@ -889,7 +804,7 @@ function Layout({ children, isDashboard = false, classes = "" }) {
     /* @__PURE__ */ jsxs("footer", { children: [
       /* @__PURE__ */ jsx("div", { className: "footer-background" }),
       /* @__PURE__ */ jsxs("div", { className: "copyright", children: [
-        /* @__PURE__ */ jsx("small", { children: `${APP_NAME} © 2026` }),
+        /* @__PURE__ */ jsx("small", { children: `${APP_NAME} © 2026+` }),
         /* @__PURE__ */ jsx(LogoSpikedClean, { className: "footer-logo", alt: `${props.app_name} logo` })
       ] })
     ] })
@@ -991,6 +906,7 @@ function sanitizeRichHtml(html) {
       "referrerpolicy",
       "scrolling"
     ],
+    ADD_ATTR: ["target"],
     ALLOW_DATA_ATTR: true
   });
   DOMPurify.removeHook("uponSanitizeElement");
@@ -1079,6 +995,8 @@ function handleResizeWithCanvas(img, mimeType, isGallery = false) {
     }
     canvas.width = width;
     canvas.height = height;
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
     ctx.drawImage(img, 0, 0, width, height);
     const targetSize = 2e3 * 1024;
     let type = mimeType;
@@ -1090,7 +1008,10 @@ function handleResizeWithCanvas(img, mimeType, isGallery = false) {
       const tempCanvas = document.createElement("canvas");
       tempCanvas.width = w;
       tempCanvas.height = h;
-      tempCanvas.getContext("2d").drawImage(canvas, 0, 0, w, h);
+      const tempCtx = tempCanvas.getContext("2d");
+      tempCtx.imageSmoothingEnabled = true;
+      tempCtx.imageSmoothingQuality = "high";
+      tempCtx.drawImage(canvas, 0, 0, w, h);
       tempCanvas.toBlob(res, type, q);
     });
     canvas.toBlob(async (blob) => {
@@ -1470,9 +1391,28 @@ function getPostUrl(post) {
     const yyyy = date.getUTCFullYear();
     const mm = String(date.getUTCMonth() + 1).padStart(2, "0");
     const dd = String(date.getUTCDate()).padStart(2, "0");
-    return `/news/${yyyy}${mm}${dd}/${post.post_url}`;
+    return `/news/${yyyy}${mm}${dd}/${post.slug}`;
   }
-  return `/${(_a = post.user) == null ? void 0 : _a.username}/${post.post_url}`;
+  return `/${(_a = post.user) == null ? void 0 : _a.username}/${post.slug}`;
+}
+function stripProtocol(url) {
+  if (!url || typeof url !== "string") return url;
+  return url.replace(/^https?:\/\//i, "");
+}
+function formatSlug(text) {
+  if (!text || typeof text !== "string") return "";
+  return text.toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_-]/g, "");
+}
+async function copyToClipboard(text, successMessage = null) {
+  if (!text) return;
+  try {
+    await navigator.clipboard.writeText(text);
+    if (successMessage) {
+      alert(successMessage);
+    }
+  } catch (err) {
+    console.error("Failed to copy to clipboard: ", err);
+  }
 }
 function About({ about, status }) {
   var _a;
@@ -1607,6 +1547,7 @@ function FormField({
   type = "text",
   onValidate,
   isTextArea = false,
+  sideText = "",
   error = "",
   onErrorUpdate = () => {
   }
@@ -1647,7 +1588,24 @@ function FormField({
           disabled,
           placeholder
         }
-      ) : /* @__PURE__ */ jsx(
+      ) : sideText ? /* @__PURE__ */ jsxs("div", { className: "side-text-and-input-container", children: [
+        /* @__PURE__ */ jsx("span", { children: sideText }),
+        /* @__PURE__ */ jsx(
+          "input",
+          {
+            type,
+            placeholder,
+            name: id,
+            value,
+            min,
+            max,
+            id,
+            onChange: handleInternalChange,
+            onBlur,
+            disabled
+          }
+        )
+      ] }) : /* @__PURE__ */ jsx(
         "input",
         {
           type,
@@ -2084,6 +2042,7 @@ function calculateInitialTransform(zoomContainer, outerContainer, imgWidth, imgH
   const posY = (conH - imgHeight * scale) / 2;
   return { scale, posX, posY };
 }
+const loadedLargeImagesCache = /* @__PURE__ */ new Set();
 function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef = null, isImageCropper = false, nextSrc, nextSmallSrc, prevSrc, prevSmallSrc, onNavigateNext, onNavigatePrev }) {
   const zoomContainerRef = useRef(null);
   const zoomedImageRef = useRef(null);
@@ -2093,6 +2052,7 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef 
   const tempOverlayRef = useRef(null);
   const [loadedSrc, setLoadedSrc] = useState(null);
   const currentSrcRef = useRef(src);
+  const prevSrcRef = useRef(null);
   const [liveAlt, setLiveAlt] = useState("");
   useEffect(() => {
     if (isZoomed) {
@@ -2132,6 +2092,8 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef 
   const virtualPosXRef = useRef(0);
   const transitionDragXRef = useRef(0);
   const openTimeRef = useRef(0);
+  const navigatedInSwipeRef = useRef(false);
+  const pendingNavigationRef = useRef(null);
   const updateTransitionVisuals = useCallback((dragX) => {
     const width = zoomContainerRef.current ? zoomContainerRef.current.offsetWidth : window.innerWidth;
     if (nextImgRef.current) {
@@ -2206,14 +2168,21 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef 
   const handleTouchStart = useCallback((event) => {
     hasDraggedRef.current = false;
     dragDistanceRef.current = 0;
+    navigatedInSwipeRef.current = false;
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
       animationFrameRef.current = null;
+      if (pendingNavigationRef.current) {
+        const { action, direction } = pendingNavigationRef.current;
+        const width = zoomContainerRef.current ? zoomContainerRef.current.offsetWidth : window.innerWidth;
+        transitionDragXRef.current = direction === "next" ? width + transitionDragXRef.current : -width + transitionDragXRef.current;
+        updateTransitionVisuals(transitionDragXRef.current);
+        action();
+        pendingNavigationRef.current = null;
+      }
     }
     if (!zoomContainerRef.current) return;
-    virtualPosXRef.current = transformRef.current.posX;
-    transitionDragXRef.current = 0;
-    updateTransitionVisuals(0);
+    virtualPosXRef.current = transformRef.current.posX + transitionDragXRef.current;
     if (event.touches.length === 1) {
       isPanningRef.current = true;
       lastPanPositionRef.current = { x: event.touches[0].clientX, y: event.touches[0].clientY };
@@ -2274,7 +2243,11 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef 
       lastPinchDistanceRef.current = currentDist;
     }
   }, [transform, clampPosition, updateZoom]);
-  const startMomentum = useCallback(() => {
+  const startMomentum = useCallback((forcedDirection = null) => {
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
     const now = performance.now();
     if (now - lastMoveTimeRef.current > 100) {
       velocityRef.current = { x: 0, y: 0 };
@@ -2283,13 +2256,15 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef 
     let vy = velocityRef.current.y;
     const width = zoomContainerRef.current ? zoomContainerRef.current.offsetWidth : window.innerWidth;
     const dragX = transitionDragXRef.current;
-    const isSwipingNext = dragX < 0 && (dragX < -width * 0.2 || vx < -0.5);
-    const isSwipingPrev = dragX > 0 && (dragX > width * 0.2 || vx > 0.5);
+    const isSwipingNext = forcedDirection === "next" || dragX < 0 && (dragX < -width * 0.2 || vx < -0.5);
+    const isSwipingPrev = forcedDirection === "prev" || dragX > 0 && (dragX > width * 0.2 || vx > 0.5);
     let lastFrameTime = performance.now();
     const momentumLoop = (time) => {
       const dt = time - lastFrameTime;
       lastFrameTime = time;
       if (isSwipingNext || isSwipingPrev) {
+        if (isSwipingNext && onNavigateNext && !pendingNavigationRef.current) pendingNavigationRef.current = { action: onNavigateNext, direction: "next" };
+        if (isSwipingPrev && onNavigatePrev && !pendingNavigationRef.current) pendingNavigationRef.current = { action: onNavigatePrev, direction: "prev" };
         const targetX = isSwipingNext ? -width : width;
         transitionDragXRef.current += (targetX - transitionDragXRef.current) * 0.15;
         updateTransitionVisuals(transitionDragXRef.current);
@@ -2297,8 +2272,12 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef 
           animationFrameRef.current = requestAnimationFrame(momentumLoop);
         } else {
           animationFrameRef.current = null;
-          if (isSwipingNext && onNavigateNext) onNavigateNext();
-          if (isSwipingPrev && onNavigatePrev) onNavigatePrev();
+          if (pendingNavigationRef.current) {
+            transitionDragXRef.current = 0;
+            updateTransitionVisuals(0);
+            pendingNavigationRef.current.action();
+            pendingNavigationRef.current = null;
+          }
         }
       } else if (transitionDragXRef.current !== 0) {
         transitionDragXRef.current += (0 - transitionDragXRef.current) * 0.2;
@@ -2332,7 +2311,10 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef 
     };
     animationFrameRef.current = requestAnimationFrame(momentumLoop);
   }, [clampPosition, onNavigateNext, onNavigatePrev, updateTransitionVisuals]);
-  const handleTouchEnd = useCallback(() => {
+  const handleTouchEnd = useCallback((e) => {
+    if (hasDraggedRef.current && e && e.cancelable) {
+      e.preventDefault();
+    }
     isPanningRef.current = false;
     lastPinchDistanceRef.current = null;
     if (zoomContainerRef.current) zoomContainerRef.current.style.removeProperty("touch-action");
@@ -2340,17 +2322,25 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef 
   }, [startMomentum]);
   const handleMouseDown = useCallback((event) => {
     if (event.button !== 0) return;
+    event.preventDefault();
     hasDraggedRef.current = false;
     dragDistanceRef.current = 0;
+    navigatedInSwipeRef.current = false;
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
       animationFrameRef.current = null;
+      if (pendingNavigationRef.current) {
+        const { action, direction } = pendingNavigationRef.current;
+        const width = zoomContainerRef.current ? zoomContainerRef.current.offsetWidth : window.innerWidth;
+        transitionDragXRef.current = direction === "next" ? width + transitionDragXRef.current : -width + transitionDragXRef.current;
+        updateTransitionVisuals(transitionDragXRef.current);
+        action();
+        pendingNavigationRef.current = null;
+      }
     }
     isPanningRef.current = true;
     lastPanPositionRef.current = { x: event.clientX, y: event.clientY };
-    virtualPosXRef.current = transformRef.current.posX;
-    transitionDragXRef.current = 0;
-    updateTransitionVisuals(0);
+    virtualPosXRef.current = transformRef.current.posX + transitionDragXRef.current;
     lastMoveTimeRef.current = performance.now();
     lastMovePosRef.current = { x: event.clientX, y: event.clientY };
     velocityRef.current = { x: 0, y: 0 };
@@ -2400,15 +2390,28 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef 
     if (e.ctrlKey) {
       const scaleDelta = 1 - e.deltaY * WHEEL_ZOOM_SENSITIVITY;
       updateZoom(scaleDelta, e.clientX, e.clientY);
-    } else {
-      setTransform((prev) => {
-        const newPosX = prev.posX - e.deltaX * PAN_SENSITIVITY;
-        const newPosY = prev.posY - e.deltaY * PAN_SENSITIVITY;
-        const clamped = clampPosition(newPosX, newPosY, prev.scale);
-        return { ...prev, posX: clamped.x, posY: clamped.y };
-      });
+      return;
     }
-  }, [isZoomed, isImageCropper, updateZoom, clampPosition]);
+    const isSideScroll = e.shiftKey || Math.abs(e.deltaX) > Math.abs(e.deltaY) && Math.abs(e.deltaX) > 10;
+    if (isSideScroll) {
+      if (animationFrameRef.current || pendingNavigationRef.current) return;
+      const delta = e.shiftKey ? e.deltaY || e.deltaX : e.deltaX;
+      if (delta > 0 && nextSrc && onNavigateNext) {
+        transitionDragXRef.current = -10;
+        startMomentum("next");
+      } else if (delta < 0 && prevSrc && onNavigatePrev) {
+        transitionDragXRef.current = 10;
+        startMomentum("prev");
+      }
+      return;
+    }
+    setTransform((prev) => {
+      const newPosX = prev.posX - e.deltaX * PAN_SENSITIVITY;
+      const newPosY = prev.posY - e.deltaY * PAN_SENSITIVITY;
+      const clamped = clampPosition(newPosX, newPosY, prev.scale);
+      return { ...prev, posX: clamped.x, posY: clamped.y };
+    });
+  }, [isZoomed, isImageCropper, updateZoom, clampPosition, onNavigateNext, onNavigatePrev, nextSrc, prevSrc]);
   const handleClick = useCallback((e) => {
     if (performance.now() - openTimeRef.current < 300) {
       e.preventDefault();
@@ -2457,13 +2460,22 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef 
     }
   }, [isZoomed, handleWheel, handleTouchEnd, handleTouchMove, handleTouchStart]);
   useEffect(() => {
+    if (!isZoomed && !isImageCropper) {
+      transitionDragXRef.current = 0;
+      prevSrcRef.current = null;
+      return;
+    }
+    const isSrcChanged = prevSrcRef.current && prevSrcRef.current !== src;
     currentSrcRef.current = src;
-    if (transitionDragXRef.current !== 0 && zoomContainerRef.current) {
+    pendingNavigationRef.current = null;
+    navigatedInSwipeRef.current = false;
+    const isLargeCached = loadedLargeImagesCache.has(src);
+    if ((isSrcChanged || transitionDragXRef.current !== 0) && zoomContainerRef.current) {
       const overlay = document.createElement("img");
-      overlay.src = smallSrc || src;
+      overlay.src = isLargeCached ? src : smallSrc || src;
       overlay.className = "zoom-transition-img";
       overlay.style.display = "block";
-      overlay.style.transform = "translateX(0px)";
+      overlay.style.transform = `translateX(${transitionDragXRef.current}px)`;
       overlay.style.opacity = "1";
       overlay.style.zIndex = "10";
       overlay.draggable = false;
@@ -2471,10 +2483,9 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef 
       if (tempOverlayRef.current) tempOverlayRef.current.remove();
       tempOverlayRef.current = overlay;
     }
+    prevSrcRef.current = src;
     if (zoomedImageRef.current) zoomedImageRef.current.style.opacity = 0;
-    if (slideContainerRef.current) slideContainerRef.current.style.transform = `translateX(0px)`;
-    transitionDragXRef.current = 0;
-    updateTransitionVisuals(0);
+    updateTransitionVisuals(transitionDragXRef.current);
     if (!src) {
       setLoadedSrc(null);
       if (tempOverlayRef.current) {
@@ -2484,7 +2495,8 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef 
       return;
     }
     setLoadedSrc(null);
-    const targetSrc = smallSrc || src;
+    const activeSmallSrc = isLargeCached ? src : smallSrc;
+    const targetSrc = activeSmallSrc || src;
     const img = new Image();
     img.onload = () => {
       if (currentSrcRef.current === src) {
@@ -2494,10 +2506,17 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef 
         setTransform(initialT);
         setInitialTransform(initialT);
         setLoadedSrc(targetSrc);
-        if (smallSrc && src !== smallSrc) {
+        if (targetSrc === src) {
+          loadedLargeImagesCache.add(src);
+        }
+        if (isPanningRef.current) {
+          virtualPosXRef.current = initialT.posX + transitionDragXRef.current;
+        }
+        if (activeSmallSrc && src !== activeSmallSrc) {
           const largeImg = new Image();
           largeImg.onload = () => {
             if (currentSrcRef.current === src) {
+              loadedLargeImagesCache.add(src);
               const largeNatSize = { width: largeImg.naturalWidth, height: largeImg.naturalHeight };
               const largeInitialT = calculateInitialTransform(zoomContainerRef == null ? void 0 : zoomContainerRef.current, outerContainerRef == null ? void 0 : outerContainerRef.current, largeNatSize.width, largeNatSize.height);
               setNaturalSize((prevNatSize) => {
@@ -2514,6 +2533,9 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef 
               });
               setInitialTransform(largeInitialT);
               setLoadedSrc(src);
+              if (isPanningRef.current) {
+                virtualPosXRef.current = largeInitialT.posX + transitionDragXRef.current;
+              }
             }
           };
           largeImg.src = src;
@@ -2535,7 +2557,7 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef 
       }
     };
     img.src = targetSrc;
-  }, [src, smallSrc, updateTransitionVisuals, outerContainerRef, setTransform]);
+  }, [src, smallSrc, isZoomed, isImageCropper, updateTransitionVisuals, outerContainerRef, setTransform]);
   useEffect(() => {
     if (!isZoomed || !zoomContainerRef.current) return;
     const focusableElements = zoomContainerRef.current.querySelectorAll(
@@ -2572,6 +2594,19 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef 
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [isZoomed, clickFunc, onNavigateNext, onNavigatePrev]);
+  useEffect(() => {
+    if (!isZoomed) return;
+    if (nextSrc && !loadedLargeImagesCache.has(nextSrc)) {
+      const img = new Image();
+      img.onload = () => loadedLargeImagesCache.add(nextSrc);
+      img.src = nextSrc;
+    }
+    if (prevSrc && !loadedLargeImagesCache.has(prevSrc)) {
+      const img = new Image();
+      img.onload = () => loadedLargeImagesCache.add(prevSrc);
+      img.src = prevSrc;
+    }
+  }, [isZoomed, nextSrc, prevSrc]);
   return /* @__PURE__ */ jsxs(
     "div",
     {
@@ -2600,7 +2635,7 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef 
         prevSrc && /* @__PURE__ */ jsx(
           "img",
           {
-            src: prevSmallSrc || prevSrc,
+            src: loadedLargeImagesCache.has(prevSrc) ? prevSrc : prevSmallSrc || prevSrc,
             ref: prevImgRef,
             className: "zoom-transition-img",
             alt: "Previous",
@@ -2610,7 +2645,7 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef 
         nextSrc && /* @__PURE__ */ jsx(
           "img",
           {
-            src: nextSmallSrc || nextSrc,
+            src: loadedLargeImagesCache.has(nextSrc) ? nextSrc : nextSmallSrc || nextSrc,
             ref: nextImgRef,
             className: "zoom-transition-img",
             alt: "Next",
@@ -2644,34 +2679,62 @@ function parseTransformString(transformString) {
 }
 function getCroppedImage(cropperElement) {
   const img = cropperElement.querySelector("img");
+  if (!img || !img.naturalWidth || !img.naturalHeight) return null;
   const transformString = img.style.transform;
-  const imageTransform = parseTransformString(transformString);
-  const imageNaturalSize = { width: img.naturalWidth, height: img.naturalHeight };
-  const cropperWidth = cropperElement.clientWidth;
-  const cropperHeight = cropperElement.clientHeight;
-  const outputSize = 300;
+  const { scale, posX, posY } = parseTransformString(transformString);
+  const W_nat = img.naturalWidth;
+  const H_nat = img.naturalHeight;
+  const C_w = cropperElement.clientWidth;
+  const C_h = cropperElement.clientHeight;
+  const outputSize = 800;
+  const sx = (0 - posX) / scale;
+  const sy = (0 - posY) / scale;
+  const sw = C_w / scale;
+  const sh = C_h / scale;
   const canvas = document.createElement("canvas");
   canvas.width = outputSize;
   canvas.height = outputSize;
   const ctx = canvas.getContext("2d");
-  let sx = (0 - imageTransform.posX) / imageTransform.scale;
-  if (sx < 0) sx = 0;
-  let sy = (0 - imageTransform.posY) / imageTransform.scale;
-  if (sy < 0) sy = 0;
-  let sWidth = cropperWidth / imageTransform.scale;
-  if (sx + sWidth > imageNaturalSize.width) {
-    sWidth = imageNaturalSize.width - sx;
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  ctx.fillStyle = "#000000";
+  ctx.fillRect(0, 0, outputSize, outputSize);
+  let srcX = sx;
+  let srcY = sy;
+  let srcW = sw;
+  let srcH = sh;
+  let dstX = 0;
+  let dstY = 0;
+  let dstW = outputSize;
+  let dstH = outputSize;
+  if (srcX < 0) {
+    const overflowRatio = Math.abs(srcX) / sw;
+    dstX = outputSize * overflowRatio;
+    dstW -= dstX;
+    srcW += srcX;
+    srcX = 0;
   }
-  let sHeight = cropperHeight / imageTransform.scale;
-  if (sy + sHeight > imageNaturalSize.height) {
-    sHeight = imageNaturalSize.height - sy;
+  if (srcY < 0) {
+    const overflowRatio = Math.abs(srcY) / sh;
+    dstY = outputSize * overflowRatio;
+    dstH -= dstY;
+    srcH += srcY;
+    srcY = 0;
   }
-  const dx = 0;
-  const dy = 0;
-  const dWidth = canvas.width;
-  const dHeight = canvas.height;
-  ctx.drawImage(img, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
-  const dataURL = canvas.toDataURL("image/webp");
+  if (srcX + srcW > W_nat) {
+    const overflowRatio = (srcX + srcW - W_nat) / sw;
+    dstW -= outputSize * overflowRatio;
+    srcW = W_nat - srcX;
+  }
+  if (srcY + srcH > H_nat) {
+    const overflowRatio = (srcY + srcH - H_nat) / sh;
+    dstH -= outputSize * overflowRatio;
+    srcH = H_nat - srcY;
+  }
+  if (srcW > 0 && srcH > 0 && dstW > 0 && dstH > 0) {
+    ctx.drawImage(img, srcX, srcY, srcW, srcH, dstX, dstY, dstW, dstH);
+  }
+  const dataURL = canvas.toDataURL("image/webp", 0.95);
   const arr = dataURL.split(",");
   const mime = arr[0].match(/:(.*?);/)[1];
   const base64Data = arr[1];
@@ -2681,8 +2744,7 @@ function getCroppedImage(cropperElement) {
   while (n--) {
     u8arr[n] = bstr.charCodeAt(n);
   }
-  const blob = new Blob([u8arr], { type: mime });
-  return blob;
+  return new Blob([u8arr], { type: mime });
 }
 function AvatarSetter({ user }) {
   const { props } = usePage();
@@ -2849,7 +2911,7 @@ function AvatarSetter({ user }) {
       }
     ),
     errors.avatar && /* @__PURE__ */ jsx("div", { className: "error", children: errors.avatar }),
-    /* @__PURE__ */ jsxs("div", { className: "profile-avatar-container", ref: avatarContainerRef, children: [
+    /* @__PURE__ */ jsxs("div", { className: "profile-avatar-container dashboard-avatar", ref: avatarContainerRef, children: [
       /* @__PURE__ */ jsx(
         "label",
         {
@@ -2883,7 +2945,7 @@ function AvatarSetter({ user }) {
           ]
         }
       ),
-      /* @__PURE__ */ jsx("img", { src: avatar, alt: `${user == null ? void 0 : user.username}'s avatar`, className: "round-image fuck" })
+      /* @__PURE__ */ jsx("img", { src: avatar, alt: `${user == null ? void 0 : user.username}'s avatar`, className: "round-image" })
     ] })
   ] });
 }
@@ -2926,7 +2988,7 @@ function ProfileItem({
     {
       href: val,
       target: "_blank",
-      children: val
+      children: stripProtocol(val)
     }
   ) : /* @__PURE__ */ jsx("span", { children: val });
   if (isArray) {
@@ -3002,7 +3064,7 @@ function ProfileItem({
         {
           href: value,
           target: "_blank",
-          children: value
+          children: stripProtocol(value)
         }
       ) : /* @__PURE__ */ jsx("span", { children: value })
     ] }),
@@ -3663,7 +3725,7 @@ const __vite_glob_0_5 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.def
   __proto__: null,
   default: Following
 }, Symbol.toStringTag, { value: "Module" }));
-function Tile({ post, isSliderDraggedPointerUp, user = null, isDashboard = false }) {
+function Tile({ post, isSliderDraggedPointerUp, user = null, isDashboard = false, size = "small" }) {
   const { props } = usePage();
   if (!post || !user && !post.user) return null;
   const author = user ?? post.user;
@@ -3673,7 +3735,7 @@ function Tile({ post, isSliderDraggedPointerUp, user = null, isDashboard = false
   } else if (post.is_news) {
     viewText = "read";
   }
-  const directory = `${props.app_url}/storage/images/uploaded/users/${author.username}/posts/${post.post_url}/gallery/small`;
+  const directory = `${props.app_url}/storage/images/uploaded/users/${author.username}/posts/${post.slug}/gallery/${size}`;
   let imageUrls = [];
   try {
     imageUrls = (post == null ? void 0 : post.gallery_image_urls) ?? [];
@@ -3685,6 +3747,9 @@ function Tile({ post, isSliderDraggedPointerUp, user = null, isDashboard = false
     if (isSliderDraggedPointerUp == null ? void 0 : isSliderDraggedPointerUp.current) {
       e.preventDefault();
       e.stopPropagation();
+      if (e.currentTarget && typeof e.currentTarget.blur === "function") {
+        e.currentTarget.blur();
+      }
       return;
     }
   }
@@ -3730,13 +3795,19 @@ function Tile({ post, isSliderDraggedPointerUp, user = null, isDashboard = false
           ) })
         ] }) : /* @__PURE__ */ jsx("div", { className: "info-item title", children: post.title }),
         /* @__PURE__ */ jsx("div", { className: "info-item subtitle", children: post.subtitle }),
-        !isDashboard && /* @__PURE__ */ jsx("div", { className: "info-item link-container", children: /* @__PURE__ */ jsx(UserLink, { user: author }) })
+        !isDashboard && /* @__PURE__ */ jsx("div", { className: "info-item link-container", children: /* @__PURE__ */ jsx(
+          UserLink,
+          {
+            user: author,
+            isSliderDraggedPointerUp
+          }
+        ) })
       ] }),
       /* @__PURE__ */ jsxs("div", { className: "panel-bottom", children: [
         isDashboard && /* @__PURE__ */ jsx("div", { className: "info-item action-links link-container", children: /* @__PURE__ */ jsxs(
           Link,
           {
-            href: `/dashboard/edit-post/${post.post_url}`,
+            href: `/dashboard/edit-post/${post.slug}`,
             className: "post-link",
             onClick: handleLinkClick,
             draggable: "false",
@@ -3764,7 +3835,7 @@ function Tile({ post, isSliderDraggedPointerUp, user = null, isDashboard = false
             }
           )
         ] }),
-        post.website && !isDashboard && /* @__PURE__ */ jsx("div", { className: "info-item action-links link-container", children: /* @__PURE__ */ jsxs(
+        post.website && !isDashboard && /* @__PURE__ */ jsx("div", { className: "info-item action-links link-container group", children: /* @__PURE__ */ jsxs(
           "a",
           {
             href: post.website,
@@ -3775,6 +3846,9 @@ function Tile({ post, isSliderDraggedPointerUp, user = null, isDashboard = false
               if (isSliderDraggedPointerUp == null ? void 0 : isSliderDraggedPointerUp.current) {
                 e.stopPropagation();
                 e.preventDefault();
+                if (e.currentTarget && typeof e.currentTarget.blur === "function") {
+                  e.currentTarget.blur();
+                }
                 return;
               }
               e.preventDefault();
@@ -3852,8 +3926,8 @@ function HeroTilesContainer({ screenSize, category, fetchOrder = FetchOrder.Asce
     });
   }, [screenSize, category, posts, areNoMorePosts, setAreNoMorePosts, fetchOrder]);
   const postsToDisplay = posts.length > 0 ? posts.slice(0, getPostAmount(screenSize)) : posts;
-  return /* @__PURE__ */ jsx("div", { className: "tiles-container first-row-taller", children: postsToDisplay.length > 0 ? postsToDisplay.map((post) => {
-    return /* @__PURE__ */ jsx(Tile, { post }, post.id);
+  return /* @__PURE__ */ jsx("div", { className: "tiles-container first-row-taller", children: postsToDisplay.length > 0 ? postsToDisplay.map((post, index) => {
+    return /* @__PURE__ */ jsx(Tile, { post, size: index < 2 ? "large" : "small" }, post.id);
   }) : /* @__PURE__ */ jsx("p", { className: "loading", children: "loading posts..." }) });
 }
 const postsPerRow = {
@@ -4074,13 +4148,13 @@ function CarouselContainer({ size, className, children }) {
     const FADE_WIDTH = 200;
     const currentX = currentTranslateXRef.current;
     const opacityLeft = Math.min(-currentX / FADE_WIDTH, 1);
-    const sliderLeft = sliderEndLeftRef.current;
-    sliderLeft.style.setProperty("--left-opacity", opacityLeft);
     const innerW = innerSliderRef.current.offsetWidth;
     const outerW = sliderContainerRef.current.offsetWidth;
     const innerSliderMax = innerW - outerW;
     const rightFadePoint = innerSliderMax - FADE_WIDTH;
     const opacityRight = 1 - Math.max((-currentX - rightFadePoint) / FADE_WIDTH, 0);
+    const sliderLeft = sliderEndLeftRef.current;
+    sliderLeft.style.setProperty("--left-opacity", opacityLeft);
     const sliderRight = sliderEndRightRef.current;
     sliderRight.style.setProperty("--right-opacity", opacityRight);
   }, []);
@@ -4132,7 +4206,8 @@ function CarouselContainer({ size, className, children }) {
       currentTranslateXRef.current = checkBoundary(currentTranslateXRef.current);
       innerSliderRef.current.style.transform = `translateX(${currentTranslateXRef.current}px)`;
     }
-  }, [checkBoundary]);
+    updateSliderEnds();
+  }, [checkBoundary, updateSliderEnds]);
   const renderContent = typeof children === "function" ? children({
     isDragging: isDraggingRef,
     isDraggedPointerUp: isDraggedPointerUpRef,
@@ -4191,6 +4266,9 @@ function CarouselContainer({ size, className, children }) {
   }, [checkBoundary]);
   const handlePointerUp = useCallback(() => {
     isPointerDownRef.current = false;
+    if (isDraggingRef.current && document.activeElement && typeof document.activeElement.blur === "function") {
+      document.activeElement.blur();
+    }
     setTimeout(() => {
       isDraggedPointerUpRef.current = false;
     }, 50);
@@ -4323,9 +4401,11 @@ function TileCarousel({ size, title = "", posts = [] }) {
     )
   ] }) : null;
 }
-function LogoTwoToneGradientNamed({
+function LogoThreeToneGradientFrameOutlineNamed({
   color,
   secondaryColor,
+  outlineColor,
+  strokeWidth = 2,
   className = "",
   ...props
 }) {
@@ -4335,11 +4415,12 @@ function LogoTwoToneGradientNamed({
   const clipPathId = `clipPath22-4_${uniqueId}`;
   const primaryFill = color || "currentColor";
   const secondaryFill = secondaryColor || "var(--logo-secondary-color, #ffeeaa)";
+  const frameOutline = outlineColor || "var(--frame-outline-color, #000000)";
   return /* @__PURE__ */ jsxs(
     "svg",
     {
       className,
-      viewBox: "0 0 584.80627 529.39947",
+      viewBox: "0 0 584.80627 538",
       xmlns: "http://www.w3.org/2000/svg",
       xmlnsXlink: "http://www.w3.org/1999/xlink",
       ...props,
@@ -4382,8 +4463,7 @@ function LogoTwoToneGradientNamed({
               fill: primaryFill,
               fillOpacity: 1,
               fillRule: "nonzero",
-              stroke: "none",
-              strokeWidth: 1.33333
+              stroke: "none"
             }
           ),
           /* @__PURE__ */ jsx(
@@ -4394,8 +4474,7 @@ function LogoTwoToneGradientNamed({
               fill: primaryFill,
               fillOpacity: 1,
               fillRule: "nonzero",
-              stroke: "none",
-              strokeWidth: 1.33333
+              stroke: "none"
             }
           ),
           /* @__PURE__ */ jsx(
@@ -4406,8 +4485,7 @@ function LogoTwoToneGradientNamed({
               fill: primaryFill,
               fillOpacity: 1,
               fillRule: "nonzero",
-              stroke: "none",
-              strokeWidth: 1.33333
+              stroke: "none"
             }
           ),
           /* @__PURE__ */ jsx(
@@ -4418,8 +4496,7 @@ function LogoTwoToneGradientNamed({
               fill: primaryFill,
               fillOpacity: 1,
               fillRule: "nonzero",
-              stroke: "none",
-              strokeWidth: 1.33333
+              stroke: "none"
             }
           ),
           /* @__PURE__ */ jsx(
@@ -4430,8 +4507,7 @@ function LogoTwoToneGradientNamed({
               fill: primaryFill,
               fillOpacity: 1,
               fillRule: "nonzero",
-              stroke: "none",
-              strokeWidth: 1.33333
+              stroke: "none"
             }
           ),
           /* @__PURE__ */ jsx(
@@ -4442,8 +4518,7 @@ function LogoTwoToneGradientNamed({
               fill: primaryFill,
               fillOpacity: 1,
               fillRule: "nonzero",
-              stroke: "none",
-              strokeWidth: 1.33333
+              stroke: "none"
             }
           ),
           /* @__PURE__ */ jsx(
@@ -4454,8 +4529,7 @@ function LogoTwoToneGradientNamed({
               fill: primaryFill,
               fillOpacity: 1,
               fillRule: "nonzero",
-              stroke: "none",
-              strokeWidth: 1.33333
+              stroke: "none"
             }
           ),
           /* @__PURE__ */ jsx(
@@ -4466,8 +4540,7 @@ function LogoTwoToneGradientNamed({
               fill: primaryFill,
               fillOpacity: 1,
               fillRule: "nonzero",
-              stroke: "none",
-              strokeWidth: 1.33333
+              stroke: "none"
             }
           ),
           /* @__PURE__ */ jsx(
@@ -4478,32 +4551,7 @@ function LogoTwoToneGradientNamed({
               fill: primaryFill,
               fillOpacity: 1,
               fillRule: "nonzero",
-              stroke: "none",
-              strokeWidth: 1.33333
-            }
-          ),
-          /* @__PURE__ */ jsx(
-            "path",
-            {
-              id: "path10-7",
-              d: "m 388.69739,799.24187 c -37.65333,0 -68.176,-30.524 -68.176,-68.176 0,-37.65333 30.52267,-68.17733 68.176,-68.17733 37.652,0 68.176,30.524 68.176,68.17733 0,37.652 -30.524,68.176 -68.176,68.176 m 0,-153.05199 c -46.876,0 -84.876,37.99999 -84.876,84.87599 0,46.87467 38,84.87467 84.876,84.87467 46.876,0 84.876,-38 84.876,-84.87467 0,-46.876 -38,-84.87599 -84.876,-84.87599",
-              fill: primaryFill,
-              fillOpacity: 1,
-              fillRule: "nonzero",
-              stroke: "none",
-              strokeWidth: 1.33333
-            }
-          ),
-          /* @__PURE__ */ jsx(
-            "path",
-            {
-              id: "path12-1",
-              d: "m 536.32052,850.40499 23.856,-253.99199 74.99733,-0.596 18.24533,251.08399 -94.31866,232.99861 c -1.79467,4.2707 -2.64533,4.1094 -4.212,-0.252 l -10.34267,-35.2719 c -1.216,-4.0827 -5.572,-6.348 -9.61333,-4.9974 l -0.616,0.2054 c -4.912,1.6413 -7.55867,6.9573 -5.90933,11.8666 l 18.65733,56.384 c 2.44,6.3507 14.86933,6.5147 17.54267,0.2587 L 673.26852,849.58499 649.71118,583.59166 H 544.44719 V 583.293 L 517.68185,840.78766 155.7432,1076.961 l -50.992,-26.836 -3.204,-0.832 c -2.092005,-0.5453 -4.328008,-0.1613 -6.094675,1.0853 -2.216,1.564 -3.817333,3.8587 -4.528,6.46 -0.705333,2.576 0.144,5.3334 2.078667,7.176 l 2.397333,2.2813 61.685335,32.7881 z",
-              fill: primaryFill,
-              fillOpacity: 1,
-              fillRule: "nonzero",
-              stroke: "none",
-              strokeWidth: 1.33333
+              stroke: "none"
             }
           ),
           /* @__PURE__ */ jsx(
@@ -4514,8 +4562,7 @@ function LogoTwoToneGradientNamed({
               fill: secondaryFill,
               fillOpacity: 1,
               fillRule: "nonzero",
-              stroke: "none",
-              strokeWidth: 1.33333
+              stroke: "none"
             }
           ),
           /* @__PURE__ */ jsx(
@@ -4535,6 +4582,36 @@ function LogoTwoToneGradientNamed({
                 }
               )
             }
+          ),
+          /* @__PURE__ */ jsx(
+            "path",
+            {
+              id: "path10-7",
+              d: "m 388.69739,799.24187 c -37.65333,0 -68.176,-30.524 -68.176,-68.176 0,-37.65333 30.52267,-68.17733 68.176,-68.17733 37.652,0 68.176,30.524 68.176,68.17733 0,37.652 -30.524,68.176 -68.176,68.176 m 0,-153.05199 c -46.876,0 -84.876,37.99999 -84.876,84.87599 0,46.87467 38,84.87467 84.876,84.87467 46.876,0 84.876,-38 84.876,-84.87467 0,-46.876 -38,-84.87599 -84.876,-84.87599",
+              fill: primaryFill,
+              fillOpacity: 1,
+              fillRule: "nonzero",
+              stroke: frameOutline,
+              strokeWidth,
+              strokeLinejoin: "round",
+              strokeLinecap: "round",
+              style: { paintOrder: "stroke fill" }
+            }
+          ),
+          /* @__PURE__ */ jsx(
+            "path",
+            {
+              id: "path12-1",
+              d: "m 536.32052,850.40499 23.856,-253.99199 74.99733,-0.596 18.24533,251.08399 -94.31866,232.99861 c -1.79467,4.2707 -2.64533,4.1094 -4.212,-0.252 l -10.34267,-35.2719 c -1.216,-4.0827 -5.572,-6.348 -9.61333,-4.9974 l -0.616,0.2054 c -4.912,1.6413 -7.55867,6.9573 -5.90933,11.8666 l 18.65733,56.384 c 2.44,6.3507 14.86933,6.5147 17.54267,0.2587 L 673.26852,849.58499 649.71118,583.59166 H 544.44719 V 583.293 L 517.68185,840.78766 155.7432,1076.961 l -50.992,-26.836 -3.204,-0.832 c -2.092005,-0.5453 -4.328008,-0.1613 -6.094675,1.0853 -2.216,1.564 -3.817333,3.8587 -4.528,6.46 -0.705333,2.576 0.144,5.3334 2.078667,7.176 l 2.397333,2.2813 61.685335,32.7881 z",
+              fill: primaryFill,
+              fillOpacity: 1,
+              fillRule: "nonzero",
+              stroke: frameOutline,
+              strokeWidth,
+              strokeLinejoin: "round",
+              strokeLinecap: "round",
+              style: { paintOrder: "stroke fill" }
+            }
           )
         ] })
       ]
@@ -4550,9 +4627,9 @@ function Home({ heroPosts = [], carouselArchive = [], carouselNews = [], carouse
     return cleanup;
   }, [setScreenSize]);
   return /* @__PURE__ */ jsxs(Fragment, { children: [
-    /* @__PURE__ */ jsx(PageHead, { title: "home" }),
+    /* @__PURE__ */ jsx(PageHead, { title: `${props.app_name}` }),
     /* @__PURE__ */ jsxs("div", { className: "hero", children: [
-      /* @__PURE__ */ jsx("div", { className: "hero-logo-container", children: /* @__PURE__ */ jsx(LogoTwoToneGradientNamed, { className: "hero-logo", alt: `${props.app_name} logo` }) }),
+      /* @__PURE__ */ jsx("div", { className: "hero-logo-container", children: /* @__PURE__ */ jsx(LogoThreeToneGradientFrameOutlineNamed, { className: "hero-logo", alt: `${props.app_name} logo` }) }),
       /* @__PURE__ */ jsxs("div", { className: "hero-text-container", children: [
         /* @__PURE__ */ jsx("h1", { className: "invisible", children: `asatte.io` }),
         /* @__PURE__ */ jsx("div", { className: "hero-subtitle-1", children: /* @__PURE__ */ jsx("p", { children: "the premier hub" }) }),
@@ -5139,7 +5216,7 @@ function ImageCarousel({ size, post, title = "" }) {
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [isZoomed, setIsZoomed] = useState(false);
   const slideRefs = useRef([]);
-  const IMAGE_ROOT = `${props.app_url}/storage/images/uploaded/users/${post.user.username}/posts/${post.post_url}/gallery`;
+  const IMAGE_ROOT = `${props.app_url}/storage/images/uploaded/users/${post.user.username}/posts/${post.slug}/gallery`;
   slideRefs.current = [];
   const imageUrls = useMemo(() => {
     try {
@@ -5454,7 +5531,7 @@ function Comment({ comment, isDashboard = false, onReply = null, id, parentLocal
   ] });
 }
 function CommentSection({ comments, apiRoutePrefix, likeCount, viewCount, canDeleteAnyComment, isUserProfile = false }) {
-  var _a, _b;
+  var _a;
   const [originalComment, setOriginalComment] = useState(null);
   const [originalCommentElement, setOriginalCommentElement] = useState(null);
   const [quoteText, setQuoteText] = useState("");
@@ -5466,7 +5543,6 @@ function CommentSection({ comments, apiRoutePrefix, likeCount, viewCount, canDel
   const user = (_a = usePage().props.auth) == null ? void 0 : _a.user;
   const isAuthenticated = !!user;
   const page = usePage();
-  const success = (_b = page.props.flash) == null ? void 0 : _b.success;
   const parsed = typeof window !== "undefined" ? new URL(page.url || window.location.href, window.location.origin) : new URL(page.url, page.props.app_url || "http://localhost");
   const currentUrl = `${parsed.origin}${parsed.pathname}${parsed.search}`;
   const queryParams = new URLSearchParams(parsed.search);
@@ -5563,7 +5639,6 @@ function CommentSection({ comments, apiRoutePrefix, likeCount, viewCount, canDel
           /* @__PURE__ */ jsxs("div", { children: [
             /* @__PURE__ */ jsx("h2", { className: isAuthenticated ? "" : "greyed-out", children: "leave a comment" }),
             errors.content && /* @__PURE__ */ jsx("div", { className: "error", children: errors.content }),
-            success && /* @__PURE__ */ jsx("div", { className: "notice", children: success }),
             !isAuthenticated && /* @__PURE__ */ jsxs("div", { className: "notice", children: [
               /* @__PURE__ */ jsx(Link, { href: "/login", children: "Log in" }),
               " or ",
@@ -5705,7 +5780,7 @@ function Post({ post, carouselPosts: userPosts = [] }) {
       return [];
     }
   }, [post]);
-  const mainImg = `${appUrl}/storage/images/uploaded/users/${post.user.username}/posts/${post.post_url}/gallery/large/${imageUrls[0]}`;
+  const mainImg = `${appUrl}/storage/images/uploaded/users/${post.user.username}/posts/${post.slug}/gallery/large/${imageUrls[0]}`;
   const mainAlt = (post == null ? void 0 : post.gallery_alts[0]) ?? "";
   const videoUrl = useMemo(() => {
     try {
@@ -5767,7 +5842,7 @@ function Post({ post, carouselPosts: userPosts = [] }) {
     /* @__PURE__ */ jsx(
       PageHead,
       {
-        title: `${post.title} by ${post.user.username}`,
+        title: `'${post.title}' by ${post.user.username} | ${props.app_name}`,
         description: post.subtitle,
         ogType: "article",
         ogImg: mainImg
@@ -5805,28 +5880,44 @@ function Post({ post, carouselPosts: userPosts = [] }) {
                     children: /* @__PURE__ */ jsx("i", { className: isLiked ? "fa-solid fa-star" : "fa-regular fa-star" })
                   }
                 ),
-                post.website ? /* @__PURE__ */ jsx("div", { className: "info-item action-links link-container", children: /* @__PURE__ */ jsxs(
-                  "a",
-                  {
-                    className: "post-link",
-                    href: post.website,
-                    onClick: (e) => {
-                      e.preventDefault();
-                      openPopup(
-                        post.website,
-                        `${post.id} : ${post.title}`,
-                        window.screen.width * 0.2,
-                        window.screen.height * 0.2,
-                        window.screen.width * 0.8,
-                        window.screen.height * 0.8
-                      );
-                    },
-                    children: [
-                      /* @__PURE__ */ jsx("i", { className: "fa-solid fa-arrow-up-right-from-square" }),
-                      /* @__PURE__ */ jsx("span", { children: "visit site" })
-                    ]
-                  }
-                ) }) : /* @__PURE__ */ jsx(Fragment, {})
+                post.website ? /* @__PURE__ */ jsxs("div", { className: "info-item action-links link-container group", children: [
+                  /* @__PURE__ */ jsxs(
+                    "a",
+                    {
+                      className: "post-link",
+                      href: post.website,
+                      onClick: (e) => {
+                        e.preventDefault();
+                        openPopup(
+                          post.website,
+                          `${post.id} : ${post.title}`,
+                          window.screen.width * 0.2,
+                          window.screen.height * 0.2,
+                          window.screen.width * 0.8,
+                          window.screen.height * 0.8
+                        );
+                      },
+                      children: [
+                        /* @__PURE__ */ jsx("i", { className: "fa-solid fa-arrow-up-right-from-square" }),
+                        /* @__PURE__ */ jsx("span", { children: "visit site" })
+                      ]
+                    }
+                  ),
+                  " ",
+                  /* @__PURE__ */ jsx(
+                    "button",
+                    {
+                      className: "button-link",
+                      "aria-label": "copy URL to clipboard",
+                      title: `copy ${post.website} to clipboard`,
+                      onClick: (e) => {
+                        e.preventDefault();
+                        copyToClipboard(post.website, "Website URL copied to clipboard!");
+                      },
+                      children: /* @__PURE__ */ jsx("i", { className: "fa-regular fa-copy medium-icon" })
+                    }
+                  )
+                ] }) : /* @__PURE__ */ jsx(Fragment, {})
               ] }) })
             ] }) }),
             /* @__PURE__ */ jsx("div", { className: "page-section main-info-container top-version", children: /* @__PURE__ */ jsxs("div", { className: "main-info-box", children: [
@@ -5858,7 +5949,8 @@ function Post({ post, carouselPosts: userPosts = [] }) {
               /* @__PURE__ */ jsx("div", { children: /* @__PURE__ */ jsxs("p", { className: "post-date", children: [
                 " posted by ",
                 /* @__PURE__ */ jsx(UserLink, { user: post.user }),
-                " on 2025.5.12"
+                " on ",
+                getDateAsYYYYMMDD(post.created_at)
               ] }) }),
               post.premiere_date && /* @__PURE__ */ jsx("div", { children: /* @__PURE__ */ jsx("p", { className: "post-date", children: /* @__PURE__ */ jsxs("em", { children: [
                 "premiered on ",
@@ -5993,58 +6085,61 @@ function UserAgreement({
   const APP_NAME = props.app_name;
   const AGREEMENT_VERSION = props.app_user_agreement_version;
   return /* @__PURE__ */ jsxs(Fragment, { children: [
-    /* @__PURE__ */ jsxs("div", { className: "user-agreement article-text", children: [
-      /* @__PURE__ */ jsx("div", { className: "centered-content vert-1rem", children: /* @__PURE__ */ jsx("h2", { children: "user agreement" }) }),
-      /* @__PURE__ */ jsxs("div", { className: "footnote bottom-1rem", children: [
-        "version ",
-        AGREEMENT_VERSION
-      ] }),
-      /* @__PURE__ */ jsxs("p", { children: [
-        "As a member of ",
-        APP_NAME,
-        ", you agree to only post content qualifying as Internet Art. As outlined in the ",
-        /* @__PURE__ */ jsx(Link, { href: "/about", children: "about" }),
-        " section, this is any work for which the Internet is an essential element of its realization. Furthermore, all posted work should be primarily artistic in nature. Eg. a work can contain nudity but should distinguish itself clearly from pornography in its concept and realization. Likewise, any post whose primary goal is to promote a business or make money is not acceptable. In any and all cases, it is at the final discretion of the webmaster and administrators to temporarily hide or delete any content or user found to not abide by these principles."
-      ] }),
-      /* @__PURE__ */ jsx("p", { children: "Users whose content has been temporarily hidden will be notified so that they can make changes or appeal the decision." }),
-      /* @__PURE__ */ jsx("p", { children: "Malicious comments or SPAM will lead to comment-deletion and potentially account-deletion, at the discretion of the webmaster & admins." }),
-      /* @__PURE__ */ jsxs("p", { children: [
-        "Users must have the right to archive the work they post. ",
-        APP_NAME,
-        " complies with DMCA takedown requests and will remove infringing material upon valid notice."
-      ] }),
-      /* @__PURE__ */ jsxs("p", { children: [
-        APP_NAME,
-        " will not leak your personal information to anyone or use it for anything but your ",
-        APP_NAME,
-        " account."
-      ] }),
-      /* @__PURE__ */ jsxs("p", { children: [
-        "Without receiving your explicit agreement, ",
-        APP_NAME,
-        " will not use images and information from your posts for anything but the following :"
-      ] }),
-      /* @__PURE__ */ jsxs("ol", { children: [
-        /* @__PURE__ */ jsx("li", { children: "The posts themselves on the website" }),
-        /* @__PURE__ */ jsxs("li", { children: [
-          "Images of posts may appear in screenshots of ",
-          APP_NAME,
-          " shared on other platforms without explicit credit."
+    /* @__PURE__ */ jsxs("div", { className: "user-agreement-container", children: [
+      /* @__PURE__ */ jsx(LogoTwoToneGradientClean, { className: "user-agreement-logo" }),
+      /* @__PURE__ */ jsxs("div", { className: "user-agreement article-text", children: [
+        /* @__PURE__ */ jsx("div", { className: "centered-content vert-1rem", children: /* @__PURE__ */ jsx("h2", { children: "user agreement" }) }),
+        /* @__PURE__ */ jsxs("div", { className: "footnote bottom-1rem", children: [
+          "version ",
+          AGREEMENT_VERSION
         ] }),
-        /* @__PURE__ */ jsxs("li", { children: [
-          "For any promotional content that explicitly highlights the work of an ",
+        /* @__PURE__ */ jsxs("p", { children: [
+          "As a member of ",
           APP_NAME,
-          " user, credit will be given."
+          ", you agree to only post content qualifying as Internet Art. As outlined in the ",
+          /* @__PURE__ */ jsx(Link, { href: "/about", children: "about" }),
+          " section, this is any work for which the Internet is an essential element of its realization. Furthermore, all posted work should be primarily artistic in nature. Eg. a work can contain nudity but should distinguish itself clearly from pornography in its concept and realization. Likewise, any post whose primary goal is to promote a business or make money is not acceptable. In any and all cases, it is at the final discretion of the webmaster and administrators to temporarily hide or delete any content or user found to not abide by these principles."
+        ] }),
+        /* @__PURE__ */ jsx("p", { children: "Users whose content has been temporarily hidden will be notified so that they can make changes or appeal the decision." }),
+        /* @__PURE__ */ jsx("p", { children: "Malicious content or SPAM will lead to content-deletion and potentially account-deletion, at the discretion of the webmaster & admins." }),
+        /* @__PURE__ */ jsxs("p", { children: [
+          "Users must have the right to archive the work they post. ",
+          APP_NAME,
+          " complies with DMCA takedown requests and will remove infringing material upon valid notice."
+        ] }),
+        /* @__PURE__ */ jsxs("p", { children: [
+          APP_NAME,
+          " will not leak your personal information to anyone or use it for anything but your ",
+          APP_NAME,
+          " account."
+        ] }),
+        /* @__PURE__ */ jsxs("p", { children: [
+          "Without receiving your explicit agreement, ",
+          APP_NAME,
+          " will not use images and information from your posts for anything but the following :"
+        ] }),
+        /* @__PURE__ */ jsxs("ol", { children: [
+          /* @__PURE__ */ jsx("li", { children: "The posts themselves on the website" }),
+          /* @__PURE__ */ jsxs("li", { children: [
+            "Images of posts may appear in screenshots of ",
+            APP_NAME,
+            " shared on other platforms without explicit credit."
+          ] }),
+          /* @__PURE__ */ jsxs("li", { children: [
+            "For any promotional content that explicitly highlights the work of an ",
+            APP_NAME,
+            " user, credit will be given."
+          ] })
+        ] }),
+        /* @__PURE__ */ jsxs("p", { children: [
+          APP_NAME,
+          " is not responsible for any user-generated content that violates our terms or is otherwise perceived as offensive. Once discovered, we will hide or delete such content when and as we see fit."
+        ] }),
+        /* @__PURE__ */ jsxs("p", { children: [
+          "Users posting their own work are the copyright-holders thereof and ",
+          APP_NAME,
+          " makes no claim thereto."
         ] })
-      ] }),
-      /* @__PURE__ */ jsxs("p", { children: [
-        APP_NAME,
-        " is not responsible for any user-generated content that violates our terms or is otherwise perceived as offensive. Once discovered, we will hide or delete such content when and as we see fit."
-      ] }),
-      /* @__PURE__ */ jsxs("p", { children: [
-        "Users posting their own work are the copyright-holders thereof and ",
-        APP_NAME,
-        " makes no claim thereto."
       ] })
     ] }),
     !isSocialLogin && /* @__PURE__ */ jsxs(Fragment, { children: [
@@ -6665,115 +6760,114 @@ function UserProfile({ user: profileUserProp }) {
     /* @__PURE__ */ jsx(
       PageHead,
       {
-        title: `${username}'s profile`
+        title: `${username}'s profile | ${props.app_name}`
       }
     ),
     /* @__PURE__ */ jsxs("div", { className: "heading-profile-container public-profile", children: [
       /* @__PURE__ */ jsx("div", { className: "centered-content vert-1rem", children: /* @__PURE__ */ jsx("h1", { children: username }) }),
-      profileUser ? (
-        // false ? (
-        /* @__PURE__ */ jsxs("div", { className: "profile-boxes-container", children: [
-          /* @__PURE__ */ jsxs("div", { className: "main-info-box yellow-gradient-background sticky", children: [
-            error && /* @__PURE__ */ jsx("div", { className: "error", children: error }),
-            success && /* @__PURE__ */ jsx("div", { className: "notice", children: success }),
-            /* @__PURE__ */ jsxs("div", { className: "avatar-section", children: [
+      profileUser ? /* @__PURE__ */ jsxs("div", { className: "profile-boxes-container", children: [
+        /* @__PURE__ */ jsxs("div", { className: "main-info-box yellow-gradient-background sticky", children: [
+          error && /* @__PURE__ */ jsx("div", { className: "error", children: error }),
+          success && /* @__PURE__ */ jsx("div", { className: "notice", children: success }),
+          /* @__PURE__ */ jsxs("div", { className: "avatar-section", children: [
+            user && user.id !== profileUser.id && /* @__PURE__ */ jsx(
+              "button",
+              {
+                className: "avatar-button public-corner small-button",
+                type: "button",
+                onClick: handleFollowToggle,
+                disabled: isSubmitting,
+                children: isFollowing ? /* @__PURE__ */ jsx("i", { className: "fa-solid fa-minus" }) : /* @__PURE__ */ jsx("i", { className: "fa-solid fa-plus" })
+              }
+            ),
+            /* @__PURE__ */ jsxs("div", { className: "profile-avatar-container", children: [
+              /* @__PURE__ */ jsx("img", { src: avatar, alt: `${user == null ? void 0 : user.username}'s avatar`, className: "round-image" }),
               user && user.id !== profileUser.id && /* @__PURE__ */ jsx(
                 "button",
                 {
-                  className: "avatar-button public-corner small-button",
+                  className: "avatar-button public-hover",
                   type: "button",
                   onClick: handleFollowToggle,
                   disabled: isSubmitting,
-                  children: isFollowing ? /* @__PURE__ */ jsx("i", { className: "fa-solid fa-minus" }) : /* @__PURE__ */ jsx("i", { className: "fa-solid fa-plus" })
+                  children: isFollowing ? /* @__PURE__ */ jsx("span", { children: "unfollow" }) : /* @__PURE__ */ jsx("span", { children: "follow" })
                 }
-              ),
-              /* @__PURE__ */ jsxs("div", { className: "profile-avatar-container", children: [
-                /* @__PURE__ */ jsx("img", { src: avatar, alt: `${user == null ? void 0 : user.username}'s avatar`, className: "round-image" }),
-                user && user.id !== profileUser.id && /* @__PURE__ */ jsx(
+              )
+            ] })
+          ] }),
+          /* @__PURE__ */ jsxs("div", { className: "info-section", children: [
+            profileUser.member_type == MemberType.Webmaster && /* @__PURE__ */ jsx("div", { className: "member-type centered-content no-margin", children: /* @__PURE__ */ jsx("span", { children: "webmaster" }) }),
+            profileUser.member_type == MemberType.Admin && /* @__PURE__ */ jsx("div", { className: "member-type admin centered-content no-margin", children: /* @__PURE__ */ jsx("span", { children: "admin" }) }),
+            /* @__PURE__ */ jsx(
+              ProfileItem,
+              {
+                name: "websites",
+                value: profileUser.websites || (profileUser.website ? [profileUser.website] : []),
+                isPublic: true,
+                isLink: true,
+                isArray: true
+              }
+            ),
+            /* @__PURE__ */ jsx(
+              ProfileItem,
+              {
+                name: "location",
+                value: profileUser.location,
+                isPublic: true
+              }
+            ),
+            /* @__PURE__ */ jsxs("div", { className: "flex-row", children: [
+              /* @__PURE__ */ jsx("span", { children: /* @__PURE__ */ jsxs(
+                Link,
+                {
+                  href: "/dashboard/mail/new",
+                  data: { addressee: username },
+                  className: "link-with-icon",
+                  children: [
+                    /* @__PURE__ */ jsx("i", { className: "fa-regular fa-envelope medium-icon" }),
+                    " ",
+                    /* @__PURE__ */ jsx("span", { children: "send DM" })
+                  ]
+                }
+              ) }),
+              !!profileUser.show_email_in_profile && /* @__PURE__ */ jsxs("span", { children: [
+                /* @__PURE__ */ jsxs(
+                  "a",
+                  {
+                    href: `mailto:${profileUser.email}`,
+                    className: "link-with-icon",
+                    children: [
+                      /* @__PURE__ */ jsx("i", { className: "fa-solid fa-envelopes-bulk medium-icon" }),
+                      " ",
+                      /* @__PURE__ */ jsx("span", { children: "e-mail" })
+                    ]
+                  }
+                ),
+                " ",
+                /* @__PURE__ */ jsx(
                   "button",
                   {
-                    className: "avatar-button public-hover",
-                    type: "button",
-                    onClick: handleFollowToggle,
-                    disabled: isSubmitting,
-                    children: isFollowing ? /* @__PURE__ */ jsx("span", { children: "unfollow" }) : /* @__PURE__ */ jsx("span", { children: "follow" })
+                    className: "button-link",
+                    "aria-label": "copy to clipboard",
+                    title: "copy to clipboard",
+                    onClick: handleCopy,
+                    children: /* @__PURE__ */ jsx("i", { className: "fa-regular fa-copy medium-icon" })
                   }
                 )
               ] })
-            ] }),
-            /* @__PURE__ */ jsxs("div", { className: "info-section", children: [
-              /* @__PURE__ */ jsx(
-                ProfileItem,
-                {
-                  name: "websites",
-                  value: profileUser.websites || (profileUser.website ? [profileUser.website] : []),
-                  isPublic: true,
-                  isLink: true,
-                  isArray: true
-                }
-              ),
-              /* @__PURE__ */ jsx(
-                ProfileItem,
-                {
-                  name: "location",
-                  value: profileUser.location,
-                  isPublic: true
-                }
-              ),
-              /* @__PURE__ */ jsxs("div", { className: "flex-row", children: [
-                /* @__PURE__ */ jsx("span", { children: /* @__PURE__ */ jsxs(
-                  Link,
-                  {
-                    href: "/dashboard/mail/new",
-                    data: { addressee: username },
-                    className: "link-with-icon",
-                    children: [
-                      /* @__PURE__ */ jsx("i", { className: "fa-regular fa-envelope medium-icon" }),
-                      " ",
-                      /* @__PURE__ */ jsx("span", { children: "send DM" })
-                    ]
-                  }
-                ) }),
-                !!profileUser.show_email_in_profile && /* @__PURE__ */ jsxs("span", { children: [
-                  /* @__PURE__ */ jsxs(
-                    "a",
-                    {
-                      href: `mailto:${profileUser.email}`,
-                      className: "link-with-icon",
-                      children: [
-                        /* @__PURE__ */ jsx("i", { className: "fa-solid fa-envelopes-bulk medium-icon" }),
-                        " ",
-                        /* @__PURE__ */ jsx("span", { children: "e-mail" })
-                      ]
-                    }
-                  ),
-                  " ",
-                  /* @__PURE__ */ jsx(
-                    "button",
-                    {
-                      className: "button-link",
-                      "aria-label": "copy to clipboard",
-                      title: "copy to clipboard",
-                      onClick: handleCopy,
-                      children: /* @__PURE__ */ jsx("i", { className: "fa-regular fa-copy medium-icon" })
-                    }
-                  )
-                ] })
-              ] })
             ] })
-          ] }),
-          /* @__PURE__ */ jsxs("div", { className: "rte-container black-gradient-background", children: [
-            /* @__PURE__ */ jsx("div", { className: "centered-header-box", children: /* @__PURE__ */ jsx("div", { className: "centered-content top-2rem", children: /* @__PURE__ */ jsx("h2", { children: "bio" }) }) }),
-            /* @__PURE__ */ jsx(
-              "div",
-              {
-                className: "article-text padded",
-                dangerouslySetInnerHTML: { __html: sanitizeRichHtml(hydrateEditorImagePaths(profileUser.bio, appUrl)) }
-              }
-            )
           ] })
+        ] }),
+        /* @__PURE__ */ jsxs("div", { className: "rte-container black-gradient-background", children: [
+          /* @__PURE__ */ jsx("div", { className: "centered-header-box", children: /* @__PURE__ */ jsx("div", { className: "centered-content top-2rem", children: /* @__PURE__ */ jsx("h2", { children: "bio" }) }) }),
+          /* @__PURE__ */ jsx(
+            "div",
+            {
+              className: "article-text padded",
+              dangerouslySetInnerHTML: { __html: sanitizeRichHtml(hydrateEditorImagePaths(profileUser.bio, appUrl)) }
+            }
+          )
         ] })
-      ) : /* @__PURE__ */ jsx("p", { className: "centered-content", children: " loading user..." })
+      ] }) : /* @__PURE__ */ jsx("p", { className: "centered-content", children: " loading user..." })
     ] }),
     profileUser ? /* @__PURE__ */ jsxs(Fragment, { children: [
       /* @__PURE__ */ jsx("h2", { className: "centered-content padded", children: `${username}'s posts` }),
@@ -7893,7 +7987,7 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
   const appUrl = props.app_url;
   const hydratedStatement = (post == null ? void 0 : post.statement) ? hydrateEditorImagePaths(post.statement, appUrl) : null;
   const { data, setData, errors, setError, clearErrors } = useForm({
-    post_url: (post == null ? void 0 : post.post_url) || "",
+    slug: (post == null ? void 0 : post.slug) || "",
     title: (post == null ? void 0 : post.title) || "",
     subtitle: (post == null ? void 0 : post.subtitle) || "",
     website: (post == null ? void 0 : post.website) || "",
@@ -7911,15 +8005,15 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
   const [hasChanged, setHasChanged] = useState(false);
   const [initialStatement, setInitialStatement] = useState(hydratedStatement);
   const [isTitleValid, setIsTitleValid] = useState(!!post);
-  const [isPostUrlValid, setIsPostUrlValid] = useState(!!post);
+  const [isSlugValid, setIsSlugValid] = useState(!!post);
   const [isSubtitleValid, setIsSubtitleValid] = useState(!!post);
   const [isWebsiteValid, setIsWebsiteValid] = useState(true);
   const [isSourceCodeValid, setIsSourceCodeValid] = useState(true);
   const [isMainVideoValid, setIsMainVideoValid] = useState(!!(post == null ? void 0 : post.main_video));
   const galleryContainerRef = useRef(null);
-  const [imageFields, setImageFields] = useState(createInitialImageFields(post, user, (post == null ? void 0 : post.post_url) || "", appUrl));
+  const [imageFields, setImageFields] = useState(createInitialImageFields(post, user, (post == null ? void 0 : post.slug) || "", appUrl));
   const dragCounterRef = useRef(0);
-  const canSubmit = data.title && isTitleValid && data.post_url && isPostUrlValid && data.subtitle && isSubtitleValid && (data.website && isWebsiteValid || !data.website) && (data.source_code && isSourceCodeValid || !data.source_code) && imageFields.length > 0 && hasImages(imageFields) && (hasChanged || (post == null ? void 0 : post.is_draft));
+  const canSubmit = data.title && isTitleValid && data.slug && isSlugValid && data.subtitle && isSubtitleValid && (data.website && isWebsiteValid || !data.website) && (data.source_code && isSourceCodeValid || !data.source_code) && imageFields.length > 0 && hasImages(imageFields) && (hasChanged || (post == null ? void 0 : post.is_draft));
   const buttonText = !post || post.is_draft ? "publish" : "update";
   const loadingText = "loading form...";
   const isFormReady = isCreateForm || post;
@@ -7927,7 +8021,7 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
     if (!post) return;
     const hydr = hydrateEditorImagePaths(post.statement, appUrl);
     setData({
-      post_url: post.post_url || "",
+      slug: post.slug || "",
       title: post.title || "",
       subtitle: post.subtitle || "",
       website: post.website || "",
@@ -7941,13 +8035,13 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
       statement: hydr
     });
     setIsTitleValid(true);
-    setIsPostUrlValid(true);
+    setIsSlugValid(true);
     setIsSubtitleValid(true);
     setIsWebsiteValid(true);
     setIsSourceCodeValid(true);
     setIsMainVideoValid(!!post.main_video);
     setInitialStatement(hydr);
-    setImageFields(createInitialImageFields(post, user, post.post_url, appUrl));
+    setImageFields(createInitialImageFields(post, user, post.slug, appUrl));
     setHasChanged(false);
   }, [post, user, setData]);
   const onSubmit = useCallback(async (e, asDraft = false) => {
@@ -7978,7 +8072,7 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
     try {
       const message = isCreateForm ? "Post successfully created." : "Post successfully updated.";
       const formData = new FormData();
-      formData.append("post_url", data.post_url);
+      formData.append("slug", data.slug);
       formData.append("title", data.title);
       formData.append("subtitle", data.subtitle);
       formData.append("website", data.website || "");
@@ -8071,14 +8165,14 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
       setFieldLocalError("Must be a valid link from YouTube, DailyMotion, or Vimeo.");
     }
   }, [setData]);
-  const handlePostUrlValidation = useCallback((proposedUrl, setFieldLocalError) => {
+  const handleSlugValidation = useCallback((proposedUrl, setFieldLocalError) => {
     if (proposedUrl.length < 1) {
       setFieldLocalError("URL required.");
-      setIsPostUrlValid(false);
+      setIsSlugValid(false);
       return;
     }
     const isValid = isAlphaDash(proposedUrl);
-    setIsPostUrlValid(isValid);
+    setIsSlugValid(isValid);
     if (!isValid) {
       setFieldLocalError("URL may only contain letters, numbers, _ and -");
       return;
@@ -8195,33 +8289,18 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
           /* @__PURE__ */ jsx(
             FormField,
             {
-              id: "post_url",
-              label: "post url*",
-              placeholder: "used in page url",
-              value: data.post_url,
-              onChange: (e) => {
-                setHasChanged(true);
-                setData("post_url", e.target.value);
-              },
-              onValidate: handlePostUrlValidation,
-              disabled: isSubmitting,
-              type: "text",
-              isInline: true,
-              classes: "inline-form-field",
-              error: errors.post_url,
-              onErrorUpdate: (id, msg) => msg ? setError(id, msg) : clearErrors(id)
-            }
-          ),
-          /* @__PURE__ */ jsx(
-            FormField,
-            {
               id: "title",
               label: "title*",
               placeholder: "work title",
               value: data.title,
               onChange: (e) => {
+                const titleVal = e.target.value;
                 setHasChanged(true);
-                setData("title", e.target.value);
+                setData((prev) => ({
+                  ...prev,
+                  title: titleVal,
+                  slug: formatSlug(titleVal)
+                }));
               },
               onValidate: handleTitleValidation,
               disabled: isSubmitting,
@@ -8229,6 +8308,27 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
               isInline: true,
               classes: "inline-form-field",
               error: errors.title,
+              onErrorUpdate: (id, msg) => msg ? setError(id, msg) : clearErrors(id)
+            }
+          ),
+          /* @__PURE__ */ jsx(
+            FormField,
+            {
+              id: "slug",
+              label: "slug*",
+              placeholder: "url ending",
+              value: data.slug,
+              onChange: (e) => {
+                setHasChanged(true);
+                setData("slug", e.target.value);
+              },
+              onValidate: handleSlugValidation,
+              sideText: `/${user.username}/`,
+              disabled: isSubmitting,
+              type: "text",
+              isInline: true,
+              classes: "inline-form-field",
+              error: errors.slug,
               onErrorUpdate: (id, msg) => msg ? setError(id, msg) : clearErrors(id)
             }
           ),

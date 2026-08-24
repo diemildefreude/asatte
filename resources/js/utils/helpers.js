@@ -974,7 +974,7 @@ export const retryOperation = async (fn, retries = 3, delay = 1000, errorMessage
 
 /**
  * Constructs the routing URL for a post depending on whether it is a news post.
- * @param {Object} post - The post object containing is_news, created_at, post_url, and user.username
+ * @param {Object} post - The post object containing is_news, created_at, slug, and user.username
  * @returns {string} The routing URL
  */
 export function getPostUrl(post) {
@@ -984,9 +984,9 @@ export function getPostUrl(post) {
         const yyyy = date.getUTCFullYear();
         const mm = String(date.getUTCMonth() + 1).padStart(2, '0');
         const dd = String(date.getUTCDate()).padStart(2, '0');
-        return `/news/${yyyy}${mm}${dd}/${post.post_url}`;
+        return `/news/${yyyy}${mm}${dd}/${post.slug}`;
     }
-    return `/${post.user?.username}/${post.post_url}`;
+    return `/${post.user?.username}/${post.slug}`;
 }
 
 /**
@@ -997,6 +997,20 @@ export function getPostUrl(post) {
 export function stripProtocol(url) {
     if (!url || typeof url !== 'string') return url;
     return url.replace(/^https?:\/\//i, '');
+}
+
+/**
+ * Converts a string into a URL slug: lower-case, spaces converted to '_', and invalid characters stripped (anything except a-z, 0-9, _, and -).
+ * @param {string} text - The input string to format
+ * @returns {string} The formatted slug
+ */
+export function formatSlug(text) 
+{
+    if (!text || typeof text !== 'string') return '';
+    return text
+        .toLowerCase()
+        .replace(/\s+/g, '_')
+        .replace(/[^a-z0-9_-]/g, '');
 }
 
 /**

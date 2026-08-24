@@ -6,7 +6,7 @@ import CheckboxField from '../../Components/common/CheckboxField';
 import RichTextEditor from '../../Components/common/RichTextEditor';
 import VideoIframe from '../../Components/common/VideoIframe';
 import ImageField from "./ImageField";
-import { addImageDragListeners, Category, dehydrateEditorImagePaths, getErrorMessage, getImageFilesFromInput, 
+import { addImageDragListeners, Category, dehydrateEditorImagePaths, formatSlug, getErrorMessage, getImageFilesFromInput, 
     getImageUrlFromFile, getVideoEmbedUrl, hydrateEditorImagePaths, isAlphaDash, isUrl, 
     MemberType, processEditorImages, resizeImage } from '../../utils/helpers';
 
@@ -57,7 +57,7 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
     const hydratedStatement = post?.statement ? hydrateEditorImagePaths(post.statement, appUrl) : null;
     
     const { data, setData, errors, setError, clearErrors } = useForm({
-        post_url: post?.post_url || "",
+        slug: post?.slug || "",
         title: post?.title || "",
         subtitle: post?.subtitle || "",
         website: post?.website || "",
@@ -77,17 +77,17 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
     const [initialStatement, setInitialStatement] = useState(hydratedStatement);    
 
     const [isTitleValid, setIsTitleValid] = useState(!!post);
-    const [isPostUrlValid, setIsPostUrlValid] = useState(!!post);
+    const [isSlugValid, setIsSlugValid] = useState(!!post);
     const [isSubtitleValid, setIsSubtitleValid] = useState(!!post);
     const [isWebsiteValid, setIsWebsiteValid] = useState(true);
     const [isSourceCodeValid, setIsSourceCodeValid] = useState(true);
     const [isMainVideoValid, setIsMainVideoValid] = useState(!!post?.main_video);
 
     const galleryContainerRef = useRef(null);    
-    const [imageFields, setImageFields] = useState(createInitialImageFields(post, user, post?.post_url || "", appUrl));
+    const [imageFields, setImageFields] = useState(createInitialImageFields(post, user, post?.slug || "", appUrl));
     const dragCounterRef = useRef(0);
 
-    const canSubmit = data.title && isTitleValid && data.post_url && isPostUrlValid
+    const canSubmit = data.title && isTitleValid && data.slug && isSlugValid
         && data.subtitle && isSubtitleValid && ((data.website && isWebsiteValid) || !data.website)
         && ((data.source_code && isSourceCodeValid) || !data.source_code)
         && imageFields.length > 0 && hasImages(imageFields) && (hasChanged || post?.is_draft);    
@@ -101,7 +101,7 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
         if(!post) return;
         const hydr = hydrateEditorImagePaths(post.statement, appUrl);
         setData({
-            post_url: post.post_url || "",
+            slug: post.slug || "",
             title: post.title || "",
             subtitle: post.subtitle || "",
             website: post.website || "",
@@ -115,13 +115,13 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
             statement: hydr
         });
         setIsTitleValid(true);
-        setIsPostUrlValid(true);
+        setIsSlugValid(true);
         setIsSubtitleValid(true);
         setIsWebsiteValid(true);
         setIsSourceCodeValid(true);
         setIsMainVideoValid(!!post.main_video);
         setInitialStatement(hydr);
-        setImageFields(createInitialImageFields(post, user, post.post_url, appUrl));
+        setImageFields(createInitialImageFields(post, user, post.slug, appUrl));
         setHasChanged(false);   
     },[post, user, setData]);
 
@@ -160,7 +160,7 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
         {
             const message = isCreateForm ? 'Post successfully created.' : 'Post successfully updated.';
             const formData = new FormData();
-            formData.append('post_url', data.post_url);
+            formData.append('slug', data.slug);
             formData.append('title', data.title);
             formData.append('subtitle', data.subtitle);
             formData.append('website', data.website || '');
@@ -274,15 +274,15 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
         }
     }, [setData]);
 
-    const handlePostUrlValidation = useCallback((proposedUrl, setFieldLocalError) =>
+    const handleSlugValidation = useCallback((proposedUrl, setFieldLocalError) =>
     {
         if(proposedUrl.length < 1) {
             setFieldLocalError("URL required.");
-            setIsPostUrlValid(false);
+            setIsSlugValid(false);
             return;
         }
         const isValid = isAlphaDash(proposedUrl);
-        setIsPostUrlValid(isValid);
+        setIsSlugValid(isValid);
         if(!isValid) {
             setFieldLocalError("URL may only contain letters, numbers, _ and -");
             return;
@@ -447,31 +447,40 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
                             Fields with an * are required.
                         </div>
                         <FormField
-                            id="post_url"
-                            label="post url*"
-                            placeholder="used in page url"
-                            value={data.post_url}
-                            onChange={(e) => {setHasChanged(true); setData('post_url', e.target.value)}}
-                            onValidate={handlePostUrlValidation}
-                            disabled={isSubmitting}
-                            type="text"
-                            isInline={true}
-                            classes="inline-form-field"
-                            error={errors.post_url}
-                            onErrorUpdate={(id, msg) => msg ? setError(id, msg) : clearErrors(id)}
-                        />
-                        <FormField
                             id="title"
                             label="title*"
                             placeholder="work title"
                             value={data.title}
-                            onChange={(e) => {setHasChanged(true); setData('title', e.target.value)}}
+                            onChange={(e) => {
+                                const titleVal = e.target.value;
+                                setHasChanged(true); 
+                                setData(prev => ({
+                                    ...prev,
+                                    title: titleVal,
+                                    slug: formatSlug(titleVal)
+                                }));
+                            }}
                             onValidate={handleTitleValidation}
                             disabled={isSubmitting}
                             type="text"
                             isInline={true}
                             classes="inline-form-field"
                             error={errors.title}
+                            onErrorUpdate={(id, msg) => msg ? setError(id, msg) : clearErrors(id)}
+                        />
+                        <FormField
+                            id="slug"
+                            label="slug*"
+                            placeholder="url ending"
+                            value={data.slug}
+                            onChange={(e) => {setHasChanged(true); setData('slug', e.target.value)}}
+                            onValidate={handleSlugValidation}
+                            sideText={`/${user.username}/`}
+                            disabled={isSubmitting}
+                            type="text"
+                            isInline={true}
+                            classes="inline-form-field"
+                            error={errors.slug}
                             onErrorUpdate={(id, msg) => msg ? setError(id, msg) : clearErrors(id)}
                         />
                         <FormField

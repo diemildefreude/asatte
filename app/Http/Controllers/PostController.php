@@ -257,15 +257,15 @@ class PostController extends Controller
             ]);
         }
         
-        $validatedPostUrlArray = $request->validate //should be unique among this user's posts
+        $validatedSlugArray = $request->validate //should be unique among this user's posts
         ([            
-            'post_url' => ['alpha_dash:ascii', 'max:255',
+            'slug' => ['alpha_dash:ascii', 'max:255',
             Rule::unique('posts')->where(function ($query) use ($request)
             {
                 return $query->where('user_id', $request->user()->id);
             })]
         ]);
-        $postUrl = $validatedPostUrlArray['post_url'];
+        $slug = $validatedSlugArray['slug'];
 
         $request->validate
         ([            
@@ -273,58 +273,60 @@ class PostController extends Controller
             'gallery_images' => ['array'], // must be an array
             'gallery_images.*.alt' => ['nullable', 'string', 'max:255'],
             'gallery_images.*.file' => ['nullable', 'file', 'image', 'mimes:png,jpeg,jpg,webp,bmp', 'max:2048'], // 2MB limit
-            //'gallery_images.*.url' => ['nullable', 'string'], //<-- shouldn't exist on a new post, cf. update()
-            'website' => ['string', 'max:255', 'nullable'],   
-            'source_code' => ['string', 'max:255', 'nullable']
+            'gallery_images.*.url' => ['nullable', 'string'],
+            'website' => ['string', 'max:255', 'nullable'],
+            'source_code' => ['string', 'max:255', 'nullable'],
         ],
             [
             'gallery_images.*.file.image' => 'Each uploaded file must be an image.',
-        ]);
-
-        $userName = $user->username;        
-        $website = $request->input('website') ? addHttpProtocol($request->input('website', '')) : null;
-        $sourceCode = $request->input('source_code') ? addHttpProtocol($request->input('source_code', '')) : null;
-
-        $editorImageArray = [];
-        $statementImageFolder = "users/$userName/posts/$postUrl/statement";
-        $newStatementRaw = $request->input('statement');
+        ]);       
         
-        $statement = saveEditorImages($newStatementRaw,
-            $editorImageArray, $statementImageFolder);
-        $statement = sanitizeRichHtml($statement);
-
+        $userName = $user->username; 
+        $galleryImageFolder = "users/$userName/posts/$slug/gallery";
         $galleryArray = [];
         $galleryAltArray = [];
-        $galleryImageFolder = "users/$userName/posts/$postUrl/gallery";
         $galleryImagesInput = $request->input('gallery_images', []);
         $uploadedFiles = $request->file('gallery_images', []);
         
-        foreach($galleryImagesInput as $index => $item)
+        foreach ($galleryImagesInput as $index => $item) 
         {
-
-            $imageSet = false;
             if(array_key_exists($index, $uploadedFiles) 
                 && $uploadedFiles[$index]['file'] instanceOf UploadedFile)
             {
-
                 $url = storeImageFile($uploadedFiles[$index]['file'], $galleryImageFolder);
                 array_push($galleryArray, $url);
-                $imageSet = true;
+            } 
+            else if (isset($item['url']) && $item['url']) 
+            {
+                array_push($galleryArray, $item['url']);
             } 
             else 
             {
+                Log::warning("Skipped invalid item: " . json_encode($item));
+                continue; 
+            }
+            $alt = $item['alt'] ?? null;
+            array_push($galleryAltArray, $alt);
+        }
+        
+        $editorImageArray = [];
+        $statementImageFolder = "users/$userName/posts/$slug/statement";
+        $statement = saveEditorImages($request->input('statement'), $editorImageArray, $statementImageFolder);
+        $statement = sanitizeRichHtml($statement);
 
-            }
-            if($imageSet)
-            {
-                $alt = $item['alt'] ?? null;
-                array_push($galleryAltArray, $alt);
-            }
+        $website = $request->input('website') ? addHttpProtocol($request->input('website', '')) : null;
+        $sourceCode = $request->input('source_code') ? addHttpProtocol($request->input('source_code', '')) : null;
+        $alt = $galleryAltArray[0] ?? null;
+        $imageUrls = $galleryArray;
+        
+        foreach($galleryArray as $i => $url)
+        {
+            array_push($galleryAltArray, $alt);
         }
         
         $postFields = 
         [
-            'post_url' => $postUrl,
+            'slug' => $slug,
             ...$basicFields,
             'website' => $website,
             'source_code' => $sourceCode,
@@ -346,7 +348,7 @@ class PostController extends Controller
             $excerpt = strip_tags($statement);
             $excerptWords = explode(' ', $excerpt);
             $preview = implode(' ', array_slice($excerptWords, 0, 50));
-            $link = url("/{$request->user()->username}/{$post->post_url}");
+            $link = url("/{$request->user()->username}/{$post->slug}");
 
             \App\Models\User::where('accepts_emails', true)->chunk(50, function ($users) use ($post, $preview, $link) {
                 foreach ($users as $u) {
@@ -367,7 +369,7 @@ class PostController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Request $request, string $username, string $post_url)
+    public function show(Request $request, string $username, string $slug)
     {
         $user = User::where('username', $username)->first();
         if (!$user) 
@@ -384,7 +386,7 @@ class PostController extends Controller
                 //    ->latest(); // Optional: order the comments by newest first
             }])
             ->withCount('usersWhoLiked')
-            ->where('post_url', $post_url)
+            ->where('slug', $slug)
             ->where('user_id', $user->id);
 
         // The auth() helper works whether the route is protected or not.
@@ -459,7 +461,7 @@ class PostController extends Controller
     /**
      * Display a news post.
      */
-    public function showNews(Request $request, string $date, string $post_url)
+    public function showNews(Request $request, string $date, string $slug)
     {
         if (strlen($date) !== 8) {
             abort(404, 'Invalid date format.');
@@ -475,7 +477,7 @@ class PostController extends Controller
             }])
             ->withCount('usersWhoLiked')
             ->where('is_news', true)
-            ->where('post_url', $post_url)
+            ->where('slug', $slug)
             ->whereDate('created_at', $formattedDate);
 
         // The auth() helper works whether the route is protected or not.
@@ -543,7 +545,7 @@ class PostController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Request $request, string $username, string $post_url)
+    public function edit(Request $request, string $username, string $slug)
     {
         $authUser = $request->user();
         $postCreator = User::where('username', $username)->first();
@@ -567,7 +569,7 @@ class PostController extends Controller
                 //    ->latest(); // Optional: order the comments by newest first
             }])
             ->withCount('usersWhoLiked')
-            ->where('post_url', $post_url)
+            ->where('slug', $slug)
             ->where('user_id', $postCreator->id);
 
 
@@ -607,7 +609,7 @@ class PostController extends Controller
         
         $basicFields = $request->validate
         ([
-            'post_url' => 
+            'slug' => 
             [
                 'required',
                 'alpha_dash:ascii',
@@ -641,7 +643,7 @@ class PostController extends Controller
             ]);
         }
 
-        $postUrl = $post->post_url;        
+        $postUrl = $post->slug;        
         $request->validate([
             'statement' => ['required', 'string'],
             'gallery_images' => ['array'], // must be an array
@@ -659,9 +661,9 @@ class PostController extends Controller
         $postImageRoot = "images/uploaded/users/$userName/posts";     
         $originalUrl = $postUrl;
 
-        if ($basicFields['post_url'] != $postUrl) 
+        if ($basicFields['slug'] != $postUrl) 
         {
-            $newUrl = $basicFields['post_url'];
+            $newUrl = $basicFields['slug'];
             $oldDir = "{$postImageRoot}/{$postUrl}";
             $newDir = "{$postImageRoot}/{$newUrl}";
             
@@ -733,7 +735,7 @@ class PostController extends Controller
                         ]);
 
                         throw \Illuminate\Validation\ValidationException::withMessages([
-                            'post_url' => ['The system was unable to reorganize the asset folders due to a local file lock. Please close open previews and try again.']
+                            'slug' => ['The system was unable to reorganize the asset folders due to a local file lock. Please close open previews and try again.']
                         ]);
                     }
                 }
@@ -823,7 +825,7 @@ class PostController extends Controller
         $postFields = 
         [
             ...$basicFields,
-            'post_url' => $postUrl,
+            'slug' => $postUrl,
             'website' => $website,
             'source_code' => $sourceCode,
             'is_private' => $isPrivate,
@@ -849,7 +851,7 @@ class PostController extends Controller
             $excerpt = strip_tags($statement);
             $excerptWords = explode(' ', $excerpt);
             $preview = implode(' ', array_slice($excerptWords, 0, 50));
-            $link = url("/{$request->user()->username}/{$post->post_url}");
+            $link = url("/{$request->user()->username}/{$post->slug}");
 
             \App\Models\User::where('accepts_emails', true)->chunk(50, function ($users) use ($post, $preview, $link) {
                 foreach ($users as $u) {
@@ -883,7 +885,7 @@ class PostController extends Controller
             ]);
         }
         $userName = $requestingUser->username;
-        $postUrl = $post->post_url;
+        $postUrl = $post->slug;
         $postFolder = "images/uploaded/users/$userName/posts/$postUrl";
         Storage::disk('public')->deleteDirectory($postFolder);
 
@@ -938,9 +940,9 @@ class PostController extends Controller
             $appUrl = config('app.url');
             if ($post->is_news) {
                 $date = \Carbon\Carbon::parse($post->created_at);
-                $postUrlPath = '/news/' . $date->format('Ymd') . '/' . $post->post_url;
+                $postUrlPath = '/news/' . $date->format('Ymd') . '/' . $post->slug;
             } else {
-                $postUrlPath = '/' . $post->user->username . '/' . $post->post_url;
+                $postUrlPath = '/' . $post->user->username . '/' . $post->slug;
             }
             $postUrl = $appUrl . $postUrlPath;
 
@@ -976,7 +978,7 @@ class PostController extends Controller
                 'type' => NotificationType::Unhidden,
                 'data' => ['post_id' => $post->id]
             ]);
-            \Illuminate\Support\Facades\Mail::to($post->user->email)->send(new \App\Mail\PostUnhiddenNotice($post->title, $post->user->username, $post->post_url));
+            \Illuminate\Support\Facades\Mail::to($post->user->email)->send(new \App\Mail\PostUnhiddenNotice($post->title, $post->user->username, $post->slug));
         }
         
         $post->is_hidden_by_admin = $hideIt;

@@ -11,7 +11,7 @@ export default function LogoGradientNamed({ color, className = '', ...props }) {
   return (
     <svg
       className={className}
-      viewBox="0 0 584.80627 529.39947"
+      viewBox="0 0 584.80627 538"
       xmlns="http://www.w3.org/2000/svg"
       xmlnsXlink="http://www.w3.org/1999/xlink"
       {...props}

@@ -16,7 +16,7 @@ use App\Http\Controllers\SitemapController;
 
 Route::get('/', [HomeController::class, 'index']);
 Route::get('/news', [NewsController::class, 'index']);
-Route::get('/news/{date}/{post_url}', [App\Http\Controllers\PostController::class, 'showNews'])->name('news.show');
+Route::get('/news/{date}/{slug}', [App\Http\Controllers\PostController::class, 'showNews'])->name('news.show');
 Route::inertia('/contact', 'Contact');
 Route::post('/contact', [ContactController::class, 'sendContactMail'])->name('contact.send')->middleware('throttle:3,1');
 Route::inertia('/login', 'Login')->name('login');
@@ -112,7 +112,7 @@ Route::get('/regenerate-small-images', function () {
     foreach ($posts as $post) {
         $imageUrls = $post->gallery_image_urls;
         if (is_array($imageUrls) && $post->user) {
-            $folder = 'images/uploaded/users/' . $post->user->username . '/posts/' . $post->post_url . '/gallery';
+            $folder = 'images/uploaded/users/' . $post->user->username . '/posts/' . $post->slug . '/gallery';
             
             // 1. Regenerate active small images
             foreach ($imageUrls as $imageName) {
@@ -169,7 +169,7 @@ Route::get('/dashboard/news-posts', [App\Http\Controllers\DashboardController::c
 // New / Edit pages for posts (Inertia)
 Route::inertia('/dashboard/new-post', 'dashboard/NewPost')->middleware('auth')->name('dashboard.newPost');
 Route::inertia('/dashboard/new-news-post', 'dashboard/NewNewsPost')->middleware('auth')->name('dashboard.newNewsPost');
-Route::get('/dashboard/edit-post/{post_url}', [App\Http\Controllers\DashboardController::class, 'editPost'])->middleware('auth')->name('dashboard.editPost');
+Route::get('/dashboard/edit-post/{slug}', [App\Http\Controllers\DashboardController::class, 'editPost'])->middleware('auth')->name('dashboard.editPost');
 
 // Dashboard subpages
 Route::get('/dashboard/activity', [App\Http\Controllers\DashboardController::class, 'activity'])->middleware('auth')->name('dashboard.activity');
@@ -241,4 +241,4 @@ Route::get('/{username}/following', [App\Http\Controllers\UserController::class,
 Route::get('/{username}/followers', [App\Http\Controllers\UserController::class, 'followers'])->name('user.followers');
 
 // Fallback user post route
-Route::get('/{username}/{post_url}', [App\Http\Controllers\PostController::class, 'show'])->name('posts.show');
+Route::get('/{username}/{slug}', [App\Http\Controllers\PostController::class, 'show'])->name('posts.show');

@@ -719,11 +719,8 @@ button, .link-button
 .article-text, .message-text, .comment-text
 {    
     line-height: 1.8em;
-    /* padding: 0 1em 1em; */
-    padding: 0.5rem 0;
-    /* overflow-wrap: break-word; */
+    padding: 0.5rem;
     overflow-wrap: anywhere;
-    /* word-break: break-all; */
 }
 .message-text, .comment-text
 {
@@ -739,11 +736,6 @@ button, .link-button
 {
     padding: 1rem 1rem 0;
 }
-.article-text h1, .article-text h2, .article-text h3, .article-text h4, .article-text p, .article-text ol, .article-text .ul
-{
-    width: 100%;
-    padding: 0.4em;
-}
 .article-text p:not(:last-child), .article-text ol:not(:last-child), .message-text p:not(:last-child), .message-text ol:not(:last-child)
 {
     margin-bottom: 1.5em;
@@ -753,7 +745,15 @@ button, .link-button
     display: inline-block;
     max-width: 100%;
     height: auto;
-    padding: 0.4em !important;
+    margin: 0em ;
+}
+.article-text img[style*="float: left"],
+.article-text img[style*="float:left"] {
+    margin: 0 0.5em 0.5em 0 ;
+}
+.article-text img[style*="float: right"],
+.article-text img[style*="float:right"] {
+    margin: 0 0 0.5em 0.5em ;
 }
 .centered-icon
 {

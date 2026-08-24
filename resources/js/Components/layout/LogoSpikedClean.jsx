@@ -4,7 +4,7 @@ export default function LogoSpikedClean({ className = '', ...props }) {
   return (
     <svg
       className={className}
-      viewBox="0 0 272.5733 247.6575"
+      viewBox="0 0 272.5733 253"
       xmlns="http://www.w3.org/2000/svg"
       {...props}
     >

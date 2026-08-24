@@ -44,7 +44,7 @@ class DeleteHiddenPosts extends Command
             try {
                 if ($post->user) {
                     $userName = $post->user->username;
-                    $postUrl = $post->post_url;
+                    $postUrl = $post->slug;
                     $postFolder = "images/uploaded/users/$userName/posts/$postUrl";
                     Storage::disk('public')->deleteDirectory($postFolder);
                 }

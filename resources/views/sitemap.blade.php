@@ -35,7 +35,7 @@
     @foreach ($posts as $post)
         @if ($post->user)
             <url>
-                <loc>{{ url('/' . $post->user->username . '/' . $post->post_url) }}</loc>
+                <loc>{{ url('/' . $post->user->username . '/' . $post->slug) }}</loc>
                 <lastmod>{{ $post->updated_at->tz('UTC')->toAtomString() }}</lastmod>
                 <changefreq>monthly</changefreq>
                 <priority>0.9</priority>

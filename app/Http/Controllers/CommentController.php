@@ -24,7 +24,7 @@ class CommentController extends Controller
         $page = intval($request->query('page', 1));
 
         $query = Comment::with([
-            'post:id,post_url,title,user_id',
+            'post:id,slug,title,user_id',
             'post.user:id,username'
         ])
         ->where('user_id', $user->id)

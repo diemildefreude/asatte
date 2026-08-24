@@ -179,10 +179,10 @@ class DashboardController extends Controller
         return Inertia::render('dashboard/NewNewsPost');
     }
 
-    public function editPost(Request $request, $post_url)
+    public function editPost(Request $request, $slug)
     {
         $user = $request->user();
-        $post = Post::where('post_url', $post_url)->where('user_id', $user->id)->first();
+        $post = Post::where('slug', $slug)->where('user_id', $user->id)->first();
         if (!$post) {
             abort(404);
         }
@@ -204,7 +204,7 @@ class DashboardController extends Controller
             ->orderBy('post_user.created_at', 'desc')
             ->limit(6)->get();
 
-        $comments = Comment::with(['post:id,title,post_url,user_id', 'post.user:id,username'])
+        $comments = Comment::with(['post:id,title,slug,user_id', 'post.user:id,username'])
             ->where('user_id', $user->id)
             ->latest()
             ->limit(3)->get();
@@ -216,13 +216,13 @@ class DashboardController extends Controller
                 $type = $notification->type;
                 $data = $notification->data;
                 if (($type == NotificationType::Comment || $type == NotificationType::Reply) && isset($data['comment_id'])) {
-                    $comment = Comment::with(['user:id,username,avatar', 'post:id,title,post_url,user_id', 'post.user:id,username'])->find($data['comment_id']);
+                    $comment = Comment::with(['user:id,username,avatar', 'post:id,title,slug,user_id', 'post.user:id,username'])->find($data['comment_id']);
                     $notification->setRelation('comment', $comment);
                 } else if (($type == NotificationType::ProfileComment || $type == NotificationType::ProfileReply) && isset($data['profile_comment_id'])) {
                     $comment = ProfileComment::with(['user:id,username,avatar', 'profile:id,username'])->find($data['profile_comment_id']);
                     $notification->setRelation('profile_comment', $comment);
                 } else if ($type == NotificationType::Unhidden && isset($data['post_id'])) {
-                    $post = Post::with(['user:id,username'])->select(['id', 'post_url', 'title', 'user_id'])->find($data['post_id']);
+                    $post = Post::with(['user:id,username'])->select(['id', 'slug', 'title', 'user_id'])->find($data['post_id']);
                     $notification->setRelation('post', $post);
                     $notification->unhidden_at = \Carbon\Carbon::now()->toDateTimeString();
                 } else if ($type == NotificationType::Follower && isset($data['follower_id'])) {
