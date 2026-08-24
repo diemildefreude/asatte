@@ -85,7 +85,7 @@ function About({ about, status })
 
     return (
     <>
-        <PageHead title="about"
+        <PageHead title="About"
             ogType="article"
         />
         <div className="rte-container borderless limited-width">

@@ -65,7 +65,7 @@ function Contact()
 
     return (
         <>
-            <PageHead title="contact"/>
+            <PageHead title="Contact"/>
             <div className="form-container">
                 <div className="centered-content no-margin">
                     <h1>contact</h1>

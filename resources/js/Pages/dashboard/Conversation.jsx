@@ -41,10 +41,12 @@ function Conversation({ conversation: conversationProp, addressee })
     const [originalMessage, setOriginalMessage] = useState(null);
     const [originalMessageElement, setOriginalMessageElement] = useState(null);
     const [pendingScrollId, setPendingScrollId] = useState(props.flash?.new_message_id || null);
-
-    let convoName = isNew ? "new conversation" : "conversation";
-    convoName = conversation?.name ?? convoName;
     
+    let pageTitle = isNew ? "New Conversation" : "Conversation";
+    let convoName = pageTitle.toLowerCase();
+    convoName = conversation?.name ?? convoName;
+    pageTitle = conversation?.name ?? pageTitle;
+
     useEffect(() =>
     {
         if(!addressee || conversation)
@@ -365,7 +367,7 @@ function Conversation({ conversation: conversationProp, addressee })
     }, []);
     return ( 
     <DashboardLayout currentTab="mail">
-            <PageHead title="Conversation" />
+            <PageHead title={pageTitle} />
     <div className="centered-content no-margin side-padded">            
         <h1 dangerouslySetInnerHTML={{ __html:convoName}} />
     </div>    

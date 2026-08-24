@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import PageHead from '../../Components/layout/PageHead';
 import { Link, router, usePage, useForm } from '@inertiajs/react';
 import FormField from '../../Components/common/FormField';
 import CheckboxField from '../../Components/common/CheckboxField';
@@ -274,9 +273,9 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
         }
     }, [setData]);
 
-    const handleSlugValidation = useCallback((proposedUrl, setFieldLocalError) =>
+    const handleSlugValidation = useCallback((proposedUrl, setFieldLocalError = () => {}) =>
     {
-        if(proposedUrl.length < 1) {
+        if(!proposedUrl || proposedUrl.length < 1) {
             setFieldLocalError("URL required.");
             setIsSlugValid(false);
             return;
@@ -411,7 +410,6 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
 
     return (
     <div className="main-info-delete-container">
-            <PageHead title="Post Form" />
     {     
         isFormReady ?
         (
@@ -453,12 +451,14 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
                             value={data.title}
                             onChange={(e) => {
                                 const titleVal = e.target.value;
+                                const autoSlug = formatSlug(titleVal);
                                 setHasChanged(true); 
                                 setData(prev => ({
                                     ...prev,
                                     title: titleVal,
-                                    slug: formatSlug(titleVal)
+                                    slug: autoSlug
                                 }));
+                                handleSlugValidation(autoSlug, (msg) => msg ? setError('slug', msg) : clearErrors('slug'));
                             }}
                             onValidate={handleTitleValidation}
                             disabled={isSubmitting}

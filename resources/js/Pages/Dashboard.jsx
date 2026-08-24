@@ -20,7 +20,7 @@ function Dashboard()
     },[]);
 
     return (<>
-        <PageHead title="Dashboard" />        
+        <PageHead title="Edit Profile" />        
         <DashboardLayout currentTab="profile" headerText="your profile">
         {
             auth.user.profile_hidden_at && (

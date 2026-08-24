@@ -4,13 +4,13 @@ import { renderToString } from 'react-dom/server';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import Layout from './Components/layout/Layout';
 
-const appName = 'Laravel';
+const appName = 'Asatte';
 
 createServer((page) =>
     createInertiaApp({
         page,
         render: renderToString,
-        title: (title) => `${title} - ${appName}`,
+        title: (title) => `${title} | ${appName}`,
         resolve: (name) => {
             const pagePromise = resolvePageComponent(`./Pages/${name}.jsx`, import.meta.glob('./Pages/**/*.jsx', { eager: true }));
             

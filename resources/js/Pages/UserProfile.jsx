@@ -75,7 +75,7 @@ function UserProfile({ user: profileUserProp })
 
     return (
     <>
-        <PageHead title={`${username}'s profile | ${props.app_name}`}
+        <PageHead title={`${username}'s profile`}
         />        
         <div className="heading-profile-container public-profile">
             <div className='centered-content vert-1rem'><h1>{username}</h1></div>

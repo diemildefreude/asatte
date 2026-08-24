@@ -1481,7 +1481,7 @@ function About({ about, status }) {
     /* @__PURE__ */ jsx(
       PageHead,
       {
-        title: "about",
+        title: "About",
         ogType: "article"
       }
     ),
@@ -1664,7 +1664,7 @@ function Contact() {
     return isValid;
   };
   return /* @__PURE__ */ jsxs(Fragment, { children: [
-    /* @__PURE__ */ jsx(PageHead, { title: "contact" }),
+    /* @__PURE__ */ jsx(PageHead, { title: "Contact" }),
     /* @__PURE__ */ jsxs("div", { className: "form-container", children: [
       /* @__PURE__ */ jsx("div", { className: "centered-content no-margin", children: /* @__PURE__ */ jsx("h1", { children: "contact" }) }),
       (flash == null ? void 0 : flash.error) && /* @__PURE__ */ jsx("div", { className: "error", children: flash.error }),
@@ -1948,83 +1948,80 @@ function DashboardLayout({ currentTab, headerText, children, headerHasMargin = t
       onSuccess: () => setSuccess("verification e-mail sent!")
     });
   };
-  return /* @__PURE__ */ jsxs(Fragment, { children: [
-    /* @__PURE__ */ jsx(PageHead, { title: "Dashboard Layout" }),
-    isAuthenticated ? /* @__PURE__ */ jsxs("div", { className: containerClasses, children: [
-      user && !(user == null ? void 0 : user.is_email_verified) && /* @__PURE__ */ jsxs("div", { className: "main-info-box notice-container centered-content no-margin", children: [
-        /* @__PURE__ */ jsx("p", { className: "notice", children: "Please check your e-mail to verify your address." }),
-        /* @__PURE__ */ jsx("button", { onClick: handleResendVerificationEmail, disabled: processing, children: "resend" })
+  return /* @__PURE__ */ jsx(Fragment, { children: isAuthenticated ? /* @__PURE__ */ jsxs("div", { className: containerClasses, children: [
+    user && !(user == null ? void 0 : user.is_email_verified) && /* @__PURE__ */ jsxs("div", { className: "main-info-box notice-container centered-content no-margin", children: [
+      /* @__PURE__ */ jsx("p", { className: "notice", children: "Please check your e-mail to verify your address." }),
+      /* @__PURE__ */ jsx("button", { onClick: handleResendVerificationEmail, disabled: processing, children: "resend" })
+    ] }),
+    errors.general && /* @__PURE__ */ jsx("div", { className: "error", children: errors.general }),
+    success && /* @__PURE__ */ jsx("div", { className: "notice", children: success }),
+    /* @__PURE__ */ jsxs("div", { className: "dashboard-nav-content-container", children: [
+      /* @__PURE__ */ jsxs("div", { className: "dashboard-tabs-container", children: [
+        /* @__PURE__ */ jsx(
+          DashboardTab,
+          {
+            tabName: "profile",
+            iconClasses: "fa-regular fa-user",
+            targetPath: "/dashboard/profile",
+            currentTab
+          }
+        ),
+        user.member_type == MemberType.Webmaster && /* @__PURE__ */ jsx(
+          DashboardTab,
+          {
+            tabName: "news",
+            iconClasses: "fa-regular fa-newspaper",
+            targetPath: "/dashboard/news-posts",
+            currentTab
+          }
+        ),
+        /* @__PURE__ */ jsx(
+          DashboardTab,
+          {
+            tabName: "posts",
+            iconClasses: "fa-solid fa-images",
+            targetPath: "/dashboard/posts",
+            currentTab
+          }
+        ),
+        /* @__PURE__ */ jsx(
+          DashboardTab,
+          {
+            tabName: "activity",
+            iconClasses: "fa-regular fa-star",
+            targetPath: "/dashboard/activity",
+            currentTab
+          }
+        ),
+        /* @__PURE__ */ jsx(
+          DashboardTab,
+          {
+            tabName: "mail",
+            iconClasses: "fa-regular fa-envelope ",
+            targetPath: "/dashboard/mail",
+            currentTab
+          }
+        )
       ] }),
-      errors.general && /* @__PURE__ */ jsx("div", { className: "error", children: errors.general }),
-      success && /* @__PURE__ */ jsx("div", { className: "notice", children: success }),
-      /* @__PURE__ */ jsxs("div", { className: "dashboard-nav-content-container", children: [
-        /* @__PURE__ */ jsxs("div", { className: "dashboard-tabs-container", children: [
-          /* @__PURE__ */ jsx(
-            DashboardTab,
-            {
-              tabName: "profile",
-              iconClasses: "fa-regular fa-user",
-              targetPath: "/dashboard/profile",
-              currentTab
-            }
-          ),
-          user.member_type == MemberType.Webmaster && /* @__PURE__ */ jsx(
-            DashboardTab,
-            {
-              tabName: "news",
-              iconClasses: "fa-regular fa-newspaper",
-              targetPath: "/dashboard/news-posts",
-              currentTab
-            }
-          ),
-          /* @__PURE__ */ jsx(
-            DashboardTab,
-            {
-              tabName: "posts",
-              iconClasses: "fa-solid fa-images",
-              targetPath: "/dashboard/posts",
-              currentTab
-            }
-          ),
-          /* @__PURE__ */ jsx(
-            DashboardTab,
-            {
-              tabName: "activity",
-              iconClasses: "fa-regular fa-star",
-              targetPath: "/dashboard/activity",
-              currentTab
-            }
-          ),
-          /* @__PURE__ */ jsx(
-            DashboardTab,
-            {
-              tabName: "mail",
-              iconClasses: "fa-regular fa-envelope ",
-              targetPath: "/dashboard/mail",
-              currentTab
-            }
-          )
-        ] }),
-        /* @__PURE__ */ jsxs("main", { id: "main-content", className: "heading-profile-container", children: [
-          headerText && /* @__PURE__ */ jsx("div", { className: headerClasses, children: /* @__PURE__ */ jsx("h1", { children: headerText }) }),
-          children
-        ] })
-      ] })
-    ] }) : /* @__PURE__ */ jsxs(Fragment, { children: [
-      errors.general && /* @__PURE__ */ jsx("div", { className: "error", children: errors.general }),
-      success && /* @__PURE__ */ jsx("div", { className: "notice", children: success }),
-      /* @__PURE__ */ jsxs("div", { className: "centered-content", children: [
-        /* @__PURE__ */ jsx("h1", { children: "Welcome to netart.io." }),
-        /* @__PURE__ */ jsxs("p", { children: [
-          "Click ",
-          /* @__PURE__ */ jsx(Link, { href: "/login", children: "here" }),
-          " to log in, or ",
-          /* @__PURE__ */ jsx(Link, { href: "/register", children: "here" }),
-          " to register."
-        ] })
+      /* @__PURE__ */ jsxs("main", { id: "main-content", className: "heading-profile-container", children: [
+        headerText && /* @__PURE__ */ jsx("div", { className: headerClasses, children: /* @__PURE__ */ jsx("h1", { children: headerText }) }),
+        children
       ] })
     ] })
-  ] });
+  ] }) : /* @__PURE__ */ jsxs(Fragment, { children: [
+    errors.general && /* @__PURE__ */ jsx("div", { className: "error", children: errors.general }),
+    success && /* @__PURE__ */ jsx("div", { className: "notice", children: success }),
+    /* @__PURE__ */ jsxs("div", { className: "centered-content", children: [
+      /* @__PURE__ */ jsx("h1", { children: "Welcome to netart.io." }),
+      /* @__PURE__ */ jsxs("p", { children: [
+        "Click ",
+        /* @__PURE__ */ jsx(Link, { href: "/login", children: "here" }),
+        " to log in, or ",
+        /* @__PURE__ */ jsx(Link, { href: "/register", children: "here" }),
+        " to register."
+      ] })
+    ] })
+  ] }) });
 }
 DashboardLayout.layout = (page) => /* @__PURE__ */ jsx(Layout, { isDashboard: true, children: page });
 const __vite_glob_0_22 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
@@ -3189,7 +3186,6 @@ function EditProfile() {
     );
   };
   return /* @__PURE__ */ jsxs("div", { className: "main-info-box transparent-background sticky", children: [
-    /* @__PURE__ */ jsx(PageHead, { title: "Edit Profile" }),
     /* @__PURE__ */ jsxs("div", { className: "avatar-section", children: [
       errors.general && /* @__PURE__ */ jsx("div", { className: "error", children: errors.general }),
       flash.success_profile && /* @__PURE__ */ jsx("div", { className: "notice", children: flash.success_profile }),
@@ -3345,7 +3341,6 @@ function EditBio() {
     });
   };
   return /* @__PURE__ */ jsxs("div", { className: "rte-container", children: [
-    /* @__PURE__ */ jsx(PageHead, { title: "Edit Bio" }),
     /* @__PURE__ */ jsxs("div", { className: "centered-header-box", children: [
       isInEditMode && hasBioChanged && /* @__PURE__ */ jsx("div", { className: "left-item padded", children: /* @__PURE__ */ jsx(
         "button",
@@ -3402,7 +3397,7 @@ function Dashboard() {
     });
   }, []);
   return /* @__PURE__ */ jsxs(Fragment, { children: [
-    /* @__PURE__ */ jsx(PageHead, { title: "Dashboard" }),
+    /* @__PURE__ */ jsx(PageHead, { title: "Edit Profile" }),
     /* @__PURE__ */ jsxs(DashboardLayout, { currentTab: "profile", headerText: "your profile", children: [
       auth.user.profile_hidden_at && /* @__PURE__ */ jsxs("div", { className: "main-info-box notice-container red-gradient-background", children: [
         /* @__PURE__ */ jsxs("p", { className: "notice", children: [
@@ -3712,14 +3707,19 @@ function Following({ memberProp }) {
       }
     )
   ] });
-  return member && (user ? /* @__PURE__ */ jsx(
-    DashboardLayout,
-    {
-      headerText: isDashboardUrl ? HEADER_TEXT : "",
-      currentTab: "activity",
-      children: content
-    }
-  ) : content);
+  return /* @__PURE__ */ jsxs(Fragment, { children: [
+    /* @__PURE__ */ jsx(PageHead, { title: "Following" }),
+    "member && ( user ? ",
+    /* @__PURE__ */ jsx(
+      DashboardLayout,
+      {
+        headerText: isDashboardUrl ? HEADER_TEXT : "",
+        currentTab: "activity",
+        children: content
+      }
+    ),
+    " : content )"
+  ] });
 }
 const __vite_glob_0_5 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
@@ -4124,7 +4124,7 @@ function CarouselContainer({ size, className, children }) {
   const currentTranslateXRef = useRef(0);
   const initialTranslateXRef = useRef(0);
   const mouseDownTargetRef = useRef(null);
-  const distanceThreshold = 15;
+  const distanceThreshold = 5;
   const lastMoveTimeRef = useRef(0);
   const lastMoveXRef = useRef(0);
   const velocityRef = useRef(0);
@@ -4627,7 +4627,7 @@ function Home({ heroPosts = [], carouselArchive = [], carouselNews = [], carouse
     return cleanup;
   }, [setScreenSize]);
   return /* @__PURE__ */ jsxs(Fragment, { children: [
-    /* @__PURE__ */ jsx(PageHead, { title: `${props.app_name}` }),
+    /* @__PURE__ */ jsx(PageHead, { title: "Home" }),
     /* @__PURE__ */ jsxs("div", { className: "hero", children: [
       /* @__PURE__ */ jsx("div", { className: "hero-logo-container", children: /* @__PURE__ */ jsx(LogoThreeToneGradientFrameOutlineNamed, { className: "hero-logo", alt: `${props.app_name} logo` }) }),
       /* @__PURE__ */ jsxs("div", { className: "hero-text-container", children: [
@@ -4844,7 +4844,7 @@ function News({ newsPosts = [] }) {
     return cleanup;
   }, [setScreenSize]);
   return /* @__PURE__ */ jsxs(Fragment, { children: [
-    /* @__PURE__ */ jsx(PageHead, { title: "news" }),
+    /* @__PURE__ */ jsx(PageHead, { title: "News" }),
     /* @__PURE__ */ jsx("div", { className: "centered-content", children: /* @__PURE__ */ jsx("h1", { children: "news" }) }),
     /* @__PURE__ */ jsx(
       AutoloadTilesContainer,
@@ -5842,7 +5842,7 @@ function Post({ post, carouselPosts: userPosts = [] }) {
     /* @__PURE__ */ jsx(
       PageHead,
       {
-        title: `'${post.title}' by ${post.user.username} | ${props.app_name}`,
+        title: `'${post.title}' by ${post.user.username}`,
         description: post.subtitle,
         ogType: "article",
         ogImg: mainImg
@@ -6760,7 +6760,7 @@ function UserProfile({ user: profileUserProp }) {
     /* @__PURE__ */ jsx(
       PageHead,
       {
-        title: `${username}'s profile | ${props.app_name}`
+        title: `${username}'s profile`
       }
     ),
     /* @__PURE__ */ jsxs("div", { className: "heading-profile-container public-profile", children: [
@@ -7420,8 +7420,10 @@ function Conversation({ conversation: conversationProp, addressee }) {
   const [originalMessage, setOriginalMessage] = useState(null);
   const [originalMessageElement, setOriginalMessageElement] = useState(null);
   const [pendingScrollId, setPendingScrollId] = useState(((_a = props.flash) == null ? void 0 : _a.new_message_id) || null);
-  let convoName = isNew ? "new conversation" : "conversation";
+  let pageTitle = isNew ? "New Conversation" : "Conversation";
+  let convoName = pageTitle.toLowerCase();
   convoName = (conversation == null ? void 0 : conversation.name) ?? convoName;
+  pageTitle = (conversation == null ? void 0 : conversation.name) ?? pageTitle;
   useEffect(() => {
     if (!addressee || conversation) {
       return;
@@ -7655,7 +7657,7 @@ function Conversation({ conversation: conversationProp, addressee }) {
     setQuotedMessage(null);
   }, []);
   return /* @__PURE__ */ jsxs(DashboardLayout, { currentTab: "mail", children: [
-    /* @__PURE__ */ jsx(PageHead, { title: "Conversation" }),
+    /* @__PURE__ */ jsx(PageHead, { title: pageTitle }),
     /* @__PURE__ */ jsx("div", { className: "centered-content no-margin side-padded", children: /* @__PURE__ */ jsx("h1", { dangerouslySetInnerHTML: { __html: convoName } }) }),
     !isNew && /* @__PURE__ */ jsxs("div", { className: "footnote", children: [
       "with",
@@ -7909,7 +7911,6 @@ function ImageField({ index, image = null, file = null, alt = "", setArray, onIm
     onAltChange(index, altText);
   }, [setAltError, index, onAltChange]);
   return /* @__PURE__ */ jsxs("div", { className: "image-field", ref: imageFieldRef, children: [
-    /* @__PURE__ */ jsx(PageHead, { title: "Image Field" }),
     imageError && /* @__PURE__ */ jsx("div", { className: "error", children: imageError }),
     altError && /* @__PURE__ */ jsx("div", { className: "error", children: altError }),
     /* @__PURE__ */ jsxs("div", { className: "sub-field", children: [
@@ -8165,8 +8166,9 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
       setFieldLocalError("Must be a valid link from YouTube, DailyMotion, or Vimeo.");
     }
   }, [setData]);
-  const handleSlugValidation = useCallback((proposedUrl, setFieldLocalError) => {
-    if (proposedUrl.length < 1) {
+  const handleSlugValidation = useCallback((proposedUrl, setFieldLocalError = () => {
+  }) => {
+    if (!proposedUrl || proposedUrl.length < 1) {
       setFieldLocalError("URL required.");
       setIsSlugValid(false);
       return;
@@ -8274,256 +8276,255 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
     if (!galCont) return;
     return addImageDragListeners(galCont, dragCounterRef, handleDroppedImages);
   }, [handleDroppedImages]);
-  return /* @__PURE__ */ jsxs("div", { className: "main-info-delete-container", children: [
-    /* @__PURE__ */ jsx(PageHead, { title: "Post Form" }),
-    isFormReady ? /* @__PURE__ */ jsxs(Fragment, { children: [
-      /* @__PURE__ */ jsx("div", { className: "main-info-box transparent-background stretch", children: /* @__PURE__ */ jsxs("form", { onSubmit: (e) => onSubmit(e, false), children: [
-        /* @__PURE__ */ jsxs("div", { className: "text-fields-container", children: [
-          Object.keys(errors).length > 0 && /* @__PURE__ */ jsx("div", { className: "error-container", children: Object.keys(errors).map((key) => /* @__PURE__ */ jsx("div", { className: "error", children: key === "general" ? errors[key] : `${key}: ${errors[key]}` }, key)) }),
-          success && /* @__PURE__ */ jsx("div", { className: "notice", children: success }),
-          /* @__PURE__ */ jsxs("div", { className: "horizontal-buttons-container", children: [
-            (!post || post.is_draft) && /* @__PURE__ */ jsx("button", { type: "button", onClick: (e) => onSubmit(e, true), disabled: isSubmitting || !canSubmit, children: "save draft" }),
-            /* @__PURE__ */ jsx("button", { type: "submit", disabled: isSubmitting || !canSubmit, children: buttonText })
-          ] }),
-          /* @__PURE__ */ jsx("div", { className: "footnote", children: "Fields with an * are required." }),
-          /* @__PURE__ */ jsx(
-            FormField,
-            {
-              id: "title",
-              label: "title*",
-              placeholder: "work title",
-              value: data.title,
-              onChange: (e) => {
-                const titleVal = e.target.value;
-                setHasChanged(true);
-                setData((prev) => ({
-                  ...prev,
-                  title: titleVal,
-                  slug: formatSlug(titleVal)
-                }));
-              },
-              onValidate: handleTitleValidation,
-              disabled: isSubmitting,
-              type: "text",
-              isInline: true,
-              classes: "inline-form-field",
-              error: errors.title,
-              onErrorUpdate: (id, msg) => msg ? setError(id, msg) : clearErrors(id)
-            }
-          ),
-          /* @__PURE__ */ jsx(
-            FormField,
-            {
-              id: "slug",
-              label: "slug*",
-              placeholder: "url ending",
-              value: data.slug,
-              onChange: (e) => {
-                setHasChanged(true);
-                setData("slug", e.target.value);
-              },
-              onValidate: handleSlugValidation,
-              sideText: `/${user.username}/`,
-              disabled: isSubmitting,
-              type: "text",
-              isInline: true,
-              classes: "inline-form-field",
-              error: errors.slug,
-              onErrorUpdate: (id, msg) => msg ? setError(id, msg) : clearErrors(id)
-            }
-          ),
-          /* @__PURE__ */ jsx(
-            FormField,
-            {
-              id: "subtitle",
-              label: "subtitle*",
-              placeholder: "short description",
-              value: data.subtitle,
-              onChange: (e) => {
-                setHasChanged(true);
-                setData("subtitle", e.target.value);
-              },
-              onValidate: handleSubtitleValidation,
-              disabled: isSubmitting,
-              type: "text",
-              isInline: true,
-              classes: "inline-form-field",
-              error: errors.subtitle,
-              onErrorUpdate: (id, msg) => msg ? setError(id, msg) : clearErrors(id)
-            }
-          ),
-          /* @__PURE__ */ jsx(
-            FormField,
-            {
-              id: "premiere_date",
-              label: "premiere date",
-              placeholder: "e.g. YYYY-MM-DD",
-              value: data.premiere_date,
-              onChange: (e) => {
-                setHasChanged(true);
-                setData("premiere_date", e.target.value);
-              },
-              disabled: isSubmitting,
-              type: "date",
-              isInline: true,
-              classes: "inline-form-field",
-              error: errors.premiere_date,
-              onErrorUpdate: (id, msg) => msg ? setError(id, msg) : clearErrors(id)
-            }
-          ),
-          /* @__PURE__ */ jsx(
-            FormField,
-            {
-              id: "website",
-              label: "website",
-              placeholder: "url of the work",
-              value: data.website,
-              onChange: (e) => {
-                setHasChanged(true);
-                setData("website", e.target.value);
-              },
-              onValidate: handleWebsiteValidation,
-              disabled: isSubmitting,
-              type: "text",
-              isInline: true,
-              classes: "inline-form-field",
-              error: errors.website,
-              onErrorUpdate: (id, msg) => msg ? setError(id, msg) : clearErrors(id)
-            }
-          ),
-          /* @__PURE__ */ jsx(
-            FormField,
-            {
-              id: "source_code",
-              label: "source code",
-              placeholder: "eg. Github repo",
-              value: data.source_code,
-              onChange: (e) => {
-                setHasChanged(true);
-                setData("source_code", e.target.value);
-              },
-              onValidate: handleSourceCodeValidation,
-              disabled: isSubmitting,
-              type: "text",
-              isInline: true,
-              classes: "inline-form-field",
-              error: errors.source_code,
-              onErrorUpdate: (id, msg) => msg ? setError(id, msg) : clearErrors(id)
-            }
-          ),
-          /* @__PURE__ */ jsx(
-            FormField,
-            {
-              id: "main_video_raw",
-              label: "main video",
-              placeholder: "YouTube, DailyMotion, or Vimeo",
-              value: data.main_video_raw,
-              onChange: (e) => {
-                setHasChanged(true);
-                setData("main_video_raw", e.target.value);
-              },
-              onValidate: handleMainVideoValidation,
-              disabled: isSubmitting,
-              type: "text",
-              isInline: true,
-              classes: "inline-form-field",
-              error: errors.main_video,
-              onErrorUpdate: (id, msg) => msg ? setError("main_video", msg) : clearErrors("main_video")
-            }
-          ),
-          isMainVideoValid && data.main_video && /* @__PURE__ */ jsx(VideoIframe, { url: data.main_video }),
-          /* @__PURE__ */ jsx(
-            CheckboxField,
-            {
-              name: "is-private",
-              label: "is private",
-              onChange: (e) => {
-                setHasChanged(true);
-                setData("is_private", e.target.checked);
-              },
-              disabled: isSubmitting,
-              value: data.is_private
-            }
-          ),
-          user.member_type == MemberType.Webmaster && /* @__PURE__ */ jsx(
-            CheckboxField,
-            {
-              name: "is-news",
-              label: "is news",
-              onChange: (e) => {
-                setHasChanged(true);
-                setData("is_news", e.target.checked);
-              },
-              disabled: isSubmitting,
-              value: data.is_news
-            }
-          ),
-          /* @__PURE__ */ jsxs("div", { className: "rte-container", children: [
-            /* @__PURE__ */ jsx("div", { className: "centered-content", children: /* @__PURE__ */ jsx("h3", { children: "artist statement" }) }),
-            /* @__PURE__ */ jsx(
-              RichTextEditor,
-              {
-                placeholder: "description of the work",
-                disabled: isSubmitting,
-                onChange: (val) => {
-                  setData("statement", val);
-                  setHasChanged(val !== initialStatement);
-                },
-                value: data.statement
-              }
-            )
-          ] })
+  return /* @__PURE__ */ jsx("div", { className: "main-info-delete-container", children: isFormReady ? /* @__PURE__ */ jsxs(Fragment, { children: [
+    /* @__PURE__ */ jsx("div", { className: "main-info-box transparent-background stretch", children: /* @__PURE__ */ jsxs("form", { onSubmit: (e) => onSubmit(e, false), children: [
+      /* @__PURE__ */ jsxs("div", { className: "text-fields-container", children: [
+        Object.keys(errors).length > 0 && /* @__PURE__ */ jsx("div", { className: "error-container", children: Object.keys(errors).map((key) => /* @__PURE__ */ jsx("div", { className: "error", children: key === "general" ? errors[key] : `${key}: ${errors[key]}` }, key)) }),
+        success && /* @__PURE__ */ jsx("div", { className: "notice", children: success }),
+        /* @__PURE__ */ jsxs("div", { className: "horizontal-buttons-container", children: [
+          (!post || post.is_draft) && /* @__PURE__ */ jsx("button", { type: "button", onClick: (e) => onSubmit(e, true), disabled: isSubmitting || !canSubmit, children: "save draft" }),
+          /* @__PURE__ */ jsx("button", { type: "submit", disabled: isSubmitting || !canSubmit, children: buttonText })
         ] }),
-        /* @__PURE__ */ jsxs("div", { className: "multi-field-container", ref: galleryContainerRef, children: [
-          /* @__PURE__ */ jsxs("div", { className: "field-button-image-fields-container", children: [
-            /* @__PURE__ */ jsx("div", { className: "field-button-container top-align", children: /* @__PURE__ */ jsxs("div", { className: "main-label-container", children: [
-              /* @__PURE__ */ jsx("label", { className: "main-label", children: "gallery images*" }),
-              /* @__PURE__ */ jsx("span", { className: "button-container", children: /* @__PURE__ */ jsx(
-                "button",
-                {
-                  className: "small-but",
-                  type: "button",
-                  onClick: handleAddImage,
-                  disabled: isSubmitting || imageFields.length >= IMAGE_LIMIT,
-                  children: "+"
-                }
-              ) }),
-              /* @__PURE__ */ jsx("p", { children: "drag & drop" })
-            ] }) }),
-            imageFields.map((field) => /* @__PURE__ */ jsx(
-              ImageField,
-              {
-                index: field.index,
-                image: field.image,
-                file: field.type === "new" ? field.value : null,
-                alt: field.alt,
-                setArray: setImageFields,
-                onImageChange,
-                onAltChange,
-                onRemove: () => setHasChanged(true),
-                disabled: isSubmitting
+        /* @__PURE__ */ jsx("div", { className: "footnote", children: "Fields with an * are required." }),
+        /* @__PURE__ */ jsx(
+          FormField,
+          {
+            id: "title",
+            label: "title*",
+            placeholder: "work title",
+            value: data.title,
+            onChange: (e) => {
+              const titleVal = e.target.value;
+              const autoSlug = formatSlug(titleVal);
+              setHasChanged(true);
+              setData((prev) => ({
+                ...prev,
+                title: titleVal,
+                slug: autoSlug
+              }));
+              handleSlugValidation(autoSlug, (msg) => msg ? setError("slug", msg) : clearErrors("slug"));
+            },
+            onValidate: handleTitleValidation,
+            disabled: isSubmitting,
+            type: "text",
+            isInline: true,
+            classes: "inline-form-field",
+            error: errors.title,
+            onErrorUpdate: (id, msg) => msg ? setError(id, msg) : clearErrors(id)
+          }
+        ),
+        /* @__PURE__ */ jsx(
+          FormField,
+          {
+            id: "slug",
+            label: "slug*",
+            placeholder: "url ending",
+            value: data.slug,
+            onChange: (e) => {
+              setHasChanged(true);
+              setData("slug", e.target.value);
+            },
+            onValidate: handleSlugValidation,
+            sideText: `/${user.username}/`,
+            disabled: isSubmitting,
+            type: "text",
+            isInline: true,
+            classes: "inline-form-field",
+            error: errors.slug,
+            onErrorUpdate: (id, msg) => msg ? setError(id, msg) : clearErrors(id)
+          }
+        ),
+        /* @__PURE__ */ jsx(
+          FormField,
+          {
+            id: "subtitle",
+            label: "subtitle*",
+            placeholder: "short description",
+            value: data.subtitle,
+            onChange: (e) => {
+              setHasChanged(true);
+              setData("subtitle", e.target.value);
+            },
+            onValidate: handleSubtitleValidation,
+            disabled: isSubmitting,
+            type: "text",
+            isInline: true,
+            classes: "inline-form-field",
+            error: errors.subtitle,
+            onErrorUpdate: (id, msg) => msg ? setError(id, msg) : clearErrors(id)
+          }
+        ),
+        /* @__PURE__ */ jsx(
+          FormField,
+          {
+            id: "premiere_date",
+            label: "premiere date",
+            placeholder: "e.g. YYYY-MM-DD",
+            value: data.premiere_date,
+            onChange: (e) => {
+              setHasChanged(true);
+              setData("premiere_date", e.target.value);
+            },
+            disabled: isSubmitting,
+            type: "date",
+            isInline: true,
+            classes: "inline-form-field",
+            error: errors.premiere_date,
+            onErrorUpdate: (id, msg) => msg ? setError(id, msg) : clearErrors(id)
+          }
+        ),
+        /* @__PURE__ */ jsx(
+          FormField,
+          {
+            id: "website",
+            label: "website",
+            placeholder: "url of the work",
+            value: data.website,
+            onChange: (e) => {
+              setHasChanged(true);
+              setData("website", e.target.value);
+            },
+            onValidate: handleWebsiteValidation,
+            disabled: isSubmitting,
+            type: "text",
+            isInline: true,
+            classes: "inline-form-field",
+            error: errors.website,
+            onErrorUpdate: (id, msg) => msg ? setError(id, msg) : clearErrors(id)
+          }
+        ),
+        /* @__PURE__ */ jsx(
+          FormField,
+          {
+            id: "source_code",
+            label: "source code",
+            placeholder: "eg. Github repo",
+            value: data.source_code,
+            onChange: (e) => {
+              setHasChanged(true);
+              setData("source_code", e.target.value);
+            },
+            onValidate: handleSourceCodeValidation,
+            disabled: isSubmitting,
+            type: "text",
+            isInline: true,
+            classes: "inline-form-field",
+            error: errors.source_code,
+            onErrorUpdate: (id, msg) => msg ? setError(id, msg) : clearErrors(id)
+          }
+        ),
+        /* @__PURE__ */ jsx(
+          FormField,
+          {
+            id: "main_video_raw",
+            label: "main video",
+            placeholder: "YouTube, DailyMotion, or Vimeo",
+            value: data.main_video_raw,
+            onChange: (e) => {
+              setHasChanged(true);
+              setData("main_video_raw", e.target.value);
+            },
+            onValidate: handleMainVideoValidation,
+            disabled: isSubmitting,
+            type: "text",
+            isInline: true,
+            classes: "inline-form-field",
+            error: errors.main_video,
+            onErrorUpdate: (id, msg) => msg ? setError("main_video", msg) : clearErrors("main_video")
+          }
+        ),
+        isMainVideoValid && data.main_video && /* @__PURE__ */ jsx(VideoIframe, { url: data.main_video }),
+        /* @__PURE__ */ jsx(
+          CheckboxField,
+          {
+            name: "is-private",
+            label: "is private",
+            onChange: (e) => {
+              setHasChanged(true);
+              setData("is_private", e.target.checked);
+            },
+            disabled: isSubmitting,
+            value: data.is_private
+          }
+        ),
+        user.member_type == MemberType.Webmaster && /* @__PURE__ */ jsx(
+          CheckboxField,
+          {
+            name: "is-news",
+            label: "is news",
+            onChange: (e) => {
+              setHasChanged(true);
+              setData("is_news", e.target.checked);
+            },
+            disabled: isSubmitting,
+            value: data.is_news
+          }
+        ),
+        /* @__PURE__ */ jsxs("div", { className: "rte-container", children: [
+          /* @__PURE__ */ jsx("div", { className: "centered-content", children: /* @__PURE__ */ jsx("h3", { children: "artist statement" }) }),
+          /* @__PURE__ */ jsx(
+            RichTextEditor,
+            {
+              placeholder: "description of the work",
+              disabled: isSubmitting,
+              onChange: (val) => {
+                setData("statement", val);
+                setHasChanged(val !== initialStatement);
               },
-              field.index
-            ))
-          ] }),
-          /* @__PURE__ */ jsxs("div", { className: "horizontal-buttons-container reverse-row", children: [
-            (!post || post.is_draft) && /* @__PURE__ */ jsx("button", { type: "button", onClick: (e) => onSubmit(e, true), disabled: isSubmitting || !canSubmit, children: "save draft" }),
-            /* @__PURE__ */ jsx("button", { type: "submit", disabled: isSubmitting || !canSubmit, children: buttonText })
-          ] })
+              value: data.statement
+            }
+          )
         ] })
-      ] }) }),
-      !isCreateForm && /* @__PURE__ */ jsx(
-        "button",
-        {
-          type: "button",
-          className: "red-button",
-          onClick: handleDelete,
-          disabled: isSubmitting,
-          children: "delete"
-        }
-      )
-    ] }) : /* @__PURE__ */ jsx("p", { className: "loading", children: loadingText })
-  ] });
+      ] }),
+      /* @__PURE__ */ jsxs("div", { className: "multi-field-container", ref: galleryContainerRef, children: [
+        /* @__PURE__ */ jsxs("div", { className: "field-button-image-fields-container", children: [
+          /* @__PURE__ */ jsx("div", { className: "field-button-container top-align", children: /* @__PURE__ */ jsxs("div", { className: "main-label-container", children: [
+            /* @__PURE__ */ jsx("label", { className: "main-label", children: "gallery images*" }),
+            /* @__PURE__ */ jsx("span", { className: "button-container", children: /* @__PURE__ */ jsx(
+              "button",
+              {
+                className: "small-but",
+                type: "button",
+                onClick: handleAddImage,
+                disabled: isSubmitting || imageFields.length >= IMAGE_LIMIT,
+                children: "+"
+              }
+            ) }),
+            /* @__PURE__ */ jsx("p", { children: "drag & drop" })
+          ] }) }),
+          imageFields.map((field) => /* @__PURE__ */ jsx(
+            ImageField,
+            {
+              index: field.index,
+              image: field.image,
+              file: field.type === "new" ? field.value : null,
+              alt: field.alt,
+              setArray: setImageFields,
+              onImageChange,
+              onAltChange,
+              onRemove: () => setHasChanged(true),
+              disabled: isSubmitting
+            },
+            field.index
+          ))
+        ] }),
+        /* @__PURE__ */ jsxs("div", { className: "horizontal-buttons-container reverse-row", children: [
+          (!post || post.is_draft) && /* @__PURE__ */ jsx("button", { type: "button", onClick: (e) => onSubmit(e, true), disabled: isSubmitting || !canSubmit, children: "save draft" }),
+          /* @__PURE__ */ jsx("button", { type: "submit", disabled: isSubmitting || !canSubmit, children: buttonText })
+        ] })
+      ] })
+    ] }) }),
+    !isCreateForm && /* @__PURE__ */ jsx(
+      "button",
+      {
+        type: "button",
+        className: "red-button",
+        onClick: handleDelete,
+        disabled: isSubmitting,
+        children: "delete"
+      }
+    )
+  ] }) : /* @__PURE__ */ jsx("p", { className: "loading", children: loadingText }) });
 }
 const __vite_glob_0_35 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
@@ -8534,25 +8535,27 @@ function EditPost({ post: initialPost }) {
   const { props } = usePage();
   const user = (_a = props == null ? void 0 : props.auth) == null ? void 0 : _a.user;
   const [post, setPost] = useState(initialPost);
-  return /* @__PURE__ */ jsxs(
-    DashboardLayout,
-    {
-      currentTab: "",
-      headerText: "edit post",
-      children: [
-        /* @__PURE__ */ jsx(PageHead, { title: "Edit Post" }),
-        (post == null ? void 0 : post.is_hidden_by_admin) && /* @__PURE__ */ jsx(HiddenPostNotice, { classes: "no-margin" }),
-        /* @__PURE__ */ jsx(
-          PostForm,
-          {
-            isCreateForm: false,
-            user,
-            post
-          }
-        )
-      ]
-    }
-  );
+  return /* @__PURE__ */ jsxs(Fragment, { children: [
+    /* @__PURE__ */ jsx(PageHead, { title: "Edit Post" }),
+    /* @__PURE__ */ jsxs(
+      DashboardLayout,
+      {
+        currentTab: "",
+        headerText: "edit post",
+        children: [
+          (post == null ? void 0 : post.is_hidden_by_admin) && /* @__PURE__ */ jsx(HiddenPostNotice, { classes: "no-margin" }),
+          /* @__PURE__ */ jsx(
+            PostForm,
+            {
+              isCreateForm: false,
+              user,
+              post
+            }
+          )
+        ]
+      }
+    )
+  ] });
 }
 const __vite_glob_0_25 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
@@ -8623,7 +8626,6 @@ const __vite_glob_0_37 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.de
 }, Symbol.toStringTag, { value: "Module" }));
 function DashboardCreateHeader({ headerText, createLink, isVerified = true }) {
   return /* @__PURE__ */ jsxs("div", { className: "centered-header-box", children: [
-    /* @__PURE__ */ jsx(PageHead, { title: "Dashboard Create Header" }),
     /* @__PURE__ */ jsx("div", { className: "centered-content no-margin", children: /* @__PURE__ */ jsx("h1", { children: headerText }) }),
     isVerified && /* @__PURE__ */ jsx("div", { className: "right-item", children: /* @__PURE__ */ jsx(
       Link,
@@ -8692,7 +8694,7 @@ function MyPosts() {
     return cleanup;
   }, [setScreenSize]);
   return /* @__PURE__ */ jsxs(DashboardLayout, { currentTab: "posts", children: [
-    /* @__PURE__ */ jsx(PageHead, { title: "My Posts" }),
+    /* @__PURE__ */ jsx(PageHead, { title: "Posts" }),
     /* @__PURE__ */ jsx(
       DashboardCreateHeader,
       {
@@ -8775,7 +8777,7 @@ function NewsPosts() {
     return cleanup;
   }, [setScreenSize]);
   return /* @__PURE__ */ jsxs(DashboardLayout, { currentTab: "news", children: [
-    /* @__PURE__ */ jsx(PageHead, { title: "News Posts" }),
+    /* @__PURE__ */ jsx(PageHead, { title: "News Dashboard" }),
     /* @__PURE__ */ jsx(
       DashboardCreateHeader,
       {
@@ -8859,12 +8861,12 @@ async function resolvePageComponent(path, pages) {
   }
   throw new Error(`Page not found: ${path}`);
 }
-const appName = "Laravel";
+const appName = "Asatte";
 createServer(
   (page) => createInertiaApp({
     page,
     render: renderToString,
-    title: (title) => `${title} - ${appName}`,
+    title: (title) => `${title} | ${appName}`,
     resolve: (name) => {
       const pagePromise = resolvePageComponent(`./Pages/${name}.jsx`, /* @__PURE__ */ Object.assign({ "./Pages/About.jsx": __vite_glob_0_0, "./Pages/Contact.jsx": __vite_glob_0_1, "./Pages/CreatePostForm.jsx": __vite_glob_0_2, "./Pages/Dashboard.jsx": __vite_glob_0_3, "./Pages/Followers.jsx": __vite_glob_0_4, "./Pages/Following.jsx": __vite_glob_0_5, "./Pages/Home.jsx": __vite_glob_0_6, "./Pages/Login.jsx": __vite_glob_0_7, "./Pages/News.jsx": __vite_glob_0_8, "./Pages/NotFound.jsx": __vite_glob_0_9, "./Pages/OAuthCallback.jsx": __vite_glob_0_10, "./Pages/PasswordChange.jsx": __vite_glob_0_11, "./Pages/PasswordRecovery.jsx": __vite_glob_0_12, "./Pages/PasswordReset.jsx": __vite_glob_0_13, "./Pages/Post.jsx": __vite_glob_0_14, "./Pages/Posts.jsx": __vite_glob_0_15, "./Pages/Registration.jsx": __vite_glob_0_16, "./Pages/SearchResults.jsx": __vite_glob_0_17, "./Pages/UserProfile.jsx": __vite_glob_0_18, "./Pages/dashboard/Activity.jsx": __vite_glob_0_19, "./Pages/dashboard/AvatarSetter.jsx": __vite_glob_0_20, "./Pages/dashboard/Conversation.jsx": __vite_glob_0_21, "./Pages/dashboard/DashboardLayout.jsx": __vite_glob_0_22, "./Pages/dashboard/DeleteAccount.jsx": __vite_glob_0_23, "./Pages/dashboard/EditBio.jsx": __vite_glob_0_24, "./Pages/dashboard/EditPost.jsx": __vite_glob_0_25, "./Pages/dashboard/EditProfile.jsx": __vite_glob_0_26, "./Pages/dashboard/ImageField.jsx": __vite_glob_0_27, "./Pages/dashboard/LikedPosts.jsx": __vite_glob_0_28, "./Pages/dashboard/Mail.jsx": __vite_glob_0_29, "./Pages/dashboard/MyPosts.jsx": __vite_glob_0_30, "./Pages/dashboard/NewNewsPost.jsx": __vite_glob_0_31, "./Pages/dashboard/NewPost.jsx": __vite_glob_0_32, "./Pages/dashboard/NewsPosts.jsx": __vite_glob_0_33, "./Pages/dashboard/Notifications.jsx": __vite_glob_0_34, "./Pages/dashboard/PostForm.jsx": __vite_glob_0_35, "./Pages/dashboard/UserComments.jsx": __vite_glob_0_36, "./Pages/dashboard/common/ConversationPreview.jsx": __vite_glob_0_37, "./Pages/dashboard/common/DashboardCreateHeader.jsx": __vite_glob_0_38, "./Pages/dashboard/common/Notification.jsx": __vite_glob_0_39 }));
       return pagePromise.then((module) => {

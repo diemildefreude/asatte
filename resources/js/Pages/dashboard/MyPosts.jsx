@@ -23,7 +23,7 @@ function MyPosts()
 
     return ( 
     <DashboardLayout currentTab="posts">
-            <PageHead title="My Posts" />
+            <PageHead title="Posts" />
         <DashboardCreateHeader
             headerText="your posts"
             createLink="/dashboard/new-post"

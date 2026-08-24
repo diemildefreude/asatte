@@ -14,7 +14,7 @@ function News({ newsPosts = [] }) {
 
     return (
         <>
-            <PageHead title="news"/>
+            <PageHead title="News"/>
             <div className="centered-content">
                 <h1>news</h1>
             </div>

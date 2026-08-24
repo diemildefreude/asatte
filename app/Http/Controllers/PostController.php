@@ -946,7 +946,7 @@ class PostController extends Controller
             }
             $postUrl = $appUrl . $postUrlPath;
 
-            $messageToUser = "<p>Your post, <a href=\"{$postUrl}\"><em>{$post->title}</em></a> has been hidden.</p>
+            $messageToUser = "<p>your post, <a href=\"{$postUrl}\"><em>{$post->title}</em></a> has been hidden.</p>
             <p> reason: {$reason}</p>    
             <p> If you wish to dispute this decision, please reply to this message.</p>
             <p> If no action is taken, the post will be deleted in 30 days.</p>";

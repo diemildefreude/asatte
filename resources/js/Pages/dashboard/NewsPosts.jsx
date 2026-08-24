@@ -22,7 +22,7 @@ function NewsPosts()
 
     return ( 
         <DashboardLayout currentTab="news">
-            <PageHead title="News Posts" />
+            <PageHead title="News Dashboard" />
             <DashboardCreateHeader
                 headerText="news posts"
                 createLink="/dashboard/new-news-post"

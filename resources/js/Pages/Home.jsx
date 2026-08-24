@@ -23,7 +23,7 @@ function Home({ heroPosts = [], carouselArchive = [], carouselNews = [], carouse
 
     return (
         <>
-        <PageHead title={`${props.app_name}`}/>
+        <PageHead title="Home"/>
         <div className="hero">            
             <div className='hero-logo-container'>
                 {/* <img className="hero-logo" src={directory + "logo/gradient_named.svg"} alt="asatte logo"></img> */}
@@ -57,7 +57,7 @@ function Home({ heroPosts = [], carouselArchive = [], carouselNews = [], carouse
         )}
         {carouselNews && carouselNews.length > 0 && (
             <div className="page-section carousel">
-                <TileCarousel size="small" title="netart news:" posts={carouselNews} />
+                <TileCarousel size="small" title="news:" posts={carouselNews} />
             </div>
         )}
         <div className="page-section">

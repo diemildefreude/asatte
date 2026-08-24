@@ -1,4 +1,3 @@
-import PageHead from '../../Components/layout/PageHead';
 import { useForm, usePage, router } from '@inertiajs/react';
 import { useCallback, useEffect, useState } from 'react';
 import RichTextEditor from '../../Components/common/RichTextEditor';
@@ -68,7 +67,6 @@ function EditBio()
 
     return (
         <div className="rte-container">
-            <PageHead title="Edit Bio" />
             <div className="centered-header-box">            
                 {
                     (isInEditMode && hasBioChanged) && (

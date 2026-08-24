@@ -12,23 +12,23 @@ import { getErrorMessage } from '../../utils/helpers';
         const user = props?.auth?.user;
         const [post, setPost] = useState(initialPost);
 
-    return (
+    return (<>
+    <PageHead title="Edit Post" />
     <DashboardLayout
         currentTab=""
         headerText="edit post"
     >
-            <PageHead title="Edit Post" />
         {
             post?.is_hidden_by_admin && (                
             <HiddenPostNotice classes="no-margin"/>
             )
         }
-        <PostForm
-            isCreateForm={false}
-            user={user}
-            post={post}
-        />
-    </DashboardLayout>
+            <PostForm
+                isCreateForm={false}
+                user={user}
+                post={post}
+            />
+    </DashboardLayout></>
     )
 }
 

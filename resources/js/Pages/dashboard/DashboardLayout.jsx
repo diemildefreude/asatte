@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import DashboardTab from '../../Components/common/DashboardTab';
-import PageHead from '../../Components/layout/PageHead';
 import { Link, router, usePage, useForm } from '@inertiajs/react';
 import '../DashboardProfile.css';
 import { MemberType } from '../../utils/helpers';
@@ -159,7 +158,6 @@ function DashboardLayout({ currentTab, headerText, children, headerHasMargin=tru
 
     return (
     <>
-    <PageHead title="Dashboard Layout" />
     {
         isAuthenticated ?
         (

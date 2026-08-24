@@ -3,6 +3,7 @@ import LoadItems from '../Components/common/LoadItems';
 import '../Components/common/Users.css';
 import { Link, router, usePage } from '@inertiajs/react';
 import UserCircle from '../Components/common/UserCircle';
+import PageHead from "../Components/layout/PageHead";
 
 const FOLLOWERS_PER_PAGE = 100;
 const HEADER_TEXT = "users you follow";
@@ -32,7 +33,8 @@ function Following({ memberProp })
             />
             </>;
 
-    return (
+    return (<>
+        <PageHead title="Following"/>
         member && (
         user ? <DashboardLayout headerText={ isDashboardUrl ? HEADER_TEXT : ""}
                     currentTab="activity"
@@ -40,6 +42,7 @@ function Following({ memberProp })
                     {content}
             </DashboardLayout> : content
         )
+        </>
     )
 }
 

@@ -129,15 +129,24 @@
 .form-field .side-text-and-input-container
 {
     display: flex;
-    gap: 0em;
+    gap: 0.1em;
     justify-content: space-between;
 }
 .form-field .side-text-and-input-container span, .form-field .side-text-and-input-container input
 {
-    width: fit-content;
-    flex-grow: 4;
+    min-width:0;
     text-wrap: nowrap;
 }
+.form-field .side-text-and-input-container span
+{
+    flex-basis: fit-content;
+}
+.form-field .side-text-and-input-container input
+{
+    flex-grow: 1;
+    flex-shrink: 1000;
+}
+
 .form-container form
 {
     display: flex;
