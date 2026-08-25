@@ -2051,7 +2051,7 @@ function calculateInitialTransform(zoomContainer, outerContainer, imgWidth, imgH
   return { scale, posX, posY };
 }
 const loadedLargeImagesCache = /* @__PURE__ */ new Set();
-function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef = null, isImageCropper = false, nextSrc, nextSmallSrc, prevSrc, prevSmallSrc, onNavigateNext, onNavigatePrev }) {
+function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef = null, isImageCropper = false, nextSrc, nextSmallSrc, prevSrc, prevSmallSrc, onNavigateNext, onNavigatePrev, zoomFactor, onZoomChange }) {
   const zoomContainerRef = useRef(null);
   const zoomedImageRef = useRef(null);
   const slideContainerRef = useRef(null);
@@ -2171,7 +2171,34 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef 
     const newPosY = clientY - rect.top - mouseRelY / transform.scale * clampedScale;
     const clamped = clampPosition(newPosX, newPosY, clampedScale);
     setTransform({ scale: clampedScale, posX: clamped.x, posY: clamped.y });
-  }, [transform, naturalSize, initialTransform, clampPosition]);
+    if (onZoomChange && initialTransform.scale > 0) {
+      onZoomChange(clampedScale / initialTransform.scale);
+    }
+  }, [transform, naturalSize, initialTransform, clampPosition, setTransform, onZoomChange]);
+  const setZoomFactorFromSlider = useCallback((factor) => {
+    if (!naturalSize || !initialTransform || !zoomContainerRef.current) return;
+    const clampedFactor = Math.max(MIN_SCALE_FACTOR, Math.min(MAX_SCALE_FACTOR, factor));
+    const targetScale = initialTransform.scale * clampedFactor;
+    if (Math.abs(targetScale - transformRef.current.scale) < 1e-3) return;
+    const conW = outerContainerRef ? outerContainerRef.current.offsetWidth : window.innerWidth;
+    const conH = outerContainerRef ? outerContainerRef.current.offsetHeight : window.innerHeight;
+    const centerX = conW / 2;
+    const centerY = conH / 2;
+    const rect = zoomContainerRef.current.getBoundingClientRect();
+    const imageRect = zoomedImageRef.current ? zoomedImageRef.current.getBoundingClientRect() : rect;
+    const mouseRelX = centerX - imageRect.left;
+    const mouseRelY = centerY - imageRect.top;
+    const currentScale = transformRef.current.scale;
+    const newPosX = centerX - rect.left - mouseRelX / currentScale * targetScale;
+    const newPosY = centerY - rect.top - mouseRelY / currentScale * targetScale;
+    const clamped = clampPosition(newPosX, newPosY, targetScale);
+    setTransform({ scale: targetScale, posX: clamped.x, posY: clamped.y });
+  }, [naturalSize, initialTransform, outerContainerRef, clampPosition, setTransform]);
+  useEffect(() => {
+    if (isImageCropper && zoomFactor !== void 0 && zoomFactor !== null) {
+      setZoomFactorFromSlider(zoomFactor);
+    }
+  }, [zoomFactor, isImageCropper, setZoomFactorFromSlider]);
   useRef(null);
   const handleTouchStart = useCallback((event) => {
     hasDraggedRef.current = false;
@@ -2758,16 +2785,19 @@ function AvatarSetter({ user }) {
   const { props } = usePage();
   const [isImageCropperOpen, setIsImageCropperOpen] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState(null);
+  const [zoomFactor, setZoomFactor] = useState(1);
   const fileInputRef = useRef(null);
   const imageCropContainerContainerRef = useRef(null);
   const imageCropContainerRef = useRef(null);
   const imageCropButtonRef = useRef(null);
+  const imageCropSliderRef = useRef(null);
   const avatarContainerRef = useRef(null);
   const avatar = (user == null ? void 0 : user.avatar) ? `${props.app_url}/storage/images/uploaded/users/${user.username}/avatar/small/${user == null ? void 0 : user.avatar}` : `${props.app_url}/images/defaults/avatar.webp?v=2`;
   const { data, setData, post, processing, errors, setError, clearErrors } = useForm({ avatar: null });
   const closeCropperAndClearInput = useCallback(() => {
     setIsImageCropperOpen(false);
     setSelectedAvatar(null);
+    setZoomFactor(1);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -2781,6 +2811,7 @@ function AvatarSetter({ user }) {
       preserveScroll: true,
       onSuccess: () => {
         setSelectedAvatar(null);
+        setZoomFactor(1);
       },
       onError: (err) => {
         const errMsg = getErrorMessage(err);
@@ -2795,6 +2826,7 @@ function AvatarSetter({ user }) {
       setError("avatar", "Must be .jpeg, .png, .webp, or .bmp");
       return;
     }
+    setZoomFactor(1);
     setIsImageCropperOpen(true);
     const selectedFileUrl = await getImageUrlFromFile(file);
     setSelectedAvatar(selectedFileUrl);
@@ -2836,11 +2868,11 @@ function AvatarSetter({ user }) {
     if (!imageCropContainerRef.current || !imageCropButtonRef.current) {
       return;
     }
-    if (imageCropContainerRef.current.contains(e.target) || imageCropButtonRef.current.contains(e.target)) {
+    if (imageCropContainerRef.current.contains(e.target) || imageCropButtonRef.current.contains(e.target) || imageCropSliderRef.current && imageCropSliderRef.current.contains(e.target)) {
       return;
     }
     closeCropperAndClearInput();
-  }, [closeCropperAndClearInput, imageCropContainerRef.current]);
+  }, [closeCropperAndClearInput]);
   const handleEscOut = useCallback((e) => {
     if (!imageCropContainerRef.current || !imageCropButtonRef.current) {
       return;
@@ -2848,7 +2880,7 @@ function AvatarSetter({ user }) {
     if (e.key === "Escape") {
       closeCropperAndClearInput();
     }
-  }, [closeCropperAndClearInput, imageCropContainerRef.current]);
+  }, [closeCropperAndClearInput]);
   const handleTouchOut = useCallback((e) => {
     if (e.touches.length !== 1) {
       return;
@@ -2859,8 +2891,11 @@ function AvatarSetter({ user }) {
     if (imageCropButtonRef.current && imageCropButtonRef.current.contains(e.touches[0].target)) {
       return;
     }
+    if (imageCropSliderRef.current && imageCropSliderRef.current.contains(e.touches[0].target)) {
+      return;
+    }
     closeCropperAndClearInput();
-  }, [closeCropperAndClearInput, imageCropContainerRef.current, imageCropButtonRef.current]);
+  }, [closeCropperAndClearInput]);
   useEffect(() => {
     const contContRef = imageCropContainerContainerRef.current;
     if (!contContRef) {
@@ -2886,6 +2921,16 @@ function AvatarSetter({ user }) {
         ref: imageCropContainerContainerRef,
         children: [
           /* @__PURE__ */ jsx("h3", { children: "Zoom or drag to crop image." }),
+          /* @__PURE__ */ jsx(
+            "button",
+            {
+              type: "button",
+              onClick: handleCropAndUpload,
+              disabled: !(user == null ? void 0 : user.is_email_verified) || processing,
+              ref: imageCropButtonRef,
+              children: "update"
+            }
+          ),
           /* @__PURE__ */ jsxs(
             "div",
             {
@@ -2899,22 +2944,30 @@ function AvatarSetter({ user }) {
                     src: selectedAvatar,
                     alt: "selected profile image",
                     isImageCropper: true,
-                    outerContainerRef: imageCropContainerRef
+                    outerContainerRef: imageCropContainerRef,
+                    zoomFactor,
+                    onZoomChange: setZoomFactor
                   }
                 )
               ]
             }
           ),
-          /* @__PURE__ */ jsx(
-            "button",
-            {
-              type: "button",
-              onClick: handleCropAndUpload,
-              disabled: !(user == null ? void 0 : user.is_email_verified) || processing,
-              ref: imageCropButtonRef,
-              children: "update"
-            }
-          )
+          /* @__PURE__ */ jsxs("div", { className: "image-crop-slider-container", ref: imageCropSliderRef, children: [
+            /* @__PURE__ */ jsx("label", { htmlFor: "avatar-zoom-slider", className: "sr-only", children: "Zoom image" }),
+            /* @__PURE__ */ jsx(
+              "input",
+              {
+                id: "avatar-zoom-slider",
+                type: "range",
+                min: "1",
+                max: "5",
+                step: "0.01",
+                value: zoomFactor,
+                onChange: (e) => setZoomFactor(parseFloat(e.target.value)),
+                className: "image-crop-slider"
+              }
+            )
+          ] })
         ]
       }
     ),
@@ -4131,6 +4184,7 @@ function CarouselContainer({ size, className, heading, children }) {
   const isPointerDownRef = useRef(false);
   const sliderEndLeftRef = useRef(null);
   const sliderEndRightRef = useRef(null);
+  const activePointerIdRef = useRef(null);
   const startPosRef = useRef(new Point(0, 0));
   const currentTranslateXRef = useRef(0);
   const initialTranslateXRef = useRef(0);
@@ -4229,6 +4283,7 @@ function CarouselContainer({ size, className, heading, children }) {
       cancelAnimationFrame(animationFrameRef.current);
       animationFrameRef.current = null;
     }
+    activePointerIdRef.current = e.pointerId;
     isPointerDownRef.current = true;
     isDraggedPointerUpRef.current = false;
     isDraggingRef.current = false;
@@ -4242,7 +4297,7 @@ function CarouselContainer({ size, className, heading, children }) {
     velocityRef.current = 0;
   }, []);
   const handlePointerMove = useCallback((e) => {
-    if (!isPointerDownRef.current || !sliderContainerRef.current) {
+    if (!isPointerDownRef.current || !sliderContainerRef.current || activePointerIdRef.current !== null && e.pointerId !== activePointerIdRef.current) {
       return;
     }
     let isDraggingCurrent = isDraggingRef.current;
@@ -4274,9 +4329,13 @@ function CarouselContainer({ size, className, heading, children }) {
     currentTranslateXRef.current = newTranslateX;
     innerSliderRef.current.style.transform = `translateX(${currentTranslateXRef.current}px)`;
     updateSliderEnds();
-  }, [checkBoundary]);
-  const handlePointerUp = useCallback(() => {
+  }, [checkBoundary, updateSliderEnds]);
+  const handlePointerUp = useCallback((e) => {
+    if (activePointerIdRef.current !== null && (e == null ? void 0 : e.pointerId) !== void 0 && e.pointerId !== activePointerIdRef.current) {
+      return;
+    }
     isPointerDownRef.current = false;
+    activePointerIdRef.current = null;
     if (isDraggingRef.current && document.activeElement && typeof document.activeElement.blur === "function") {
       document.activeElement.blur();
     }
@@ -4321,16 +4380,18 @@ function CarouselContainer({ size, className, heading, children }) {
     } else {
       isDraggingRef.current = false;
     }
-  }, [checkBoundary]);
+  }, [checkBoundary, updateSliderEnds]);
   useEffect(() => {
     const containerElement = sliderContainerRef.current;
     if (!containerElement) return;
     containerElement.addEventListener("pointerdown", handlePointerDown);
     window.addEventListener("pointerup", handlePointerUp);
+    window.addEventListener("pointercancel", handlePointerUp);
     document.addEventListener("pointermove", handlePointerMove);
     return () => {
       containerElement.removeEventListener("pointerdown", handlePointerDown);
       window.removeEventListener("pointerup", handlePointerUp);
+      window.removeEventListener("pointercancel", handlePointerUp);
       document.removeEventListener("pointermove", handlePointerMove);
     };
   }, [handlePointerDown, handlePointerMove, handlePointerUp]);

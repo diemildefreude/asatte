@@ -20,7 +20,7 @@ function calculateInitialTransform (zoomContainer, outerContainer, imgWidth, img
 
 const loadedLargeImagesCache = new Set();
 
-function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef=null, isImageCropper=false, nextSrc, nextSmallSrc, prevSrc, prevSmallSrc, onNavigateNext, onNavigatePrev})
+function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef=null, isImageCropper=false, nextSrc, nextSmallSrc, prevSrc, prevSmallSrc, onNavigateNext, onNavigatePrev, zoomFactor, onZoomChange })
 {      
     const zoomContainerRef = useRef(null);
     const zoomedImageRef = useRef(null);
@@ -169,7 +169,44 @@ function ImageZoom({ src, smallSrc, alt, isZoomed, clickFunc, outerContainerRef=
         const clamped = clampPosition(newPosX, newPosY, clampedScale);
         setTransform({ scale: clampedScale, posX: clamped.x, posY: clamped.y });
 
-    }, [transform, naturalSize, initialTransform, clampPosition]);
+        if (onZoomChange && initialTransform.scale > 0) {
+            onZoomChange(clampedScale / initialTransform.scale);
+        }
+
+    }, [transform, naturalSize, initialTransform, clampPosition, setTransform, onZoomChange]);
+
+    const setZoomFactorFromSlider = useCallback((factor) => {
+        if (!naturalSize || !initialTransform || !zoomContainerRef.current) return;
+        const clampedFactor = Math.max(MIN_SCALE_FACTOR, Math.min(MAX_SCALE_FACTOR, factor));
+        const targetScale = initialTransform.scale * clampedFactor;
+
+        if (Math.abs(targetScale - transformRef.current.scale) < 0.001) return;
+
+        const conW = outerContainerRef ? outerContainerRef.current.offsetWidth : window.innerWidth;
+        const conH = outerContainerRef ? outerContainerRef.current.offsetHeight : window.innerHeight;
+
+        const centerX = conW / 2;
+        const centerY = conH / 2;
+
+        const rect = zoomContainerRef.current.getBoundingClientRect();
+        const imageRect = zoomedImageRef.current ? zoomedImageRef.current.getBoundingClientRect() : rect;
+
+        const mouseRelX = centerX - imageRect.left;
+        const mouseRelY = centerY - imageRect.top;
+
+        const currentScale = transformRef.current.scale;
+        const newPosX = centerX - rect.left - (mouseRelX / currentScale) * targetScale;
+        const newPosY = centerY - rect.top - (mouseRelY / currentScale) * targetScale;
+
+        const clamped = clampPosition(newPosX, newPosY, targetScale);
+        setTransform({ scale: targetScale, posX: clamped.x, posY: clamped.y });
+    }, [naturalSize, initialTransform, outerContainerRef, clampPosition, setTransform]);
+
+    useEffect(() => {
+        if (isImageCropper && zoomFactor !== undefined && zoomFactor !== null) {
+            setZoomFactorFromSlider(zoomFactor);
+        }
+    }, [zoomFactor, isImageCropper, setZoomFactorFromSlider]);
 
     const wheelTimeoutRef = useRef(null);
 

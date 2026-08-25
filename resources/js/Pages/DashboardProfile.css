@@ -338,6 +338,8 @@
     -webkit-mask-image: radial-gradient(circle, white 0%, white calc(70% + 1px), transparent calc(70% + 1px));
     /* mask-image: radial-gradient(circle, white 0%, white calc(50%), transparent calc(50%)); this is too small */
     mask-image: radial-gradient(circle, white 0%, white calc(70% + 1px), transparent calc(70% + 1px)); /*this shows the crop circle at its border*/
+    
+    margin: 1rem 0;
 }
 .image-crop-circle
 {
@@ -359,6 +361,45 @@
 .image-crop-container .zoomed-image.dragging
 {
     cursor:grabbing;
+}
+.image-crop-slider-container
+{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 300px;
+    max-width: 80vw;
+    z-index: 100;
+}
+.image-crop-slider
+{
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 0;
+    background-color: var(--yellow);
+    outline: none;
+    cursor: pointer;
+}
+.image-crop-slider::-webkit-slider-thumb
+{
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 1px solid var(--dark-blue);
+    background: var(--bright-blue, #fff8dc);
+    cursor: pointer;
+}
+.image-crop-slider::-moz-range-thumb
+{
+    width: 14px;
+    height: 14px;
+    border-radius: 0;
+    border: none;
+    background: var(--pale-yellow, #fff8dc);
+    cursor: pointer;
 }
 .multi-field-container
 {

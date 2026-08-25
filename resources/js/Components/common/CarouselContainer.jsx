@@ -26,6 +26,7 @@ function CarouselContainer({size, className, heading, children})
     const isPointerDownRef = useRef(false);
     const sliderEndLeftRef = useRef(null);
     const sliderEndRightRef = useRef(null);
+    const activePointerIdRef = useRef(null);
     const startPosRef = useRef(new Point(0,0));
     const currentTranslateXRef = useRef(0); // Stores the current horizontal position (translateX value)
     const initialTranslateXRef = useRef(0); // Stores the translateX value when the drag starts
@@ -160,6 +161,7 @@ function CarouselContainer({size, className, heading, children})
             animationFrameRef.current = null;
         }
 
+        activePointerIdRef.current = e.pointerId;
         isPointerDownRef.current = true;
         isDraggedPointerUpRef.current = false;
         isDraggingRef.current = false;
@@ -178,7 +180,7 @@ function CarouselContainer({size, className, heading, children})
 
     const handlePointerMove = useCallback((e) => 
     {
-        if(!isPointerDownRef.current || !sliderContainerRef.current)
+        if(!isPointerDownRef.current || !sliderContainerRef.current || (activePointerIdRef.current !== null && e.pointerId !== activePointerIdRef.current))
         {
             return;
         }                
@@ -216,11 +218,16 @@ function CarouselContainer({size, className, heading, children})
         currentTranslateXRef.current = newTranslateX;
         innerSliderRef.current.style.transform = `translateX(${currentTranslateXRef.current}px)`;
         updateSliderEnds();
-    }, [checkBoundary]);
+    }, [checkBoundary, updateSliderEnds]);
 
-    const handlePointerUp = useCallback(() => 
+    const handlePointerUp = useCallback((e) => 
     {
+        if (activePointerIdRef.current !== null && e?.pointerId !== undefined && e.pointerId !== activePointerIdRef.current) {
+            return;
+        }
+
         isPointerDownRef.current = false;
+        activePointerIdRef.current = null;
         
         if (isDraggingRef.current && document.activeElement && typeof document.activeElement.blur === 'function') {
             document.activeElement.blur();
@@ -291,7 +298,7 @@ function CarouselContainer({size, className, heading, children})
         {
             isDraggingRef.current = false;
         }
-    }, [checkBoundary]);
+    }, [checkBoundary, updateSliderEnds]);
 
     useEffect(() =>
     {        
@@ -299,12 +306,14 @@ function CarouselContainer({size, className, heading, children})
         if (!containerElement) return;
         containerElement.addEventListener('pointerdown', handlePointerDown);
         window.addEventListener('pointerup', handlePointerUp);
+        window.addEventListener('pointercancel', handlePointerUp);
         document.addEventListener('pointermove', handlePointerMove);
 
         return () => 
         {
             containerElement.removeEventListener('pointerdown', handlePointerDown);
             window.removeEventListener('pointerup', handlePointerUp);
+            window.removeEventListener('pointercancel', handlePointerUp);
             document.removeEventListener('pointermove', handlePointerMove);
         };
     }, [handlePointerDown, handlePointerMove, handlePointerUp]);

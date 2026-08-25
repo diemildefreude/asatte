@@ -109,10 +109,12 @@ function AvatarSetter({user})
     const { props } = usePage();
     const [isImageCropperOpen, setIsImageCropperOpen] = useState(false);
     const [selectedAvatar, setSelectedAvatar] = useState(null);
+    const [zoomFactor, setZoomFactor] = useState(1.0);
     const fileInputRef = useRef(null);
     const imageCropContainerContainerRef = useRef(null);
     const imageCropContainerRef = useRef(null);
     const imageCropButtonRef = useRef(null);
+    const imageCropSliderRef = useRef(null);
     const avatarContainerRef = useRef(null);
 
     const avatar = user?.avatar ? `${props.app_url}/storage/images/uploaded/users/${user.username}/avatar/small/${user?.avatar}` 
@@ -123,6 +125,7 @@ function AvatarSetter({user})
     {
         setIsImageCropperOpen(false);
         setSelectedAvatar(null); 
+        setZoomFactor(1.0);
         if (fileInputRef.current) 
         {
             fileInputRef.current.value = "";
@@ -140,6 +143,7 @@ function AvatarSetter({user})
             preserveScroll: true,
             onSuccess: () => {
                 setSelectedAvatar(null);
+                setZoomFactor(1.0);
             },
             onError: (err) => {
                 const errMsg = getErrorMessage(err);
@@ -159,6 +163,7 @@ function AvatarSetter({user})
             return;
         }
         
+        setZoomFactor(1.0);
         setIsImageCropperOpen(true);
         const selectedFileUrl = await getImageUrlFromFile(file);
         setSelectedAvatar(selectedFileUrl);
@@ -216,12 +221,13 @@ function AvatarSetter({user})
             return;
         }
         if (imageCropContainerRef.current.contains(e.target) 
-            || imageCropButtonRef.current.contains(e.target))
+            || imageCropButtonRef.current.contains(e.target)
+            || (imageCropSliderRef.current && imageCropSliderRef.current.contains(e.target)))
         {
             return;
         }
         closeCropperAndClearInput();
-    },[closeCropperAndClearInput, imageCropContainerRef.current]);
+    },[closeCropperAndClearInput]);
 
     const handleEscOut = useCallback((e) =>
     {        
@@ -233,7 +239,7 @@ function AvatarSetter({user})
         { 
             closeCropperAndClearInput();
         }
-    },[closeCropperAndClearInput, imageCropContainerRef.current]);
+    },[closeCropperAndClearInput]);
 
     const handleTouchOut = useCallback((e) =>
     {
@@ -249,8 +255,12 @@ function AvatarSetter({user})
         {
             return;
         }
+        if (imageCropSliderRef.current && imageCropSliderRef.current.contains(e.touches[0].target))
+        {
+            return;
+        }
         closeCropperAndClearInput();
-    }, [closeCropperAndClearInput, imageCropContainerRef.current, imageCropButtonRef.current]);
+    }, [closeCropperAndClearInput]);
 
     useEffect(() =>
     {
@@ -283,7 +293,12 @@ function AvatarSetter({user})
             <div className="image-crop-container-container"
                 ref={imageCropContainerContainerRef}
             >
-                <h3>Zoom or drag to crop image.</h3>
+                <h3>Zoom and drag to crop image.</h3>
+                <button type="button" onClick={handleCropAndUpload} 
+                    disabled={!user?.is_email_verified || processing} ref={imageCropButtonRef}
+                >
+                    update
+                </button>
                 <div className="image-crop-container"
                     ref={imageCropContainerRef}
                 >
@@ -292,13 +307,23 @@ function AvatarSetter({user})
                         alt="selected profile image"
                         isImageCropper={true}
                         outerContainerRef={imageCropContainerRef}
+                        zoomFactor={zoomFactor}
+                        onZoomChange={setZoomFactor}
                     />
                 </div>
-                <button type="button" onClick={handleCropAndUpload} 
-                    disabled={!user?.is_email_verified || processing} ref={imageCropButtonRef}
-                >
-                    update
-                </button>
+                <div className="image-crop-slider-container" ref={imageCropSliderRef}>
+                    <label htmlFor="avatar-zoom-slider" className="sr-only">Zoom image</label>
+                    <input 
+                        id="avatar-zoom-slider"
+                        type="range" 
+                        min="1" 
+                        max="5" 
+                        step="0.01" 
+                        value={zoomFactor} 
+                        onChange={(e) => setZoomFactor(parseFloat(e.target.value))}
+                        className="image-crop-slider"
+                    />
+                </div>
             </div>
             )
         }
