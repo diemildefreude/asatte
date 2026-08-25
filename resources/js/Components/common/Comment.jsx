@@ -107,11 +107,11 @@ function Comment({comment, isDashboard=false, onReply=null, id, parentLocalId=nu
                     disabled={processing}
                 />
                 {errors.content && <div className="error">{errors.content}</div>}
-            </>):(<p 
+            </>):(<div 
                 className="comment-text"
                 dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(comment.content_html) }}
             >    
-            </p>)
+            </div>)
         }
         {
             isAuthenticated && (

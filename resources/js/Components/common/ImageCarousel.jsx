@@ -42,9 +42,10 @@ function ImageCarousel({size, post, title=""})
         <>
         {
             imageUrls?.map && (<>
-            <h2>{title}</h2>
             <CarouselContainer className="carousel-container-container image-carousel"
-            size={size}>
+                heading={title}
+                size={size}
+            >
             {
                 ({ isDragging, isDraggedPointerUp, handleFocusIn }) => 
                     imageUrls.map((url, i) => (

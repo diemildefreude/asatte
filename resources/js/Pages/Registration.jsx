@@ -306,7 +306,7 @@ function Registration()
     <>
         <PageHead title="Registration" />
         <div className={formContainerClasses}>
-            <h1 className='centered-content no-margin'>join {APP_NAME}</h1>
+            <h1 className='centered-content no-margin'>join {APP_NAME.toLowerCase()}</h1>
         {errors.general && (
           <div className="error">
             {errors.general}

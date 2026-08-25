@@ -8,9 +8,9 @@ function TileCarousel({ size, title = "", posts = []})
     return (
         posts?.length > 0 ?
         (
-            <>
-                {title && <h2>{title}</h2>}
+            <>                
                 <CarouselContainer className={"carousel-container-container"}
+                    heading={title}
                     size={size}
                     isTileCarousel={true}>
                 {

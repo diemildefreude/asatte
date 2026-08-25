@@ -16,7 +16,7 @@ class Point
     }        
 }
 
-function CarouselContainer({size, className, children})
+function CarouselContainer({size, className, heading, children})
 {
     const outerWrapperRef = useRef(null);
     const sliderContainerRef = useRef(null);
@@ -376,7 +376,8 @@ function CarouselContainer({size, className, children})
     
     
 
-    return (
+    return (<>
+        {heading && <h2 className='carousel-heading'>{heading}</h2>}
         <div className={className} ref={outerWrapperRef}>
             <div className={"carousel-container " + size}
                 ref={sliderContainerRef}
@@ -390,7 +391,7 @@ function CarouselContainer({size, className, children})
                 <div className="slider-end-right" ref={sliderEndRightRef}></div>
             </div>
         </div>       
-    );
+    </>);
 
 }
 

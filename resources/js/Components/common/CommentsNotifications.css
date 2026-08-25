@@ -136,7 +136,8 @@
 }
 .comment-text
 {
-    margin: 0.5rem 0 0;
+    margin: 0 0;
+    padding: 0.5em 0;
 }
 .comment-buttons-container
 {
@@ -147,5 +148,5 @@
 }
 .comment-notice-container
 {
-    margin: 0.3rem 0 0;
+    margin-bottom: 0.2em;
 }
