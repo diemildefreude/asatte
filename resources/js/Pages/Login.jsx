@@ -1,5 +1,5 @@
 import PageHead from '../Components/layout/PageHead';
-import { Link, useForm, usePage } from '@inertiajs/react';
+import { Link, useForm, usePage, router } from '@inertiajs/react';
 import React, { useState, useEffect } from 'react';
 import FormField from '../Components/common/FormField';
 import '../Components/common/Form.css';
@@ -10,6 +10,19 @@ function Login()
 {
     const { props } = usePage();
     const flash = props?.flash || {};
+    const user = props?.auth?.user ?? null;
+    const isAuthenticated = !!user;
+    const from = flash?.from || '/dashboard';
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            if (!user?.profile_completed) {
+                router.visit('/register', { replace: true });
+            } else {
+                router.visit(from, { replace: true });
+            }
+        }
+    }, [isAuthenticated, user, from]);
 
     const [statusMessage, setStatusMessage] = useState(null);
     const [statusError, setStatusError] = useState(null);

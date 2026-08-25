@@ -84,8 +84,20 @@ function RichTextEditor({ onChange, value, quotedMessage, onQuoteApplied, placeh
         // automatic_uploads: true,
         sandbox_iframes: false,
         file_picker_types: 'image',
-        media_live_embeds: true,
         setup: (editor) => {
+          // Ensure TinyMCE platform detection accurately matches actual browser OS across SPA transitions and SSR hydration
+          if (typeof window !== 'undefined' && window.tinymce?.Env?.os) {
+              const isMac = /Macintosh|Mac OS X|iPod|iPhone|iPad/i.test(navigator.userAgent || '');
+              if (!isMac) {
+                  window.tinymce.Env.os.isMacOS = () => false;
+                  window.tinymce.Env.os.isiOS = () => false;
+                  window.tinymce.Env.os.isWindows = () => true;
+                  if ('mac' in window.tinymce.Env) {
+                      window.tinymce.Env.mac = false;
+                  }
+              }
+          }
+
           editor.on('BeforeSetContent', (e) => {
             if (!e.content) return;
 

@@ -103,8 +103,19 @@ function RichTextEditor({ onChange, value, quotedMessage, onQuoteApplied, placeh
         // automatic_uploads: true,
         sandbox_iframes: false,
         file_picker_types: "image",
-        media_live_embeds: true,
         setup: (editor) => {
+          var _a, _b;
+          if (typeof window !== "undefined" && ((_b = (_a = window.tinymce) == null ? void 0 : _a.Env) == null ? void 0 : _b.os)) {
+            const isMac = /Macintosh|Mac OS X|iPod|iPhone|iPad/i.test(navigator.userAgent || "");
+            if (!isMac) {
+              window.tinymce.Env.os.isMacOS = () => false;
+              window.tinymce.Env.os.isiOS = () => false;
+              window.tinymce.Env.os.isWindows = () => true;
+              if ("mac" in window.tinymce.Env) {
+                window.tinymce.Env.mac = false;
+              }
+            }
+          }
           editor.on("BeforeSetContent", (e) => {
             if (!e.content) return;
             if (e.content.includes("twitter-tweet")) {
@@ -4111,7 +4122,7 @@ class Point {
     this.y = y;
   }
 }
-function CarouselContainer({ size, className, children }) {
+function CarouselContainer({ size, className, heading, children }) {
   const outerWrapperRef = useRef(null);
   const sliderContainerRef = useRef(null);
   const innerSliderRef = useRef(null);
@@ -4365,41 +4376,42 @@ function CarouselContainer({ size, className, children }) {
       }
     };
   }, [handleFocusIn]);
-  return /* @__PURE__ */ jsx("div", { className, ref: outerWrapperRef, children: /* @__PURE__ */ jsxs(
-    "div",
-    {
-      className: "carousel-container " + size,
-      ref: sliderContainerRef,
-      children: [
-        /* @__PURE__ */ jsx("div", { className: "slider-container gallery-slider", children: /* @__PURE__ */ jsx("div", { className: "inner-slider", ref: innerSliderRef, children: renderContent }) }),
-        /* @__PURE__ */ jsx("div", { className: "slider-end-left", ref: sliderEndLeftRef }),
-        /* @__PURE__ */ jsx("div", { className: "slider-end-right", ref: sliderEndRightRef })
-      ]
-    }
-  ) });
+  return /* @__PURE__ */ jsxs(Fragment, { children: [
+    heading && /* @__PURE__ */ jsx("h2", { className: "carousel-heading", children: heading }),
+    /* @__PURE__ */ jsx("div", { className, ref: outerWrapperRef, children: /* @__PURE__ */ jsxs(
+      "div",
+      {
+        className: "carousel-container " + size,
+        ref: sliderContainerRef,
+        children: [
+          /* @__PURE__ */ jsx("div", { className: "slider-container gallery-slider", children: /* @__PURE__ */ jsx("div", { className: "inner-slider", ref: innerSliderRef, children: renderContent }) }),
+          /* @__PURE__ */ jsx("div", { className: "slider-end-left", ref: sliderEndLeftRef }),
+          /* @__PURE__ */ jsx("div", { className: "slider-end-right", ref: sliderEndRightRef })
+        ]
+      }
+    ) })
+  ] });
 }
 function TileCarousel({ size, title = "", posts = [] }) {
-  return (posts == null ? void 0 : posts.length) > 0 ? /* @__PURE__ */ jsxs(Fragment, { children: [
-    title && /* @__PURE__ */ jsx("h2", { children: title }),
-    /* @__PURE__ */ jsx(
-      CarouselContainer,
-      {
-        className: "carousel-container-container",
-        size,
-        isTileCarousel: true,
-        children: ({ isDragging, isDraggedPointerUp }) => posts.map(
-          (post) => /* @__PURE__ */ jsx("div", { className: "slide", children: /* @__PURE__ */ jsx(
-            Tile,
-            {
-              post,
-              isSliderDragging: isDragging,
-              isSliderDraggedPointerUp: isDraggedPointerUp
-            }
-          ) }, post.id)
-        )
-      }
-    )
-  ] }) : null;
+  return (posts == null ? void 0 : posts.length) > 0 ? /* @__PURE__ */ jsx(Fragment, { children: /* @__PURE__ */ jsx(
+    CarouselContainer,
+    {
+      className: "carousel-container-container",
+      heading: title,
+      size,
+      isTileCarousel: true,
+      children: ({ isDragging, isDraggedPointerUp }) => posts.map(
+        (post) => /* @__PURE__ */ jsx("div", { className: "slide", children: /* @__PURE__ */ jsx(
+          Tile,
+          {
+            post,
+            isSliderDragging: isDragging,
+            isSliderDraggedPointerUp: isDraggedPointerUp
+          }
+        ) }, post.id)
+      )
+    }
+  ) }) : null;
 }
 function LogoThreeToneGradientFrameOutlineNamed({
   color,
@@ -4647,7 +4659,7 @@ function Home({ heroPosts = [], carouselArchive = [], carouselNews = [], carouse
     ) }),
     /* @__PURE__ */ jsx("div", { className: "page-section carousel", children: /* @__PURE__ */ jsx(TileCarousel, { size: "small", title: "newest works:", posts: carouselArchive }) }),
     carouselFollowing && carouselFollowing.length > 0 && /* @__PURE__ */ jsx("div", { className: "page-section carousel", children: /* @__PURE__ */ jsx(TileCarousel, { size: "small", title: "users you follow:", posts: carouselFollowing }) }),
-    carouselNews && carouselNews.length > 0 && /* @__PURE__ */ jsx("div", { className: "page-section carousel", children: /* @__PURE__ */ jsx(TileCarousel, { size: "small", title: "netart news:", posts: carouselNews }) }),
+    carouselNews && carouselNews.length > 0 && /* @__PURE__ */ jsx("div", { className: "page-section carousel", children: /* @__PURE__ */ jsx(TileCarousel, { size: "small", title: "news:", posts: carouselNews }) }),
     /* @__PURE__ */ jsxs("div", { className: "page-section", children: [
       /* @__PURE__ */ jsx("h2", { className: "big-title centered-content no-margin padded", children: "explore" }),
       /* @__PURE__ */ jsx(
@@ -4737,8 +4749,21 @@ function OAuth({ headerText, onClick, originPage, isSubmittingForm, setIsSubmitt
   ] });
 }
 function Login() {
+  var _a;
   const { props } = usePage();
   const flash = (props == null ? void 0 : props.flash) || {};
+  const user = ((_a = props == null ? void 0 : props.auth) == null ? void 0 : _a.user) ?? null;
+  const isAuthenticated = !!user;
+  const from = (flash == null ? void 0 : flash.from) || "/dashboard";
+  useEffect(() => {
+    if (isAuthenticated) {
+      if (!(user == null ? void 0 : user.profile_completed)) {
+        router.visit("/register", { replace: true });
+      } else {
+        router.visit(from, { replace: true });
+      }
+    }
+  }, [isAuthenticated, user, from]);
   const [statusMessage, setStatusMessage] = useState(null);
   const [statusError, setStatusError] = useState(null);
   useEffect(() => {
@@ -5237,11 +5262,11 @@ function ImageCarousel({ size, post, title = "" }) {
     setIsZoomed((prev) => !prev);
   }
   return /* @__PURE__ */ jsx(Fragment, { children: (imageUrls == null ? void 0 : imageUrls.map) && /* @__PURE__ */ jsxs(Fragment, { children: [
-    /* @__PURE__ */ jsx("h2", { children: title }),
     /* @__PURE__ */ jsx(
       CarouselContainer,
       {
         className: "carousel-container-container image-carousel",
+        heading: title,
         size,
         children: ({ isDragging, isDraggedPointerUp, handleFocusIn }) => imageUrls.map((url, i) => /* @__PURE__ */ jsx(
           "button",
@@ -5440,7 +5465,7 @@ function Comment({ comment, isDashboard = false, onReply = null, id, parentLocal
       ),
       errors.content && /* @__PURE__ */ jsx("div", { className: "error", children: errors.content })
     ] }) : /* @__PURE__ */ jsx(
-      "p",
+      "div",
       {
         className: "comment-text",
         dangerouslySetInnerHTML: { __html: sanitizeRichHtml(comment.content_html) }
@@ -5842,7 +5867,7 @@ function Post({ post, carouselPosts: userPosts = [] }) {
     /* @__PURE__ */ jsx(
       PageHead,
       {
-        title: `'${post.title}' by ${post.user.username}`,
+        title: post.is_news ? `News: "${post.title}"` : `'${post.title}' by ${post.user.username}`,
         description: post.subtitle,
         ogType: "article",
         ogImg: mainImg
@@ -6408,7 +6433,7 @@ function Registration() {
     /* @__PURE__ */ jsxs("div", { className: formContainerClasses, children: [
       /* @__PURE__ */ jsxs("h1", { className: "centered-content no-margin", children: [
         "join ",
-        APP_NAME
+        APP_NAME.toLowerCase()
       ] }),
       errors.general && /* @__PURE__ */ jsx("div", { className: "error", children: errors.general }),
       success && /* @__PURE__ */ jsx("div", { className: "notice", children: success }),
