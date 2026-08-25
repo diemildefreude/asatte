@@ -92,7 +92,8 @@
 }
 .info-item.subtitle.news
 {
-    color: var(--grey-yellow);
+    color: #ffefce;
+    font-weight: 300;
 }
 .info-item i 
 {
