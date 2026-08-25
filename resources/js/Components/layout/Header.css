@@ -51,6 +51,7 @@ header
     transform: translateY(-50%);
     width: 100%;
     opacity: 0.5;
+    padding: 1rem;
 }
 .nav-logo-mobile svg
 {    
