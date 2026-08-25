@@ -2,7 +2,7 @@ import React from 'react';
 import './Tile.css';
 import UserLink from './UserLink';
 import './UserLink.css';
-import { openPopup, getPostUrl, copyToClipboard } from '../../utils/helpers';
+import { openPopup, getPostUrl, copyToClipboard, getDateAsYYYYMMDD } from '../../utils/helpers';
 import { Link, router, usePage } from '@inertiajs/react';
 function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false, size="small"}) 
 {
@@ -101,14 +101,21 @@ function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false, siz
                     }
                     <div className="info-item subtitle">{post.subtitle}</div>
                     {
-                        !isDashboard && (
+                        (!isDashboard && !post.is_news) ? (
                             <div className="info-item link-container">
                                 <UserLink 
                                     user={author}
                                     isSliderDraggedPointerUp={isSliderDraggedPointerUp}
                                 />
                             </div>
-                        )
+                        ): (null)
+                    }
+                    {
+                        post.is_news ? (
+                            <div className="info-item date">
+                               <em>{getDateAsYYYYMMDD(post.created_at)}</em> 
+                            </div>
+                        ):(null)
                     }
                 </div>
                 <div className="panel-bottom">

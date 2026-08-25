@@ -95,6 +95,12 @@
     position: relative;
     top: 5px;
 }
+.info-item.date
+{
+    line-height: 2;
+    font-size: 0.9em;
+    color: var(--bright-blue);
+}
 .link-container.group
 {
     display: flex;
