@@ -99,7 +99,7 @@ function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false, siz
                         )
 
                     }
-                    <div className="info-item subtitle">{post.subtitle}</div>
+                    <div className={post.is_news ? "info-item subtitle news" : "info-item subtitle"}>{post.subtitle}</div>
                     {
                         (!isDashboard && !post.is_news) ? (
                             <div className="info-item link-container">

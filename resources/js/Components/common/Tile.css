@@ -90,6 +90,10 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
+.info-item.subtitle.news
+{
+    color: var(--grey-yellow);
+}
 .info-item i 
 {
     position: relative;
