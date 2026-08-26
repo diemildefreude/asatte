@@ -80,7 +80,8 @@ function RichTextEditor({ onChange, value, quotedMessage, onQuoteApplied, placeh
         }
       },
       init: {
-        min_height: 100,
+        height: 500,
+        min_height: 300,
         convert_urls: false,
         menubar: false,
         link_assume_external_targets: "http",
@@ -90,8 +91,7 @@ function RichTextEditor({ onChange, value, quotedMessage, onQuoteApplied, placeh
           { title: "New window", value: "_blank" }
         ],
         default_link_target: "_blank",
-        plugins: "autoresize image link media",
-        autoresize_bottom_margin: 50,
+        plugins: "image link media",
         toolbar: disabled ? false : ["styles | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist | image media link"],
         extended_valid_elements: "blockquote[class|data-instgrm-permalink|data-instgrm-version|data-instgrm-captioned|data-instgrm-payload-id|data-video-id|cite|data-theme|data-dnt|data-media-max-width],iframe[src|title|width|height|frameborder|allowfullscreen|scrolling|allow|style]",
         toolbar_mode: "wrap",
@@ -184,12 +184,13 @@ function RichTextEditor({ onChange, value, quotedMessage, onQuoteApplied, placeh
               }
             });
           });
-          editor.on("click", (e) => {
+          const handleBottomTap = (e) => {
             if (e.target.nodeName === "BODY" || e.target.nodeName === "HTML") {
               const body = editor.getBody();
               if (!body || !body.lastElementChild) return;
               const rect = body.lastElementChild.getBoundingClientRect();
-              if (e.clientY > rect.bottom - 10) {
+              const clientY = e.changedTouches && e.changedTouches[0] ? e.changedTouches[0].clientY : e.clientY;
+              if (clientY > rect.bottom - 10) {
                 let lastEl = body.lastElementChild;
                 if (lastEl.querySelector(".mce-preview-object, iframe, img") || ["IFRAME", "IMG", "VIDEO"].includes(lastEl.nodeName)) {
                   const newP = editor.getDoc().createElement("p");
@@ -198,9 +199,12 @@ function RichTextEditor({ onChange, value, quotedMessage, onQuoteApplied, placeh
                   lastEl = newP;
                 }
                 editor.selection.setCursorLocation(lastEl, 0);
+                editor.focus();
               }
             }
-          });
+          };
+          editor.on("click", handleBottomTap);
+          editor.on("touchend", handleBottomTap);
           const handleBackspace = (e) => {
             const isBackspace = e.type === "keydown" && (e.key === "Backspace" || e.keyCode === 8);
             const isDeleteBackward = e.type === "beforeinput" && e.inputType === "deleteContentBackward";
@@ -2920,7 +2924,7 @@ function AvatarSetter({ user }) {
         className: "image-crop-container-container",
         ref: imageCropContainerContainerRef,
         children: [
-          /* @__PURE__ */ jsx("h3", { children: "Zoom or drag to crop image." }),
+          /* @__PURE__ */ jsx("h3", { children: "Zoom and drag to crop image." }),
           /* @__PURE__ */ jsx(
             "button",
             {
@@ -3795,7 +3799,7 @@ function Tile({ post, isSliderDraggedPointerUp, user = null, isDashboard = false
   const author = user ?? post.user;
   let viewText = "info";
   if (isDashboard) {
-    viewText = "view";
+    viewText = post.is_draft || post.is_private ? "preview" : "view";
   } else if (post.is_news) {
     viewText = "read";
   }
@@ -3858,14 +3862,15 @@ function Tile({ post, isSliderDraggedPointerUp, user = null, isDashboard = false
             }
           ) })
         ] }) : /* @__PURE__ */ jsx("div", { className: "info-item title", children: post.title }),
-        /* @__PURE__ */ jsx("div", { className: "info-item subtitle", children: post.subtitle }),
-        !isDashboard && /* @__PURE__ */ jsx("div", { className: "info-item link-container", children: /* @__PURE__ */ jsx(
+        /* @__PURE__ */ jsx("div", { className: post.is_news ? "info-item subtitle news" : "info-item subtitle", children: post.subtitle }),
+        !isDashboard && !post.is_news ? /* @__PURE__ */ jsx("div", { className: "info-item link-container", children: /* @__PURE__ */ jsx(
           UserLink,
           {
             user: author,
             isSliderDraggedPointerUp
           }
-        ) })
+        ) }) : null,
+        post.is_news ? /* @__PURE__ */ jsx("div", { className: "info-item date", children: /* @__PURE__ */ jsx("em", { children: getDateAsYYYYMMDD(post.created_at) }) }) : null
       ] }),
       /* @__PURE__ */ jsxs("div", { className: "panel-bottom", children: [
         isDashboard && /* @__PURE__ */ jsx("div", { className: "info-item action-links link-container", children: /* @__PURE__ */ jsxs(

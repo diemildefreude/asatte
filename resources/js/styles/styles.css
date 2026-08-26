@@ -745,6 +745,7 @@ button, .link-button
     max-width: 100%;
     height: auto;
     margin: 0em ;
+    border: 1px solid var(--grey-yellow);
 }
 .article-text img[style*="float: left"],
 .article-text img[style*="float:left"] {

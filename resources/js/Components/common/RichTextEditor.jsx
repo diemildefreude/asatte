@@ -59,7 +59,8 @@ function RichTextEditor({ onChange, value, quotedMessage, onQuoteApplied, placeh
         }
       }}
       init={{
-        min_height: 100,
+        height: 500,
+        min_height: 300,
         convert_urls: false,
         menubar: false,
         link_assume_external_targets: 'http',
@@ -69,8 +70,7 @@ function RichTextEditor({ onChange, value, quotedMessage, onQuoteApplied, placeh
           { title: 'New window', value: '_blank' }
         ],
         default_link_target: '_blank',
-        plugins: 'autoresize image link media',
-        autoresize_bottom_margin: 50,
+        plugins: 'image link media',
         toolbar: disabled ? false : 
             ['styles | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist | image media link']
         ,
@@ -181,15 +181,17 @@ function RichTextEditor({ onChange, value, quotedMessage, onQuoteApplied, placeh
                 }
             });
           });
-          // Smart bottom-tap focus handler for mobile devices
-          editor.on('click', (e) => {
+          // Smart bottom-tap focus handler for desktop and mobile devices
+          const handleBottomTap = (e) => {
               if (e.target.nodeName === 'BODY' || e.target.nodeName === 'HTML') {
                   const body = editor.getBody();
                   if (!body || !body.lastElementChild) return;
                   
                   const rect = body.lastElementChild.getBoundingClientRect();
-                  // Check if click was visually below the last content block
-                  if (e.clientY > rect.bottom - 10) {
+                  const clientY = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0].clientY : e.clientY;
+
+                  // Check if click/tap was visually below the last content block
+                  if (clientY > rect.bottom - 10) {
                       let lastEl = body.lastElementChild;
                       
                       // If the last element is an iframe/image wrapper, append a safe new line
@@ -202,9 +204,13 @@ function RichTextEditor({ onChange, value, quotedMessage, onQuoteApplied, placeh
                       
                       // Explicitly place the caret inside the final element
                       editor.selection.setCursorLocation(lastEl, 0);
+                      editor.focus();
                   }
               }
-          });
+          };
+
+          editor.on('click', handleBottomTap);
+          editor.on('touchend', handleBottomTap);
 
           // Mobile Backspace Fix: Delete embeds natively instead of selecting them (which closes virtual keyboards)
           const handleBackspace = (e) => {

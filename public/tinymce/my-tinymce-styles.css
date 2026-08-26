@@ -3,9 +3,8 @@
 html 
 {
     height: 100%;
-    /* Fix Android touch-scroll bug when using autoresize */
-    touch-action: pan-y;
-    overflow-y: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
 }
 body 
 {
@@ -14,16 +13,14 @@ body
     font-weight: 1;
     line-height: 1.8rem;
     color: #000;
-    min-height: 100px !important;
+    min-height: 100% !important;
     margin: 0;
-    padding: 0 0.4rem !important;
+    padding: 0 0.4rem 40px 0.4rem !important;
     box-sizing: border-box;
     cursor: text;
     background: white;
-    
-    /* Fix Android touch-scroll bug when using autoresize */
-    touch-action: pan-y;
-    overflow-y: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
 }
 
 body[contenteditable="false"]
@@ -50,6 +47,8 @@ img
     padding: 0.4em !important;
     box-sizing: border-box;
     border: none;
+    max-width: 100% !important;
+    height:auto;
 }
 blockquote 
 {
@@ -79,9 +78,4 @@ iframe[src*="youtube"]
 .mce-preview-object, .mce-object
 {
     max-width: 100% !important;
-}
-img
-{
-    max-width: 100% !important;
-    height:auto;
 }

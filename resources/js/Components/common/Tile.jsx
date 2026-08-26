@@ -13,7 +13,7 @@ function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false, siz
     let viewText = "info";
     if(isDashboard)
     {
-        viewText = "view";
+        viewText = (post.is_draft || post.is_private) ? "preview" : "view";
     } 
     else if(post.is_news)
     {

@@ -31,7 +31,6 @@
 header
 {
     position: fixed;
-    width: 100%;
     top:0;
     right: 0;
     z-index: 99;
@@ -252,6 +251,7 @@ nav.open
     header
     {
         height: var(--header-height-wide);
+        width: 100%;
     }
     nav
     {        
@@ -392,8 +392,10 @@ nav.open
 /*NAV BUTTON------------*/
 .nav-button-container
 {
-    display: flex;
-    justify-content: end;
+    /* display: block;
+    position: fixed;
+    top: 0;
+    right: 0; */
 }
 .nav-button
 {
