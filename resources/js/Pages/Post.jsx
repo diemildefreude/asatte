@@ -152,7 +152,7 @@
                 ogType="article"
                 ogImg={mainImg}
             />
-            <div className="post">       
+            <div className={`post ${post?.theme && post.theme !== 'default' ? post.theme : ''}`}>       
             { 
                 post ? (
                 <>    

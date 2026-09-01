@@ -843,6 +843,12 @@ const Category = {
   News: "news",
   Archive: "archive"
 };
+const PageTheme = {
+  Default: "default",
+  Sunset: "sunset",
+  Bubblegum: "bubblegum",
+  Noir: "noir"
+};
 const FetchOrder = {
   Ascending: "ascending",
   Descending: "descending",
@@ -5939,7 +5945,7 @@ function Post({ post, carouselPosts: userPosts = [] }) {
         ogImg: mainImg
       }
     ),
-    /* @__PURE__ */ jsx("div", { className: "post", children: post ? /* @__PURE__ */ jsxs(Fragment, { children: [
+    /* @__PURE__ */ jsx("div", { className: `post ${(post == null ? void 0 : post.theme) && post.theme !== "default" ? post.theme : ""}`, children: post ? /* @__PURE__ */ jsxs(Fragment, { children: [
       /* @__PURE__ */ jsxs("article", { children: [
         /* @__PURE__ */ jsxs("div", { className: "image-info-statement-container", children: [
           post.is_hidden_by_admin && /* @__PURE__ */ jsx(
@@ -8090,6 +8096,7 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
     is_private: post ? !!post.is_private : false,
     is_draft: post ? !!post.is_draft : true,
     is_news: post ? !!post.is_news : category == Category.News,
+    theme: (post == null ? void 0 : post.theme) || PageTheme.Default,
     statement: hydratedStatement
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -8124,6 +8131,7 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
       is_private: !!post.is_private,
       is_draft: !!post.is_draft,
       is_news: !!post.is_news,
+      theme: post.theme || PageTheme.Default,
       statement: hydr
     });
     setIsTitleValid(true);
@@ -8174,6 +8182,7 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
       formData.append("is_private", data.is_private ? "1" : "0");
       formData.append("is_draft", asDraft ? "1" : "0");
       formData.append("is_news", data.is_news ? "1" : "0");
+      formData.append("theme", data.theme || "default");
       formData.append("statement", statementWithResizedImages || "");
       resizedGalleryImages.forEach((field, idx) => {
         if (field.type === "new" && field.value) {
@@ -8525,32 +8534,51 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
           }
         ),
         isMainVideoValid && data.main_video && /* @__PURE__ */ jsx(VideoIframe, { url: data.main_video }),
-        /* @__PURE__ */ jsx(
-          CheckboxField,
-          {
-            name: "is-private",
-            label: "is private",
-            onChange: (e) => {
-              setHasChanged(true);
-              setData("is_private", e.target.checked);
+        /* @__PURE__ */ jsxs("div", { className: "horizontal-buttons-container", children: [
+          /* @__PURE__ */ jsx(
+            CheckboxField,
+            {
+              name: "is-private",
+              label: "is private",
+              onChange: (e) => {
+                setHasChanged(true);
+                setData("is_private", e.target.checked);
+              },
+              disabled: isSubmitting,
+              value: data.is_private
+            }
+          ),
+          user.member_type == MemberType.Webmaster && /* @__PURE__ */ jsx(
+            CheckboxField,
+            {
+              name: "is-news",
+              label: "is news",
+              onChange: (e) => {
+                setHasChanged(true);
+                setData("is_news", e.target.checked);
+              },
+              disabled: isSubmitting,
+              value: data.is_news
+            }
+          )
+        ] }),
+        /* @__PURE__ */ jsxs("details", { className: "theme-selector-details", children: [
+          /* @__PURE__ */ jsx("summary", { className: "main-label", children: "theme" }),
+          /* @__PURE__ */ jsx("div", { className: "theme-options-grid", children: Object.entries(PageTheme).map(([key, value]) => /* @__PURE__ */ jsx(
+            "button",
+            {
+              type: "button",
+              className: `theme-option-square ${value} ${data.theme === value ? "active" : ""}`,
+              title: key,
+              onClick: () => {
+                setHasChanged(true);
+                setData("theme", value);
+              },
+              children: /* @__PURE__ */ jsx("span", { className: "theme-name", children: value })
             },
-            disabled: isSubmitting,
-            value: data.is_private
-          }
-        ),
-        user.member_type == MemberType.Webmaster && /* @__PURE__ */ jsx(
-          CheckboxField,
-          {
-            name: "is-news",
-            label: "is news",
-            onChange: (e) => {
-              setHasChanged(true);
-              setData("is_news", e.target.checked);
-            },
-            disabled: isSubmitting,
-            value: data.is_news
-          }
-        ),
+            value
+          )) })
+        ] }),
         /* @__PURE__ */ jsxs("div", { className: "rte-container", children: [
           /* @__PURE__ */ jsx("div", { className: "centered-content", children: /* @__PURE__ */ jsx("h3", { children: "artist statement" }) }),
           /* @__PURE__ */ jsx(

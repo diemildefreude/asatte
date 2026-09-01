@@ -1,5 +1,12 @@
 :root
 {
+    --header-height-wide: 60px;
+    --header-height-narrow: 50px;
+    --default-button-border: 1px solid var(--grey-yellow);
+    --hover-button-border: 1px solid var(--pale-yellow);    
+    --disabled-button-border: 1px solid gray;
+    --footer-height: 150px;
+    
     --pale-yellow: #FFE4AF;
     --grey-yellow: #C9C9AF;
     --navy: #001550;
@@ -7,14 +14,16 @@
     --blue: #1177c0;
     --bright-blue: #28dbff;
     --strawberry: #ff4574;
+    --light-strawberry: #ff7194;
     --blood: #6c0746;
     --teal: #2cd7bd;
     --yellow: #fedca0;
     --orange: #FFA500;
-    /* --orange: #ffb764; */
     --dark-purple: #330055;
     --grey-purple: #5e5266;
-    --indigo-gradient: linear-gradient(45deg, #0000ff 0%, var(--dark-purple) 60%);
+    --transparent-black: rgba(0, 0, 0, 0.5);
+    --transparent-white: rgba(255,255,255,0.5);
+    --indigo-gradient: linear-gradient(45deg, #0000ff 0%, var(--dark-purple) 70%);
     --blue-gradient: linear-gradient(45deg, var(--blue) 0%,  var(--bright-blue) 60%);    
     --lavender-gradient: linear-gradient(45deg, #505193cc 0%, #c1b7fdcc 60%);
     --red-gradient: linear-gradient(45deg, #ff4574 0%, #6c0746 70%);
@@ -24,19 +33,17 @@
     --black-gradient: linear-gradient(45deg, #000000ff 0%, #0d003397 60%);
     --yellow-gradient: linear-gradient(45deg, #fa6400 0%, var(--yellow) 60%);
     --carousel-gradient: linear-gradient(110deg, rgba(0, 0, 0, 0) 0%, #000000 50% ,rgba(0, 0, 0, 0) 100%);
-    --paper-gradient: linear-gradient(45deg, #efd9b6 0%, white 60%);
-    --transparent-black: rgba(0, 0, 0, 0.5);
-    --header-height-wide: 60px;
-    --header-height-narrow: 50px;
-    --default-button-border: 1px solid var(--grey-yellow);
-    --hover-button-border: 1px solid var(--pale-yellow);    
-    --disabled-button-border: 1px solid gray;
-    --footer-height: 150px;
+    --paper-gradient: linear-gradient(45deg, rgb(233, 230, 230) 0%, #efd9b6 60%);
+    /*~~~THEME GRADIENTS~~~*/
+    --indigo-gradient: linear-gradient(45deg, #0000ff 0%, var(--dark-purple) 70%);
+    --sunset-gradient: linear-gradient(45deg,#330055 40%, var(--orange) 100%);
+    --bubblegum-gradient: linear-gradient(45deg, rgb(0,199,255) 20%, rgb(208, 132, 255) 80%);
+    --noir-gradient: linear-gradient(45deg,#000000 40%, #ffffff 100%);
+    /*~~~~~~~~~~~~~~~~~~~~~*/
 }
-*
+html
 {
     scrollbar-color: var(--yellow) var(--dark-purple);
-    scrollbar-width: thin;
 }
 p img
 {
@@ -70,8 +77,6 @@ body::before
     height: 200lvh;
     z-index: -3;
     background: var(--indigo-gradient);
-    /* background: #464646; */
-    /* background: #ffffff; */
 }
 html, body
 {
@@ -816,5 +821,249 @@ button, .link-button
     .comment, .message-text
     {
         padding: 0;
+    }
+}
+/*~~~~~~~~~SUNSET THEME~~~~~~~~~*/
+body:has(.post.sunset, .profile.sunset)::before
+{
+    background: var(--sunset-gradient);
+}
+html:has(.post.sunset, .profile.sunset)
+{
+    scrollbar-color: var(--bright-blue) var(--dark-purple);
+}
+body:has(.post.sunset, .profile.sunset) .nav-logo-desktop svg
+{
+    color: var(--dark-purple);
+    --logo-secondary-color: var(--bright-blue);
+}
+body:has(.post.sunset, .profile.sunset) .main-info-box
+{
+    background: var(--yellow-gradient);
+}
+body:has(.post.sunset, .profile.sunset) .main-info-box, body:has(.post.sunset, .profile.sunset) .post-date
+{
+    color: var(--dark-purple);
+}
+body:has(.post.sunset, .profile.sunset) .content .user-link span
+{
+    color: var(--bright-blue);
+}
+body:has(.post.sunset, .profile.sunset) .main-info-box .user-link span
+{
+    color: var(--dark-purple);
+}
+body:has(.post.sunset, .profile.sunset) .notice.small
+{
+    color: var(--bright-blue);
+}
+body:has(.post.sunset, .profile.sunset) .slider-end-left, body:has(.post.sunset, .profile.sunset) .slider-end-right
+{
+    --solid-color: rgb(183, 248, 255);
+    --faded-color: rgba(183, 248, 255, 0);
+}
+body:has(.post.sunset, .profile.sunset) nav .user-link .avatar-container .round-image 
+{
+    border-color: var(--bright-blue);
+}
+body:has(.post.sunset, .profile.sunset) .user-link .avatar-container .round-image 
+{
+    border-color: var(--dark-purple);
+}
+@media (min-width: 800px)
+{
+    body:has(.post.sunset, .profile.sunset) .nav-halves
+    {
+        background: linear-gradient(45deg, #33005500 calc(50vw - (100vw - 100%)), #bf6a3885 calc(75vw - (100vw - 100%)), rgb(247, 160, 0) calc(100vw - (100vw - 100%)));
+    }
+    body:has(.post.sunset, .profile.sunset) .nav-item, body:has(.post.sunset, .profile.sunset) nav button
+    {
+        color: var(--navy);
+    }
+    body:has(.post.sunset, .profile.sunset) .user-link span
+    {
+        color: var(--bright-blue);
+    }
+    body:has(.post.sunset, .profile.sunset) .user-link:hover span
+    {
+        color: var(--bright-yellow);
+    }
+}
+/*~~~~~~~~~BUBBLEGUM THEME~~~~~~~~~*/
+body:has(.post.bubblegum, .profile.bubblegum)::before
+{
+    background: var(--bubblegum-gradient);
+}
+html:has(.post.bubblegum, .profile.bubblegum)
+{
+    scrollbar-color: var(--bright-blue) rgb(208, 132, 255);
+}
+body:has(.post.bubblegum, .profile.bubblegum) .nav-logo-desktop svg
+{
+    color: white;
+    --logo-secondary-color: rgb(240, 163, 255);
+}
+body:has(.post.bubblegum, .profile.bubblegum) .main-info-box
+{
+    background: linear-gradient(45deg, var(--dark-purple) 0%,  rgb(187, 113, 248) 60%);        
+}
+body:has(.post.bubblegum, .profile.bubblegum) .main-info-box, body:has(.post.bubblegum, .profile.bubblegum) .post-date
+{
+    color: white;
+}
+body:has(.post.bubblegum, .profile.bubblegum) .content .user-link span
+{
+    color: var(--dark-purple);
+}
+body:has(.post.bubblegum, .profile.bubblegum) .main-info-box .user-link span
+{
+    color: var(--bright-blue);
+}
+body:has(.post.bubblegum, .profile.bubblegum) .notice.small
+{
+    color: var(--dark-blue);
+}
+body:has(.post.bubblegum, .profile.bubblegum) .statement
+{
+    background: var(--transparent-white);
+    color: var(--navy);
+}
+body:has(.post.bubblegum, .profile.bubblegum) .statement a, body:has(.post.bubblegum, .profile.bubblegum) .statement a:link, body:has(.post.bubblegum, .profile.bubblegum) .statement a:visited, body:has(.post.bubblegum, .profile.bubblegum) .statement .button-link
+{
+    color: var(--dark-blue);
+}
+body:has(.post.bubblegum, .profile.bubblegum) .slider-end-left, body:has(.post.bubblegum, .profile.bubblegum) .slider-end-right
+{
+    --solid-color: rgb(227, 183, 255);
+    --faded-color: rgba(227, 183, 255, 0);
+}
+body:has(.post.bubblegum, .profile.bubblegum) .icon
+{
+    color: white;
+}
+body:has(.post.bubblegum, .profile.bubblegum) .main-image-container .like-button
+{
+    color: var(--bright-blue);
+}
+body:has(.post.bubblegum, .profile.bubblegum) nav .user-link .avatar-container .round-image 
+{
+    border-color: var(--bright-blue);
+}
+body:has(.post.bubblegum, .profile.bubblegum) .user-link .avatar-container .round-image 
+{
+    border-color: var(--dark-purple);
+}
+@media (min-width: 800px)
+{
+    body:has(.post.bubblegum, .profile.bubblegum) .nav-halves
+    {
+        background: linear-gradient(45deg, rgba(0,199,255,0.0) calc(50vw - (100vw - 100%)), rgb(208, 132, 255) calc(100vw - (100vw - 100%)));
+    }
+    body:has(.post.bubblegum, .profile.bubblegum) .nav-item:hover, body:has(.post.bubblegum, .profile.bubblegum) button:hover,
+    body:has(.post.bubblegum, .profile.bubblegum) .nav-search-container:hover button,
+    body:has(.post.bubblegum, .profile.bubblegum) .content:not(.touch-device) .nav-item:hover, body:has(.post.bubblegum, .profile.bubblegum) .content:not(.touch-device) button:hover
+    {
+        background: linear-gradient(45deg, #ffffffcc 0%, #c1b7fdcc 60%);
+        color: var(--dark-blue);
+        border-color: var(--dark-blue);
+    }
+    body:has(.post.bubblegum, .profile.bubblegum) nav .user-link span
+    {
+        color: var(--bright-blue);
+    }
+    body:has(.post.bubblegum, .profile.bubblegum) nav .user-link:hover span
+    {
+        color: var(--dark-purple);
+    }
+    body:has(.post.bubblegum, .profile.bubblegum) nav .user-link:hover .avatar-container .round-image 
+    {        
+        border-color: var(--dark-purple);
+    }
+}
+/*~~~~~NOIR~~~~~*/
+body:has(.post.noir, .profile.noir)::before
+{
+    background: var(--noir-gradient);
+}
+html:has(.post.noir, .profile.noir)
+{
+    scrollbar-color: white black;
+}
+body:has(.post.noir, .profile.noir) .nav-logo-desktop svg
+{
+    color: black;
+    --logo-secondary-color: white;
+}
+body:has(.post.noir, .profile.noir) .nav-button-container:not(.open) .bar
+{
+    background-color: black;
+}
+body:has(.post.noir, .profile.noir) .main-info-box
+{
+    background: linear-gradient(45deg, #838383 0%,  white 60%);        
+}
+body:has(.post.noir, .profile.noir) .main-info-box, body:has(.post.noir, .profile.noir) .post-date
+{
+    color: black;
+}
+body:has(.post.noir, .profile.noir) .main-info-box .user-link span
+{
+    color: rgb(116, 116, 116);
+}
+body:has(.post.noir, .profile.noir) .notice.small
+{
+    color: black;
+}
+body:has(.post.noir, .profile.noir) .statement
+{
+    background: rgba(255,255,255,0.8);
+    color: black;
+}
+body:has(.post.noir, .profile.noir) .statement a, body:has(.post.noir, .profile.noir) .statement a:link, body:has(.post.noir, .profile.noir) .statement a:visited, body:has(.post.noir, .profile.noir) .statement .button-link
+{
+    color: rgb(76, 76, 76);
+}
+body:has(.post.noir, .profile.noir) .slider-end-left, body:has(.post.noir, .profile.noir) .slider-end-right
+{
+    --solid-color: white;
+    --faded-color: rgba(255,255,255, 0);
+}
+body:has(.post.noir, .profile.noir) .icon
+{
+    color: white;
+}
+body:has(.post.noir, .profile.noir) .main-image-container .like-button
+{
+    color: white;
+}
+body:has(.post.noir, .profile.noir) .user-link span
+{
+    color: rgb(255, 255, 255);
+}
+@media (min-width: 800px)
+{
+    body:has(.post.noir, .profile.noir) .nav-halves
+    {
+        background: linear-gradient(45deg, #00000000 calc(50vw - (100vw - 100%)), rgba(170, 170, 170, 0.5) calc(75vw - (100vw - 100%)), rgb(246, 246, 246) calc(100vw - (100vw - 100%)));
+    }
+    body:has(.post.noir, .profile.noir) nav .user-link span
+    {
+        color: rgb(116, 116, 116);
+    }
+    body:has(.post.noir, .profile.noir) nav .user-link:hover span
+    {
+        color: white;
+    }
+    body:has(.post.noir, .profile.noir) .nav-item, body:has(.post.noir, .profile.noir) nav button
+    {
+        color: black;
+    }
+    body:has(.post.noir, .profile.noir) .nav-item:hover, body:has(.post.noir, .profile.noir) button:hover,
+    body:has(.post.noir, .profile.noir) .nav-search-container:hover button,
+    body:has(.post.noir, .profile.noir) .content:not(.touch-device) .nav-item:hover, body:has(.post.noir, .profile.noir) .content:not(.touch-device) button:hover
+    {
+        background: var(--noir-gradient);
+        color: white;
+        border-color: black;
     }
 }

@@ -252,6 +252,7 @@ nav.open
     {
         height: var(--header-height-wide);
         width: 100%;
+        top: 1px;
     }
     nav
     {        

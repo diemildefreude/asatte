@@ -7,7 +7,7 @@ import VideoIframe from '../../Components/common/VideoIframe';
 import ImageField from "./ImageField";
 import { addImageDragListeners, Category, dehydrateEditorImagePaths, formatSlug, getErrorMessage, getImageFilesFromInput, 
     getImageUrlFromFile, getVideoEmbedUrl, hydrateEditorImagePaths, isAlphaDash, isUrl, 
-    MemberType, processEditorImages, resizeImage } from '../../utils/helpers';
+    MemberType, PageTheme, processEditorImages, resizeImage } from '../../utils/helpers';
 
 const IMAGE_LIMIT=15;
 
@@ -67,6 +67,7 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
         is_private: post ? !!post.is_private : false,
         is_draft: post ? !!post.is_draft : true,
         is_news: post ? !!post.is_news : (category == Category.News),
+        theme: post?.theme || PageTheme.Default,
         statement: hydratedStatement
     });
 
@@ -111,6 +112,7 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
             is_private: !!post.is_private,
             is_draft: !!post.is_draft,
             is_news: !!post.is_news,
+            theme: post.theme || PageTheme.Default,
             statement: hydr
         });
         setIsTitleValid(true);
@@ -169,6 +171,7 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
             formData.append('is_private', data.is_private ? '1' : '0');
             formData.append('is_draft', asDraft ? '1' : '0');
             formData.append('is_news', data.is_news ? '1' : '0');
+            formData.append('theme', data.theme || 'default');
             formData.append('statement', statementWithResizedImages || '');
 
             resizedGalleryImages.forEach((field, idx) =>
@@ -557,21 +560,41 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
                                 <VideoIframe url={data.main_video}/>
                             )
                         }
-                        <CheckboxField name="is-private"
-                            label="is private"
-                            onChange={(e) => {setHasChanged(true); setData('is_private', e.target.checked)}}
-                            disabled={isSubmitting}
-                            value={data.is_private}
-                        />   
-                        {
-                            (user.member_type == MemberType.Webmaster) && (
-                            <CheckboxField name="is-news"
-                                label="is news"
-                                onChange={(e) => {setHasChanged(true); setData('is_news', e.target.checked)}}
+                        <div className="horizontal-buttons-container">
+                            <CheckboxField name="is-private"
+                                label="is private"
+                                onChange={(e) => {setHasChanged(true); setData('is_private', e.target.checked)}}
                                 disabled={isSubmitting}
-                                value={data.is_news}
-                            />   )
-                        }
+                                value={data.is_private}
+                            />   
+                            {
+                                (user.member_type == MemberType.Webmaster) && (
+                                <CheckboxField name="is-news"
+                                    label="is news"
+                                    onChange={(e) => {setHasChanged(true); setData('is_news', e.target.checked)}}
+                                    disabled={isSubmitting}
+                                    value={data.is_news}
+                                />   )
+                            }
+                        </div>
+                        <div className="theme-selector-details">
+                            <summary className="main-label">theme</summary>
+                            <div className="theme-options-grid">
+                                {Object.entries(PageTheme).map(([key, value]) => (
+                                    <button
+                                        key={value}
+                                        type="button"
+                                        className={`theme-option-square ${value} ${data.theme === value ? 'active' : ''}`}
+                                        title={key.toLowerCase()}
+                                        onClick={() => {
+                                            setHasChanged(true);
+                                            setData('theme', value);
+                                        }}
+                                    >
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
                         <div className="rte-container">
                             <div className="centered-content">
                                 <h3>artist statement</h3>

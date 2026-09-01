@@ -23,7 +23,7 @@ main
     .content
     {
       min-height: calc(100svh - (var(--footer-height) + var(--header-height-wide) + 1.4rem));
-      margin: calc(var(--header-height-narrow) + 1rem) 0 1rem;
+      margin: calc(var(--header-height-wide) + 1px) 0 1rem;
         /* top: var(--header-height-wide); */
         /* margin: 1rem 0 0; */
     }

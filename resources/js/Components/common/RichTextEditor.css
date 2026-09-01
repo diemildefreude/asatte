@@ -210,12 +210,17 @@
 {
     background: transparent !important;
 }
-.tox .tox-dialog__title, .tox .tox-label, .tox .tox-textfield,
+.tox .tox-dialog__title, .tox .tox-label,
 .tox .tox-listbox__select-label, .tox .tox-collection__item-label,
 .tox .tox-button, .tox .tox-tab
 {    
     font-family: "Cascadia Code", sans-serif !important;
     text-transform: lowercase !important;
+    font-weight: 300 !important;
+}
+.tox .tox-textfield
+{
+    font-family: "Cascadia Code", sans-serif !important;
     font-weight: 300 !important;
 }
 .tox .tox-dialog__title

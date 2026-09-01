@@ -23,7 +23,8 @@ class Post extends Model
         'statement',
         'statement_image_urls',
         'premiere_date',
-        'is_draft'
+        'is_draft',
+        'theme'
     ];
 
     protected $casts = 

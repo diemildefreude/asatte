@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\FetchOrder;
 use App\Enums\MemberType;
 use App\Enums\NotificationType;
+use App\Enums\PageTheme;
 use App\Enums\PostType;
 use App\Models\Conversation;
 use App\Models\Notification;
@@ -245,6 +246,7 @@ class PostController extends Controller
             'subtitle' => ['string', 'required', 'max:255'],
             'main_video' => ['max:255', 'url', 'nullable'],
             'premiere_date' => ['nullable', 'date'],
+            'theme' => ['nullable', 'string', Rule::enum(PageTheme::class)],
         ]); 
         $isPrivate = $request->boolean('is_private');        
         $isNews = $request->boolean('is_news');    
@@ -623,6 +625,7 @@ class PostController extends Controller
             'subtitle' => ['string', 'required', 'max:255'],
             'main_video' => ['max:255', 'url', 'nullable'],
             'premiere_date' => ['nullable', 'date'],
+            'theme' => ['nullable', 'string', Rule::enum(PageTheme::class)],
         ]); 
         $isPrivate = $request->input('is_private') ? true : false; 
         $isDraft = $request->boolean('is_draft');

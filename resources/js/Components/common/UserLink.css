@@ -2,7 +2,7 @@
 {
     display: inline-flex;            /* keep it inline with text, but use flex for children */
     align-items: center;             /* vertically center avatar and text inside the link */
-    gap: 0.8rem;
+    gap: 0.4rem;
     margin: 0rem 0 0;
     position:relative;
     bottom: 0;
@@ -28,12 +28,10 @@
 /* make .round-image fill the avatar container */
 .user-link .avatar-container .round-image 
 {
-    /* width: 150%;
-    height: 150%;
-    aspect-ratio: 1/1; */
     display: block;
     object-fit: cover;
     object-position: center;
+    border: 1px solid var(--pale-yellow);
     border-radius: 50%;
 }
 

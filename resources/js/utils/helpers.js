@@ -27,6 +27,14 @@ export const Category =
     Archive: 'archive'
 }
 
+export const PageTheme =
+{
+    Default: 'default',
+    Sunset: 'sunset',
+    Bubblegum: 'bubblegum',
+    Noir: 'noir'
+}
+
 export const FetchOrder =
 {
     Ascending: 'ascending',

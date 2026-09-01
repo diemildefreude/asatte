@@ -801,3 +801,73 @@
                  0px 0px 12px var(--blue),
                  0px 0px 12px var(--blue);
 }
+
+/*~~~~THEME SELECTOR~~~~*/
+.theme-selector-details
+{
+    margin: 1rem 0;
+    width: 100%;
+}
+.theme-selector-details summary
+{
+    font-family: 'Cascadia Code', sans-serif;
+    font-size: 1rem;
+    font-weight: 300;
+    color: var(--pale-yellow);
+    cursor: pointer;
+    user-select: none;
+    margin-bottom: 0.5rem;
+}
+.theme-options-grid
+{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    justify-content: space-between;
+}
+.theme-option-square
+{
+    width: 60px;
+    height: 60px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+.theme-option-square:hover
+{
+    transform: scale(1.05);
+}
+.theme-option-square.active
+{
+    border-color: #ffffff !important;
+    outline: 2px solid var(--bright-blue);
+}
+.theme-option-square.default, .content:not(.touch-device) .theme-option-square.default:hover
+{
+    background: var(--indigo-gradient);
+}
+.theme-option-square.sunset, .content:not(.touch-device) .theme-option-square.sunset:hover
+{
+    background: var(--sunset-gradient);
+}
+.theme-option-square.bubblegum, .content:not(.touch-device) .theme-option-square.bubblegum:hover
+{
+    background: var(--bubblegum-gradient);
+}
+.theme-option-square.noir, .content:not(.touch-device) .theme-option-square.noir:hover
+{
+    background: var(--noir-gradient);
+}
+.theme-option-square .theme-name
+{
+    font-family: 'Cascadia Code', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: #ffffff;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9), 0 0 5px rgba(0, 0, 0, 0.7);
+    pointer-events: none;
+    text-transform: lowercase;
+}
