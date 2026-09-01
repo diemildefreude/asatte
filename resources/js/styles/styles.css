@@ -900,8 +900,8 @@ html:has(.post.bubblegum, .profile.bubblegum)
 }
 body:has(.post.bubblegum, .profile.bubblegum) .nav-logo-desktop svg
 {
-    color: white;
-    --logo-secondary-color: rgb(240, 163, 255);
+    color: var(--bright-blue);
+    --logo-secondary-color: #ded8ff;
 }
 body:has(.post.bubblegum, .profile.bubblegum) .main-info-box
 {
@@ -934,8 +934,8 @@ body:has(.post.bubblegum, .profile.bubblegum) .statement a, body:has(.post.bubbl
 }
 body:has(.post.bubblegum, .profile.bubblegum) .slider-end-left, body:has(.post.bubblegum, .profile.bubblegum) .slider-end-right
 {
-    --solid-color: rgb(227, 183, 255);
-    --faded-color: rgba(227, 183, 255, 0);
+    --solid-color: #c1b7fd;
+    --faded-color: #c1b7fd00;
 }
 body:has(.post.bubblegum, .profile.bubblegum) .icon
 {
@@ -961,7 +961,7 @@ body:has(.post.bubblegum, .profile.bubblegum) .user-link .avatar-container .roun
     }
     body:has(.post.bubblegum, .profile.bubblegum) .nav-item:hover, body:has(.post.bubblegum, .profile.bubblegum) button:hover,
     body:has(.post.bubblegum, .profile.bubblegum) .nav-search-container:hover button,
-    body:has(.post.bubblegum, .profile.bubblegum) .content:not(.touch-device) .nav-item:hover, body:has(.post.bubblegum, .profile.bubblegum) .content:not(.touch-device) button:hover
+    body:has(.post.bubblegum, .profile.bubblegum) .content:not(.touch-device) .nav-item:hover, body:has(.post.bubblegum, .profile.bubblegum) .content:not(.touch-device) button:not(.like-button):hover
     {
         background: linear-gradient(45deg, #ffffffcc 0%, #c1b7fdcc 60%);
         color: var(--dark-blue);
@@ -1001,6 +1001,7 @@ body:has(.post.noir, .profile.noir) .nav-button-container:not(.open) .bar
 body:has(.post.noir, .profile.noir) .main-info-box
 {
     background: linear-gradient(45deg, #838383 0%,  white 60%);        
+    border-color: black;
 }
 body:has(.post.noir, .profile.noir) .main-info-box, body:has(.post.noir, .profile.noir) .post-date
 {
@@ -1040,6 +1041,23 @@ body:has(.post.noir, .profile.noir) .user-link span
 {
     color: rgb(255, 255, 255);
 }
+body:has(.post.noir, .profile.noir) span.notice.small.greyed-out
+{
+    color: rgb(207, 207, 207);
+    opacity: 1.0;
+}
+body:has(.post.noir, .profile.noire) .user-link .avatar-container .round-image 
+{
+    border-color: white;
+}
+body:has(.post.noir, .profile.noire) nav .user-link .avatar-container .round-image 
+{
+    border-color: rgb(116, 116, 116);
+}
+body:has(.post.noir, .profile.noire) nav .user-link:hover .avatar-container .round-image 
+{
+    border-color: white;
+}
 @media (min-width: 800px)
 {
     body:has(.post.noir, .profile.noir) .nav-halves
@@ -1060,7 +1078,7 @@ body:has(.post.noir, .profile.noir) .user-link span
     }
     body:has(.post.noir, .profile.noir) .nav-item:hover, body:has(.post.noir, .profile.noir) button:hover,
     body:has(.post.noir, .profile.noir) .nav-search-container:hover button,
-    body:has(.post.noir, .profile.noir) .content:not(.touch-device) .nav-item:hover, body:has(.post.noir, .profile.noir) .content:not(.touch-device) button:hover
+    body:has(.post.noir, .profile.noir) .content:not(.touch-device) .nav-item:hover, body:has(.post.noir, .profile.noir) .content:not(.touch-device) button:not(.like-button):hover
     {
         background: var(--noir-gradient);
         color: white;
