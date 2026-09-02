@@ -5,6 +5,7 @@ import PageHead from '../Components/layout/PageHead';
 import ProfileItem from '../Components/common/ProfileItem';
 import AutoloadTilesContainer from '../Components/common/AutoloadTilesContainer';
 import CommentSection from '../Components/common/CommentSection';
+import '../Components/common/Themes.css';
 import './DashboardProfile.css';
 import '../Components/common/RichTextEditor.css';
 import { FetchOrder, getErrorMessage, getScreenSize, monitorScreenSize, ScreenSize,

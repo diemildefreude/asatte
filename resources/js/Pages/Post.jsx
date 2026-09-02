@@ -7,6 +7,7 @@
     import './Post.css';
     import '../Components/common/Tile.css';
     import './DashboardProfile.css';
+    import '../Components/common/Themes.css';
     import UserLink from '../Components/common/UserLink';
     import ImageCarousel from '../Components/common/ImageCarousel';
     import TileCarousel from '../Components/common/TileCarousel';
