@@ -90,6 +90,7 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
     const canSubmit = data.title && isTitleValid && data.slug && isSlugValid
         && data.subtitle && isSubtitleValid && ((data.website && isWebsiteValid) || !data.website)
         && ((data.source_code && isSourceCodeValid) || !data.source_code)
+        && ((data.main_video_raw && isMainVideoValid) || !data.main_video_raw)
         && imageFields.length > 0 && hasImages(imageFields) && (hasChanged || post?.is_draft);    
 
     const buttonText = (!post || post.is_draft) ? "publish" : "update";
@@ -267,11 +268,17 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
     const handleMainVideoValidation = useCallback((proposedUrl, setFieldLocalError) =>
     {
         setFieldLocalError('');
+        if (!proposedUrl || !proposedUrl.trim()) {
+            setIsMainVideoValid(false);
+            setData('main_video', '');
+            return;
+        }
         const embedUrl = getVideoEmbedUrl(proposedUrl);
         setIsMainVideoValid(!!embedUrl);
         if(embedUrl) {
             setData('main_video', embedUrl);
         } else {
+            setData('main_video', '');
             setFieldLocalError('Must be a valid link from YouTube, DailyMotion, or Vimeo.');
         }
     }, [setData]);

@@ -8112,7 +8112,7 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
   const galleryContainerRef = useRef(null);
   const [imageFields, setImageFields] = useState(createInitialImageFields(post, user, (post == null ? void 0 : post.slug) || "", appUrl));
   const dragCounterRef = useRef(0);
-  const canSubmit = data.title && isTitleValid && data.slug && isSlugValid && data.subtitle && isSubtitleValid && (data.website && isWebsiteValid || !data.website) && (data.source_code && isSourceCodeValid || !data.source_code) && imageFields.length > 0 && hasImages(imageFields) && (hasChanged || (post == null ? void 0 : post.is_draft));
+  const canSubmit = data.title && isTitleValid && data.slug && isSlugValid && data.subtitle && isSubtitleValid && (data.website && isWebsiteValid || !data.website) && (data.source_code && isSourceCodeValid || !data.source_code) && (data.main_video_raw && isMainVideoValid || !data.main_video_raw) && imageFields.length > 0 && hasImages(imageFields) && (hasChanged || (post == null ? void 0 : post.is_draft));
   const buttonText = !post || post.is_draft ? "publish" : "update";
   const loadingText = "loading form...";
   const isFormReady = isCreateForm || post;
@@ -8258,11 +8258,17 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
   }, [post, setError, clearErrors]);
   const handleMainVideoValidation = useCallback((proposedUrl, setFieldLocalError) => {
     setFieldLocalError("");
+    if (!proposedUrl || !proposedUrl.trim()) {
+      setIsMainVideoValid(false);
+      setData("main_video", "");
+      return;
+    }
     const embedUrl = getVideoEmbedUrl(proposedUrl);
     setIsMainVideoValid(!!embedUrl);
     if (embedUrl) {
       setData("main_video", embedUrl);
     } else {
+      setData("main_video", "");
       setFieldLocalError("Must be a valid link from YouTube, DailyMotion, or Vimeo.");
     }
   }, [setData]);
@@ -8562,19 +8568,18 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
             }
           )
         ] }),
-        /* @__PURE__ */ jsxs("details", { className: "theme-selector-details", children: [
+        /* @__PURE__ */ jsxs("div", { className: "theme-selector-details", children: [
           /* @__PURE__ */ jsx("summary", { className: "main-label", children: "theme" }),
           /* @__PURE__ */ jsx("div", { className: "theme-options-grid", children: Object.entries(PageTheme).map(([key, value]) => /* @__PURE__ */ jsx(
             "button",
             {
               type: "button",
               className: `theme-option-square ${value} ${data.theme === value ? "active" : ""}`,
-              title: key,
+              title: key.toLowerCase(),
               onClick: () => {
                 setHasChanged(true);
                 setData("theme", value);
-              },
-              children: /* @__PURE__ */ jsx("span", { className: "theme-name", children: value })
+              }
             },
             value
           )) })
