@@ -2931,16 +2931,19 @@ function AvatarSetter({ user }) {
         ref: imageCropContainerContainerRef,
         children: [
           /* @__PURE__ */ jsx("h3", { children: "Zoom and drag to crop image." }),
-          /* @__PURE__ */ jsx(
-            "button",
-            {
-              type: "button",
-              onClick: handleCropAndUpload,
-              disabled: !(user == null ? void 0 : user.is_email_verified) || processing,
-              ref: imageCropButtonRef,
-              children: "update"
-            }
-          ),
+          /* @__PURE__ */ jsxs("div", { className: "horizontal-buttons-container", children: [
+            /* @__PURE__ */ jsx(
+              "button",
+              {
+                type: "button",
+                onClick: handleCropAndUpload,
+                disabled: !(user == null ? void 0 : user.is_email_verified) || processing,
+                ref: imageCropButtonRef,
+                children: "update"
+              }
+            ),
+            /* @__PURE__ */ jsx("button", { type: "button", onClick: () => setIsImageCropperOpen(false), children: "cancel" })
+          ] }),
           /* @__PURE__ */ jsxs(
             "div",
             {
@@ -7418,7 +7421,7 @@ function Message({
     setResetKey((k) => k + 1);
   }, [initialHydratedContent]);
   return /* @__PURE__ */ jsxs("div", { className: "comment dm", id: elementId, children: [
-    /* @__PURE__ */ jsxs("p", { children: [
+    /* @__PURE__ */ jsxs("p", { className: "message-info", children: [
       /* @__PURE__ */ jsx(UserLink, { user: messageSender }),
       " ",
       /* @__PURE__ */ jsxs("em", { children: [

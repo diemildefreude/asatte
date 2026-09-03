@@ -319,7 +319,6 @@
     justify-content: center;
     align-items: center;
     user-select: none;
-    cursor:zoom-out;
 }
 .image-crop-container-container h3
 {
@@ -389,7 +388,7 @@
     width: 20px;
     height: 20px;
     border: 1px solid var(--dark-blue);
-    background: var(--bright-blue, #fff8dc);
+    background: var(--blue-gradient);
     cursor: pointer;
 }
 .image-crop-slider::-moz-range-thumb

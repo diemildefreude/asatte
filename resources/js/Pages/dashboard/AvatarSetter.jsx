@@ -294,11 +294,16 @@ function AvatarSetter({user})
                 ref={imageCropContainerContainerRef}
             >
                 <h3>Zoom and drag to crop image.</h3>
-                <button type="button" onClick={handleCropAndUpload} 
-                    disabled={!user?.is_email_verified || processing} ref={imageCropButtonRef}
-                >
-                    update
-                </button>
+                <div className="horizontal-buttons-container">
+                    <button type="button" onClick={handleCropAndUpload} 
+                        disabled={!user?.is_email_verified || processing} ref={imageCropButtonRef}
+                    >
+                        update
+                    </button>
+                    <button type="button" className="red-button" onClick={() => setIsImageCropperOpen(false)} >
+                        cancel
+                    </button>
+                </div>                
                 <div className="image-crop-container"
                     ref={imageCropContainerRef}
                 >
