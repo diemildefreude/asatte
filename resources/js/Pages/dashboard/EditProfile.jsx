@@ -21,7 +21,7 @@ function EditProfile()
         accepts_emails: true,
         theme: 'default',
     });
-
+    console.log("user", user);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
 
     const [hasChanges, setHasChanges] = useState(false);

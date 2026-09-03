@@ -56,6 +56,7 @@ class HandleInertiaRequests extends Middleware
                     'accepts_emails',
                     'profile_completed',
                     'bio',
+                    'theme',
                     'profile_hidden_at'
                 ]) : null,
             ],

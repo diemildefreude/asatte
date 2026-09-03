@@ -74,6 +74,14 @@ body:has(.post.sunset, .public-profile.sunset) .main-image-container .like-butto
 {
     color: var(--bright-blue);
 }
+body:has(.post.sunset, .public-profile.sunset) .source-link a
+{
+    color: var(--dark-purple);
+}
+body:has(.post.sunset, .public-profile.sunset) .yellow-gradient-background .notice
+{
+    color: var(--blue);
+}
 @media (min-width: 800px)
 {
     body:has(.post.sunset, .public-profile.sunset) nav .user-link .avatar-container .round-image 
@@ -224,6 +232,22 @@ body:has(.post.bubblegum, .public-profile.bubblegum) .article-text img
 {
     border-color: var(--dark-blue);
 }
+body:has(.post.bubblegum, .public-profile.bubblegum) .nav-item:hover, body:has(.post.bubblegum, .public-profile.bubblegum) button:not(.button-link, .like-button):enabled:hover,
+body:has(.post.bubblegum, .public-profile.bubblegum) .nav-search-container:hover button:enabled,
+body:has(.post.bubblegum, .public-profile.bubblegum) .content:not(.touch-device) .nav-item:hover
+{
+    background: linear-gradient(45deg, #ffffffcc 0%, #c1b7fdcc 60%);
+    color: var(--blue);
+    border-color: var(--blue);
+}
+body:has(.post.bubblegum, .public-profile.bubblegum) .source-link a
+{
+    color: var(--bright-blue);
+}
+body:has(.post.bubblegum, .public-profile.bubblegum) .yellow-gradient-background .notice
+{
+    color: white;
+}
 @media (min-width: 800px)
 {
     body:has(.post.bubblegum, .public-profile.bubblegum) nav .user-link .avatar-container .round-image 
@@ -255,15 +279,7 @@ body:has(.post.bubblegum, .public-profile.bubblegum) .article-text img
     body:has(.post.bubblegum, .public-profile.bubblegum) header.scrolled-down .nav-halves::before
     {
         opacity: 1;
-    }
-    body:has(.post.bubblegum, .public-profile.bubblegum) .nav-item:hover, body:has(.post.bubblegum, .public-profile.bubblegum) button:enabled:hover,
-    body:has(.post.bubblegum, .public-profile.bubblegum) .nav-search-container:hover button:enabled,
-    body:has(.post.bubblegum, .public-profile.bubblegum) .content:not(.touch-device) .nav-item:hover, body:has(.post.bubblegum, .public-profile.bubblegum) .content:not(.touch-device) :not(.info-item) button:not(.like-button):enabled:hover
-    {
-        background: linear-gradient(45deg, #ffffffcc 0%, #c1b7fdcc 60%);
-        color: var(--blue);
-        border-color: var(--blue);
-    }
+    }    
     body:has(.post.bubblegum, .public-profile.bubblegum) nav .user-link span
     {
         color: var(--bright-blue);
@@ -369,7 +385,6 @@ body:has(.post.noir, .public-profile.noir) .main-info-box .user-link .avatar-con
 {
     border-color: rgb(116, 116, 116);
 }
-
 body:has(.public-profile.noir) .inline-form-field label.field-name,
 body:has(.public-profile.noir) .inline-form-field span
 {
@@ -393,6 +408,14 @@ body:has(.post.noir) .article-text img
 body:has(.public-profile.noir) .article-text img
 {
     border-color: white;
+}
+body:has(.post.noir, .public-profile.noir) .source-link a
+{
+    color: rgb(116, 116, 116);
+}
+body:has(.post.noir, .public-profile.noir) .yellow-gradient-background .notice
+{
+    color: rgb(116, 116, 116);
 }
 @media (min-width: 800px)
 {

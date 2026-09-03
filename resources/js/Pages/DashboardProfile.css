@@ -793,10 +793,10 @@
 .main-info-box .member-type.admin span
 {   
     color: var(--strawberry);
-    text-shadow: 5px -5px 12px var(--bright-blue),
-                 -5px 5px 12px var(--dark-blue),                 
-                 5px -5px 12px var(--bright-blue),
-                 -5px 5px 12px var(--bright-blue),
+    text-shadow: 5px -5px 12px var(--teal),
+                 -5px 5px 12px var(--blue),                 
+                 5px -5px 12px var(--teal),
+                 -5px 5px 12px var(--teal),
                  0px 0px 12px var(--blue),
                  0px 0px 12px var(--blue);
 }

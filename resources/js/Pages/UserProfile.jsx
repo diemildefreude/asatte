@@ -155,11 +155,14 @@ function UserProfile({ user: profileUserProp })
                                     isLink={true}
                                     isArray={true}
                                 />
-                                <ProfileItem
-                                    name="location"
-                                    value={profileUser.location}
-                                    isPublic={true}
-                                />       
+                                {
+                                    profileUser.location && (                                    
+                                    <ProfileItem
+                                        name="location"
+                                        value={profileUser.location}
+                                        isPublic={true}
+                                    />)
+                                }   
                                 <div className="flex-row">                                   
                                     <span>
                                         <Link href="/dashboard/mail/new" 

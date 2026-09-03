@@ -18,8 +18,6 @@ class DashboardController extends Controller
 {
     public function updateAvatar(Request $request)
     {
-
-
         if(!$request->user()->hasVerifiedEmail())
         {
             Log::error("e-mail not verified");

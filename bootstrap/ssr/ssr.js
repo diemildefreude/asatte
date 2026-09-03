@@ -2942,7 +2942,7 @@ function AvatarSetter({ user }) {
                 children: "update"
               }
             ),
-            /* @__PURE__ */ jsx("button", { type: "button", onClick: () => setIsImageCropperOpen(false), children: "cancel" })
+            /* @__PURE__ */ jsx("button", { type: "button", className: "red-button", onClick: () => setIsImageCropperOpen(false), children: "cancel" })
           ] }),
           /* @__PURE__ */ jsxs(
             "div",
@@ -8115,7 +8115,7 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
     title: (post == null ? void 0 : post.title) || "",
     subtitle: (post == null ? void 0 : post.subtitle) || "",
     website: (post == null ? void 0 : post.website) || "",
-    source_code: (post == null ? void 0 : post.sourceCode) || "",
+    source_code: (post == null ? void 0 : post.source_code) || "",
     main_video: (post == null ? void 0 : post.main_video) || "",
     main_video_raw: (post == null ? void 0 : post.main_video) || "",
     premiere_date: (post == null ? void 0 : post.premiere_date) || "",
@@ -8150,7 +8150,7 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
       title: post.title || "",
       subtitle: post.subtitle || "",
       website: post.website || "",
-      source_code: post.sourceCode || "",
+      source_code: post.source_code || "",
       main_video: post.main_video || "",
       main_video_raw: post.main_video || "",
       premiere_date: post.premiere_date || "",
