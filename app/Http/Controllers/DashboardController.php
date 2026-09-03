@@ -90,7 +90,8 @@ class DashboardController extends Controller
         ([
             'websites' => ['nullable', 'array', 'max:3'],
             'websites.*' => ['nullable', 'string', 'max:255'],
-            'location' => ['nullable', 'string', 'max:255']            
+            'location' => ['nullable', 'string', 'max:255'],
+            'theme' => ['nullable', 'string', 'in:default,sunset,bubblegum,noir']
         ]);
 
         
@@ -110,6 +111,7 @@ class DashboardController extends Controller
         $user->location = $request->location;
         $user->show_email_in_profile = $showEmailInProfile;
         $user->accepts_emails = $request->boolean('accepts_emails', true);
+        $user->theme = $request->input('theme', 'default');
         $user->save();
         
         $request->session()->flash('success_profile', 'Your profile has been successfully updated.');

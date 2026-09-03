@@ -81,7 +81,7 @@ function Message({message, onReply=null, onDelete=null, id, parentLocalId=null,
 
     return (
     <div className="comment dm" id={elementId}>
-        <p>
+        <p className='message-info'>
             <UserLink user={messageSender}/> <em>on {getDateAsYYYYMMDD(message.created_at)}
             <span className="notice small"> at {getTimeAsHHMM(message.created_at)}</span></em>            
         </p>

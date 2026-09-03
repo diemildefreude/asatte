@@ -37,7 +37,7 @@
     --true-black-gradient: linear-gradient(45deg, #000000ff 0%, #11111197 60%);
     --yellow-gradient: linear-gradient(45deg, #fa6400 0%, var(--yellow) 60%);
     --carousel-gradient: linear-gradient(110deg, rgba(0, 0, 0, 0) 0%, #000000 50% ,rgba(0, 0, 0, 0) 100%);
-    --paper-gradient: linear-gradient(45deg, rgb(233, 230, 230) 0%, #fff4e1 60%);
+    --paper-gradient: linear-gradient(45deg, rgb(227, 227, 227) 0%, #fff4e1 100%);
     /*~~~THEME GRADIENTS~~~*/
     --indigo-gradient: linear-gradient(45deg, #0000ff 0%, var(--dark-purple) 70%);
     --sunset-gradient: linear-gradient(45deg,#55008d 40%, var(--orange) 100%);
@@ -91,7 +91,7 @@ blockquote
 {
     border-left: 3px solid #ccc; 
     padding-left: 10px; 
-    color: var(--grey-yellow);
+    color: var(--blue);
 }
 /* Hide the scrollbar without affecting the layout */
 body.modal-open 

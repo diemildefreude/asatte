@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { LoginType } from '../../utils/helpers';
+import { LoginType, PageTheme } from '../../utils/helpers';
 import { Link, router, usePage, useForm } from '@inertiajs/react';
 import { getErrorMessage } from '../../utils/helpers';
 import AvatarSetter from "./AvatarSetter";
@@ -19,6 +19,7 @@ function EditProfile()
         location: '',
         show_email_in_profile: false,
         accepts_emails: true,
+        theme: 'default',
     });
 
     const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -28,6 +29,7 @@ function EditProfile()
     const [locationField, setLocationField] = useState('');
     const [showEmailInProfile, setShowEmailInProfile] = useState(false);
     const [acceptsEmails, setAcceptsEmails] = useState(true);
+    const [theme, setTheme] = useState('default');
     const [editingField, setEditingField] = useState(null);
 
 
@@ -47,11 +49,13 @@ function EditProfile()
         setLocationField(user.location || '');
         setShowEmailInProfile(!!user.show_email_in_profile);
         setAcceptsEmails(!!user.accepts_emails);
+        setTheme(user.theme || 'default');
         setData({
             websites: userWebsites,
             location: user.location || '',
             show_email_in_profile: !!user.show_email_in_profile,
             accepts_emails: !!user.accepts_emails,
+            theme: user.theme || 'default',
         });
     }, [user]);
 
@@ -87,6 +91,7 @@ function EditProfile()
             location: locationField,
             show_email_in_profile: showEmailInProfile,
             accepts_emails: acceptsEmails,
+            theme: theme,
         };
 
         router.post('/update-profile', currentData, 
@@ -174,6 +179,26 @@ function EditProfile()
                     onChange={(e) => {setHasChanges(e.target.checked !== !!user.accepts_emails); setAcceptsEmails(e.target.checked);}}
                     disabled={!user?.is_email_verified || processing}
                 />
+                <div className="theme-selector-details">
+                    <summary className="main-label">theme</summary>
+                    <div className="theme-options-grid">
+                        {Object.entries(PageTheme).map(([key, value]) => (
+                            <button
+                                key={value}
+                                type="button"
+                                className={`theme-option-square ${value} ${theme === value ? 'active' : ''}`}
+                                title={key.toLowerCase()}
+                                disabled={!user?.is_email_verified || processing}
+                                onClick={() => {
+                                    setHasChanges(value !== (user?.theme || 'default'));
+                                    setTheme(value);
+                                    setData('theme', value);
+                                }}
+                            >
+                            </button>
+                        ))}
+                    </div>
+                </div>
                 <div className="flex-row">
                     <div className="button-container">
                         <button onClick={handleLogoutSubmit} disabled={processing || isLoggingOut}>log out</button>

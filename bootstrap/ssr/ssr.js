@@ -647,7 +647,7 @@ function Header() {
               onSubmit: handleSearch,
               className: searchClasses,
               children: [
-                /* @__PURE__ */ jsx(
+                /* @__PURE__ */ jsx("div", { className: "search-input-container", children: /* @__PURE__ */ jsx(
                   "input",
                   {
                     id: "search",
@@ -660,7 +660,7 @@ function Header() {
                     ref: searchInputRef,
                     "aria-label": "search"
                   }
-                ),
+                ) }),
                 /* @__PURE__ */ jsx("button", { type: "submit", tabIndex: "-1", "aria-label": "Submit search", children: /* @__PURE__ */ jsx("i", { className: "fa-solid fa-magnifying-glass", "aria-hidden": "true" }) })
               ]
             }
@@ -3186,7 +3186,8 @@ function EditProfile() {
     websites: [],
     location: "",
     show_email_in_profile: false,
-    accepts_emails: true
+    accepts_emails: true,
+    theme: "default"
   });
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
@@ -3194,6 +3195,7 @@ function EditProfile() {
   const [locationField, setLocationField] = useState("");
   const [showEmailInProfile, setShowEmailInProfile] = useState(false);
   const [acceptsEmails, setAcceptsEmails] = useState(true);
+  const [theme, setTheme] = useState("default");
   const [editingField, setEditingField] = useState(null);
   useEffect(() => {
     if (!user) return;
@@ -3207,11 +3209,13 @@ function EditProfile() {
     setLocationField(user.location || "");
     setShowEmailInProfile(!!user.show_email_in_profile);
     setAcceptsEmails(!!user.accepts_emails);
+    setTheme(user.theme || "default");
     setData({
       websites: userWebsites,
       location: user.location || "",
       show_email_in_profile: !!user.show_email_in_profile,
-      accepts_emails: !!user.accepts_emails
+      accepts_emails: !!user.accepts_emails,
+      theme: user.theme || "default"
     });
   }, [user]);
   const handleEditClick = useCallback((fieldName) => {
@@ -3240,7 +3244,8 @@ function EditProfile() {
       websites: websitesField,
       location: locationField,
       show_email_in_profile: showEmailInProfile,
-      accepts_emails: acceptsEmails
+      accepts_emails: acceptsEmails,
+      theme
     };
     router.post(
       "/update-profile",
@@ -3346,6 +3351,24 @@ function EditProfile() {
           disabled: !(user == null ? void 0 : user.is_email_verified) || processing
         }
       ),
+      /* @__PURE__ */ jsxs("div", { className: "theme-selector-details", children: [
+        /* @__PURE__ */ jsx("summary", { className: "main-label", children: "theme" }),
+        /* @__PURE__ */ jsx("div", { className: "theme-options-grid", children: Object.entries(PageTheme).map(([key, value]) => /* @__PURE__ */ jsx(
+          "button",
+          {
+            type: "button",
+            className: `theme-option-square ${value} ${theme === value ? "active" : ""}`,
+            title: key.toLowerCase(),
+            disabled: !(user == null ? void 0 : user.is_email_verified) || processing,
+            onClick: () => {
+              setHasChanges(value !== ((user == null ? void 0 : user.theme) || "default"));
+              setTheme(value);
+              setData("theme", value);
+            }
+          },
+          value
+        )) })
+      ] }),
       /* @__PURE__ */ jsxs("div", { className: "flex-row", children: [
         /* @__PURE__ */ jsxs("div", { className: "button-container", children: [
           /* @__PURE__ */ jsx("button", { onClick: handleLogoutSubmit, disabled: processing || isLoggingOut, children: "log out" }),
@@ -6860,7 +6883,7 @@ function UserProfile({ user: profileUserProp }) {
         title: `${username}'s profile`
       }
     ),
-    /* @__PURE__ */ jsxs("div", { className: "heading-profile-container public-profile sunset", children: [
+    /* @__PURE__ */ jsxs("div", { className: `heading-profile-container public-profile ${(profileUser == null ? void 0 : profileUser.theme) && profileUser.theme !== "default" ? profileUser.theme : ""}`, children: [
       /* @__PURE__ */ jsx("div", { className: "centered-content vert-1rem", children: /* @__PURE__ */ jsx("h1", { children: username }) }),
       profileUser ? /* @__PURE__ */ jsxs("div", { className: "profile-boxes-container", children: [
         /* @__PURE__ */ jsxs("div", { className: "main-info-box yellow-gradient-background sticky", children: [

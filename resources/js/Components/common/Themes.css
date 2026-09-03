@@ -226,10 +226,10 @@ body:has(.post.bubblegum, .public-profile.bubblegum) .article-text img
 }
 @media (min-width: 800px)
 {
-    /* body:has(.post.bubblegum, .public-profile.bubblegum) nav .user-link .avatar-container .round-image 
+    body:has(.post.bubblegum, .public-profile.bubblegum) nav .user-link .avatar-container .round-image 
     {
         border-color: var(--bright-blue);
-    } */
+    }
     body:has(.post.bubblegum, .public-profile.bubblegum) .nav-halves
     {
         position: relative;

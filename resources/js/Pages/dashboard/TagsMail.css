@@ -10,12 +10,16 @@
     flex-direction: column;
     gap: 0.2em;
 }
+.message-info
+{
+    padding-left: 0.1em;
+}
 .message-text
 {
     padding: 0.2em 0.5em 0.5em;
     background: var(--paper-gradient);
     color: var(--dark-purple);
-    border: 1px solid var(--strawberry);
+    border: 1px solid var(--orange);
     display: flow-root;
 }
 .message-text a, .message-text .notice

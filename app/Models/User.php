@@ -112,6 +112,7 @@ class User extends Authenticatable implements OAuthenticatable, MustVerifyEmail
         'bio',
         'bio_image_urls',
         'show_email_in_profile',
+        'theme',
         'accepted_terms_version'
     ];
 
