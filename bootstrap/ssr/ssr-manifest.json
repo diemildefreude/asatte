@@ -24,6 +24,7 @@
   "resources/js/Components/common/ProfileItem.jsx": [],
   "resources/js/Components/common/RichTextEditor.css": [],
   "resources/js/Components/common/RichTextEditor.jsx": [],
+  "resources/js/Components/common/Themes.css": [],
   "resources/js/Components/common/Tile.css": [],
   "resources/js/Components/common/Tile.jsx": [],
   "resources/js/Components/common/TileCarousel.jsx": [],

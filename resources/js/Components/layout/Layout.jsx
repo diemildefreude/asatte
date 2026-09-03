@@ -76,6 +76,7 @@ function Layout({children, isDashboard=false, classes=""})
 
     return (
     <>
+        <a id="top-focus-anchor" href="#" className="sr-only" tabIndex="-1"></a>
         <Header></Header>
         <InertiaAuthBridge />
         <div className={classNames}>

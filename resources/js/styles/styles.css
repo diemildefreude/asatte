@@ -32,10 +32,12 @@
     --teal-gradient: linear-gradient(45deg, #003426 0%, #33c5c2 70%);
     --footer-gradient: linear-gradient(10deg, #000000ff 20%, #00000000 60%);
     --dark-blue-gradient: linear-gradient(45deg, var(--dark-blue) 0%, #1fbcdb 60%);
-    --black-gradient: linear-gradient(45deg, #000000ff 0%, #0d003397 60%);
+    --black-gradient: linear-gradient(45deg, #000000ff 0%, #0d003397 60%);    
+    --white-gradient: linear-gradient(45deg, #ffffffff 0%, #ffffff97 60%);    
+    --true-black-gradient: linear-gradient(45deg, #000000ff 0%, #11111197 60%);
     --yellow-gradient: linear-gradient(45deg, #fa6400 0%, var(--yellow) 60%);
     --carousel-gradient: linear-gradient(110deg, rgba(0, 0, 0, 0) 0%, #000000 50% ,rgba(0, 0, 0, 0) 100%);
-    --paper-gradient: linear-gradient(45deg, rgb(233, 230, 230) 0%, #efd9b6 60%);
+    --paper-gradient: linear-gradient(45deg, rgb(233, 230, 230) 0%, #fff4e1 60%);
     /*~~~THEME GRADIENTS~~~*/
     --indigo-gradient: linear-gradient(45deg, #0000ff 0%, var(--dark-purple) 70%);
     --sunset-gradient: linear-gradient(45deg,#55008d 40%, var(--orange) 100%);
@@ -159,6 +161,10 @@ p iframe
 .centered-content.top-2rem
 {
     margin: 2rem 0 0;
+}
+.centered-content.top-1rem
+{
+    margin: 1rem 0 0;
 }
 .centered-content.bottom-1rem
 {
@@ -311,7 +317,7 @@ p iframe
 }
 .yellow-gradient-background
 {
-    background: var(--yellow-gradient);
+    background: var(--dark-blue-gradient);
 }
 .lavender-gradient-background
 {
@@ -608,7 +614,11 @@ button, .link-button
 .main-info-box.yellow-gradient-background h2,
 .main-info-box.yellow-gradient-background h1
 {
-    color: var(--navy);
+    color: var(--yellow);
+}
+.main-info-box.yellow-gradient-background .profile-avatar-container
+{
+    border-color: var(--yellow);
 }
 .inline-form-field input
 {

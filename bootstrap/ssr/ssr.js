@@ -614,7 +614,6 @@ function Header() {
     [searchTerm]
   );
   return /* @__PURE__ */ jsxs("header", { ref: headerRef, children: [
-    /* @__PURE__ */ jsx("a", { id: "top-focus-anchor", href: "#", className: "sr-only", "aria-hidden": "true" }),
     /* @__PURE__ */ jsx("a", { href: "#main-content", className: "skip-link", children: "skip to main content" }),
     /* @__PURE__ */ jsx("div", { className: buttonClasses, children: /* @__PURE__ */ jsx(
       "button",
@@ -813,6 +812,7 @@ function Layout({ children, isDashboard = false, classes = "" }) {
     };
   }, []);
   return /* @__PURE__ */ jsxs(Fragment, { children: [
+    /* @__PURE__ */ jsx("a", { id: "top-focus-anchor", href: "#", className: "sr-only", tabIndex: "-1" }),
     /* @__PURE__ */ jsx(Header, {}),
     /* @__PURE__ */ jsx(InertiaAuthBridge, {}),
     /* @__PURE__ */ jsx("div", { className: classNames, children: isDashboard ? children : /* @__PURE__ */ jsx("main", { id: "main-content", children }) }),
@@ -6860,7 +6860,7 @@ function UserProfile({ user: profileUserProp }) {
         title: `${username}'s profile`
       }
     ),
-    /* @__PURE__ */ jsxs("div", { className: "heading-profile-container public-profile", children: [
+    /* @__PURE__ */ jsxs("div", { className: "heading-profile-container public-profile sunset", children: [
       /* @__PURE__ */ jsx("div", { className: "centered-content vert-1rem", children: /* @__PURE__ */ jsx("h1", { children: username }) }),
       profileUser ? /* @__PURE__ */ jsxs("div", { className: "profile-boxes-container", children: [
         /* @__PURE__ */ jsxs("div", { className: "main-info-box yellow-gradient-background sticky", children: [
@@ -6957,52 +6957,52 @@ function UserProfile({ user: profileUserProp }) {
         /* @__PURE__ */ jsxs("div", { className: "rte-container black-gradient-background", children: [
           /* @__PURE__ */ jsx("div", { className: "centered-header-box", children: /* @__PURE__ */ jsx("div", { className: "centered-content top-2rem", children: /* @__PURE__ */ jsx("h2", { children: "bio" }) }) }),
           /* @__PURE__ */ jsx(
-            "div",
+            "article",
             {
               className: "article-text padded",
               dangerouslySetInnerHTML: { __html: sanitizeRichHtml(hydrateEditorImagePaths(profileUser.bio, appUrl)) }
             }
           )
         ] })
-      ] }) : /* @__PURE__ */ jsx("p", { className: "centered-content", children: " loading user..." })
-    ] }),
-    profileUser ? /* @__PURE__ */ jsxs(Fragment, { children: [
-      /* @__PURE__ */ jsx("h2", { className: "centered-content padded", children: `${username}'s posts` }),
-      /* @__PURE__ */ jsx(
-        AutoloadTilesContainer,
-        {
-          screenSize,
-          initialPosts: props.initialPosts || [],
-          loadOnScroll: false,
-          maxItems: {
-            [ScreenSize.Nothing]: 0,
-            [ScreenSize.Narrow]: 3,
-            [ScreenSize.Small]: 6,
-            [ScreenSize.Mid]: 8,
-            [ScreenSize.Wide]: 12
+      ] }) : /* @__PURE__ */ jsx("p", { className: "centered-content", children: " loading user..." }),
+      profileUser ? /* @__PURE__ */ jsxs(Fragment, { children: [
+        /* @__PURE__ */ jsx("h2", { className: "centered-content top-1rem", children: `${username}'s posts` }),
+        /* @__PURE__ */ jsx(
+          AutoloadTilesContainer,
+          {
+            screenSize,
+            initialPosts: props.initialPosts || [],
+            loadOnScroll: false,
+            maxItems: {
+              [ScreenSize.Nothing]: 0,
+              [ScreenSize.Narrow]: 3,
+              [ScreenSize.Small]: 6,
+              [ScreenSize.Mid]: 8,
+              [ScreenSize.Wide]: 12
+            },
+            userId: profileUser == null ? void 0 : profileUser.id,
+            fetchOrder: FetchOrder.Descending
           },
-          userId: profileUser == null ? void 0 : profileUser.id,
-          fetchOrder: FetchOrder.Descending
-        },
-        profileUser == null ? void 0 : profileUser.id
-      ),
-      /* @__PURE__ */ jsx("div", { className: "centered-content", children: /* @__PURE__ */ jsx(
-        Link,
-        {
-          href: `/${username}/posts`,
-          children: "view all"
-        }
-      ) }),
-      /* @__PURE__ */ jsx("div", { className: "page-section comment-section", style: { marginTop: "2rem" }, children: /* @__PURE__ */ jsx(
-        CommentSection,
-        {
-          comments: profileComments,
-          apiRoutePrefix: `/users/${profileUser.id}`,
-          canDeleteAnyComment,
-          isUserProfile: true
-        }
-      ) })
-    ] }) : null
+          profileUser == null ? void 0 : profileUser.id
+        ),
+        /* @__PURE__ */ jsx("div", { className: "centered-content", children: /* @__PURE__ */ jsx(
+          Link,
+          {
+            href: `/${username}/posts`,
+            children: "view all"
+          }
+        ) }),
+        /* @__PURE__ */ jsx("div", { className: "page-section comment-section", style: { marginTop: "2rem" }, children: /* @__PURE__ */ jsx(
+          CommentSection,
+          {
+            comments: profileComments,
+            apiRoutePrefix: `/users/${profileUser.id}`,
+            canDeleteAnyComment,
+            isUserProfile: true
+          }
+        ) })
+      ] }) : null
+    ] })
   ] });
 }
 UserProfile.layout = (page) => /* @__PURE__ */ jsx(Layout, { children: page });

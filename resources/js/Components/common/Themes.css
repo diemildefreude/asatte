@@ -16,17 +16,38 @@ body:has(.post.sunset, .public-profile.sunset) .main-info-box
 {
     background: var(--yellow-gradient);
 }
+body:has(.post.sunset, .public-profile.sunset) .main-info-box .profile-avatar-container
+{
+    border-color: var(--dark-purple);
+}
+body:has(.post.sunset, .public-profile.sunset) .yellow-gradient-background.main-info-box label,
+body:has(.post.sunset, .public-profile.sunset) .yellow-gradient-background.main-info-box a,
+body:has(.post.sunset, .public-profile.sunset) .yellow-gradient-background.main-info-box span:not(.member-type span),
+body:has(.public-profile.sunset) .main-info-box .button-link:enabled
+{
+    color: var(--dark-purple);
+}
 body:has(.post.sunset, .public-profile.sunset) .main-info-box, body:has(.post.sunset, .public-profile.sunset) .post-date
 {
     color: var(--dark-purple);
 }
-body:has(.post.sunset, .public-profile.sunset) .content .user-link span
+body:has(.post.sunset, .public-profile.sunset) .content .user-link span,
+body:has(.post.sunset, .public-profile.sunset) .content .user-link:hover span
 {
     color: var(--bright-blue);
 }
-body:has(.post.sunset, .public-profile.sunset) .main-info-box .user-link span
+body:has(.post.sunset, .public-profile.sunset) .main-info-box .user-link span,
+body:has(.post.sunset, .public-profile.sunset) .main-info-box .user-link:hover span
 {
     color: var(--dark-purple);
+}
+body:has(.post.sunset, .public-profile.sunset) .user-link:not(.nav-item) .round-image 
+{
+    border-color: var(--bright-blue);
+}
+body:has(.post.sunset, .public-profile.sunset) .main-info-box .user-link .round-image 
+{
+    border-color: var(--dark-purple);
 }
 body:has(.post.sunset, .public-profile.sunset) blockquote
 {
@@ -41,9 +62,17 @@ body:has(.post.sunset, .public-profile.sunset) .slider-end-left, body:has(.post.
     --solid-color: rgb(183, 248, 255);
     --faded-color: rgba(183, 248, 255, 0);
 }
-body:has(.post.sunset, .public-profile.sunset) .user-link:not(.nav-item) .avatar-container .round-image 
+body:has(.post.sunset, .public-profile.sunset) .post-link, body:has(.post.sunset, .public-profile.sunset) .info-item .button-link:enabled
 {
-    border-color: var(--dark-purple);
+    color: var(--bright-blue);
+}
+body:has(.post.sunset, .public-profile.sunset) .main-image-container .like-button:enabled
+{
+    color: var(--bright-blue);
+}
+body:has(.post.sunset, .public-profile.sunset) .main-image-container .like-button:enabled
+{
+    color: var(--bright-blue);
 }
 @media (min-width: 800px)
 {
@@ -53,15 +82,42 @@ body:has(.post.sunset, .public-profile.sunset) .user-link:not(.nav-item) .avatar
     }
     body:has(.post.sunset, .public-profile.sunset) nav .user-link:hover .avatar-container .round-image 
     {
-        border-color: var(--navy);
+        border-color: var(--dark-purple);
+    }
+    body:has(.post.sunset, .public-profile.sunset) nav .nav-item:hover,
+    body:has(.post.sunset, .public-profile.sunset) nav .nav-item:hover i
+    {
+        color: var(--dark-purple);
     }
     body:has(.post.sunset, .public-profile.sunset) .nav-halves
     {
-        background: linear-gradient(45deg, #33005500 calc(50vw - (100vw - 100%)), #cd6c3485 calc(75vw - (100vw - 100%)), rgb(247, 160, 0) calc(100vw - (100vw - 100%)));
+        position: relative;
+        background: none;
     }
-    body:has(.post.sunset, .public-profile.sunset) .nav-item, body:has(.post.sunset, .public-profile.sunset) nav button
+    body:has(.post.sunset, .public-profile.sunset) .nav-halves::before
     {
-        color: var(--navy);
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 200lvh;
+        background: var(--sunset-gradient);
+        z-index: -1;
+        pointer-events: none;
+        clip-path: polygon(0 0, 100% 0, 100% var(--header-height-wide, 60px), 0 var(--header-height-wide, 60px));
+        -webkit-mask-image: linear-gradient(45deg,transparent 0%, transparent 75%, black 100%);
+        mask-image: linear-gradient(45deg,transparent 0%, transparent 75%, black 100%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    body:has(.post.sunset, .public-profile.sunset) header.scrolled-down .nav-halves::before
+    {
+        opacity: 1;
+    }
+    body:has(.post.sunset, .public-profile.sunset) .nav-item, body:has(.post.sunset, .public-profile.sunset) nav button:enabled
+    {
+        color: var(--bright-blue);
     }
     body:has(.post.sunset, .public-profile.sunset) .user-link span
     {
@@ -81,20 +137,43 @@ html:has(.post.bubblegum, .public-profile.bubblegum)
 {
     scrollbar-color: var(--bright-blue) rgb(208, 132, 255);
 }
+body:has(.public-profile.bubblegum) .main-info-box label.field-name,
+body:has(.public-profile.bubblegum) .main-info-box .inline-form-field span, 
+body:has(.public-profile.bubblegum) .main-info-box a, 
+body:has(.public-profile.bubblegum) .main-info-box a span,
+body:has(.public-profile.bubblegum) .main-info-box a i,
+body:has(.public-profile.bubblegum) .main-info-box .button-link:enabled
+{
+    color: var(--bright-blue);
+}
+body:has(.public-profile.bubblegum) .main-info-box .profile-avatar-container
+{
+    border-color: var(--blue);
+}
 body:has(.post.bubblegum, .public-profile.bubblegum) .nav-logo-desktop svg
 {
     color: var(--bright-blue);
     --logo-secondary-color: #ded8ff;
 }
-body:has(.post.bubblegum, .public-profile.bubblegum) .post-link, body:has(.post.bubblegum, .public-profile.bubblegum) .info-item .button-link
+body:has(.public-profile.bubblegum) .rte-container
+{
+    background: var(--white-gradient);
+    color: var(--navy);
+}
+body:has(.post.bubblegum, .public-profile.bubblegum) .post-link, body:has(.post.bubblegum, .public-profile.bubblegum) .info-item .button-link:enabled
 {
     color: var(--bright-blue);
 }
 body:has(.post.bubblegum, .public-profile.bubblegum) .main-info-box
 {
-    background: linear-gradient(45deg, var(--dark-purple) 0%,  rgb(187, 113, 248) 60%);        
+    background: linear-gradient(45deg, var(--dark-purple) 0%,  rgb(187, 113, 248) 60%);       
+    color: white; 
 }
-body:has(.post.bubblegum, .public-profile.bubblegum) .main-info-box, body:has(.post.bubblegum, .public-profile.bubblegum) .post-date
+body:has(.post.bubblegum, .public-profile.bubblegum) .main-info-box, 
+body:has(.post.bubblegum, .public-profile.bubblegum) .post-date,
+body:has(.post.bubblegum, .public-profile.bubblegum) .main-info-box, 
+body:has(.post.bubblegum, .public-profile.bubblegum) .post-date
+body:has(.post.bubblegum, .public-profile.bubblegum) label.field-name
 {
     color: white;
 }
@@ -102,20 +181,20 @@ body:has(.post.bubblegum, .public-profile.bubblegum) .user-link:not(.nav-item) s
 {
     color: var(--bright-blue);
 }
-body:has(.post.bubblegum, .public-profile.bubblegum) .comment .user-link span
-{
-    color: var(--dark-purple);
-}
+
 body:has(.post.bubblegum, .public-profile.bubblegum) .notice.small
 {
-    color: var(--dark-blue);
+    color: var(--blue);
 }
 body:has(.post.bubblegum, .public-profile.bubblegum) .statement
 {
     background: var(--transparent-white);
     color: var(--navy);
 }
-body:has(.post.bubblegum, .public-profile.bubblegum) .statement a, body:has(.post.bubblegum, .public-profile.bubblegum) .statement a:link, body:has(.post.bubblegum, .public-profile.bubblegum) .statement a:visited, body:has(.post.bubblegum, .public-profile.bubblegum) .statement .button-link
+body:has(.post.bubblegum, .public-profile.bubblegum) .statement a, 
+body:has(.post.bubblegum, .public-profile.bubblegum) .statement a:link, 
+body:has(.post.bubblegum, .public-profile.bubblegum) .statement a:visited, 
+body:has(.post.bubblegum, .public-profile.bubblegum) .statement .button-link:enabled
 {
     color: var(--dark-blue);
 }
@@ -133,13 +212,13 @@ body:has(.post.bubblegum, .public-profile.bubblegum) .icon
 {
     color: white;
 }
-body:has(.post.bubblegum, .public-profile.bubblegum) .main-image-container .like-button
+body:has(.post.bubblegum, .public-profile.bubblegum) .main-image-container .like-button:enabled
 {
     color: var(--bright-blue);
 }
 body:has(.post.bubblegum, .public-profile.bubblegum) .user-link:not(.nav-item) .avatar-container .round-image 
 {
-    border-color: var(--dark-purple);
+    border-color: var(--bright-blue);
 }
 body:has(.post.bubblegum, .public-profile.bubblegum) .article-text img
 {
@@ -147,31 +226,53 @@ body:has(.post.bubblegum, .public-profile.bubblegum) .article-text img
 }
 @media (min-width: 800px)
 {
-    body:has(.post.bubblegum, .public-profile.bubblegum) nav .user-link .avatar-container .round-image 
+    /* body:has(.post.bubblegum, .public-profile.bubblegum) nav .user-link .avatar-container .round-image 
     {
         border-color: var(--bright-blue);
-    }
+    } */
     body:has(.post.bubblegum, .public-profile.bubblegum) .nav-halves
     {
-        background: linear-gradient(45deg, rgba(0,199,255,0.0) calc(50vw - (100vw - 100%)), rgb(208, 132, 255) calc(100vw - (100vw - 100%)));
+        position: relative;
+        background: none;
     }
-    body:has(.post.bubblegum, .public-profile.bubblegum) .nav-item:hover, body:has(.post.bubblegum, .public-profile.bubblegum) button:hover,
-    body:has(.post.bubblegum, .public-profile.bubblegum) .nav-search-container:hover button,
-    body:has(.post.bubblegum, .public-profile.bubblegum) .content:not(.touch-device) .nav-item:hover, body:has(.post.bubblegum, .public-profile.bubblegum) .content:not(.touch-device) :not(.info-item) button:not(.like-button,):hover
+    body:has(.post.bubblegum, .public-profile.bubblegum) .nav-halves::before
+    {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 200lvh;
+        background: var(--bubblegum-gradient);
+        z-index: -1;
+        pointer-events: none;
+        clip-path: polygon(0 0, 100% 0, 100% var(--header-height-wide, 60px), 0 var(--header-height-wide, 60px));
+        -webkit-mask-image: linear-gradient(to right, transparent 0%, transparent 50%, black 100%);
+        mask-image: linear-gradient(to right, transparent 0%, transparent 50%, black 100%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    body:has(.post.bubblegum, .public-profile.bubblegum) header.scrolled-down .nav-halves::before
+    {
+        opacity: 1;
+    }
+    body:has(.post.bubblegum, .public-profile.bubblegum) .nav-item:hover, body:has(.post.bubblegum, .public-profile.bubblegum) button:enabled:hover,
+    body:has(.post.bubblegum, .public-profile.bubblegum) .nav-search-container:hover button:enabled,
+    body:has(.post.bubblegum, .public-profile.bubblegum) .content:not(.touch-device) .nav-item:hover, body:has(.post.bubblegum, .public-profile.bubblegum) .content:not(.touch-device) :not(.info-item) button:not(.like-button):enabled:hover
     {
         background: linear-gradient(45deg, #ffffffcc 0%, #c1b7fdcc 60%);
-        color: var(--dark-blue);
-        border-color: var(--dark-blue);
+        color: var(--blue);
+        border-color: var(--blue);
     }
     body:has(.post.bubblegum, .public-profile.bubblegum) nav .user-link span
     {
         color: var(--bright-blue);
     }
-    body:has(.post.bubblegum, .public-profile.bubblegum) nav .user-link:hover span
+    body:has(.post.bubblegum, .public-profile.bubblegum) nav .user-link:enabled:hover span
     {
         color: var(--dark-purple);
     }
-    body:has(.post.bubblegum, .public-profile.bubblegum) nav .user-link:hover .avatar-container .round-image 
+    body:has(.post.bubblegum, .public-profile.bubblegum) nav .user-link:enabled:hover .avatar-container .round-image 
     {        
         border-color: var(--dark-purple);
     }
@@ -198,11 +299,11 @@ body:has(.post.noir, .public-profile.noir) .image-link-subcontainer
 {
     border-color: white;
 }
-body:has(.post.noir, .public-profile.noir) .post-link, body:has(.post.noir, .public-profile.noir) .info-item .button-link
+body:has(.post.noir, .public-profile.noir) .post-link, body:has(.post.noir, .public-profile.noir) .info-item .button-link:enabled
 {
     color: white;
 }
-body:has(.post.noir, .public-profile.noir) .like-button i
+body:has(.post.noir, .public-profile.noir) .like-button:enabled i
 {
     -webkit-text-stroke: 1px black;
 }
@@ -246,7 +347,7 @@ body:has(.post.noir, .public-profile.noir) .icon
 {
     color: white;
 }
-body:has(.post.noir, .public-profile.noir) .main-image-container .like-button
+body:has(.post.noir, .public-profile.noir) .main-image-container .like-button:enabled
 {
     color: white;
 }
@@ -260,29 +361,75 @@ body:has(.post.noir, .public-profile.noir) span.notice.small.greyed-out
     color: rgb(207, 207, 207);
     opacity: 1.0;
 }
-body:has(.post.noir, .public-profile.noire) .user-link:not(.nav-item) .avatar-container .round-image 
+body:has(.post.noir, .public-profile.noir) .user-link:not(.nav-item) .avatar-container .round-image 
 {
     border-color: white;
 }
-body:has(.post.noir, .public-profile.noire) .main-info-box .user-link .avatar-container .round-image
+body:has(.post.noir, .public-profile.noir) .main-info-box .user-link .avatar-container .round-image
 {
     border-color: rgb(116, 116, 116);
 }
-body:has(.post.noir, .public-profile.noire) nav .user-link:hover .avatar-container .round-image 
+
+body:has(.public-profile.noir) .inline-form-field label.field-name,
+body:has(.public-profile.noir) .inline-form-field span
+{
+    color: black;
+}
+body:has(.public-profile.noir) .main-info-box a, 
+body:has(.public-profile.noir) .main-info-box a span,
+body:has(.public-profile.noir) .main-info-box a i,
+body:has(.public-profile.noir) .main-info-box .button-link:enabled
+{
+    color: #404040;
+}
+body:has(.public-profile.noir) .rte-container
+{
+    background: var(--true-black-gradient);
+}
+body:has(.post.noir) .article-text img
+{
+    border-color: black;
+}
+body:has(.public-profile.noir) .article-text img
 {
     border-color: white;
 }
 @media (min-width: 800px)
 {
-    body:has(.post.noir, .public-profile.noire) nav .user-link .avatar-container .round-image
+    
+    body:has(.post.noir, .public-profile.noir) nav .user-link .avatar-container .round-image
     {
         border-color: rgb(116, 116, 116);
     }
+    body:has(.post.noir, .public-profile.noir) nav .user-link:hover .avatar-container .round-image 
+    {
+        border-color: white;
+    }
     body:has(.post.noir, .public-profile.noir) .nav-halves
     {
-        background: linear-gradient(45deg, #00000000 calc(50vw - (100vw - 100%)), rgba(170, 170, 170, 0.5) calc(75vw - (100vw - 100%)), rgb(246, 246, 246) calc(100vw - (100vw - 100%)));
-        /* background: var(--noir-gradient);
-        background-attachment: fixed; */
+        position: relative;
+        background: none;
+    }
+    body:has(.post.noir, .public-profile.noir) .nav-halves::before
+    {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 200lvh;
+        background: var(--noir-gradient);
+        z-index: -1;
+        pointer-events: none;
+        clip-path: polygon(0 0, 100% 0, 100% var(--header-height-wide, 60px), 0 var(--header-height-wide, 60px));
+        -webkit-mask-image: linear-gradient(45deg, transparent 0%, transparent 75%, black 100%);
+        mask-image: linear-gradient(45deg, transparent 0%, transparent 75%, black 100%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    body:has(.post.noir, .public-profile.noir) header.scrolled-down .nav-halves::before
+    {
+        opacity: 1;
     }
     body:has(.post.noir, .public-profile.noir) nav .user-link span
     {
@@ -292,16 +439,21 @@ body:has(.post.noir, .public-profile.noire) nav .user-link:hover .avatar-contain
     {
         color: white;
     }
-    body:has(.post.noir, .public-profile.noir) .nav-item, body:has(.post.noir, .public-profile.noir) nav button
+    body:has(.post.noir, .public-profile.noir) .nav-item, body:has(.post.noir, .public-profile.noir) nav button:enabled
     {
         color: black;
     }
-    body:has(.post.noir, .public-profile.noir) .nav-item:hover, body:has(.post.noir, .public-profile.noir) button:hover,
-    body:has(.post.noir, .public-profile.noir) .nav-search-container:hover button,
-    body:has(.post.noir, .public-profile.noir) .content:not(.touch-device) .nav-item:hover, body:has(.post.noir, .public-profile.noir) .content:not(.touch-device) button:not(.like-button):hover
+    body:has(.post.noir, .public-profile.noir) .nav-item:hover, body:has(.post.noir, .public-profile.noir) button:enabled:hover,
+    body:has(.post.noir, .public-profile.noir) .nav-search-container:hover button:enabled,
+    body:has(.post.noir, .public-profile.noir) .content:not(.touch-device) .nav-item:hover, body:has(.post.noir, .public-profile.noir) .content:not(.touch-device) button:not(.like-button):enabled:hover
     {
         background: var(--noir-gradient);
         color: white;
         border-color: black;
+    }
+    body:has(.post.noir, .public-profile.noir) .content:not(.touch-device) .main-info-box button:not(.like-button):enabled:hover
+    {
+        background: transparent;
+        color: black;
     }
 }

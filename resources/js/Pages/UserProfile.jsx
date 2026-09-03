@@ -196,7 +196,7 @@ function UserProfile({ user: profileUserProp })
                                     <h2>bio</h2>                    
                                 </div>
                             </div>       
-                            <div
+                            <article
                                 className="article-text padded"
                                 dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(hydrateEditorImagePaths(profileUser.bio, appUrl))}}
                             />                
@@ -207,10 +207,9 @@ function UserProfile({ user: profileUserProp })
                     <p className="centered-content"> loading user...</p>
                 )
             }
-        </div>
-        {
+            {
             profileUser ? (<>
-                <h2 className='centered-content padded'>{`${username}'s posts`}</h2>
+                <h2 className='centered-content top-1rem'>{`${username}'s posts`}</h2>
                 <AutoloadTilesContainer
                     screenSize={screenSize}
                     initialPosts={props.initialPosts || []}
@@ -243,6 +242,7 @@ function UserProfile({ user: profileUserProp })
                 </div>
             </>):(null)
         }
+        </div>        
     </>);
 }
 

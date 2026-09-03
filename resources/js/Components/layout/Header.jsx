@@ -134,8 +134,6 @@ function Header()
 
     return (
         <header ref={headerRef}>
-            {/* Dead anchor to catch auto-focus on page load/refresh */}
-            <a id="top-focus-anchor" href="#" className="sr-only" aria-hidden="true"></a>
             <a href="#main-content" className="skip-link">skip to main content</a>
             <div className={buttonClasses}>
                 <button
@@ -171,11 +169,13 @@ function Header()
                         onFocus={() => searchInputRef.current?.focus()}
                         onSubmit={handleSearch} 
                         className={searchClasses}>
-                        <input id="search" name="search" className="nav-search" type="text" placeholder="search" 
-                            onChange={e => setSearchTerm(e.target.value)} value={searchTerm}
-                            ref={searchInputRef}
-                            aria-label="search"
-                        />
+                        <div className="search-input-container">                            
+                            <input id="search" name="search" className="nav-search" type="text" placeholder="search" 
+                                onChange={e => setSearchTerm(e.target.value)} value={searchTerm}
+                                ref={searchInputRef}
+                                aria-label="search"
+                            />
+                        </div>
                         <button type="submit" tabIndex="-1" aria-label="Submit search">
                             <i className="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
                         </button>
