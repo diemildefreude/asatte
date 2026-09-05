@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import './Layout.css';
 import Header from './Header';
+import { Link, usePage, router } from '@inertiajs/react';
 import InertiaAuthBridge from '../common/InertiaAuthBridge';
-import { usePage, router } from '@inertiajs/react';
 import LogoSpikedClean from './LogoSpikedClean';
 
 function Layout({children, isDashboard=false, classes=""})
@@ -92,7 +92,9 @@ function Layout({children, isDashboard=false, classes=""})
             <div className="footer-background"></div>
             <div className="copyright">
                 <small>{`${APP_NAME} © 2026+`}</small>
-                <LogoSpikedClean className="footer-logo" alt={`${props.app_name} logo`}/>
+                <Link href="/neighbors" title="net art neighbors & resources">
+                    <LogoSpikedClean className="footer-logo" alt={`${props.app_name} logo`}/>
+                </Link>
             </div> 
         </footer>
         </>

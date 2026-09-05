@@ -91,8 +91,8 @@ function RichTextEditor({ onChange, value, quotedMessage, onQuoteApplied, placeh
           { title: "New window", value: "_blank" }
         ],
         default_link_target: "_blank",
-        plugins: "image link media",
-        toolbar: disabled ? false : ["styles | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist | image media link"],
+        plugins: "lists image link media",
+        toolbar: disabled ? false : ["styles | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist blockquote | image media link"],
         extended_valid_elements: "blockquote[class|data-instgrm-permalink|data-instgrm-version|data-instgrm-captioned|data-instgrm-payload-id|data-video-id|cite|data-theme|data-dnt|data-media-max-width],iframe[src|title|width|height|frameborder|allowfullscreen|scrolling|allow|style]",
         toolbar_mode: "wrap",
         mobile: {
@@ -820,7 +820,7 @@ function Layout({ children, isDashboard = false, classes = "" }) {
       /* @__PURE__ */ jsx("div", { className: "footer-background" }),
       /* @__PURE__ */ jsxs("div", { className: "copyright", children: [
         /* @__PURE__ */ jsx("small", { children: `${APP_NAME} © 2026+` }),
-        /* @__PURE__ */ jsx(LogoSpikedClean, { className: "footer-logo", alt: `${props.app_name} logo` })
+        /* @__PURE__ */ jsx(Link, { href: "/neighbors", title: "net art neighbors & resources", children: /* @__PURE__ */ jsx(LogoSpikedClean, { className: "footer-logo", alt: `${props.app_name} logo` }) })
       ] })
     ] })
   ] });
@@ -1021,7 +1021,7 @@ function handleResizeWithCanvas(img, mimeType, isGallery = false) {
     ctx.drawImage(img, 0, 0, width, height);
     const targetSize = 2e3 * 1024;
     let type = mimeType;
-    if (type === "image/png" || type === "image/gif") {
+    if (type === "image/png") {
       type = "image/jpeg";
     }
     let quality = 0.8;
@@ -1144,9 +1144,18 @@ async function processEditorImages(htmlString) {
   const doc = parser.parseFromString(htmlString, "text/html");
   const images = doc.querySelectorAll("img");
   for (const img of images) {
-    if (img.src.startsWith("data:image/")) {
+    if (img.src.startsWith("data:image/") || img.src.startsWith("blob:")) {
+      if (img.src.startsWith("data:image/gif")) {
+        continue;
+      }
       const response = await fetch(img.src);
       const blob = await response.blob();
+      if (blob.type === "image/gif") {
+        if (img.src.startsWith("blob:")) {
+          img.src = await blobToBase64(blob);
+        }
+        continue;
+      }
       const resizedBlob = await resizeImage(blob);
       img.src = await blobToBase64(resizedBlob);
     }
@@ -2064,7 +2073,7 @@ function DashboardLayout({ currentTab, headerText, children, headerHasMargin = t
   ] }) });
 }
 DashboardLayout.layout = (page) => /* @__PURE__ */ jsx(Layout, { isDashboard: true, children: page });
-const __vite_glob_0_22 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const __vite_glob_0_23 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: DashboardLayout
 }, Symbol.toStringTag, { value: "Module" }));
@@ -3042,7 +3051,7 @@ function AvatarSetter({ user }) {
     ] })
   ] });
 }
-const __vite_glob_0_20 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const __vite_glob_0_21 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: AvatarSetter
 }, Symbol.toStringTag, { value: "Module" }));
@@ -3405,7 +3414,7 @@ function EditProfile() {
     ] }) })
   ] });
 }
-const __vite_glob_0_26 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const __vite_glob_0_27 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: EditProfile
 }, Symbol.toStringTag, { value: "Module" }));
@@ -3503,7 +3512,7 @@ function EditBio() {
     )
   ] });
 }
-const __vite_glob_0_24 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const __vite_glob_0_25 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: EditBio
 }, Symbol.toStringTag, { value: "Module" }));
@@ -4980,6 +4989,125 @@ const __vite_glob_0_7 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.def
   __proto__: null,
   default: Login
 }, Symbol.toStringTag, { value: "Module" }));
+function Neighbors({ neighbors, status }) {
+  var _a;
+  const { props } = usePage();
+  const flash = (props == null ? void 0 : props.flash) || {};
+  const user = (_a = props == null ? void 0 : props.auth) == null ? void 0 : _a.user;
+  const isWebmaster = user ? user.member_type == MemberType.Webmaster : false;
+  const appUrl = props.app_url;
+  const initialHydratedStatement = status === "neighbors_page_fetched" && (neighbors == null ? void 0 : neighbors.statement) ? hydrateEditorImagePaths(neighbors.statement, appUrl) : null;
+  const [isInEditMode, setIsInEditMode] = useState(false);
+  const [hasStatementChanged, setHasStatementChanged] = useState(false);
+  const [statement, setStatement] = useState(initialHydratedStatement);
+  const [initialStatement, setInitialStatement] = useState(initialHydratedStatement);
+  const [dataLoaded, setDataLoaded] = useState(true);
+  const { data, setData, post, processing, errors, setError, clearErrors } = useForm({
+    statement: initialHydratedStatement || ""
+  });
+  const handleStatementChange = useCallback((newStatement) => {
+    setStatement(newStatement);
+    setHasStatementChanged(initialStatement !== newStatement);
+  }, [initialStatement]);
+  const handleStatementUpdate = useCallback(async (e) => {
+    e.preventDefault();
+    const dehydratedStatement = dehydrateEditorImagePaths(statement, appUrl);
+    const statementWithResizedImages = await processEditorImages(dehydratedStatement);
+    setData("statement", statementWithResizedImages);
+    post("/update-neighbors", {
+      preserveState: false,
+      preserveScroll: true,
+      onSuccess: (page) => {
+        var _a2;
+        const newNeighbors = ((_a2 = page.props) == null ? void 0 : _a2.neighbors) ?? null;
+        if (newNeighbors && newNeighbors.statement) {
+          const hydratedStatement = hydrateEditorImagePaths(newNeighbors.statement, appUrl);
+          setInitialStatement(hydratedStatement);
+          setStatement(hydratedStatement);
+        }
+        setHasStatementChanged(false);
+        setIsInEditMode(false);
+        setDataLoaded(true);
+      },
+      onError: (err) => {
+        const displayErrorMessage = getErrorMessage(err);
+        setError("general", displayErrorMessage.trim());
+      }
+    });
+  }, [statement, post, setData, setError]);
+  useEffect(() => {
+    const hydrated = status === "neighbors_page_fetched" && (neighbors == null ? void 0 : neighbors.statement) ? hydrateEditorImagePaths(neighbors.statement, appUrl) : null;
+    setStatement(hydrated);
+    setInitialStatement(hydrated);
+    setData("statement", hydrated || "");
+    setHasStatementChanged(false);
+  }, [neighbors, status]);
+  useEffect(() => {
+    if (!isInEditMode && statement) {
+      if (window.twttr && window.twttr.widgets) {
+        window.twttr.widgets.load();
+      }
+      if (window.instgrm && window.instgrm.Embeds) {
+        window.instgrm.Embeds.process();
+      }
+    }
+  }, [statement, isInEditMode]);
+  return /* @__PURE__ */ jsxs(Fragment, { children: [
+    /* @__PURE__ */ jsx(
+      PageHead,
+      {
+        title: "Neighbors",
+        ogType: "article"
+      }
+    ),
+    /* @__PURE__ */ jsx("div", { className: "rte-container borderless limited-width", children: dataLoaded ? /* @__PURE__ */ jsxs("article", { children: [
+      /* @__PURE__ */ jsxs("div", { className: "centered-header-box", children: [
+        isInEditMode && hasStatementChanged && /* @__PURE__ */ jsx("div", { className: "left-item", children: /* @__PURE__ */ jsx(
+          "button",
+          {
+            className: "save-button",
+            type: "submit",
+            disabled: processing,
+            onClick: handleStatementUpdate,
+            children: "save"
+          }
+        ) }),
+        /* @__PURE__ */ jsx("div", { className: "centered-content", children: /* @__PURE__ */ jsx("h1", { children: "neighbors" }) }),
+        /* @__PURE__ */ jsx("div", { className: "right-item padded", children: !isInEditMode && isWebmaster && /* @__PURE__ */ jsx(
+          EditButton,
+          {
+            onClick: (e) => {
+              e.preventDefault();
+              setIsInEditMode(true);
+            }
+          }
+        ) })
+      ] }),
+      errors.general && /* @__PURE__ */ jsx("div", { className: "error", children: errors.general }),
+      flash.success && /* @__PURE__ */ jsx("div", { className: "notice", children: flash.success }),
+      isInEditMode ? /* @__PURE__ */ jsx(
+        RichTextEditor,
+        {
+          disabled: !isInEditMode || processing,
+          onChange: handleStatementChange,
+          value: statement,
+          autoFocus: true
+        }
+      ) : /* @__PURE__ */ jsx(
+        "div",
+        {
+          dangerouslySetInnerHTML: { __html: sanitizeRichHtml(statement) },
+          className: "article-text"
+        }
+      )
+    ] }) : /* @__PURE__ */ jsx("p", { className: "centered-content", children: "loading..." }) })
+  ] });
+}
+Neighbors.layout = (page) => /* @__PURE__ */ jsx(Layout, { children: page });
+const __vite_glob_0_8 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  default: Neighbors
+}, Symbol.toStringTag, { value: "Module" }));
 function News({ newsPosts = [] }) {
   const [screenSize, setScreenSize] = useState(getScreenSize());
   useEffect(() => {
@@ -5002,7 +5130,7 @@ function News({ newsPosts = [] }) {
   ] });
 }
 News.layout = (page) => /* @__PURE__ */ jsx(Layout, { children: page });
-const __vite_glob_0_8 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const __vite_glob_0_9 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: News
 }, Symbol.toStringTag, { value: "Module" }));
@@ -5013,7 +5141,7 @@ function NotFound() {
   ] });
 }
 NotFound.layout = (page) => /* @__PURE__ */ jsx(Layout, { children: page });
-const __vite_glob_0_9 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const __vite_glob_0_10 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: NotFound
 }, Symbol.toStringTag, { value: "Module" }));
@@ -5059,7 +5187,7 @@ function OAuthCallback() {
     /* @__PURE__ */ jsx("p", { children: "Please wait while we log you in." })
   ] });
 }
-const __vite_glob_0_10 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const __vite_glob_0_11 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: OAuthCallback
 }, Symbol.toStringTag, { value: "Module" }));
@@ -5193,7 +5321,7 @@ function PasswordChange() {
   ] });
 }
 PasswordChange.layout = (page) => /* @__PURE__ */ jsx(Layout, { children: page });
-const __vite_glob_0_11 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const __vite_glob_0_12 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: PasswordChange
 }, Symbol.toStringTag, { value: "Module" }));
@@ -5239,7 +5367,7 @@ function PasswordRecovery() {
   ] });
 }
 PasswordRecovery.layout = (page) => /* @__PURE__ */ jsx(Layout, { children: page });
-const __vite_glob_0_12 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const __vite_glob_0_13 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: PasswordRecovery
 }, Symbol.toStringTag, { value: "Module" }));
@@ -5350,7 +5478,7 @@ function PasswordReset() {
   ] });
 }
 PasswordReset.layout = (page) => /* @__PURE__ */ jsx(Layout, { children: page });
-const __vite_glob_0_13 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const __vite_glob_0_14 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: PasswordReset
 }, Symbol.toStringTag, { value: "Module" }));
@@ -6183,7 +6311,7 @@ function Post({ post, carouselPosts: userPosts = [] }) {
   ] });
 }
 Post.layout = (page) => /* @__PURE__ */ jsx(Layout, { children: page });
-const __vite_glob_0_14 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const __vite_glob_0_15 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: Post
 }, Symbol.toStringTag, { value: "Module" }));
@@ -6210,7 +6338,7 @@ function Posts({ username, archivePosts }) {
   ] });
 }
 Posts.layout = (page) => /* @__PURE__ */ jsx(Layout, { children: page });
-const __vite_glob_0_15 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const __vite_glob_0_16 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: Posts
 }, Symbol.toStringTag, { value: "Module" }));
@@ -6819,7 +6947,7 @@ function Registration() {
   ] });
 }
 Registration.layout = (page) => /* @__PURE__ */ jsx(Layout, { children: page });
-const __vite_glob_0_16 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const __vite_glob_0_17 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: Registration
 }, Symbol.toStringTag, { value: "Module" }));
@@ -6846,7 +6974,7 @@ function SearchResults({ searchTerm = "", searchPosts = [] }) {
   ] });
 }
 SearchResults.layout = (page) => /* @__PURE__ */ jsx(Layout, { children: page });
-const __vite_glob_0_17 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const __vite_glob_0_18 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: SearchResults
 }, Symbol.toStringTag, { value: "Module" }));
@@ -7052,7 +7180,7 @@ function UserProfile({ user: profileUserProp }) {
   ] });
 }
 UserProfile.layout = (page) => /* @__PURE__ */ jsx(Layout, { children: page });
-const __vite_glob_0_18 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const __vite_glob_0_19 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: UserProfile
 }, Symbol.toStringTag, { value: "Module" }));
@@ -7264,7 +7392,7 @@ function Notification({ notification }) {
     ] })
   ] }) : /* @__PURE__ */ jsx("p", { children: "loading..." });
 }
-const __vite_glob_0_39 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const __vite_glob_0_40 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: Notification
 }, Symbol.toStringTag, { value: "Module" }));
@@ -7373,7 +7501,7 @@ function Activity() {
     ] })
   ] });
 }
-const __vite_glob_0_19 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const __vite_glob_0_20 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: Activity
 }, Symbol.toStringTag, { value: "Module" }));
@@ -7915,7 +8043,7 @@ function Conversation({ conversation: conversationProp, addressee }) {
     ] }) : /* @__PURE__ */ jsx("p", { className: "centered-content padding-1rem", children: "Please verify your e-mail to begin mailing other users." })
   ] });
 }
-const __vite_glob_0_21 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const __vite_glob_0_22 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: Conversation
 }, Symbol.toStringTag, { value: "Module" }));
@@ -7963,7 +8091,7 @@ function DeleteAccount() {
     ] }) })
   ] });
 }
-const __vite_glob_0_23 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const __vite_glob_0_24 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: DeleteAccount
 }, Symbol.toStringTag, { value: "Module" }));
@@ -8120,7 +8248,7 @@ function ImageField({
                 className: "hidden-file-input"
               }
             ),
-            /* @__PURE__ */ jsx("label", { htmlFor: `gal_image_${index}`, className: "file-input-button", onMouseDown: handleMouseDownOnControl, children: "Choose File" }),
+            /* @__PURE__ */ jsx("label", { htmlFor: `gal_image_${index}`, className: "link-button", onMouseDown: handleMouseDownOnControl, children: /* @__PURE__ */ jsx("i", { className: "fa-solid fa-folder" }) }),
             /* @__PURE__ */ jsx("span", { className: "file-input-label", children: file ? file.name : previewImage ? image ? "existing image" : "1 file chosen" : "no file chosen" })
           ] }),
           /* @__PURE__ */ jsxs("div", { className: "alt-input-container", children: [
@@ -8147,7 +8275,7 @@ function ImageField({
     }
   );
 }
-const __vite_glob_0_27 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const __vite_glob_0_28 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: ImageField
 }, Symbol.toStringTag, { value: "Module" }));
@@ -8903,7 +9031,7 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
     )
   ] }) : /* @__PURE__ */ jsx("p", { className: "loading", children: loadingText }) });
 }
-const __vite_glob_0_35 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const __vite_glob_0_36 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: PostForm
 }, Symbol.toStringTag, { value: "Module" }));
@@ -8934,7 +9062,7 @@ function EditPost({ post: initialPost }) {
     )
   ] });
 }
-const __vite_glob_0_25 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const __vite_glob_0_26 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: EditPost
 }, Symbol.toStringTag, { value: "Module" }));
@@ -8953,7 +9081,7 @@ function LikedPosts() {
     )
   ] });
 }
-const __vite_glob_0_28 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const __vite_glob_0_29 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: LikedPosts
 }, Symbol.toStringTag, { value: "Module" }));
@@ -8997,7 +9125,7 @@ function ConversationPreview({ conversation }) {
     }
   ) : /* @__PURE__ */ jsx("p", { children: "loading..." });
 }
-const __vite_glob_0_37 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const __vite_glob_0_38 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: ConversationPreview
 }, Symbol.toStringTag, { value: "Module" }));
@@ -9014,7 +9142,7 @@ function DashboardCreateHeader({ headerText, createLink, isVerified = true }) {
     ) })
   ] });
 }
-const __vite_glob_0_38 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const __vite_glob_0_39 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: DashboardCreateHeader
 }, Symbol.toStringTag, { value: "Module" }));
@@ -9056,7 +9184,7 @@ function Mail() {
     ] }) : /* @__PURE__ */ jsx("p", { className: "centered-content padding-1rem", children: "Please verify your e-mail to begin mailing other users." })
   ] });
 }
-const __vite_glob_0_29 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const __vite_glob_0_30 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: Mail
 }, Symbol.toStringTag, { value: "Module" }));
@@ -9093,7 +9221,7 @@ function MyPosts() {
     )
   ] });
 }
-const __vite_glob_0_30 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const __vite_glob_0_31 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: MyPosts
 }, Symbol.toStringTag, { value: "Module" }));
@@ -9113,7 +9241,7 @@ function NewNewsPost() {
     ) : /* @__PURE__ */ jsx("p", { className: "centered-content padding-1rem", children: "Verify your e-mail to begin posting." })
   ] });
 }
-const __vite_glob_0_31 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const __vite_glob_0_32 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: NewNewsPost
 }, Symbol.toStringTag, { value: "Module" }));
@@ -9139,7 +9267,7 @@ function NewPost() {
     }
   );
 }
-const __vite_glob_0_32 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const __vite_glob_0_33 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: NewPost
 }, Symbol.toStringTag, { value: "Module" }));
@@ -9176,7 +9304,7 @@ function NewsPosts() {
     )
   ] });
 }
-const __vite_glob_0_33 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const __vite_glob_0_34 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: NewsPosts
 }, Symbol.toStringTag, { value: "Module" }));
@@ -9199,7 +9327,7 @@ function Notifications() {
     )
   ] });
 }
-const __vite_glob_0_34 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const __vite_glob_0_35 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: Notifications
 }, Symbol.toStringTag, { value: "Module" }));
@@ -9224,7 +9352,7 @@ function UserComments() {
     )
   ] });
 }
-const __vite_glob_0_36 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const __vite_glob_0_37 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: UserComments
 }, Symbol.toStringTag, { value: "Module" }));
@@ -9245,7 +9373,7 @@ createServer(
     render: renderToString,
     title: (title) => `${title} | ${appName}`,
     resolve: (name) => {
-      const pagePromise = resolvePageComponent(`./Pages/${name}.jsx`, /* @__PURE__ */ Object.assign({ "./Pages/About.jsx": __vite_glob_0_0, "./Pages/Contact.jsx": __vite_glob_0_1, "./Pages/CreatePostForm.jsx": __vite_glob_0_2, "./Pages/Dashboard.jsx": __vite_glob_0_3, "./Pages/Followers.jsx": __vite_glob_0_4, "./Pages/Following.jsx": __vite_glob_0_5, "./Pages/Home.jsx": __vite_glob_0_6, "./Pages/Login.jsx": __vite_glob_0_7, "./Pages/News.jsx": __vite_glob_0_8, "./Pages/NotFound.jsx": __vite_glob_0_9, "./Pages/OAuthCallback.jsx": __vite_glob_0_10, "./Pages/PasswordChange.jsx": __vite_glob_0_11, "./Pages/PasswordRecovery.jsx": __vite_glob_0_12, "./Pages/PasswordReset.jsx": __vite_glob_0_13, "./Pages/Post.jsx": __vite_glob_0_14, "./Pages/Posts.jsx": __vite_glob_0_15, "./Pages/Registration.jsx": __vite_glob_0_16, "./Pages/SearchResults.jsx": __vite_glob_0_17, "./Pages/UserProfile.jsx": __vite_glob_0_18, "./Pages/dashboard/Activity.jsx": __vite_glob_0_19, "./Pages/dashboard/AvatarSetter.jsx": __vite_glob_0_20, "./Pages/dashboard/Conversation.jsx": __vite_glob_0_21, "./Pages/dashboard/DashboardLayout.jsx": __vite_glob_0_22, "./Pages/dashboard/DeleteAccount.jsx": __vite_glob_0_23, "./Pages/dashboard/EditBio.jsx": __vite_glob_0_24, "./Pages/dashboard/EditPost.jsx": __vite_glob_0_25, "./Pages/dashboard/EditProfile.jsx": __vite_glob_0_26, "./Pages/dashboard/ImageField.jsx": __vite_glob_0_27, "./Pages/dashboard/LikedPosts.jsx": __vite_glob_0_28, "./Pages/dashboard/Mail.jsx": __vite_glob_0_29, "./Pages/dashboard/MyPosts.jsx": __vite_glob_0_30, "./Pages/dashboard/NewNewsPost.jsx": __vite_glob_0_31, "./Pages/dashboard/NewPost.jsx": __vite_glob_0_32, "./Pages/dashboard/NewsPosts.jsx": __vite_glob_0_33, "./Pages/dashboard/Notifications.jsx": __vite_glob_0_34, "./Pages/dashboard/PostForm.jsx": __vite_glob_0_35, "./Pages/dashboard/UserComments.jsx": __vite_glob_0_36, "./Pages/dashboard/common/ConversationPreview.jsx": __vite_glob_0_37, "./Pages/dashboard/common/DashboardCreateHeader.jsx": __vite_glob_0_38, "./Pages/dashboard/common/Notification.jsx": __vite_glob_0_39 }));
+      const pagePromise = resolvePageComponent(`./Pages/${name}.jsx`, /* @__PURE__ */ Object.assign({ "./Pages/About.jsx": __vite_glob_0_0, "./Pages/Contact.jsx": __vite_glob_0_1, "./Pages/CreatePostForm.jsx": __vite_glob_0_2, "./Pages/Dashboard.jsx": __vite_glob_0_3, "./Pages/Followers.jsx": __vite_glob_0_4, "./Pages/Following.jsx": __vite_glob_0_5, "./Pages/Home.jsx": __vite_glob_0_6, "./Pages/Login.jsx": __vite_glob_0_7, "./Pages/Neighbors.jsx": __vite_glob_0_8, "./Pages/News.jsx": __vite_glob_0_9, "./Pages/NotFound.jsx": __vite_glob_0_10, "./Pages/OAuthCallback.jsx": __vite_glob_0_11, "./Pages/PasswordChange.jsx": __vite_glob_0_12, "./Pages/PasswordRecovery.jsx": __vite_glob_0_13, "./Pages/PasswordReset.jsx": __vite_glob_0_14, "./Pages/Post.jsx": __vite_glob_0_15, "./Pages/Posts.jsx": __vite_glob_0_16, "./Pages/Registration.jsx": __vite_glob_0_17, "./Pages/SearchResults.jsx": __vite_glob_0_18, "./Pages/UserProfile.jsx": __vite_glob_0_19, "./Pages/dashboard/Activity.jsx": __vite_glob_0_20, "./Pages/dashboard/AvatarSetter.jsx": __vite_glob_0_21, "./Pages/dashboard/Conversation.jsx": __vite_glob_0_22, "./Pages/dashboard/DashboardLayout.jsx": __vite_glob_0_23, "./Pages/dashboard/DeleteAccount.jsx": __vite_glob_0_24, "./Pages/dashboard/EditBio.jsx": __vite_glob_0_25, "./Pages/dashboard/EditPost.jsx": __vite_glob_0_26, "./Pages/dashboard/EditProfile.jsx": __vite_glob_0_27, "./Pages/dashboard/ImageField.jsx": __vite_glob_0_28, "./Pages/dashboard/LikedPosts.jsx": __vite_glob_0_29, "./Pages/dashboard/Mail.jsx": __vite_glob_0_30, "./Pages/dashboard/MyPosts.jsx": __vite_glob_0_31, "./Pages/dashboard/NewNewsPost.jsx": __vite_glob_0_32, "./Pages/dashboard/NewPost.jsx": __vite_glob_0_33, "./Pages/dashboard/NewsPosts.jsx": __vite_glob_0_34, "./Pages/dashboard/Notifications.jsx": __vite_glob_0_35, "./Pages/dashboard/PostForm.jsx": __vite_glob_0_36, "./Pages/dashboard/UserComments.jsx": __vite_glob_0_37, "./Pages/dashboard/common/ConversationPreview.jsx": __vite_glob_0_38, "./Pages/dashboard/common/DashboardCreateHeader.jsx": __vite_glob_0_39, "./Pages/dashboard/common/Notification.jsx": __vite_glob_0_40 }));
       return pagePromise.then((module) => {
         if (module.default.layout === void 0) {
           module.default.layout = (page2) => {

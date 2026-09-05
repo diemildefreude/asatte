@@ -302,7 +302,7 @@ function handleResizeWithCanvas(img, mimeType, isGallery = false)
 
         const targetSize = 2000 * 1024; // slightly under 2048 KB for safety
         let type = mimeType;
-        if (type === 'image/png' || type === 'image/gif') {
+        if (type === 'image/png') {
             type = 'image/jpeg';
         }
 
@@ -489,15 +489,31 @@ export async function processEditorImages(htmlString)
 
     for (const img of images) 
     {
-        if (img.src.startsWith('data:image/')) //is a new image blob
+        if (img.src.startsWith('data:image/') || img.src.startsWith('blob:')) //is a new image blob
         {
+            // If already a GIF data URL, preserve it untouched (canvas flattens animations)
+            if (img.src.startsWith('data:image/gif'))
+            {
+                continue;
+            }
+
             const response = await fetch(img.src);
             const blob = await response.blob();
             
-            // 2. Your existing Canvas Resizing logic
+            // If blob is a GIF, preserve original animation frames without canvas resizing
+            if (blob.type === 'image/gif') 
+            {
+                if (img.src.startsWith('blob:')) 
+                {
+                    img.src = await blobToBase64(blob);
+                }
+                continue;
+            }
+
+            // Canvas Resizing logic for non-GIF images
             const resizedBlob = await resizeImage(blob);
             
-            // 3. Update the attribute in our "virtual" document
+            // Update the attribute in our "virtual" document
             img.src = await blobToBase64(resizedBlob);
         } 
     }

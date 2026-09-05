@@ -7,7 +7,7 @@ import Layout from '../Components/layout/Layout';
 import { getErrorMessage, MemberType, processEditorImages, sanitizeRichHtml,
     hydrateEditorImagePaths, dehydrateEditorImagePaths } from '../utils/helpers';
 
-function About({ about, status })
+function Neighbors({ neighbors, status })
 {
     const { props } = usePage();
     const flash = props?.flash || {};
@@ -15,7 +15,7 @@ function About({ about, status })
     const isWebmaster = user ? user.member_type == MemberType.Webmaster : false;
     const appUrl = props.app_url;
     
-    const initialHydratedStatement = (status === 'about_fetched' && about?.statement) ? hydrateEditorImagePaths(about.statement, appUrl) : null;
+    const initialHydratedStatement = (status === 'neighbors_page_fetched' && neighbors?.statement) ? hydrateEditorImagePaths(neighbors.statement, appUrl) : null;
     const [isInEditMode, setIsInEditMode] = useState(false);
     const [hasStatementChanged, setHasStatementChanged] = useState(false);
     const [statement, setStatement] = useState(initialHydratedStatement);
@@ -42,13 +42,13 @@ function About({ about, status })
         
         setData('statement', statementWithResizedImages);
         
-        post('/update-about', {
+        post('/update-neighbors', {
             preserveState: false,
             preserveScroll: true,
             onSuccess: (page) => {
-                const newAbout = page.props?.about ?? null;
-                if (newAbout && newAbout.statement) {
-                    const hydratedStatement = hydrateEditorImagePaths(newAbout.statement, appUrl);
+                const newNeighbors = page.props?.neighbors ?? null;
+                if (newNeighbors && newNeighbors.statement) {
+                    const hydratedStatement = hydrateEditorImagePaths(newNeighbors.statement, appUrl);
                     setInitialStatement(hydratedStatement);
                     setStatement(hydratedStatement);
                 }
@@ -65,12 +65,12 @@ function About({ about, status })
 
     // Keep local editor state in sync when server props change (Inertia page swaps)
     useEffect(() => {
-        const hydrated = (status === 'about_fetched' && about?.statement) ? hydrateEditorImagePaths(about.statement, appUrl) : null;
+        const hydrated = (status === 'neighbors_page_fetched' && neighbors?.statement) ? hydrateEditorImagePaths(neighbors.statement, appUrl) : null;
         setStatement(hydrated);
         setInitialStatement(hydrated);
         setData('statement', hydrated || '');
         setHasStatementChanged(false);
-    }, [about, status]);
+    }, [neighbors, status]);
     // Hydrate Twitter and Instagram embeds injected via dangerouslySetInnerHTML
     useEffect(() => {
         if (!isInEditMode && statement) {
@@ -85,7 +85,7 @@ function About({ about, status })
 
     return (
     <>
-        <PageHead title="About"
+        <PageHead title="Neighbors"
             ogType="article"
         />
         <div className="rte-container borderless limited-width">
@@ -106,7 +106,7 @@ function About({ about, status })
                     </div>)
                 }
                     <div className="centered-content">
-                        <h1>about</h1>                    
+                        <h1>neighbors</h1>                    
                     </div>
                     <div className="right-item padded">
                         {!isInEditMode && isWebmaster && (
@@ -151,5 +151,5 @@ function About({ about, status })
     );
 }
 
-About.layout = page => <Layout>{page}</Layout>;
-export default About;
+Neighbors.layout = page => <Layout>{page}</Layout>;
+export default Neighbors;

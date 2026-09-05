@@ -54,6 +54,7 @@
   "resources/js/Pages/Home.css": [],
   "resources/js/Pages/Home.jsx": [],
   "resources/js/Pages/Login.jsx": [],
+  "resources/js/Pages/Neighbors.jsx": [],
   "resources/js/Pages/News.jsx": [],
   "resources/js/Pages/NotFound.jsx": [],
   "resources/js/Pages/OAuthCallback.jsx": [],

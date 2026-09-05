@@ -70,9 +70,9 @@ function RichTextEditor({ onChange, value, quotedMessage, onQuoteApplied, placeh
           { title: 'New window', value: '_blank' }
         ],
         default_link_target: '_blank',
-        plugins: 'image link media',
+        plugins: 'lists image link media',
         toolbar: disabled ? false : 
-            ['styles | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist | image media link']
+            ['styles | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist blockquote | image media link']
         ,
         extended_valid_elements: 'blockquote[class|data-instgrm-permalink|data-instgrm-version|data-instgrm-captioned|data-instgrm-payload-id|data-video-id|cite|data-theme|data-dnt|data-media-max-width],iframe[src|title|width|height|frameborder|allowfullscreen|scrolling|allow|style]',
         toolbar_mode: 'wrap',

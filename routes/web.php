@@ -5,6 +5,7 @@ use Inertia\Inertia;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\AboutController;
+use App\Http\Controllers\NeighborsPageController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\NewsController;
@@ -162,6 +163,11 @@ Route::post('/posts/{post}/record-view', [App\Http\Controllers\ActivityControlle
 Route::get('/about', [AboutController::class, 'show'])->name('about');
 // Web (Inertia) endpoint to update About (session-based)
 Route::post('/update-about', [App\Http\Controllers\AboutController::class, 'update'])->middleware('auth')->name('about.update');
+
+Route::get('/neighbors', [NeighborsPageController::class, 'show'])->name('neighbors');
+// Web (Inertia) endpoint to update About (session-based)
+Route::post('/update-neighbors', [App\Http\Controllers\NeighborsPageController::class, 'update'])->middleware('auth')->name('neighbors.update');
+
 
 // Dashboard (Inertia) - session protected. Specific dashboard subpages first.
 Route::get('/dashboard/posts', [App\Http\Controllers\DashboardController::class, 'posts'])->middleware('auth')->name('dashboard.posts');

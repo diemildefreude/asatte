@@ -194,6 +194,14 @@ if (!function_exists('saveEditorImages')) {
                     return $matches[0];
                 }
 
+                if ($extension === 'gif') {
+                    $imageName = uniqid() . '.gif';
+                    $relativePath = "$storageBase/$imageName";
+                    Storage::disk('public')->put($relativePath, $decodedData);
+                    $newImgArr[] = $imageName;
+                    return 'src="' . $relativePath . '"';
+                }
+
                 $manager = new ImageManager(new Driver());
                 $image = $manager->read($decodedData);
                 
@@ -203,8 +211,6 @@ if (!function_exists('saveEditorImages')) {
 
                 $imageName = uniqid() . '.' . $extension;
                 $relativePath = "$storageBase/$imageName";
-
-
 
                 Storage::disk('public')->put($relativePath, (string) $encodedImage);
 
