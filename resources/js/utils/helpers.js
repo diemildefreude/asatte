@@ -564,6 +564,12 @@ export function getImageUrlFromFile(file)
     })    
 }
 
+export function setIsReorderingFields(isReordering) {
+    if (typeof window !== 'undefined') {
+        window.__isReorderingFields = isReordering;
+    }
+}
+
 export function addImageDragListeners(element, counterRef, handleDrop)
 {
     if(!element)
@@ -571,13 +577,22 @@ export function addImageDragListeners(element, counterRef, handleDrop)
         return;
     }
 
+    function isFileDrag(e)
+    {
+        if (typeof window !== 'undefined' && window.__isReorderingFields) return false;
+        if (!e.dataTransfer || !e.dataTransfer.types) return false;
+        return Array.from(e.dataTransfer.types).includes('Files');
+    }
+
     function handleDragOver (e)
     {
+        if (!isFileDrag(e)) return;
         e.preventDefault();
         e.stopPropagation();
     };
     function handleDragEnter(e)
     {
+        if (!isFileDrag(e)) return;
         e.preventDefault();
         e.stopPropagation();
         counterRef.current++;
@@ -588,6 +603,7 @@ export function addImageDragListeners(element, counterRef, handleDrop)
     }
     function handleDragLeave (e)
     {
+        if (!isFileDrag(e)) return;
         e.preventDefault();
         e.stopPropagation();
         counterRef.current--;
@@ -596,18 +612,25 @@ export function addImageDragListeners(element, counterRef, handleDrop)
             element.classList.remove('dragged-over');
         }
     };
+    function handleDropWrapper(e)
+    {
+        if (!isFileDrag(e)) return;
+        element.classList.remove('dragged-over');
+        counterRef.current = 0;
+        handleDrop(e);
+    }
     
     element.addEventListener('dragover', handleDragOver);
     element.addEventListener('dragenter', handleDragEnter);
     element.addEventListener('dragleave', handleDragLeave);
-    element.addEventListener('drop', handleDrop);
+    element.addEventListener('drop', handleDropWrapper);
 
     return() =>
     {
         element.removeEventListener('dragover', handleDragOver);
         element.removeEventListener('dragenter', handleDragEnter);
         element.removeEventListener('dragleave', handleDragLeave);
-        element.removeEventListener('drop', handleDrop);
+        element.removeEventListener('drop', handleDropWrapper);
     };        
 }
 

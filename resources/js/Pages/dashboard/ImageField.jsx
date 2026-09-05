@@ -2,7 +2,27 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { addImageDragListeners, getImageFileFromInput, getImageUrlFromFile } from '../../utils/helpers';
 
 
-function ImageField({index, image=null, file=null, alt="", setArray, onImageChange, onAltChange, onRemove, disabled=false })
+function ImageField({
+    index,
+    image=null,
+    file=null,
+    alt="",
+    setArray,
+    onImageChange,
+    onAltChange,
+    onRemove,
+    disabled=false,
+    draggable=false,
+    isDragging=false,
+    isDisplacedAbove=false,
+    isDisplacedBelow=false,
+    onFieldDragStart,
+    onFieldDragOver,
+    onFieldDragEnter,
+    onFieldDragLeave,
+    onFieldDragEnd,
+    onFieldDrop
+})
 {
     const [previewImage, setPreviewImage] = useState(image);
     const [imageError, setImageError] = useState('');
@@ -107,8 +127,36 @@ function ImageField({index, image=null, file=null, alt="", setArray, onImageChan
         onAltChange(index, altText);
     },[setAltError, index, onAltChange]);
 
+    const handleMouseDownOnControl = (e) =>
+    {
+        e.stopPropagation();
+    };
+
+    let fieldClasses = "image-field";
+    if (isDragging) fieldClasses += " is-dragging";
+    if (isDisplacedAbove) fieldClasses += " displace-above";
+    if (isDisplacedBelow) fieldClasses += " displace-below";
+
     return(
-    <div className="image-field" ref={imageFieldRef}>
+    <div className={fieldClasses}
+        ref={imageFieldRef}
+        draggable={draggable && !disabled}
+        onDragStart={(e) => onFieldDragStart && onFieldDragStart(e, index)}
+        onDragOver={(e) => onFieldDragOver && onFieldDragOver(e, index)}
+        onDragEnter={(e) => onFieldDragEnter && onFieldDragEnter(e, index)}
+        onDragLeave={(e) => onFieldDragLeave && onFieldDragLeave(e, index)}
+        onDragEnd={(e) => onFieldDragEnd && onFieldDragEnd(e, index)}
+        onDrop={(e) => {
+            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                return;
+            }
+            e.preventDefault();
+            e.stopPropagation();
+            if (onFieldDrop) {
+                onFieldDrop(e, index);
+            }
+        }}
+    >
         {imageError && (
         <div className="error">
             {imageError}
@@ -122,7 +170,7 @@ function ImageField({index, image=null, file=null, alt="", setArray, onImageChan
         <div className="sub-field">
             <div className="remove-input-container">        
                 <span className="button-container">
-                    <button type="button" onClick={removeSelf} disabled={disabled}>-</button>
+                    <button type="button" onClick={removeSelf} disabled={disabled} onMouseDown={handleMouseDownOnControl}>-</button>
                 </span>   
                 <input type="file" 
                     accept=".jpg, .jpeg, .png, .webp, .bmp" 
@@ -131,7 +179,14 @@ function ImageField({index, image=null, file=null, alt="", setArray, onImageChan
                     onChange={handleFileChange}
                     ref={imageInputRef}
                     disabled={disabled}
+                    className="hidden-file-input"
                 />    
+                <label htmlFor={`gal_image_${index}`} className="link-button" onMouseDown={handleMouseDownOnControl}>
+                    <i className="fa-solid fa-folder"></i>
+                </label>
+                <span className="file-input-label">
+                    {file ? file.name : (previewImage ? (image ? 'existing image' : '1 file chosen') : 'no file chosen')}
+                </span>
             </div>
             <div className="alt-input-container">
                 <label htmlFor={`alt_${index}`}>alt text</label>
@@ -141,11 +196,12 @@ function ImageField({index, image=null, file=null, alt="", setArray, onImageChan
                     value={alt ?? ""}
                     onChange={handleAltChange}
                     disabled={disabled}
+                    onMouseDown={handleMouseDownOnControl}
                 />
             </div>
         </div>      
         <div className={previewImage ? "img-preview-container" : "img-preview-container hidden"}>
-            <img src={previewImage} alt={alt}/>
+            <img src={previewImage} alt={alt} draggable={false} />
             <div className="loading hidden">loading</div>
         </div>     
     </div>);

@@ -412,6 +412,10 @@
     border: 1px solid white;
     padding: 1rem;
 }
+.image-field label.link-button
+{
+    padding: 0 0.4rem;
+}
 .field-button-image-fields-container
 {
     display: flex;
@@ -420,12 +424,20 @@
 }
 .image-field
 {
-    /* max-width: 400px; */
     width: 100%;
     overflow: hidden;
+    cursor: grab;
+    user-select: none;
+    transition: transform 0.2s ease, opacity 0.2s ease, background 0.2s ease;
+}
+.image-field:active
+{
+    cursor: grabbing;
 }
 .image-field input
 {
+    cursor: auto;
+    user-select: text;
     flex-grow: 2;
     max-width: 250px;
     font-size: 1rem;
@@ -433,12 +445,81 @@
     overflow-x: hidden;
     text-overflow: ellipsis;
 }
+.image-field button
+{
+    cursor: pointer;
+}
+.image-field label
+{
+    cursor: grab;
+    user-select: none;
+}
+.alt-input-container label
+{
+    cursor: default;
+    user-select: none;
+}
+.image-field.is-dragging
+{
+    cursor: grabbing;
+    background: var(--yellow-gradient) !important;
+    opacity: 1 !important;
+    position: relative;
+    z-index: 10;
+}
+.field-button-image-fields-container.is-dragging-active .image-field:not(.is-dragging)
+{
+    opacity: 0.4;
+}
+.image-field.displace-above
+{
+    transform: translateY(20px);
+}
+.image-field.displace-below
+{
+    transform: translateY(-20px);
+}
 .main-label-container, .image-field .remove-input-container,
 .alt-input-container
 {
     display: flex;
     flex-direction: row;
+    align-items: center;
     gap: 1rem;
+}
+.hidden-file-input
+{
+    display: none !important;
+}
+.file-input-button
+{
+    background-color: #efefef;
+    color: #000;
+    border: 1px solid #767676;
+    border-radius: 2px;
+    padding: 2px 6px;
+    font-size: 0.85rem;
+    font-family: inherit;
+    cursor: pointer !important;
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.file-input-button:hover
+{
+    background-color: #e5e5e5;
+}
+.file-input-label
+{
+    font-size: 0.95rem;
+    color: inherit;
+    cursor: grab;
+    user-select: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 250px;
 }
 .multi-field-container .sub-field
 {
@@ -489,6 +570,7 @@
     object-fit: contain;
     object-position: left;
     aspect-ratio: 3/2;
+    pointer-events: none;
 }
 .multi-field-container.dragged-over
 {

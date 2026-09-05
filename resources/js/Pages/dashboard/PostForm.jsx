@@ -7,7 +7,7 @@ import VideoIframe from '../../Components/common/VideoIframe';
 import ImageField from "./ImageField";
 import { addImageDragListeners, Category, dehydrateEditorImagePaths, formatSlug, getErrorMessage, getImageFilesFromInput, 
     getImageUrlFromFile, getVideoEmbedUrl, hydrateEditorImagePaths, isAlphaDash, isUrl, 
-    MemberType, PageTheme, processEditorImages, resizeImage } from '../../utils/helpers';
+    MemberType, PageTheme, processEditorImages, resizeImage, setIsReorderingFields } from '../../utils/helpers';
 
 const IMAGE_LIMIT=15;
 
@@ -23,7 +23,7 @@ const createInitialImageFields = (post=null, user, postUrl, appUrl) =>
         const alts = post.gallery_alts;
         return images.map((image, i) => ({
             index: i,
-            image: `${appUrl}/storage/images/uploaded/users/${user.username}/posts/${postUrl}/gallery/thumb/${image}`,
+            image: `${appUrl}/storage/images/uploaded/users/${post?.user?.username || user.username}/posts/${postUrl}/gallery/thumb/${image}`,
             alt: (!alts || alts[i] == "null") ? "" : alts[i],
             value: image,
             type: 'old'
@@ -86,6 +86,149 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
     const galleryContainerRef = useRef(null);    
     const [imageFields, setImageFields] = useState(createInitialImageFields(post, user, post?.slug || "", appUrl));
     const dragCounterRef = useRef(0);
+    const [draggedIndex, setDraggedIndex] = useState(null);
+    const [dragOverIndex, setDragOverIndex] = useState(null);
+    const isDraggingRef = useRef(false);
+    const draggedIndexRef = useRef(null);
+    const autoScrollFrameRef = useRef(null);
+    const mouseYRef = useRef(null);
+
+    useEffect(() => {
+        if (draggedIndex === null) {
+            if (autoScrollFrameRef.current) {
+                cancelAnimationFrame(autoScrollFrameRef.current);
+                autoScrollFrameRef.current = null;
+            }
+            mouseYRef.current = null;
+            return;
+        }
+
+        const threshold = 120;
+        const maxSpeed = 20;
+
+        const updateScroll = () => {
+            if (mouseYRef.current !== null) {
+                const y = mouseYRef.current;
+                const viewHeight = window.innerHeight;
+
+                if (y < threshold) {
+                    const ratio = Math.min(1, (threshold - y) / threshold);
+                    const speed = -Math.max(4, ratio * maxSpeed);
+                    window.scrollBy(0, speed);
+                } else if (y > viewHeight - threshold) {
+                    const ratio = Math.min(1, (y - (viewHeight - threshold)) / threshold);
+                    const speed = Math.max(4, ratio * maxSpeed);
+                    window.scrollBy(0, speed);
+                }
+            }
+            autoScrollFrameRef.current = requestAnimationFrame(updateScroll);
+        };
+
+        const handleWindowDragOver = (e) => {
+            mouseYRef.current = e.clientY;
+        };
+
+        window.addEventListener('dragover', handleWindowDragOver);
+        autoScrollFrameRef.current = requestAnimationFrame(updateScroll);
+
+        return () => {
+            window.removeEventListener('dragover', handleWindowDragOver);
+            if (autoScrollFrameRef.current) {
+                cancelAnimationFrame(autoScrollFrameRef.current);
+                autoScrollFrameRef.current = null;
+            }
+            mouseYRef.current = null;
+        };
+    }, [draggedIndex]);
+
+    const clearDragState = useCallback(() => {
+        isDraggingRef.current = false;
+        draggedIndexRef.current = null;
+        setIsReorderingFields(false);
+        setDraggedIndex(null);
+        setDragOverIndex(null);
+    }, []);
+
+    const handleFieldDragStart = useCallback((e, index) => {
+        isDraggingRef.current = true;
+        draggedIndexRef.current = index;
+        setIsReorderingFields(true);
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", index.toString());
+        
+        // Defer setting drag indices so browser captures clean tile snapshot for drag ghost
+        setTimeout(() => {
+            setDraggedIndex(index);
+            setDragOverIndex(index);
+        }, 0);
+    }, []);
+
+    const handleFieldDragOver = useCallback((e, index) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        if (dragOverIndex !== index) {
+            setDragOverIndex(index);
+        }
+    }, [dragOverIndex]);
+
+    const handleFieldDragEnter = useCallback((e, index) => {
+        e.preventDefault();
+        if (dragOverIndex !== index) {
+            setDragOverIndex(index);
+        }
+    }, [dragOverIndex]);
+
+    const handleFieldDragLeave = useCallback((e) => {
+        e.preventDefault();
+    }, []);
+
+    const handleFieldDragEnd = useCallback(() => {
+        clearDragState();
+    }, [clearDragState]);
+
+    useEffect(() => {
+        const handleWindowDragEnd = () => {
+            clearDragState();
+        };
+        window.addEventListener('dragend', handleWindowDragEnd);
+        return () => {
+            window.removeEventListener('dragend', handleWindowDragEnd);
+        };
+    }, [clearDragState]);
+
+    const handleFieldDrop = useCallback((e, dropIndex) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (!isDraggingRef.current) {
+            clearDragState();
+            return;
+        }
+
+        const fromIndex = draggedIndexRef.current !== null 
+            ? draggedIndexRef.current 
+            : (draggedIndex !== null 
+                ? draggedIndex 
+                : parseInt(e.dataTransfer.getData("text/plain"), 10));
+
+        // Immediately disarm dragging so no other drop or bubbling handler can trigger
+        isDraggingRef.current = false;
+        draggedIndexRef.current = null;
+
+        if (isNaN(fromIndex) || fromIndex === null || fromIndex === dropIndex) {
+            clearDragState();
+            return;
+        }
+
+        setImageFields(prev => {
+            const updated = [...prev];
+            const [movedItem] = updated.splice(fromIndex, 1);
+            updated.splice(dropIndex, 0, movedItem);
+            return updated.map((field, idx) => ({ ...field, index: idx }));
+        });
+        setHasChanged(true);
+        clearDragState();
+    }, [draggedIndex, clearDragState]);
 
     const canSubmit = data.title && isTitleValid && data.slug && isSlugValid
         && data.subtitle && isSubtitleValid && ((data.website && isWebsiteValid) || !data.website)
@@ -614,7 +757,21 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
                         </div>
                     </div>            
                     <div className="multi-field-container" ref={galleryContainerRef}>                                                    
-                        <div className="field-button-image-fields-container">
+                        <div className={`field-button-image-fields-container ${draggedIndex !== null ? 'is-dragging-active' : ''}`}
+                            onDragOver={(e) => {
+                                if (draggedIndex !== null) {
+                                    e.preventDefault();
+                                    e.dataTransfer.dropEffect = 'move';
+                                }
+                            }}
+                            onDrop={(e) => {
+                                if (draggedIndex !== null && isDraggingRef.current) {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    handleFieldDrop(e, dragOverIndex !== null ? dragOverIndex : draggedIndex);
+                                }
+                            }}
+                        >
                             <div className="field-button-container top-align">
                                 <div className="main-label-container">
                                     <label className="main-label">gallery images*</label>
@@ -630,19 +787,35 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
                             </div>
                             {
                                 imageFields.map((field) =>
-                                (
-                                    <ImageField key={field.index}
-                                        index={field.index}
-                                        image={field.image}
-                                        file={field.type === 'new' ? field.value : null}
-                                        alt={field.alt}
-                                        setArray={setImageFields}
-                                        onImageChange={onImageChange}
-                                        onAltChange={onAltChange}
-                                        onRemove={() => setHasChanged(true)}
-                                        disabled={isSubmitting}
-                                    />
-                                ))
+                                {
+                                    const isDragging = draggedIndex === field.index;
+                                    const isDisplacedAbove = draggedIndex !== null && draggedIndex > field.index && dragOverIndex <= field.index;
+                                    const isDisplacedBelow = draggedIndex !== null && draggedIndex < field.index && dragOverIndex >= field.index;
+
+                                    return (
+                                        <ImageField key={field.index}
+                                            index={field.index}
+                                            image={field.image}
+                                            file={field.type === 'new' ? field.value : null}
+                                            alt={field.alt}
+                                            setArray={setImageFields}
+                                            onImageChange={onImageChange}
+                                            onAltChange={onAltChange}
+                                            onRemove={() => setHasChanged(true)}
+                                            disabled={isSubmitting}
+                                            draggable={!isSubmitting}
+                                            isDragging={isDragging}
+                                            isDisplacedAbove={isDisplacedAbove}
+                                            isDisplacedBelow={isDisplacedBelow}
+                                            onFieldDragStart={handleFieldDragStart}
+                                            onFieldDragOver={handleFieldDragOver}
+                                            onFieldDragEnter={handleFieldDragEnter}
+                                            onFieldDragLeave={handleFieldDragLeave}
+                                            onFieldDragEnd={handleFieldDragEnd}
+                                            onFieldDrop={handleFieldDrop}
+                                        />
+                                    );
+                                })
                             }
                         </div>                         
                         <div className="horizontal-buttons-container reverse-row">         

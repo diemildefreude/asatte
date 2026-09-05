@@ -1199,15 +1199,27 @@ function getImageUrlFromFile(file) {
     reader.readAsDataURL(file);
   });
 }
+function setIsReorderingFields(isReordering) {
+  if (typeof window !== "undefined") {
+    window.__isReorderingFields = isReordering;
+  }
+}
 function addImageDragListeners(element, counterRef, handleDrop) {
   if (!element) {
     return;
   }
+  function isFileDrag(e) {
+    if (typeof window !== "undefined" && window.__isReorderingFields) return false;
+    if (!e.dataTransfer || !e.dataTransfer.types) return false;
+    return Array.from(e.dataTransfer.types).includes("Files");
+  }
   function handleDragOver(e) {
+    if (!isFileDrag(e)) return;
     e.preventDefault();
     e.stopPropagation();
   }
   function handleDragEnter(e) {
+    if (!isFileDrag(e)) return;
     e.preventDefault();
     e.stopPropagation();
     counterRef.current++;
@@ -1216,6 +1228,7 @@ function addImageDragListeners(element, counterRef, handleDrop) {
     }
   }
   function handleDragLeave(e) {
+    if (!isFileDrag(e)) return;
     e.preventDefault();
     e.stopPropagation();
     counterRef.current--;
@@ -1223,15 +1236,21 @@ function addImageDragListeners(element, counterRef, handleDrop) {
       element.classList.remove("dragged-over");
     }
   }
+  function handleDropWrapper(e) {
+    if (!isFileDrag(e)) return;
+    element.classList.remove("dragged-over");
+    counterRef.current = 0;
+    handleDrop(e);
+  }
   element.addEventListener("dragover", handleDragOver);
   element.addEventListener("dragenter", handleDragEnter);
   element.addEventListener("dragleave", handleDragLeave);
-  element.addEventListener("drop", handleDrop);
+  element.addEventListener("drop", handleDropWrapper);
   return () => {
     element.removeEventListener("dragover", handleDragOver);
     element.removeEventListener("dragenter", handleDragEnter);
     element.removeEventListener("dragleave", handleDragLeave);
-    element.removeEventListener("drop", handleDrop);
+    element.removeEventListener("drop", handleDropWrapper);
   };
 }
 function getVideoEmbedUrl(url) {
@@ -3192,6 +3211,7 @@ function EditProfile() {
     accepts_emails: true,
     theme: "default"
   });
+  console.log("user", user);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [websitesField, setWebsitesField] = useState([]);
@@ -6930,7 +6950,7 @@ function UserProfile({ user: profileUserProp }) {
                 isArray: true
               }
             ),
-            /* @__PURE__ */ jsx(
+            profileUser.location && /* @__PURE__ */ jsx(
               ProfileItem,
               {
                 name: "location",
@@ -7947,7 +7967,27 @@ const __vite_glob_0_23 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.de
   __proto__: null,
   default: DeleteAccount
 }, Symbol.toStringTag, { value: "Module" }));
-function ImageField({ index, image = null, file = null, alt = "", setArray, onImageChange, onAltChange, onRemove, disabled = false }) {
+function ImageField({
+  index,
+  image = null,
+  file = null,
+  alt = "",
+  setArray,
+  onImageChange,
+  onAltChange,
+  onRemove,
+  disabled = false,
+  draggable = false,
+  isDragging = false,
+  isDisplacedAbove = false,
+  isDisplacedBelow = false,
+  onFieldDragStart,
+  onFieldDragOver,
+  onFieldDragEnter,
+  onFieldDragLeave,
+  onFieldDragEnd,
+  onFieldDrop
+}) {
   const [previewImage, setPreviewImage] = useState(image);
   const [imageError, setImageError] = useState("");
   const [altError, setAltError] = useState("");
@@ -8033,45 +8073,79 @@ function ImageField({ index, image = null, file = null, alt = "", setArray, onIm
     }
     onAltChange(index, altText);
   }, [setAltError, index, onAltChange]);
-  return /* @__PURE__ */ jsxs("div", { className: "image-field", ref: imageFieldRef, children: [
-    imageError && /* @__PURE__ */ jsx("div", { className: "error", children: imageError }),
-    altError && /* @__PURE__ */ jsx("div", { className: "error", children: altError }),
-    /* @__PURE__ */ jsxs("div", { className: "sub-field", children: [
-      /* @__PURE__ */ jsxs("div", { className: "remove-input-container", children: [
-        /* @__PURE__ */ jsx("span", { className: "button-container", children: /* @__PURE__ */ jsx("button", { type: "button", onClick: removeSelf, disabled, children: "-" }) }),
-        /* @__PURE__ */ jsx(
-          "input",
-          {
-            type: "file",
-            accept: ".jpg, .jpeg, .png, .webp, .bmp",
-            name: "gal_images[]",
-            id: `gal_image_${index}`,
-            onChange: handleFileChange,
-            ref: imageInputRef,
-            disabled
-          }
-        )
-      ] }),
-      /* @__PURE__ */ jsxs("div", { className: "alt-input-container", children: [
-        /* @__PURE__ */ jsx("label", { htmlFor: `alt_${index}`, children: "alt text" }),
-        /* @__PURE__ */ jsx(
-          "input",
-          {
-            type: "text",
-            name: "alts[]",
-            id: `alt_${index}`,
-            value: alt ?? "",
-            onChange: handleAltChange,
-            disabled
-          }
-        )
-      ] })
-    ] }),
-    /* @__PURE__ */ jsxs("div", { className: previewImage ? "img-preview-container" : "img-preview-container hidden", children: [
-      /* @__PURE__ */ jsx("img", { src: previewImage, alt }),
-      /* @__PURE__ */ jsx("div", { className: "loading hidden", children: "loading" })
-    ] })
-  ] });
+  const handleMouseDownOnControl = (e) => {
+    e.stopPropagation();
+  };
+  let fieldClasses = "image-field";
+  if (isDragging) fieldClasses += " is-dragging";
+  if (isDisplacedAbove) fieldClasses += " displace-above";
+  if (isDisplacedBelow) fieldClasses += " displace-below";
+  return /* @__PURE__ */ jsxs(
+    "div",
+    {
+      className: fieldClasses,
+      ref: imageFieldRef,
+      draggable: draggable && !disabled,
+      onDragStart: (e) => onFieldDragStart && onFieldDragStart(e, index),
+      onDragOver: (e) => onFieldDragOver && onFieldDragOver(e, index),
+      onDragEnter: (e) => onFieldDragEnter && onFieldDragEnter(e, index),
+      onDragLeave: (e) => onFieldDragLeave && onFieldDragLeave(e, index),
+      onDragEnd: (e) => onFieldDragEnd && onFieldDragEnd(e, index),
+      onDrop: (e) => {
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+          return;
+        }
+        e.preventDefault();
+        e.stopPropagation();
+        if (onFieldDrop) {
+          onFieldDrop(e, index);
+        }
+      },
+      children: [
+        imageError && /* @__PURE__ */ jsx("div", { className: "error", children: imageError }),
+        altError && /* @__PURE__ */ jsx("div", { className: "error", children: altError }),
+        /* @__PURE__ */ jsxs("div", { className: "sub-field", children: [
+          /* @__PURE__ */ jsxs("div", { className: "remove-input-container", children: [
+            /* @__PURE__ */ jsx("span", { className: "button-container", children: /* @__PURE__ */ jsx("button", { type: "button", onClick: removeSelf, disabled, onMouseDown: handleMouseDownOnControl, children: "-" }) }),
+            /* @__PURE__ */ jsx(
+              "input",
+              {
+                type: "file",
+                accept: ".jpg, .jpeg, .png, .webp, .bmp",
+                name: "gal_images[]",
+                id: `gal_image_${index}`,
+                onChange: handleFileChange,
+                ref: imageInputRef,
+                disabled,
+                className: "hidden-file-input"
+              }
+            ),
+            /* @__PURE__ */ jsx("label", { htmlFor: `gal_image_${index}`, className: "file-input-button", onMouseDown: handleMouseDownOnControl, children: "Choose File" }),
+            /* @__PURE__ */ jsx("span", { className: "file-input-label", children: file ? file.name : previewImage ? image ? "existing image" : "1 file chosen" : "no file chosen" })
+          ] }),
+          /* @__PURE__ */ jsxs("div", { className: "alt-input-container", children: [
+            /* @__PURE__ */ jsx("label", { htmlFor: `alt_${index}`, children: "alt text" }),
+            /* @__PURE__ */ jsx(
+              "input",
+              {
+                type: "text",
+                name: "alts[]",
+                id: `alt_${index}`,
+                value: alt ?? "",
+                onChange: handleAltChange,
+                disabled,
+                onMouseDown: handleMouseDownOnControl
+              }
+            )
+          ] })
+        ] }),
+        /* @__PURE__ */ jsxs("div", { className: previewImage ? "img-preview-container" : "img-preview-container hidden", children: [
+          /* @__PURE__ */ jsx("img", { src: previewImage, alt, draggable: false }),
+          /* @__PURE__ */ jsx("div", { className: "loading hidden", children: "loading" })
+        ] })
+      ]
+    }
+  );
 }
 const __vite_glob_0_27 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
@@ -8085,13 +8159,16 @@ const createInitialImageFields = (post = null, user, postUrl, appUrl) => {
       return null;
     }
     const alts = post.gallery_alts;
-    return images.map((image, i) => ({
-      index: i,
-      image: `${appUrl}/storage/images/uploaded/users/${user.username}/posts/${postUrl}/gallery/thumb/${image}`,
-      alt: !alts || alts[i] == "null" ? "" : alts[i],
-      value: image,
-      type: "old"
-    }));
+    return images.map((image, i) => {
+      var _a;
+      return {
+        index: i,
+        image: `${appUrl}/storage/images/uploaded/users/${((_a = post == null ? void 0 : post.user) == null ? void 0 : _a.username) || user.username}/posts/${postUrl}/gallery/thumb/${image}`,
+        alt: !alts || alts[i] == "null" ? "" : alts[i],
+        value: image,
+        type: "old"
+      };
+    });
   } else {
     return [];
   }
@@ -8138,6 +8215,122 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
   const galleryContainerRef = useRef(null);
   const [imageFields, setImageFields] = useState(createInitialImageFields(post, user, (post == null ? void 0 : post.slug) || "", appUrl));
   const dragCounterRef = useRef(0);
+  const [draggedIndex, setDraggedIndex] = useState(null);
+  const [dragOverIndex, setDragOverIndex] = useState(null);
+  const isDraggingRef = useRef(false);
+  const draggedIndexRef = useRef(null);
+  const autoScrollFrameRef = useRef(null);
+  const mouseYRef = useRef(null);
+  useEffect(() => {
+    if (draggedIndex === null) {
+      if (autoScrollFrameRef.current) {
+        cancelAnimationFrame(autoScrollFrameRef.current);
+        autoScrollFrameRef.current = null;
+      }
+      mouseYRef.current = null;
+      return;
+    }
+    const threshold = 120;
+    const maxSpeed = 20;
+    const updateScroll = () => {
+      if (mouseYRef.current !== null) {
+        const y = mouseYRef.current;
+        const viewHeight = window.innerHeight;
+        if (y < threshold) {
+          const ratio = Math.min(1, (threshold - y) / threshold);
+          const speed = -Math.max(4, ratio * maxSpeed);
+          window.scrollBy(0, speed);
+        } else if (y > viewHeight - threshold) {
+          const ratio = Math.min(1, (y - (viewHeight - threshold)) / threshold);
+          const speed = Math.max(4, ratio * maxSpeed);
+          window.scrollBy(0, speed);
+        }
+      }
+      autoScrollFrameRef.current = requestAnimationFrame(updateScroll);
+    };
+    const handleWindowDragOver = (e) => {
+      mouseYRef.current = e.clientY;
+    };
+    window.addEventListener("dragover", handleWindowDragOver);
+    autoScrollFrameRef.current = requestAnimationFrame(updateScroll);
+    return () => {
+      window.removeEventListener("dragover", handleWindowDragOver);
+      if (autoScrollFrameRef.current) {
+        cancelAnimationFrame(autoScrollFrameRef.current);
+        autoScrollFrameRef.current = null;
+      }
+      mouseYRef.current = null;
+    };
+  }, [draggedIndex]);
+  const clearDragState = useCallback(() => {
+    isDraggingRef.current = false;
+    draggedIndexRef.current = null;
+    setIsReorderingFields(false);
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  }, []);
+  const handleFieldDragStart = useCallback((e, index) => {
+    isDraggingRef.current = true;
+    draggedIndexRef.current = index;
+    setIsReorderingFields(true);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", index.toString());
+    setTimeout(() => {
+      setDraggedIndex(index);
+      setDragOverIndex(index);
+    }, 0);
+  }, []);
+  const handleFieldDragOver = useCallback((e, index) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (dragOverIndex !== index) {
+      setDragOverIndex(index);
+    }
+  }, [dragOverIndex]);
+  const handleFieldDragEnter = useCallback((e, index) => {
+    e.preventDefault();
+    if (dragOverIndex !== index) {
+      setDragOverIndex(index);
+    }
+  }, [dragOverIndex]);
+  const handleFieldDragLeave = useCallback((e) => {
+    e.preventDefault();
+  }, []);
+  const handleFieldDragEnd = useCallback(() => {
+    clearDragState();
+  }, [clearDragState]);
+  useEffect(() => {
+    const handleWindowDragEnd = () => {
+      clearDragState();
+    };
+    window.addEventListener("dragend", handleWindowDragEnd);
+    return () => {
+      window.removeEventListener("dragend", handleWindowDragEnd);
+    };
+  }, [clearDragState]);
+  const handleFieldDrop = useCallback((e, dropIndex) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isDraggingRef.current) {
+      clearDragState();
+      return;
+    }
+    const fromIndex = draggedIndexRef.current !== null ? draggedIndexRef.current : draggedIndex !== null ? draggedIndex : parseInt(e.dataTransfer.getData("text/plain"), 10);
+    isDraggingRef.current = false;
+    draggedIndexRef.current = null;
+    if (isNaN(fromIndex) || fromIndex === null || fromIndex === dropIndex) {
+      clearDragState();
+      return;
+    }
+    setImageFields((prev) => {
+      const updated = [...prev];
+      const [movedItem] = updated.splice(fromIndex, 1);
+      updated.splice(dropIndex, 0, movedItem);
+      return updated.map((field, idx) => ({ ...field, index: idx }));
+    });
+    setHasChanged(true);
+    clearDragState();
+  }, [draggedIndex, clearDragState]);
   const canSubmit = data.title && isTitleValid && data.slug && isSlugValid && data.subtitle && isSubtitleValid && (data.website && isWebsiteValid || !data.website) && (data.source_code && isSourceCodeValid || !data.source_code) && (data.main_video_raw && isMainVideoValid || !data.main_video_raw) && imageFields.length > 0 && hasImages(imageFields) && (hasChanged || (post == null ? void 0 : post.is_draft));
   const buttonText = !post || post.is_draft ? "publish" : "update";
   const loadingText = "loading form...";
@@ -8627,37 +8820,71 @@ function PostForm({ isCreateForm = true, post = null, user, category = Category.
         ] })
       ] }),
       /* @__PURE__ */ jsxs("div", { className: "multi-field-container", ref: galleryContainerRef, children: [
-        /* @__PURE__ */ jsxs("div", { className: "field-button-image-fields-container", children: [
-          /* @__PURE__ */ jsx("div", { className: "field-button-container top-align", children: /* @__PURE__ */ jsxs("div", { className: "main-label-container", children: [
-            /* @__PURE__ */ jsx("label", { className: "main-label", children: "gallery images*" }),
-            /* @__PURE__ */ jsx("span", { className: "button-container", children: /* @__PURE__ */ jsx(
-              "button",
-              {
-                className: "small-but",
-                type: "button",
-                onClick: handleAddImage,
-                disabled: isSubmitting || imageFields.length >= IMAGE_LIMIT,
-                children: "+"
+        /* @__PURE__ */ jsxs(
+          "div",
+          {
+            className: `field-button-image-fields-container ${draggedIndex !== null ? "is-dragging-active" : ""}`,
+            onDragOver: (e) => {
+              if (draggedIndex !== null) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = "move";
               }
-            ) }),
-            /* @__PURE__ */ jsx("p", { children: "drag & drop" })
-          ] }) }),
-          imageFields.map((field) => /* @__PURE__ */ jsx(
-            ImageField,
-            {
-              index: field.index,
-              image: field.image,
-              file: field.type === "new" ? field.value : null,
-              alt: field.alt,
-              setArray: setImageFields,
-              onImageChange,
-              onAltChange,
-              onRemove: () => setHasChanged(true),
-              disabled: isSubmitting
             },
-            field.index
-          ))
-        ] }),
+            onDrop: (e) => {
+              if (draggedIndex !== null && isDraggingRef.current) {
+                e.preventDefault();
+                e.stopPropagation();
+                handleFieldDrop(e, dragOverIndex !== null ? dragOverIndex : draggedIndex);
+              }
+            },
+            children: [
+              /* @__PURE__ */ jsx("div", { className: "field-button-container top-align", children: /* @__PURE__ */ jsxs("div", { className: "main-label-container", children: [
+                /* @__PURE__ */ jsx("label", { className: "main-label", children: "gallery images*" }),
+                /* @__PURE__ */ jsx("span", { className: "button-container", children: /* @__PURE__ */ jsx(
+                  "button",
+                  {
+                    className: "small-but",
+                    type: "button",
+                    onClick: handleAddImage,
+                    disabled: isSubmitting || imageFields.length >= IMAGE_LIMIT,
+                    children: "+"
+                  }
+                ) }),
+                /* @__PURE__ */ jsx("p", { children: "drag & drop" })
+              ] }) }),
+              imageFields.map((field) => {
+                const isDragging = draggedIndex === field.index;
+                const isDisplacedAbove = draggedIndex !== null && draggedIndex > field.index && dragOverIndex <= field.index;
+                const isDisplacedBelow = draggedIndex !== null && draggedIndex < field.index && dragOverIndex >= field.index;
+                return /* @__PURE__ */ jsx(
+                  ImageField,
+                  {
+                    index: field.index,
+                    image: field.image,
+                    file: field.type === "new" ? field.value : null,
+                    alt: field.alt,
+                    setArray: setImageFields,
+                    onImageChange,
+                    onAltChange,
+                    onRemove: () => setHasChanged(true),
+                    disabled: isSubmitting,
+                    draggable: !isSubmitting,
+                    isDragging,
+                    isDisplacedAbove,
+                    isDisplacedBelow,
+                    onFieldDragStart: handleFieldDragStart,
+                    onFieldDragOver: handleFieldDragOver,
+                    onFieldDragEnter: handleFieldDragEnter,
+                    onFieldDragLeave: handleFieldDragLeave,
+                    onFieldDragEnd: handleFieldDragEnd,
+                    onFieldDrop: handleFieldDrop
+                  },
+                  field.index
+                );
+              })
+            ]
+          }
+        ),
         /* @__PURE__ */ jsxs("div", { className: "horizontal-buttons-container reverse-row", children: [
           (!post || post.is_draft) && /* @__PURE__ */ jsx("button", { type: "button", onClick: (e) => onSubmit(e, true), disabled: isSubmitting || !canSubmit, children: "save draft" }),
           /* @__PURE__ */ jsx("button", { type: "submit", disabled: isSubmitting || !canSubmit, children: buttonText })
