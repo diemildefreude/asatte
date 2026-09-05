@@ -9,7 +9,7 @@ import { addImageDragListeners, Category, dehydrateEditorImagePaths, formatSlug,
     getImageUrlFromFile, getVideoEmbedUrl, hydrateEditorImagePaths, isAlphaDash, isUrl, 
     MemberType, PageTheme, processEditorImages, resizeImage, setIsReorderingFields } from '../../utils/helpers';
 
-const IMAGE_LIMIT=15;
+const IMAGE_LIMIT=6;
 
 const createInitialImageFields = (post=null, user, postUrl, appUrl) => 
 {
@@ -500,7 +500,7 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
     {
         clearErrors('general');
         if(imageFields.length >= IMAGE_LIMIT) {
-            setError('general', "Max amount of images is 15. Input truncated.");
+            setError('general', "Max amount of images is 6. Input truncated.");
             return;
         }        
         setImageFields(prev => [...prev, { index: prev.length, image: null, alt: "", value: null, type: 'new' }]);
@@ -545,7 +545,7 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
             let reindexed = combined.map((f, i) => ({ ...f, index: i}));
             if(reindexed.length >= IMAGE_LIMIT)
             {
-                localErr = (localErr ? localErr + ' ' : '') + "Max amount of images is 15.";
+                localErr = (localErr ? localErr + ' ' : '') + "Max amount of images is 6.";
                 reindexed = reindexed.slice(0, IMAGE_LIMIT);
             }
             if(localErr) setError('general', localErr);
