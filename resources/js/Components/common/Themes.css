@@ -82,6 +82,15 @@ body:has(.post.sunset, .public-profile.sunset) .yellow-gradient-background .noti
 {
     color: var(--blue);
 }
+.content:not(.touch-device) .public-profile.sunset button.avatar-button.public-hover:hover
+{
+    background: linear-gradient(45deg, #00000088 0%, #ffffff88 100%);
+    color: var(--pale-yellow);
+}
+.content:not(.touch-device) .public-profile.sunset button.avatar-button.public-hover:hover span
+{
+    color: var(--pale-yellow);
+}
 @media (min-width: 800px)
 {
     body:has(.post.sunset, .public-profile.sunset) nav .user-link .avatar-container .round-image 
@@ -154,14 +163,23 @@ body:has(.public-profile.bubblegum) .main-info-box .button-link:enabled
 {
     color: var(--bright-blue);
 }
+body:has(.post.bubblegum, .public-profile.bubblegum) .nav-logo-desktop svg
+{
+    color: var(--bright-blue);
+    --logo-secondary-color: #ebe7ff;
+}
 body:has(.public-profile.bubblegum) .main-info-box .profile-avatar-container
 {
     border-color: var(--blue);
 }
-body:has(.post.bubblegum, .public-profile.bubblegum) .nav-logo-desktop svg
+.content:not(.touch-device) .public-profile.bubblegum button.avatar-button.public-hover:hover
+{
+    background: linear-gradient(45deg, #00000088 0%, #ffffff88 100%);
+    color: var(--bright-blue);
+}
+.content:not(.touch-device) .public-profile.bubblegum button.avatar-button.public-hover:hover span
 {
     color: var(--bright-blue);
-    --logo-secondary-color: #ded8ff;
 }
 body:has(.public-profile.bubblegum) .rte-container
 {
@@ -213,7 +231,7 @@ body:has(.post.bubblegum, .public-profile.bubblegum) blockquote
 }
 body:has(.post.bubblegum, .public-profile.bubblegum) .slider-end-left, body:has(.post.bubblegum, .public-profile.bubblegum) .slider-end-right
 {
-    --solid-color: #c1b7fd;
+    --solid-color: #dbd5ff;
     --faded-color: #c1b7fd00;
 }
 body:has(.post.bubblegum, .public-profile.bubblegum) .icon
@@ -341,6 +359,27 @@ body:has(.post.noir, .public-profile.noir) .main-info-box .user-link span
 {
     color: rgb(116, 116, 116);
 }
+body:has(.post.noir, .public-profile.noir) .main-info-box .profile-avatar-container
+{
+    border-color: black;
+}
+body:has(.post.noir, .public-profile.noir) .nav-item:hover, body:has(.post.noir, .public-profile.noir) button:not(.button-link, .like-button):enabled:hover,
+body:has(.post.noir, .public-profile.noir) .nav-search-container:hover button:enabled,
+body:has(.post.noir, .public-profile.noir) .content:not(.touch-device) .nav-item:hover,/**/ body:has(.post.noir, .public-profile.noir) .content:not(.touch-device) button:not(.like-button):enabled:hover
+{
+    background: var(--noir-gradient);
+    color: white;
+    border-color: black;
+}
+body:has(.post.noir, .public-profile.noir) .content:not(.touch-device) .public-profile.noir .main-info-box button.avatar-button.public-hover:hover
+{
+    background: linear-gradient(45deg, #00000088 0%, #ffffff88 100%);
+    color: white;
+}
+body:has(.post.noir, .public-profile.noir) .content:not(.touch-device) .public-profile.noir .main-info-box button.avatar-button.public-hover:hover span
+{
+    color: white;
+}
 body:has(.post.noir, .public-profile.noir) .notice.small
 {
     color: black;
@@ -465,14 +504,6 @@ body:has(.post.noir, .public-profile.noir) .yellow-gradient-background .notice
     body:has(.post.noir, .public-profile.noir) .nav-item, body:has(.post.noir, .public-profile.noir) nav button:enabled
     {
         color: black;
-    }
-    body:has(.post.noir, .public-profile.noir) .nav-item:hover, body:has(.post.noir, .public-profile.noir) button:enabled:hover,
-    body:has(.post.noir, .public-profile.noir) .nav-search-container:hover button:enabled,
-    body:has(.post.noir, .public-profile.noir) .content:not(.touch-device) .nav-item:hover, body:has(.post.noir, .public-profile.noir) .content:not(.touch-device) button:not(.like-button):enabled:hover
-    {
-        background: var(--noir-gradient);
-        color: white;
-        border-color: black;
     }
     body:has(.post.noir, .public-profile.noir) .content:not(.touch-device) .main-info-box button:not(.like-button):enabled:hover
     {

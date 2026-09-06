@@ -78,7 +78,7 @@ function UserProfile({ user: profileUserProp })
     <>
         <PageHead title={`${username}'s profile`}
         />        
-        <div className={`heading-profile-container public-profile ${profileUser?.theme && profileUser.theme !== 'default' ? profileUser.theme : ''}`}>
+        <div className={`heading-profile-container public-profile noir`}>
             <div className='centered-content vert-1rem'><h1>{username}</h1></div>
             {
                 profileUser ? (

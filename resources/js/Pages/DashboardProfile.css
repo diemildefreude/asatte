@@ -202,6 +202,15 @@
    color: var(--dark-blue);
    background: transparent;
 }
+.content:not(.touch-device) .public-profile button.avatar-button.public-hover:hover
+{
+    background: linear-gradient(45deg, #00000088 0%, #ffffff88 100%);
+    color: var(--pale-yellow);
+}
+.content:not(.touch-device) .public-profile button.avatar-button.public-hover:hover span
+{
+    color: var(--pale-yellow);
+}
 .content.touch-device .avatar-button.public-hover
 {
     display: none;

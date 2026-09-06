@@ -13,7 +13,6 @@ function EditProfile()
     const from = props?.flash?.from || '/';
     const flash = props?.flash || {};
 
-
     const { data, setData, post, processing, errors, setError, clearErrors } = useForm({
         websites: [],
         location: '',
@@ -21,7 +20,7 @@ function EditProfile()
         accepts_emails: true,
         theme: 'default',
     });
-    console.log("user", user);
+    
     const [isLoggingOut, setIsLoggingOut] = useState(false);
 
     const [hasChanges, setHasChanges] = useState(false);
