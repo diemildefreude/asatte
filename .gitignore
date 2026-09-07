@@ -2,40 +2,42 @@
 node_modules/
 npm-debug.log
 yarn-error.log
+*.log
 
-# Laravel 4 specific
+# Laravel & Builds
 bootstrap/compiled.php
 /bootstrap/ssr
-app/storage/
-
-# Laravel 5 & Lumen specific
 public/storage
 public/hot
 /public/build
+/storage/pail
 
-# Laravel 5 & Lumen specific with changed public path
-public_html/storage
-public_html/hot
-
-storage/*.key
+# Environment files
 .env
+.env.*
+!.env.example
+
+# Database dumps & local databases
+*.sql
+*.sqlite
+*.sqlite-journal
+*.dump
+
+# Certificates & Private Keys
+*.pem
+*.key
+*.crt
+*.pfx
+*.p12
+
+# Editor & OS files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+.phpunit.result.cache
+.phpactor.json
+auth.json
 Homestead.yaml
 Homestead.json
 /.vagrant
-.phpunit.result.cache
-
-/public/build
-/storage/pail
-.env.backup
-.env.production
-.phpactor.json
-auth.json
-
-#SSL Keys for local testing
-netart.io+2-key.pem
-netart.io+2.pem
-
-# React Frontend
-
-frontend/.env.development
-frontend/env.production
