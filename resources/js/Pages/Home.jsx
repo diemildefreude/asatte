@@ -47,19 +47,19 @@ function Home({ heroPosts = [], carouselArchive = [], carouselNews = [], carouse
                 initialPosts={heroPosts}
             />
         </div>
-        <div className="page-section carousel">
-            <TileCarousel size="small" title="newest works:" posts={carouselArchive} />
-        </div>
-        {carouselFollowing && carouselFollowing.length > 0 && (
-            <div className="page-section carousel">
-                <TileCarousel size="small" title="users you follow:" posts={carouselFollowing} />
-            </div>
-        )}
         {carouselNews && carouselNews.length > 0 && (
             <div className="page-section carousel">
                 <TileCarousel size="small" title="news:" posts={carouselNews} />
             </div>
         )}
+        {carouselFollowing && carouselFollowing.length > 0 && (
+            <div className="page-section carousel">
+                <TileCarousel size="small" title="users you follow:" posts={carouselFollowing} />
+            </div>
+        )}        
+        {/* <div className="page-section carousel">
+            <TileCarousel size="small" title="newest works:" posts={carouselArchive} />
+        </div> */}
         <div className="page-section">
             <h2 className='big-title centered-content no-margin padded'>explore</h2>
             <AutoloadTilesContainer 
