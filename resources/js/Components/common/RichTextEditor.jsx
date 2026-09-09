@@ -72,8 +72,9 @@ function RichTextEditor({ onChange, value, quotedMessage, onQuoteApplied, placeh
         default_link_target: '_blank',
         plugins: 'lists image link media',
         toolbar: disabled ? false : 
-            ['styles | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist blockquote | image media link']
+            ['styles fontsize | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist blockquote | image media link']
         ,
+        font_size_formats: '8pt 10pt 12pt 14pt 16pt 18pt 24pt 36pt 48pt',
         extended_valid_elements: 'blockquote[class|data-instgrm-permalink|data-instgrm-version|data-instgrm-captioned|data-instgrm-payload-id|data-video-id|cite|data-theme|data-dnt|data-media-max-width],iframe[src|title|width|height|frameborder|allowfullscreen|scrolling|allow|style]',
         toolbar_mode: 'wrap',
         mobile: {
