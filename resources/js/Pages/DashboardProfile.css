@@ -424,6 +424,7 @@
 .image-field label.link-button
 {
     padding: 0 0.4rem;
+    cursor: pointer;
 }
 .field-button-image-fields-container
 {
@@ -439,7 +440,7 @@
     user-select: none;
     transition: transform 0.2s ease, opacity 0.2s ease, background 0.2s ease;
 }
-.image-field:active
+.image-field:active, .image-field:active .file-input-label, .file-input-label:active
 {
     cursor: grabbing;
 }
@@ -467,6 +468,7 @@
 {
     cursor: default;
     user-select: none;
+    pointer-events: none;
 }
 .image-field.is-dragging
 {

@@ -12,6 +12,10 @@
     /* max-height: 100svh; */
     height: fit-content;
 }
+.rte-container 
+{
+    scrollbar-color: var(--transparent-black) var(--bright-blue) !important;
+}      
 .rte-container.read-only
 {
     max-height: none;

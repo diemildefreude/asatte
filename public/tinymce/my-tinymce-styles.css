@@ -1,5 +1,49 @@
 @import url('https://fonts.googleapis.com/css2?family=Cascadia+Code:ital,wght@0,200..700;1,200..700&display=swap');
 
+:root
+{
+    --pale-yellow: #FFE4AF;
+    --grey-yellow: #c9bca4;
+    --grey-blue: #9cc5c5;
+    --grey: #c3c3c3;
+    --navy: #001550;
+    --dark-blue: #0025b7;
+    --blue: #1177c0;
+    --bright-blue: #28dbff;
+    --strawberry: #ff4574;
+    --light-strawberry: #ff7194;
+    --blood: #6c0746;
+    --teal: #2cd7bd;
+    --yellow: #fedca0;
+    --orange: #FFA500;
+    --dark-purple: #330055;
+    --grey-purple: #5e5266;
+    --transparent-black: rgba(0, 0, 0, 0.5);
+    --transparent-white: rgba(255, 255, 255, 0.5);
+}
+:root, html, body, *
+{
+    scrollbar-color: var(--dark-purple) #c1b7fdcc !important;
+    scrollbar-width: thin !important;  
+    font-variant-ligatures: none;
+    font-feature-settings: "calt" 0, "liga" 0, "dlig" 0;
+}
+/* WebKit fallback / enhanced custom styling */
+html::-webkit-scrollbar, body::-webkit-scrollbar, *::-webkit-scrollbar
+{
+    width: 12px;
+    height: 12px;
+}
+
+html::-webkit-scrollbar-track, body::-webkit-scrollbar-track, *::-webkit-scrollbar-track
+{
+    background: var(--bright-blue);
+}
+
+html::-webkit-scrollbar-thumb, body::-webkit-scrollbar-thumb, *::-webkit-scrollbar-thumb
+{
+    background: var(--transparent-black);
+}
 html 
 {
     height: 100%;

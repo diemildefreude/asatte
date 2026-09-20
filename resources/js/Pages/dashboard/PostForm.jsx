@@ -150,6 +150,10 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
     }, []);
 
     const handleFieldDragStart = useCallback((e, index) => {
+        if (e.target && e.target.closest && e.target.closest('input, textarea, button, label')) {
+            e.preventDefault();
+            return;
+        }
         isDraggingRef.current = true;
         draggedIndexRef.current = index;
         setIsReorderingFields(true);

@@ -127,10 +127,33 @@ function ImageField({
         onAltChange(index, altText);
     },[setAltError, index, onAltChange]);
 
+    const [canDrag, setCanDrag] = useState(true);
+
     const handleMouseDownOnControl = (e) =>
     {
         e.stopPropagation();
     };
+
+    const handleControlMouseEnter = useCallback(() => {
+        setCanDrag(false);
+    }, []);
+
+    const handleControlMouseLeave = useCallback((e) => {
+        if (e && e.buttons === 1) {
+            const handleWindowMouseUp = () => {
+                setCanDrag(true);
+                window.removeEventListener('mouseup', handleWindowMouseUp);
+            };
+            window.addEventListener('mouseup', handleWindowMouseUp);
+        } else {
+            setCanDrag(true);
+        }
+    }, []);
+
+    const handleControlMouseDown = useCallback((e) => {
+        e.stopPropagation();
+        setCanDrag(false);
+    }, []);
 
     let fieldClasses = "image-field";
     if (isDragging) fieldClasses += " is-dragging";
@@ -140,8 +163,16 @@ function ImageField({
     return(
     <div className={fieldClasses}
         ref={imageFieldRef}
-        draggable={draggable && !disabled}
-        onDragStart={(e) => onFieldDragStart && onFieldDragStart(e, index)}
+        draggable={draggable && !disabled && canDrag}
+        onDragStart={(e) => {
+            if (e.target && e.target.closest && e.target.closest('input, textarea, button, label')) {
+                e.preventDefault();
+                return;
+            }
+            if (onFieldDragStart) {
+                onFieldDragStart(e, index);
+            }
+        }}
         onDragOver={(e) => onFieldDragOver && onFieldDragOver(e, index)}
         onDragEnter={(e) => onFieldDragEnter && onFieldDragEnter(e, index)}
         onDragLeave={(e) => onFieldDragLeave && onFieldDragLeave(e, index)}
@@ -196,7 +227,9 @@ function ImageField({
                     value={alt ?? ""}
                     onChange={handleAltChange}
                     disabled={disabled}
-                    onMouseDown={handleMouseDownOnControl}
+                    onMouseDown={handleControlMouseDown}
+                    onMouseEnter={handleControlMouseEnter}
+                    onMouseLeave={handleControlMouseLeave}
                 />
             </div>
         </div>      
