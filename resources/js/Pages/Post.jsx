@@ -37,6 +37,8 @@
         
         let canHidePost = false;
         const authorMemberType = post?.user?.member_type;
+
+        console.log("carouselPosts", userPosts ?? null);
         if (isWebmaster) 
         {
             canHidePost = true;

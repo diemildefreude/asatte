@@ -65,7 +65,8 @@ class PostController extends Controller
         }
         $query = Post::with(relations: 'user:id,username,avatar,member_type')
             ->where('is_news', $isNews)
-            ->where('is_private', false);
+            ->where('is_private', false)
+            ->where('is_draft', false);
         
         $query = $userId ? $query->where('user_id', $userId) : $query;
 
@@ -441,14 +442,17 @@ class PostController extends Controller
 
         $carouselPostsQuery = Post::with('user:id,username,avatar,member_type')
             ->where('is_private', false)
+            ->where('is_draft', false)
             ->where('is_hidden_by_admin', false)
             ->where('id', '!=', $post->id)
             ->latest()
             ->limit(6);
 
-        if ($post->is_news) {
+        if ($post->is_news) 
+        {
             $carouselPostsQuery->where('is_news', true);
-        } else {
+        } 
+        else {
             $carouselPostsQuery->where('user_id', $user->id)->where('is_news', false);
         }
 
@@ -531,6 +535,7 @@ class PostController extends Controller
 
         $carouselPosts = Post::with('user:id,username,avatar,member_type')
             ->where('is_private', false)
+            ->where('is_draft', false)
             ->where('is_hidden_by_admin', false)
             ->where('is_news', true)
             ->where('id', '!=', $post->id)

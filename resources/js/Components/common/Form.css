@@ -1,3 +1,5 @@
+/* Form field and container styles */
+.form-v2-cache-bust { display: contents; }
 .form-container
 {
     display: flex;
