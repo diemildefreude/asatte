@@ -23,7 +23,7 @@
 }
 *
 {
-    margin: 0 !important;
+    margin: 0;
 }
 :root, html, body, *
 {
@@ -83,10 +83,10 @@ body::before
     padding: 0.2rem 0.4rem !important;
     line-height: 1.6 !important;
 }
-p:not(:last-child), blockquote:not(:last-child)
+p:not(:last-child), div:not(.iframe-container):not(.iframe-container-container):not(:last-child), blockquote:not(:last-child)
 {
     /* line-height: 1.6;   */
-    margin-bottom: 1.5em !important;
+    margin: 0 0 1.5em !important;
     /* padding: 0.4em 0 !important;   */
 }
 img 

@@ -757,7 +757,8 @@ button, .link-button
 {
     padding: 1rem 1rem 0;
 }
-.article-text p:not(:last-child), .article-text ol:not(:last-child), .message-text p:not(:last-child), .message-text ol:not(:last-child),
+.article-text p:not(:last-child), .article-text div:not(.iframe-container):not(.iframe-container-container):not(:last-child), .article-text ol:not(:last-child), 
+.message-text p:not(:last-child), .message-text div:not(.iframe-container):not(.iframe-container-container):not(:last-child), .message-text ol:not(:last-child),
 .message-text blockquote:not(:last-child), .article-text blockquote:not(:last-child)
 {
     margin-bottom: 1.5em;

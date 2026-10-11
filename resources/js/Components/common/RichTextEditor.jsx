@@ -61,6 +61,8 @@ function RichTextEditor({ onChange, value, quotedMessage, onQuoteApplied, placeh
       init={{
         height: 500,
         min_height: 300,
+        forced_root_block: 'p',
+        newline_behavior: 'default',
         convert_urls: false,
         menubar: false,
         link_assume_external_targets: 'http',
@@ -123,28 +125,69 @@ function RichTextEditor({ onChange, value, quotedMessage, onQuoteApplied, placeh
               });
             }
 
-            // Clean up frontend layout wrappers that might be pasted in from the public site
-            if (e.content.includes('iframe-container') || e.content.includes('statement')) {
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = e.content;
-                const unwrapClasses = ['.iframe-container-container', '.iframe-container', '.statement'];
-                
-                unwrapClasses.forEach(selector => {
-                    const elements = Array.from(tempDiv.querySelectorAll(selector));
-                    // Reverse to unwrap deepest first
-                    elements.reverse().forEach(el => {
-                        if (el.parentNode) {
-                            while (el.firstChild) {
-                                el.parentNode.insertBefore(el.firstChild, el);
-                            }
-                            el.parentNode.removeChild(el);
-                        }
-                    });
-                });
-                
-                e.content = tempDiv.innerHTML;
-            }
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = e.content;
+
+            // Normalize any pasted or loaded <div> blocks into standard <p> paragraphs
+            const isEmbedOrSpecial = (el) => {
+                if (!el || el.nodeType !== 1) return false;
+                if (el.classList.contains('iframe-container') || 
+                    el.classList.contains('iframe-container-container') || 
+                    el.classList.contains('mce-preview-object') ||
+                    el.classList.contains('mce-object')) {
+                    return true;
+                }
+                if (el.querySelector('iframe, video, table')) {
+                    return true;
+                }
+                return false;
+            };
+
+            const divs = Array.from(tempDiv.querySelectorAll('div')).reverse();
+            divs.forEach(div => {
+                if (isEmbedOrSpecial(div)) return;
+
+                const hasBlockChildren = Array.from(div.children).some(child => 
+                    /^(DIV|P|BLOCKQUOTE|UL|OL|H[1-6]|TABLE|PRE|FIGURE)$/i.test(child.tagName)
+                );
+
+                if (hasBlockChildren) {
+                    while (div.firstChild) {
+                        div.parentNode.insertBefore(div.firstChild, div);
+                    }
+                    div.parentNode.removeChild(div);
+                } else {
+                    const p = document.createElement('p');
+                    // Preserve inline styling (e.g. text-align, color), but NEVER copy container classes
+                    if (div.getAttribute('style')) {
+                        p.setAttribute('style', div.getAttribute('style'));
+                    }
+                    while (div.firstChild) {
+                        p.appendChild(div.firstChild);
+                    }
+                    div.parentNode.replaceChild(p, div);
+                }
+            });
+
+            // Strip classes from all paragraphs to prevent class pollution and Enter-key replication
+            tempDiv.querySelectorAll('p[class]').forEach(p => {
+                p.removeAttribute('class');
+            });
+
+            e.content = tempDiv.innerHTML;
           });
+
+          // Prevent TinyMCE from replicating any block classes when pressing Enter
+          const cleanNewBlockClass = (e) => {
+              if (e.key === 'Enter' || (e.type === 'input' && e.inputType === 'insertParagraph')) {
+                  const block = editor.dom.getParent(editor.selection.getStart(), editor.dom.isBlock);
+                  if (block && block.nodeName === 'P' && block.hasAttribute('class')) {
+                      block.removeAttribute('class');
+                  }
+              }
+          };
+          editor.on('keyup', cleanNewBlockClass);
+          editor.on('input', cleanNewBlockClass);
 
           editor.on('init', () => {
             const editorWin = editor.getWin();
