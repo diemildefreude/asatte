@@ -23,7 +23,8 @@ function ConversationPreview({conversation})
     return (
         conversation ? (
         <Link href={convoLink} 
-            className={"convo-preview"}>
+            className={"convo-preview"}
+        >
             <div className="convo-avatar-key-info">
                 <div className={avatarClasses}>
                     <img className = "round-image" src={avatar} alt={avatarAlt} />

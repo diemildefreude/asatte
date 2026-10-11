@@ -21,6 +21,10 @@
     --transparent-black: rgba(0, 0, 0, 0.5);
     --transparent-white: rgba(255, 255, 255, 0.5);
 }
+*
+{
+    margin: 0 !important;
+}
 :root, html, body, *
 {
     scrollbar-color: var(--dark-purple) #c1b7fdcc !important;
@@ -59,7 +63,7 @@ body
     color: #000;
     min-height: 100% !important;
     margin: 0;
-    padding: 0 0.4rem 40px 0.4rem !important;
+    padding: 0 0.5rem 40px 0.5rem !important;
     box-sizing: border-box;
     cursor: text;
     background: white;
@@ -79,11 +83,11 @@ body::before
     padding: 0.2rem 0.4rem !important;
     line-height: 1.6 !important;
 }
-p 
+p:not(:last-child), blockquote:not(:last-child)
 {
-    line-height: 1.6;  
-    margin: 0;
-    padding: 0.4em 0 !important;  
+    /* line-height: 1.6;   */
+    margin-bottom: 1.5em !important;
+    /* padding: 0.4em 0 !important;   */
 }
 img 
 {
