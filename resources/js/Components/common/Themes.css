@@ -365,7 +365,7 @@ body:has(.post.noir, .public-profile.noir) .main-info-box .profile-avatar-contai
 }
 body:has(.post.noir, .public-profile.noir) .nav-item:hover, body:has(.post.noir, .public-profile.noir) button:not(.button-link, .like-button):enabled:hover,
 body:has(.post.noir, .public-profile.noir) .nav-search-container:hover button:enabled,
-body:has(.post.noir, .public-profile.noir) .content:not(.touch-device) .nav-item:hover,/**/ body:has(.post.noir, .public-profile.noir) .content:not(.touch-device) button:not(.like-button):enabled:hover
+body:has(.post.noir, .public-profile.noir) .content:not(.touch-device) .nav-item:hover,/**/ body:has(.post.noir, .public-profile.noir) .content:not(.touch-device) button:not(.button-link, .like-button):enabled:hover
 {
     background: var(--noir-gradient);
     color: white;
