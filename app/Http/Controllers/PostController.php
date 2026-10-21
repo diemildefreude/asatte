@@ -353,7 +353,7 @@ class PostController extends Controller
             $preview = implode(' ', array_slice($excerptWords, 0, 50));
             $link = url("/{$request->user()->username}/{$post->slug}");
 
-            \App\Models\User::where('accepts_emails', true)->chunk(50, function ($users) use ($post, $preview, $link) {
+            \App\Models\User::where('email_news', true)->chunk(50, function ($users) use ($post, $preview, $link) {
                 foreach ($users as $u) {
                     \Illuminate\Support\Facades\Mail::to($u->email)->send(new \App\Mail\NewsNotice($post->title, $preview, $link));
                 }
@@ -385,8 +385,7 @@ class PostController extends Controller
             'comments' => function ($query) 
             {
                 // ...and for each comment, eager load its user, selecting specific fields
-                $query->with('user:id,username,avatar');
-                //    ->latest(); // Optional: order the comments by newest first
+                $query->with('user:id,username,avatar')->oldest();
             }])
             ->withCount('usersWhoLiked')
             ->where('slug', $slug)
@@ -438,7 +437,9 @@ class PostController extends Controller
             abort(404, 'No such post found.');
         }
         
-        $post->load('comments.user');
+        $post->load(['comments' => function ($query) {
+            $query->with('user:id,username,avatar')->oldest();
+        }]);
 
         $carouselPostsQuery = Post::with('user:id,username,avatar,member_type')
             ->where('is_private', false)
@@ -479,7 +480,7 @@ class PostController extends Controller
             'comments' => function ($query) 
             {
                 // ...and for each comment, eager load its user, selecting specific fields
-                $query->with('user:id,username,avatar');
+                $query->with('user:id,username,avatar')->oldest();
             }])
             ->withCount('usersWhoLiked')
             ->where('is_news', true)
@@ -531,7 +532,9 @@ class PostController extends Controller
             abort(404, 'No such news post found.');
         }        
         
-        $post->load('comments.user');
+        $post->load(['comments' => function ($query) {
+            $query->with('user:id,username,avatar')->oldest();
+        }]);
 
         $carouselPosts = Post::with('user:id,username,avatar,member_type')
             ->where('is_private', false)
@@ -572,8 +575,7 @@ class PostController extends Controller
             'comments' => function ($query) 
             {
                 // ...and for each comment, eager load its user, selecting specific fields
-                $query->with('user:id,username,avatar');
-                //    ->latest(); // Optional: order the comments by newest first
+                $query->with('user:id,username,avatar')->oldest();
             }])
             ->withCount('usersWhoLiked')
             ->where('slug', $slug)
@@ -861,7 +863,7 @@ class PostController extends Controller
             $preview = implode(' ', array_slice($excerptWords, 0, 50));
             $link = url("/{$request->user()->username}/{$post->slug}");
 
-            \App\Models\User::where('accepts_emails', true)->chunk(50, function ($users) use ($post, $preview, $link) {
+            \App\Models\User::where('email_news', true)->chunk(50, function ($users) use ($post, $preview, $link) {
                 foreach ($users as $u) {
                     \Illuminate\Support\Facades\Mail::to($u->email)->send(new \App\Mail\NewsNotice($post->title, $preview, $link));
                 }

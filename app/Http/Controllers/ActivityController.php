@@ -9,9 +9,12 @@ use App\Models\Notification;
 use App\Models\Post;
 use App\Models\PostView;
 use App\Models\User;
+use App\Mail\NewFollowerNotice;
+use App\Mail\NewLikeNotice;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 
 class ActivityController extends Controller
@@ -63,6 +66,39 @@ class ActivityController extends Controller
         $result = $post->usersWhoLiked()->toggle($userId);
 
         $wasAttached = !empty($result['attached']);
+
+        if ($wasAttached) {
+            // Only create notification and email if the user is not liking their own post
+            if ($post->user_id !== $userId) {
+                Notification::create([
+                    'user_id' => $post->user_id,
+                    'type' => NotificationType::Like,
+                    'data' => [
+                        'post_id' => $post->id,
+                        'liker_id' => $userId,
+                    ],
+                ]);
+
+                $postAuthor = $post->user;
+                if ($postAuthor && $postAuthor->email_like) {
+                    Mail::to($postAuthor->email)->send(
+                        new NewLikeNotice(
+                            $request->user()->username,
+                            $postAuthor->username,
+                            $post->title,
+                            url("/{$postAuthor->username}/{$post->slug}")
+                        )
+                    );
+                }
+            }
+        } else {
+            // Delete any existing like notices from this user for this post (read or unread)
+            Notification::where('type', NotificationType::Like)
+                ->where('user_id', $post->user_id)
+                ->where('data->post_id', $post->id)
+                ->where('data->liker_id', $userId)
+                ->delete();
+        }
 
         $post->loadCount('usersWhoLiked');
 
@@ -125,6 +161,13 @@ class ActivityController extends Controller
                 $follower = User::select(['id', 'username', 'avatar'])->find($data['follower_id']);
                 $notification->setRelation('follower', $follower);
             }
+            else if ($type == NotificationType::Like && isset($data['post_id'], $data['liker_id'])) 
+            {
+                $post = Post::with('user:id,username')->select(['id', 'slug', 'title', 'user_id'])->find($data['post_id']);
+                $liker = User::select(['id', 'username', 'avatar'])->find($data['liker_id']);
+                $notification->setRelation('post', $post);
+                $notification->setRelation('liker', $liker);
+            }
             $notification->makeHidden('data');
             
             $notification->is_read = true;
@@ -154,12 +197,26 @@ class ActivityController extends Controller
         $result = $authUser->following()->toggle($user->id);
         $isFollowing = !empty($result['attached']);
         
-        $notificationFields = [
-            'user_id' => $user->id,
-            'type' => NotificationType::Follower,
-            'data' => ['follower_id' => $authUser->id]
-        ];
-        Notification::create($notificationFields);
+        if ($isFollowing) 
+        {
+            $notificationFields = [
+                'user_id' => $user->id,
+                'type' => NotificationType::Follower,
+                'data' => ['follower_id' => $authUser->id]
+            ];
+            Notification::create($notificationFields);
+
+            if ($user->email_follower) 
+            {
+                Mail::to($user->email)->send(
+                    new NewFollowerNotice(
+                        $authUser->username,
+                        $user->username,
+                        url("/{$authUser->username}")
+                    )
+                );
+            }
+        }
 
         return back()->with([
             'is_following' => $isFollowing,

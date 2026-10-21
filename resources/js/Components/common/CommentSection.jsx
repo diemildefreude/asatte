@@ -159,7 +159,7 @@ function CommentSection({comments, apiRoutePrefix, likeCount, viewCount, canDele
                             {originalCommentElement != null && (
                                 <>
                                 <span className="notice thin">
-                                    <a href={`${currentUrl}/${originalCommentElement}`}
+                                    <a href={`${currentUrl}#${originalCommentElement}`}
                                         onClick={(e) => {e.preventDefault(); scrollToElement(currentUrl, originalCommentElement)}}
                                     >
                                         replying to {originalComment.user.username}
@@ -204,7 +204,7 @@ function CommentSection({comments, apiRoutePrefix, likeCount, viewCount, canDele
                     parentElement = parentElement === -1 ? null : parentElement; 
                     return <Comment 
                                 comment={comment} 
-                                key={i} 
+                                key={comment.id ?? i} 
                                 id={i}
                                 onReply={handleReply}
                                 parentLocalId={parentElement}

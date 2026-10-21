@@ -55,6 +55,12 @@ class Post extends Model
         // If not set, return 0 by default.
         return $this->attributes['users_who_liked_count'] ?? 0;
     }
+
+    public function getCommentsAttribute()
+    {
+        return $this->getRelationValue('comments');
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -72,7 +78,7 @@ class Post extends Model
     public function comments()
     {
         // One Post has many Comments
-        return $this->hasMany(Comment::class);
+        return $this->hasMany(Comment::class)->oldest();
     }
 }
 

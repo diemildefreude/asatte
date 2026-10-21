@@ -7,8 +7,11 @@ use App\Enums\NotificationType;
 use App\Models\ProfileComment;
 use App\Models\Notification;
 use App\Models\User;
+use App\Mail\NewCommentNotice;
+use App\Mail\NewReplyNotice;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Symfony\Component\HttpFoundation\Response;
 
 class ProfileCommentController extends Controller
@@ -31,7 +34,7 @@ class ProfileCommentController extends Controller
         $comment->save();
 
         $repliedToUser = isset($request->parent_id) ? 
-            ProfileComment::where('id', $request->parent_id)->first()->user_id
+            ProfileComment::where('id', $request->parent_id)->first()?->user_id
             : null;
 
         if ($userId == $repliedToUser) 
@@ -57,6 +60,32 @@ class ProfileCommentController extends Controller
                     'profile_username' => $user->username
                 ]
             ]);
+
+            $targetUser = User::find($notifiedUserId);
+            if ($targetUser) {
+                $commentUrl = url("/{$user->username}?comment_id={$comment->id}");
+                if ($notificationType === NotificationType::ProfileReply && $targetUser->email_comment_reply) {
+                    Mail::to($targetUser->email)->send(
+                        new NewReplyNotice(
+                            $request->user()->username,
+                            $targetUser->username,
+                            "{$user->username}'s profile",
+                            'profile',
+                            $commentUrl
+                        )
+                    );
+                } else if ($notificationType === NotificationType::ProfileComment && $targetUser->email_comment) {
+                    Mail::to($targetUser->email)->send(
+                        new NewCommentNotice(
+                            $request->user()->username,
+                            $targetUser->username,
+                            'your profile',
+                            'profile',
+                            $commentUrl
+                        )
+                    );
+                }
+            }
         }
 
         return back()->with('success', 'Your comment has been posted.');

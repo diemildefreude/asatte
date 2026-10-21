@@ -48,7 +48,9 @@ export const NotificationType =
     Reply: 'reply',
     Follower: 'follower',
     Unhidden: 'unhidden',
-    ProfileComment: 'profile_comment'
+    ProfileComment: 'profile_comment',
+    ProfileReply: 'profile_reply',
+    Like: 'like'
 }
 
 export const HistoryEntryType =
@@ -148,6 +150,7 @@ export function getPostsFetchParams(amount, category, fetchOrder,
 
 export function scrollToElement (currentUrl, id, replaceState=true)
 {
+    if (!id) return;
     const newUrl = `${currentUrl}#${id}`;
     if(replaceState)
     {

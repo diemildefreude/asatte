@@ -34,7 +34,7 @@ class ResetPassword extends Mailable
     {
         $appName = config('app.name');
         return new Envelope(
-            subject: "$appName: Password reset request",
+            subject: "Password reset request",
         );
     }
 

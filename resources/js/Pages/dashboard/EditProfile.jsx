@@ -17,7 +17,12 @@ function EditProfile()
         websites: [],
         location: '',
         show_email_in_profile: false,
-        accepts_emails: true,
+        email_news: true,
+        email_dm: true,
+        email_comment: true,
+        email_comment_reply: true,
+        email_follower: true,
+        email_like: true,
         theme: 'default',
     });
     
@@ -27,10 +32,43 @@ function EditProfile()
     const [websitesField, setWebsitesField] = useState([]);
     const [locationField, setLocationField] = useState('');
     const [showEmailInProfile, setShowEmailInProfile] = useState(false);
-    const [acceptsEmails, setAcceptsEmails] = useState(true);
+    const [emailNews, setEmailNews] = useState(true);
+    const [emailDm, setEmailDm] = useState(true);
+    const [emailComment, setEmailComment] = useState(true);
+    const [emailCommentReply, setEmailCommentReply] = useState(true);
+    const [emailFollower, setEmailFollower] = useState(true);
+    const [emailLike, setEmailLike] = useState(true);
     const [theme, setTheme] = useState('default');
     const [editingField, setEditingField] = useState(null);
 
+    const checkHasChanges = (overrides = {}) => {
+        const w = overrides.websites ?? websitesField;
+        const l = overrides.location ?? locationField;
+        const se = overrides.showEmailInProfile ?? showEmailInProfile;
+        const en = overrides.emailNews ?? emailNews;
+        const ed = overrides.emailDm ?? emailDm;
+        const ec = overrides.emailComment ?? emailComment;
+        const ecr = overrides.emailCommentReply ?? emailCommentReply;
+        const ef = overrides.emailFollower ?? emailFollower;
+        const el = overrides.emailLike ?? emailLike;
+        const th = overrides.theme ?? theme;
+
+        const originalWebsites = Array.isArray(user?.websites) ? user.websites : (user?.website ? [user.website] : []);
+        const websitesChanged = JSON.stringify(w.filter(url => url && url.trim())) !== JSON.stringify(originalWebsites.filter(url => url && url.trim()));
+        const locationChanged = l !== (user?.location || '');
+        const showEmailChanged = se !== !!user?.show_email_in_profile;
+        const newsChanged = en !== (user?.email_news ?? true);
+        const dmChanged = ed !== (user?.email_dm ?? true);
+        const commentChanged = ec !== (user?.email_comment ?? true);
+        const replyChanged = ecr !== (user?.email_comment_reply ?? true);
+        const followerChanged = ef !== (user?.email_follower ?? true);
+        const likeChanged = el !== (user?.email_like ?? true);
+        const themeChanged = th !== (user?.theme || 'default');
+
+        const changed = websitesChanged || locationChanged || showEmailChanged || newsChanged || dmChanged || commentChanged || replyChanged || followerChanged || likeChanged || themeChanged;
+        setHasChanges(changed);
+        return changed;
+    };
 
     useEffect(() =>
     {
@@ -47,13 +85,23 @@ function EditProfile()
         setWebsitesField(userWebsites);
         setLocationField(user.location || '');
         setShowEmailInProfile(!!user.show_email_in_profile);
-        setAcceptsEmails(!!user.accepts_emails);
+        setEmailNews(user.email_news ?? true);
+        setEmailDm(user.email_dm ?? true);
+        setEmailComment(user.email_comment ?? true);
+        setEmailCommentReply(user.email_comment_reply ?? true);
+        setEmailFollower(user.email_follower ?? true);
+        setEmailLike(user.email_like ?? true);
         setTheme(user.theme || 'default');
         setData({
             websites: userWebsites,
             location: user.location || '',
             show_email_in_profile: !!user.show_email_in_profile,
-            accepts_emails: !!user.accepts_emails,
+            email_news: user.email_news ?? true,
+            email_dm: user.email_dm ?? true,
+            email_comment: user.email_comment ?? true,
+            email_comment_reply: user.email_comment_reply ?? true,
+            email_follower: user.email_follower ?? true,
+            email_like: user.email_like ?? true,
             theme: user.theme || 'default',
         });
     }, [user]);
@@ -89,7 +137,12 @@ function EditProfile()
             websites: websitesField,
             location: locationField,
             show_email_in_profile: showEmailInProfile,
-            accepts_emails: acceptsEmails,
+            email_news: emailNews,
+            email_dm: emailDm,
+            email_comment: emailComment,
+            email_comment_reply: emailCommentReply,
+            email_follower: emailFollower,
+            email_like: emailLike,
             theme: theme,
         };
 
@@ -138,13 +191,14 @@ function EditProfile()
                     onChange={(e, idx) => {
                         const newWebsites = [...websitesField];
                         newWebsites[idx] = e.target.value;
-                        setHasChanges(true); 
                         setWebsitesField(newWebsites);
+                        checkHasChanges({ websites: newWebsites });
                     }}
                     onAddArrayItem={() => {
                         if (websitesField.length < 3) {
-                            setWebsitesField([...websitesField, '']);
-                            setHasChanges(true);
+                            const newWebsites = [...websitesField, ''];
+                            setWebsitesField(newWebsites);
+                            checkHasChanges({ websites: newWebsites });
                         }
                     }}
                     disabled={!user?.is_email_verified || processing}
@@ -155,7 +209,10 @@ function EditProfile()
                     name="location"
                     value={locationField}
                     setValue={setLocationField}
-                    onChange={(e) => {setHasChanges(e.target.value !== user.location); setLocationField(e.target.value)}}
+                    onChange={(e) => {
+                        setLocationField(e.target.value);
+                        checkHasChanges({ location: e.target.value });
+                    }}
                     disabled={!user?.is_email_verified || processing}
                     isEditingThisField={editingField === 'location'}
                     onEditClick={() => handleEditClick('location')}
@@ -168,16 +225,84 @@ function EditProfile()
                     name="show-email"
                     label="show e-mail in profile:"
                     value={showEmailInProfile}
-                    onChange={(e) => {setHasChanges(e.target.checked !== !!user.show_email_in_profile); setShowEmailInProfile(e.target.checked);}}
+                    onChange={(e) => {
+                        const val = e.target.checked;
+                        setShowEmailInProfile(val);
+                        checkHasChanges({ showEmailInProfile: val });
+                    }}
                     disabled={!user?.is_email_verified || processing}
                 />
-                <CheckboxField
-                    name="accepts-emails"
-                    label="accept e-mail notifications:"
-                    value={acceptsEmails}
-                    onChange={(e) => {setHasChanges(e.target.checked !== !!user.accepts_emails); setAcceptsEmails(e.target.checked);}}
-                    disabled={!user?.is_email_verified || processing}
-                />
+                <details className="email-notifications-details">
+                    <summary className="main-label">e-mail notifications</summary>
+                    <div className="email-notifications-list">
+                        <CheckboxField
+                            name="email_news"
+                            label="news article"
+                            value={emailNews}
+                            onChange={(e) => {
+                                const val = e.target.checked;
+                                setEmailNews(val);
+                                checkHasChanges({ emailNews: val });
+                            }}
+                            disabled={!user?.is_email_verified || processing}
+                        />
+                        <CheckboxField
+                            name="email_dm"
+                            label="mail"
+                            value={emailDm}
+                            onChange={(e) => {
+                                const val = e.target.checked;
+                                setEmailDm(val);
+                                checkHasChanges({ emailDm: val });
+                            }}
+                            disabled={!user?.is_email_verified || processing}
+                        />
+                        <CheckboxField
+                            name="email_comment"
+                            label="profile/post comment"
+                            value={emailComment}
+                            onChange={(e) => {
+                                const val = e.target.checked;
+                                setEmailComment(val);
+                                checkHasChanges({ emailComment: val });
+                            }}
+                            disabled={!user?.is_email_verified || processing}
+                        />
+                        <CheckboxField
+                            name="email_comment_reply"
+                            label="comment reply"
+                            value={emailCommentReply}
+                            onChange={(e) => {
+                                const val = e.target.checked;
+                                setEmailCommentReply(val);
+                                checkHasChanges({ emailCommentReply: val });
+                            }}
+                            disabled={!user?.is_email_verified || processing}
+                        />
+                        <CheckboxField
+                            name="email_follower"
+                            label="new follower"
+                            value={emailFollower}
+                            onChange={(e) => {
+                                const val = e.target.checked;
+                                setEmailFollower(val);
+                                checkHasChanges({ emailFollower: val });
+                            }}
+                            disabled={!user?.is_email_verified || processing}
+                        />
+                        <CheckboxField
+                            name="email_like"
+                            label="post like"
+                            value={emailLike}
+                            onChange={(e) => {
+                                const val = e.target.checked;
+                                setEmailLike(val);
+                                checkHasChanges({ emailLike: val });
+                            }}
+                            disabled={!user?.is_email_verified || processing}
+                        />
+                    </div>
+                </details>
                 <div className="theme-selector-details">
                     <summary className="main-label">theme</summary>
                     <div className="theme-options-grid">
@@ -189,9 +314,9 @@ function EditProfile()
                                 title={key.toLowerCase()}
                                 disabled={!user?.is_email_verified || processing}
                                 onClick={() => {
-                                    setHasChanges(value !== (user?.theme || 'default'));
                                     setTheme(value);
                                     setData('theme', value);
+                                    checkHasChanges({ theme: value });
                                 }}
                             >
                             </button>

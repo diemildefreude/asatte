@@ -33,7 +33,7 @@ class PostUnhiddenNotice extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('app.name') . ": Post restored",
+            subject: "Post restored",
         );
     }
 

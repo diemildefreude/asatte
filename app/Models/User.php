@@ -33,6 +33,11 @@ class User extends Authenticatable implements OAuthenticatable, MustVerifyEmail
         return $this->hasMany(Notification::class)->where('is_read', false);
     }
 
+    public function profileComments()
+    {
+        return $this->hasMany(ProfileComment::class, 'profile_id')->oldest();
+    }
+
     public function likedPosts(): BelongsToMany
     {
         return $this->belongsToMany(Post::class, 'post_user');
@@ -113,7 +118,13 @@ class User extends Authenticatable implements OAuthenticatable, MustVerifyEmail
         'bio_image_urls',
         'show_email_in_profile',
         'theme',
-        'accepted_terms_version'
+        'accepted_terms_version',
+        'email_news',
+        'email_dm',
+        'email_comment',
+        'email_comment_reply',
+        'email_follower',
+        'email_like',
     ];
 
     /**
@@ -142,7 +153,13 @@ class User extends Authenticatable implements OAuthenticatable, MustVerifyEmail
             // 'bio' => 'array',
             'bio_image_urls' => 'array',
             'member_type' => MemberType::class,
-            'login_type' => LoginType::class
+            'login_type' => LoginType::class,
+            'email_news' => 'boolean',
+            'email_dm' => 'boolean',
+            'email_comment' => 'boolean',
+            'email_comment_reply' => 'boolean',
+            'email_follower' => 'boolean',
+            'email_like' => 'boolean',
         ];
     }
     protected $appends = ['is_email_verified'];

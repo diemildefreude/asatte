@@ -136,7 +136,7 @@ class DMController extends Controller
             'last_read_at' => now()
         ]);
 
-        $recipientsToEmail = $conversation->users()->where('users.id', '!=', $userId)->where('accepts_emails', true)->get();
+        $recipientsToEmail = $conversation->users()->where('users.id', '!=', $userId)->where('email_dm', true)->get();
         foreach ($recipientsToEmail as $recipient) {
             \Illuminate\Support\Facades\Mail::to($recipient->email)->send(new \App\Mail\NewMessageNotice($user->username, $recipient->username));
         }

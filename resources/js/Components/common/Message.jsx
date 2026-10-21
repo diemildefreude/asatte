@@ -26,7 +26,7 @@ function Message({message, onReply=null, onDelete=null, id, parentLocalId=null,
     const [resetKey, setResetKey] = useState(0);
 
     const elementId = `message-${id}`;
-    const parentElementId = parentLocalId ? `message-${parentLocalId}` : null;
+    const parentElementId = parentLocalId != null ? `message-${parentLocalId}` : null;
     const messageSender = message.sender ?? { id: -27, username: '[deleted user]', avatar: null };
 
     const handleMessageEdit = useCallback(() =>

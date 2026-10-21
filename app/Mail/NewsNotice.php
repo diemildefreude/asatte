@@ -32,7 +32,7 @@ class NewsNotice extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('app.name') . ' News: ' . $this->newsPostTitle,
+            subject: ' News: ' . $this->newsPostTitle,
         );
     }
 

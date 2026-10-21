@@ -212,7 +212,8 @@ function ImageField({
                     disabled={disabled}
                     className="hidden-file-input"
                 />    
-                <label htmlFor={`gal_image_${index}`} className="link-button" onMouseDown={handleMouseDownOnControl}>
+                <label htmlFor={`gal_image_${index}`} className="link-button" onMouseDown={handleMouseDownOnControl}
+                >
                     <i className="fa-solid fa-folder"></i>
                 </label>
                 <span className="file-input-label">

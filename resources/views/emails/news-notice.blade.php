@@ -14,5 +14,5 @@
 </div>
 @endsection
 @section('footer')
-<p style="font-size: 14px; font-weight: 100; line-height: 22px; color: {{ $footnoteColor }}; margin: 12px 0; text-align: center;">To unsubscribe from news &amp; DM notices, untick the 'accept e-mail notifications' box on your <a href="{{ route('dashboard') }}" style="color: {{ $buttonTextColor }}; text-decoration: underline;">dashboard</a>.</p>
+<p style="font-size: 14px; font-weight: 100; line-height: 22px; color: {{ $footnoteColor }}; margin: 12px 0; text-align: center;">To unsubscribe from notification emails, adjust your preferences on your <a href="{{ route('dashboard') }}" style="color: {{ $buttonTextColor }}; text-decoration: underline;">dashboard</a>.</p>
 @endsection

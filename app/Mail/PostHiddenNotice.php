@@ -34,7 +34,7 @@ class PostHiddenNotice extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('app.name') . ": Post hidden",
+            subject: "Post hidden",
         );
     }
 

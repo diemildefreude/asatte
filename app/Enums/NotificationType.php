@@ -8,4 +8,5 @@ enum NotificationType : string
     case ProfileComment = 'profile_comment'; // new comment on user's profile
     case ProfileReply = 'profile_reply'; // reply to a user's profile comment
     case Unhidden = 'unhidden'; // previously admin-hidden post has been unhidden
+    case Like = 'like';
 }

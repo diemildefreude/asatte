@@ -32,7 +32,7 @@ class NewMessageNotice extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('app.name') . ": New message",
+            subject: "New message",
         );
     }
 

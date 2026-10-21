@@ -89,7 +89,13 @@ class DashboardController extends Controller
             'websites' => ['nullable', 'array', 'max:3'],
             'websites.*' => ['nullable', 'string', 'max:255'],
             'location' => ['nullable', 'string', 'max:255'],
-            'theme' => ['nullable', 'string', 'in:default,sunset,bubblegum,noir']
+            'theme' => ['nullable', 'string', 'in:default,sunset,bubblegum,noir'],
+            'email_news' => ['nullable', 'boolean'],
+            'email_dm' => ['nullable', 'boolean'],
+            'email_comment' => ['nullable', 'boolean'],
+            'email_comment_reply' => ['nullable', 'boolean'],
+            'email_follower' => ['nullable', 'boolean'],
+            'email_like' => ['nullable', 'boolean'],
         ]);
 
         
@@ -108,7 +114,12 @@ class DashboardController extends Controller
         $user->websites = empty($websites) ? null : $websites;
         $user->location = $request->location;
         $user->show_email_in_profile = $showEmailInProfile;
-        $user->accepts_emails = $request->boolean('accepts_emails', true);
+        $user->email_news = $request->boolean('email_news', true);
+        $user->email_dm = $request->boolean('email_dm', true);
+        $user->email_comment = $request->boolean('email_comment', true);
+        $user->email_comment_reply = $request->boolean('email_comment_reply', true);
+        $user->email_follower = $request->boolean('email_follower', true);
+        $user->email_like = $request->boolean('email_like', true);
         $user->theme = $request->input('theme', 'default');
         $user->save();
         
@@ -228,6 +239,11 @@ class DashboardController extends Controller
                 } else if ($type == NotificationType::Follower && isset($data['follower_id'])) {
                     $follower = User::select(['id', 'username', 'avatar'])->find($data['follower_id']);
                     $notification->setRelation('follower', $follower);
+                } else if ($type == NotificationType::Like && isset($data['post_id'], $data['liker_id'])) {
+                    $post = Post::with('user:id,username')->select(['id', 'slug', 'title', 'user_id'])->find($data['post_id']);
+                    $liker = User::select(['id', 'username', 'avatar'])->find($data['liker_id']);
+                    $notification->setRelation('post', $post);
+                    $notification->setRelation('liker', $liker);
                 }
                 $notification->makeHidden('data');
                 if(!$notification->is_read) {

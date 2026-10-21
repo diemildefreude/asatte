@@ -77,7 +77,7 @@ class UserController extends Controller
 
         $profileComments = ProfileComment::with('user:id,username,avatar,member_type')
             ->where('profile_id', $user->id)
-            ->latest()
+            ->oldest()
             ->get();
 
         return \Inertia\Inertia::render('UserProfile', [

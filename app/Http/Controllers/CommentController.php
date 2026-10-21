@@ -7,8 +7,12 @@ use App\Enums\NotificationType;
 use App\Models\Comment;
 use App\Models\Notification;
 use App\Models\Post;
+use App\Models\User;
+use App\Mail\NewCommentNotice;
+use App\Mail\NewReplyNotice;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -64,7 +68,7 @@ class CommentController extends Controller
         $post->comments()->save($comment);
 
         $repliedToUser = isset($request->parent_id) ? 
-            Comment::where('id', $request->parent_id)->first()->user_id
+            Comment::where('id', $request->parent_id)->first()?->user_id
             : null;
 
         if($userId == $repliedToUser) //don't notify users if they reply to themselves
@@ -82,6 +86,33 @@ class CommentController extends Controller
                 'data' => ['post_id' => $post->id, 'comment_id' => $comment->id]
             ];
             Notification::create($notificationFields);
+
+            $targetUser = User::find($userToNotify);
+            if ($targetUser) {
+                $postAuthor = $post->user;
+                $commentUrl = url("/{$postAuthor->username}/{$post->slug}?comment_id={$comment->id}");
+                if ($notificationType === NotificationType::Reply && $targetUser->email_comment_reply) {
+                    Mail::to($targetUser->email)->send(
+                        new NewReplyNotice(
+                            $request->user()->username,
+                            $targetUser->username,
+                            $post->title,
+                            'post',
+                            $commentUrl
+                        )
+                    );
+                } else if ($notificationType === NotificationType::Comment && $targetUser->email_comment) {
+                    Mail::to($targetUser->email)->send(
+                        new NewCommentNotice(
+                            $request->user()->username,
+                            $targetUser->username,
+                            $post->title,
+                            'post',
+                            $commentUrl
+                        )
+                    );
+                }
+            }
         }
 
         return back()->with('success', 'Your comment has been made.');

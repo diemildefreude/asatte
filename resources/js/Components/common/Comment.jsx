@@ -17,7 +17,7 @@ function Comment({comment, isDashboard=false, onReply=null, id, parentLocalId=nu
     });
 
     const elementId = `comment-${id}`;
-    const parentElementId = parentLocalId ? `comment-${parentLocalId}` : null;
+    const parentElementId = parentLocalId != null ? `comment-${parentLocalId}` : null;
 
     const handleCommentEdit = useCallback(() =>
     {
@@ -79,7 +79,7 @@ function Comment({comment, isDashboard=false, onReply=null, id, parentLocalId=nu
         {
             comment.parent_id && (parentLocalId != null) && currentUrl ? (
                 <span className="notice small"> replied to <a 
-                    href={`${currentUrl}/comment-${parentLocalId}`}
+                    href={`${currentUrl}#comment-${parentLocalId}`}
                     onClick={(e) => {e.preventDefault(); scrollToElement(currentUrl, parentElementId)}}
                 >
                     this</a> comment
