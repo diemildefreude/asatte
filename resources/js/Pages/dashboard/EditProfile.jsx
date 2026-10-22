@@ -22,7 +22,7 @@ function EditProfile()
         email_comment: true,
         email_comment_reply: true,
         email_follower: true,
-        email_like: true,
+        email_like: false,
         theme: 'default',
     });
     
@@ -37,7 +37,7 @@ function EditProfile()
     const [emailComment, setEmailComment] = useState(true);
     const [emailCommentReply, setEmailCommentReply] = useState(true);
     const [emailFollower, setEmailFollower] = useState(true);
-    const [emailLike, setEmailLike] = useState(true);
+    const [emailLike, setEmailLike] = useState(false);
     const [theme, setTheme] = useState('default');
     const [editingField, setEditingField] = useState(null);
 
@@ -62,7 +62,7 @@ function EditProfile()
         const commentChanged = ec !== (user?.email_comment ?? true);
         const replyChanged = ecr !== (user?.email_comment_reply ?? true);
         const followerChanged = ef !== (user?.email_follower ?? true);
-        const likeChanged = el !== (user?.email_like ?? true);
+        const likeChanged = el !== (user?.email_like ?? false);
         const themeChanged = th !== (user?.theme || 'default');
 
         const changed = websitesChanged || locationChanged || showEmailChanged || newsChanged || dmChanged || commentChanged || replyChanged || followerChanged || likeChanged || themeChanged;
@@ -90,7 +90,7 @@ function EditProfile()
         setEmailComment(user.email_comment ?? true);
         setEmailCommentReply(user.email_comment_reply ?? true);
         setEmailFollower(user.email_follower ?? true);
-        setEmailLike(user.email_like ?? true);
+        setEmailLike(user.email_like ?? false);
         setTheme(user.theme || 'default');
         setData({
             websites: userWebsites,
@@ -101,7 +101,7 @@ function EditProfile()
             email_comment: user.email_comment ?? true,
             email_comment_reply: user.email_comment_reply ?? true,
             email_follower: user.email_follower ?? true,
-            email_like: user.email_like ?? true,
+            email_like: user.email_like ?? false,
             theme: user.theme || 'default',
         });
     }, [user]);

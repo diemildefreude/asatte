@@ -119,7 +119,7 @@ class DashboardController extends Controller
         $user->email_comment = $request->boolean('email_comment', true);
         $user->email_comment_reply = $request->boolean('email_comment_reply', true);
         $user->email_follower = $request->boolean('email_follower', true);
-        $user->email_like = $request->boolean('email_like', true);
+        $user->email_like = $request->boolean('email_like', false);
         $user->theme = $request->input('theme', 'default');
         $user->save();
         
