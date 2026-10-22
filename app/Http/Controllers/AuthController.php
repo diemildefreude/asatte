@@ -223,7 +223,7 @@ class AuthController extends Controller
         $request->validated();
 
         $formattedBirthdate = Carbon::parse($request->birthdate)->format('Y-m-d');
-        $showEmailInProfile = $request->filled('show_email_in_profile');
+        $showEmailInProfile = $request->boolean('show_email_in_profile');
 
         $user = User::forceCreate([
             'username' => $request->username,

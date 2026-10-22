@@ -68,6 +68,7 @@ class RegisterRequest extends FormRequest
                 // Add unique rule if provider_id must be unique across providers for a login_type
                 // For example: 'unique:users,provider_id,NULL,id,login_type,' . $this->input('login_type'),
             ],
+            'show_email_in_profile' => ['nullable', 'boolean'],
             'website' => ['max:0'] //honeypot
         ];
     }

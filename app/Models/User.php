@@ -154,6 +154,7 @@ class User extends Authenticatable implements OAuthenticatable, MustVerifyEmail
             'bio_image_urls' => 'array',
             'member_type' => MemberType::class,
             'login_type' => LoginType::class,
+            'show_email_in_profile' => 'boolean',
             'email_news' => 'boolean',
             'email_dm' => 'boolean',
             'email_comment' => 'boolean',
