@@ -65,6 +65,7 @@ function RichTextEditor({ onChange, value, quotedMessage, onQuoteApplied, placeh
         newline_behavior: 'default',
         convert_urls: false,
         menubar: false,
+        contextmenu: false,
         link_assume_external_targets: 'http',
         link_default_protocol: 'http',
         target_list: [
