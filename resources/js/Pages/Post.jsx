@@ -1,4 +1,4 @@
-    import React, { useCallback, useEffect, useMemo, useState } from 'react';
+    import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
     import {  Link, router, usePage } from '@inertiajs/react';
     import PageHead from '../Components/layout/PageHead';
     import { getDateAsYYYYMMDD, getErrorMessage, hydrateEditorImagePaths, MemberType, openPopup, processEditorImages, sanitizeRichHtml, getPostUrl, copyToClipboard } from '../utils/helpers';
@@ -8,6 +8,8 @@
     import '../Components/common/Tile.css';
     import './DashboardProfile.css';
     import '../Components/common/Themes.css';
+    import '../Components/common/UserLink.css';
+    import './dashboard/TagsMail.css';
     import UserLink from '../Components/common/UserLink';
     import ImageCarousel from '../Components/common/ImageCarousel';
     import TileCarousel from '../Components/common/TileCarousel';
@@ -16,7 +18,7 @@
     import HiddenPostNotice from '../Components/common/HiddenPostNotice';
     import RichTextEditor from '../Components/common/RichTextEditor';
 
-    function Post({ post, carouselPosts: userPosts = [] })
+    function Post({ post, carouselPosts: userPosts = [], allLikers = null })
     {
         const { props } = usePage();
         const appUrl = props.app_url;
@@ -28,9 +30,15 @@
         const [isSubmitting, setIsSubmitting] = useState(false);
         const [adminSuccess, setAdminSuccess] = useState("");
         const [adminError, setAdminError] = useState("");
+        const [isLikersShortlistOpen, setIsLikersShortlistOpen] = useState(false);
+        const [isAllLikersModalOpen, setIsAllLikersModalOpen] = useState(false);
+        const [isLoadingAllLikers, setIsLoadingAllLikers] = useState(false);
+        const likeCountRef = useRef(null);
         
         const user = props.auth?.user;
         const isAuthenticated = !!user;
+        const isPostCreator = isAuthenticated && user?.id === post?.user_id;
+        const initialLikers = useMemo(() => (post?.users_who_liked || []).slice(0, 5), [post?.users_who_liked]);
 
         const isWebmaster = user?.member_type === MemberType.Webmaster;
         const isAdmin = user?.member_type === MemberType.Admin;
@@ -146,6 +154,83 @@
             setAdminMessage("Not Internet-related.");
             setAdminMessageIsVisible(true); 
         },[]);
+
+        useEffect(() => {
+            if (!isLikersShortlistOpen) return;
+            const handleOutsideClick = (e) => {
+                if (likeCountRef.current && !likeCountRef.current.contains(e.target)) {
+                    setIsLikersShortlistOpen(false);
+                }
+            };
+            document.addEventListener('pointerdown', handleOutsideClick);
+            return () => document.removeEventListener('pointerdown', handleOutsideClick);
+        }, [isLikersShortlistOpen]);
+
+        useEffect(() => {
+            if (!isAllLikersModalOpen) {
+                document.body.classList.remove('modal-open');
+                return;
+            }
+            document.body.classList.add('modal-open');
+            const handleKeyDown = (e) => {
+                if (e.key === 'Escape') {
+                    setIsAllLikersModalOpen(false);
+                }
+            };
+            window.addEventListener('keydown', handleKeyDown);
+            return () => {
+                document.body.classList.remove('modal-open');
+                window.removeEventListener('keydown', handleKeyDown);
+            };
+        }, [isAllLikersModalOpen]);
+
+        const handleLikeCountClick = useCallback((e) => {
+            if (!isPostCreator || likeCount <= 0) return;
+            if (e.target.closest('.likers-shortlist-popup')) return;
+            const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0 || document.querySelector('.content.touch-device');
+            if (isTouch) {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsLikersShortlistOpen(prev => !prev);
+            }
+        }, [isPostCreator, likeCount]);
+
+        const handleShowAllLikers = useCallback((e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setIsLikersShortlistOpen(false);
+            setIsAllLikersModalOpen(true);
+            setIsLoadingAllLikers(true);
+            router.reload({
+                only: ['allLikers'],
+                preserveState: true,
+                preserveScroll: true,
+                onFinish: () => {
+                    setIsLoadingAllLikers(false);
+                },
+            });
+        }, []);
+
+        const likeCountPopup = (isPostCreator && likeCount > 0 && initialLikers.length > 0) ? (
+            <div className="results-container likers-shortlist-popup">
+                {initialLikers.map((liker) => (
+                    <div className="tag" key={liker.id}>
+                        <UserLink user={liker} />
+                    </div>
+                ))}
+                {likeCount > 5 && (
+                    <div className="show-all-likers-wrapper">
+                        <button
+                            type="button"
+                            className="button-link show-all-likers-btn"
+                            onClick={handleShowAllLikers}
+                        >
+                            <span>show all</span>
+                        </button>
+                    </div>
+                )}
+            </div>
+        ) : null;
 
         return (
         <>
@@ -289,8 +374,49 @@
                             likeCount={likeCount}
                             viewCount={post.view_count}
                             apiRoutePrefix={`/posts/${post.id}`}
+                            likeCountPopup={likeCountPopup}
+                            onLikeCountClick={handleLikeCountClick}
+                            likeCountRef={likeCountRef}
+                            isLikePopupOpen={isLikersShortlistOpen}
                         />
                     </div>
+                    {isAllLikersModalOpen && (
+                        <div
+                            className="likers-modal-backdrop"
+                            onClick={() => setIsAllLikersModalOpen(false)}
+                            role="dialog"
+                            aria-modal="true"
+                            aria-labelledby="likers-dialog-title"
+                        >
+                            <div
+                                className="likers-dialog"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <div className="likers-dialog-header">
+                                    <h2 id="likers-dialog-title" className="likers-dialog-title">liked by</h2>
+                                    <button
+                                        type="button"
+                                        className="likers-dialog-close"
+                                        onClick={() => setIsAllLikersModalOpen(false)}
+                                        aria-label="Close"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                                <div className="results-container likers-dialog-list">
+                                    {isLoadingAllLikers && !allLikers ? (
+                                        <div className="tag likers-loading">loading...</div>
+                                    ) : (
+                                        (allLikers || initialLikers).map((liker) => (
+                                            <div className="tag" key={liker.id}>
+                                                <UserLink user={liker} />
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
                     {
                         canHidePost &&
                         (<>

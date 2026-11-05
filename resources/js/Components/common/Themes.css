@@ -250,7 +250,7 @@ body:has(.post.bubblegum, .public-profile.bubblegum) .article-text img
 {
     border-color: var(--dark-blue);
 }
-body:has(.post.bubblegum, .public-profile.bubblegum) button:not(.button-link, .like-button, .nav-halves button):enabled:hover
+body:has(.post.bubblegum, .public-profile.bubblegum) button:not(.button-link, .like-button, .nav-halves button, .nav-button):enabled:hover
 {
     background: linear-gradient(45deg, #ffffffcc 0%, #c1b7fdcc 60%);
     color: var(--blue);

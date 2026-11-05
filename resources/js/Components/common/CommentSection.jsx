@@ -4,7 +4,7 @@ import { getErrorMessage, scrollToElement } from '../../utils/helpers';
 import Comment from './Comment';
 import { Link, router, usePage, useForm } from '@inertiajs/react';
 
-function CommentSection({comments, apiRoutePrefix, likeCount, viewCount, canDeleteAnyComment, isUserProfile=false})
+function CommentSection({comments, apiRoutePrefix, likeCount, viewCount, canDeleteAnyComment, isUserProfile=false, likeCountPopup=null, onLikeCountClick=null, likeCountRef=null, isLikePopupOpen=false})
 {
     const [originalComment, setOriginalComment] = useState(null);
     const [originalCommentElement, setOriginalCommentElement] = useState(null);
@@ -134,9 +134,14 @@ function CommentSection({comments, apiRoutePrefix, likeCount, viewCount, canDele
                     <span className='metric-number'> {comments.length}</span>
                 </div>
                 {likeCount !== undefined && (
-                <div className="icon">
+                <div 
+                    className={`icon like-count-icon ${likeCountPopup ? 'has-likers-popup' : ''} ${isLikePopupOpen ? 'popup-open' : ''}`}
+                    ref={likeCountRef}
+                    onClick={onLikeCountClick}
+                >
                     <i className="fa-regular fa-star"></i>
                     <span className='metric-number'> {likeCount}</span>
+                    {likeCountPopup}
                 </div>
                 )}
             </div>)

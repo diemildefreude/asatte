@@ -441,6 +441,14 @@ class PostController extends Controller
             $query->with('user:id,username,avatar')->oldest();
         }]);
 
+        if ($isPostCreator) {
+            $post->load(['usersWhoLiked' => function ($query) {
+                $query->select('users.id', 'users.username', 'users.avatar')
+                    ->orderByPivot('created_at', 'desc')
+                    ->limit(5);
+            }]);
+        }
+
         $carouselPostsQuery = Post::with('user:id,username,avatar,member_type')
             ->where('is_private', false)
             ->where('is_draft', false)
@@ -461,7 +469,14 @@ class PostController extends Controller
 
         return \Inertia\Inertia::render('Post', [
             'post' => $post,
-            'carouselPosts' => $carouselPosts
+            'carouselPosts' => $carouselPosts,
+            'allLikers' => \Inertia\Inertia::optional(fn () => $isPostCreator
+                ? $post->usersWhoLiked()
+                    ->select('users.id', 'users.username', 'users.avatar')
+                    ->orderByPivot('created_at', 'desc')
+                    ->get()
+                : []
+            ),
         ]);
     }
 
@@ -536,6 +551,14 @@ class PostController extends Controller
             $query->with('user:id,username,avatar')->oldest();
         }]);
 
+        if ($isPostCreator) {
+            $post->load(['usersWhoLiked' => function ($query) {
+                $query->select('users.id', 'users.username', 'users.avatar')
+                    ->orderByPivot('created_at', 'desc')
+                    ->limit(5);
+            }]);
+        }
+
         $carouselPosts = Post::with('user:id,username,avatar,member_type')
             ->where('is_private', false)
             ->where('is_draft', false)
@@ -548,7 +571,14 @@ class PostController extends Controller
 
         return \Inertia\Inertia::render('Post', [
             'post' => $post,
-            'carouselPosts' => $carouselPosts
+            'carouselPosts' => $carouselPosts,
+            'allLikers' => \Inertia\Inertia::optional(fn () => $isPostCreator
+                ? $post->usersWhoLiked()
+                    ->select('users.id', 'users.username', 'users.avatar')
+                    ->orderByPivot('created_at', 'desc')
+                    ->get()
+                : []
+            ),
         ]);
     }
 

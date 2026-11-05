@@ -315,3 +315,115 @@
 {
     height: 200px;
 }
+/*-------LIKERS POPUP & MODAL---------*/
+.like-count-icon.has-likers-popup
+{
+    position: relative;
+    cursor: pointer;
+}
+.likers-shortlist-popup
+{
+    display: none;
+    flex-direction: column;
+    top: 100%;
+    right: 0;
+    min-width: 180px;
+    max-width: 260px;
+    font-size: 1rem;
+    z-index: 20;
+}
+.content:not(.touch-device) .like-count-icon.has-likers-popup:hover .likers-shortlist-popup,
+.like-count-icon.has-likers-popup.popup-open .likers-shortlist-popup
+{
+    display: flex;
+}
+.content:not(.touch-device) .likers-shortlist-popup .tag:hover,
+.content:not(.touch-device) .likers-dialog-list .tag:hover
+{
+    background: var(--yellow-gradient);
+}
+.content:not(.touch-device) .likers-shortlist-popup .tag:hover .user-link > span.username,
+.content:not(.touch-device) .likers-dialog-list .tag:hover .user-link > span.username
+{
+    color: var(--dark-purple);
+}
+.show-all-likers-wrapper
+{
+    border: 1px solid var(--grey-yellow);
+    padding: 0.35em 0.5em;
+    text-align: center;
+}
+.show-all-likers-btn
+{
+    font-size: 0.9em;
+}
+.likers-modal-backdrop
+{
+    position: fixed;
+    inset: 0;
+    background-color: var(--transparent-black);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 1rem;
+    box-sizing: border-box;
+}
+.likers-dialog
+{
+    background: var(--paper-gradient);
+    border: 1px solid var(--dark-purple);
+    border-radius: 0;
+    width: clamp(260px, 90vw, 420px);
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem;
+    box-sizing: border-box;
+    color: var(--dark-purple);
+}
+.likers-dialog-header
+{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.likers-dialog-title
+{
+    color: var(--dark-purple);
+    font-weight: 300;
+    text-transform: lowercase;
+    font-size: 1.25rem;
+    margin: 0;
+}
+button.likers-dialog-close
+{
+    border: 1px solid var(--dark-purple);
+    border-radius: 0;
+    background: transparent;
+    color: var(--dark-purple);
+    padding: 0.2rem 0.6rem;
+    font-weight: 300;
+    line-height: 1.2;
+}
+.content:not(.touch-device) button.likers-dialog-close:hover
+{
+    background: var(--red-gradient);
+    color: var(--pale-yellow);
+    border: 1px solid var(--dark-purple);
+}
+.likers-dialog-list.results-container
+{
+    position: static;
+    width: 100%;
+    max-height: 60vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+.likers-loading
+{
+    color: var(--pale-yellow);
+    text-align: center;
+}
