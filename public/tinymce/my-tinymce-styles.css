@@ -89,6 +89,10 @@ p:not(:last-child), div:not(.iframe-container):not(.iframe-container-container):
     margin: 0 0 1.5em !important;
     /* padding: 0.4em 0 !important;   */
 }
+ul:not(:last-child)
+{
+    margin-bottom: 1.5em !important;
+}
 img 
 {
     border: 2px solid #eee;

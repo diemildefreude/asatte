@@ -40,7 +40,7 @@ function Conversation({ conversation: conversationProp, addressee })
     const [quotedMessage, setQuotedMessage] = useState('');
     const [originalMessage, setOriginalMessage] = useState(null);
     const [originalMessageElement, setOriginalMessageElement] = useState(null);
-    const [pendingScrollId, setPendingScrollId] = useState(props.flash?.new_message_id || null);
+    const [pendingScrollId, setPendingScrollId] = useState(null);
     
     let pageTitle = isNew ? "New Conversation" : "Conversation";
     let convoName = pageTitle.toLowerCase();
@@ -56,24 +56,33 @@ function Conversation({ conversation: conversationProp, addressee })
         setRecipients([addressee]);
     },[addressee, conversation]);
 
+    useEffect(() => {
+        if (props.flash?.new_message_id != null) 
+        {
+            setPendingScrollId(props.flash.new_message_id);
+        } 
+        else if (conversation?.first_unread != null && conversation?.messages) 
+        {
+            const unreadIndex = conversation.messages.findIndex(m => m.id === conversation.first_unread);
+            if (unreadIndex !== -1) 
+            {
+                setPendingScrollId(unreadIndex);
+            }
+        }
+    }, [props.flash?.new_message_id, conversation?.id, conversation?.first_unread]);
+
     useEffect(() => 
     {
-        if (pendingScrollId) 
+        if (pendingScrollId !== null) 
         {
             const element = document.getElementById(`message-${pendingScrollId}`);
             if (element) 
             {
-                element.scrollIntoView({ behavior: "smooth", block: "center" });
+                element.scrollIntoView({ behavior: "smooth", block: "start" });
                 setPendingScrollId(null); // Reset the flag
             }
         }
     }, [conversation, pendingScrollId]);
-
-    useEffect(() => {
-        if (props.flash?.new_message_id) {
-            setPendingScrollId(props.flash.new_message_id);
-        }
-    }, [props.flash?.new_message_id]);
 
     const handleRTEChange = useCallback((editedMessage) =>
     {

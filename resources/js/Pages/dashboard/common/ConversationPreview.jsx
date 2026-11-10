@@ -18,7 +18,7 @@ function ConversationPreview({conversation})
     const convoLink = `/dashboard/mail/${conversation.id}`;
 
     let avatarClasses = "convo-avatar";
-    avatarClasses += conversation.is_unread ? " has-new-mail" : "";
+    avatarClasses += conversation.first_unread !== null ? " has-new-mail" : "";
 
     return (
         conversation ? (

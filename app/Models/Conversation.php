@@ -9,7 +9,7 @@ class Conversation extends Model
     use HasFactory;
 
     protected $fillable = ['name', 'is_group'];
-    protected $appends = ['other_users', 'is_unread'];//, 'latest_message_at'];
+    protected $appends = ['other_users', 'first_unread'];//, 'latest_message_at'];
 
     public function users()
     {
@@ -49,21 +49,43 @@ class Conversation extends Model
             })->values();
             //->get(['users.id', 'users.username', 'users.avatar']);
     }
-    public function getIsUnreadAttribute()
+    public function getFirstUnreadAttribute()
     {
         $userId = auth()->id();
             
-        if (!$userId) return false;
+        if (!$userId) return null;
 
         // We look for the current user in the 'users' collection.
         // This works perfectly with eager loading (with('users')).
         $currentUser = $this->users->where('id', $userId)->first();
 
-        if (!$currentUser || !$currentUser->pivot) {
-            return false;
+        if (!$currentUser || !$currentUser->pivot) 
+        {
+            return null;
         }
 
         $lastReadAt = $currentUser->pivot->last_read_at;
+
+        if ($this->relationLoaded('messages')) 
+        {
+            if ($this->messages->isEmpty()) {
+                return null;
+            }
+
+            if (is_null($lastReadAt)) 
+            {
+                return $this->messages->first()->id;
+            }
+
+            $lastReadAtCarbon = \Carbon\Carbon::parse($lastReadAt);
+
+            $firstUnread = $this->messages->first(function ($message) use ($lastReadAtCarbon) 
+            {
+                return \Carbon\Carbon::parse($message->created_at)->gt($lastReadAtCarbon);
+            });
+
+            return $firstUnread?->id;
+        }
 
         // Grab the timestamp of the latest message.
         // We check our pre-calculated database select variable first (from our optimized controller subquery),
@@ -71,28 +93,30 @@ class Conversation extends Model
         $latestMessageTime = $this->latest_message_created_at ?? $this->latestMessage?->created_at;
 
         // If there are absolutely no messages in the conversation yet, it cannot be unread.
-        if (is_null($latestMessageTime)) {
-            return false;
+        if (is_null($latestMessageTime)) 
+        {
+            return null;
         }
 
         // If the user has never opened this conversation room, it is automatically unread
-        if (is_null($lastReadAt)) {
-            return true;
+        if (is_null($lastReadAt)) 
+        {
+            return $this->messages()->oldest()->value('id');
         }
 
         // Cast both timestamps to Carbon instances if they aren't already, ensuring a safe comparison
         $latestMessageTime = \Carbon\Carbon::parse($latestMessageTime);
-        $lastReadAt = \Carbon\Carbon::parse($lastReadAt);
+        $lastReadAtCarbon = \Carbon\Carbon::parse($lastReadAt);
 
         // Is the latest message newer than the user's last read timestamp?
-        return $latestMessageTime->gt($lastReadAt);
+        if (!$latestMessageTime->gt($lastReadAtCarbon)) 
+        {
+            return null;
+        }
+
+        return $this->messages()
+            ->where('created_at', '>', $lastReadAt)
+            ->oldest()
+            ->value('id');
     }
-    // public function otherUsers($currentUserId)
-    // {
-    //     return $this->users()->where('user_id', '!=', $currentUserId);
-    // }
-    // public function otherUser($currentUserId)
-    // {
-    //     return $this->otherUsers($currentUserId)->first();
-    // }
 }
