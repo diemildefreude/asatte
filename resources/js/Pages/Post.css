@@ -443,7 +443,7 @@ button.likers-dialog-close
 }
 .website-iframe.iframe-container
 {
-    height: 90dvh;
+    height: 85svh;
     padding-bottom: 0;
     position:relative;
     background-color: white;
@@ -464,4 +464,12 @@ button.likers-dialog-close
 .website-iframe.iframe-container.fullscreen
 {
     border: none;
+}
+@media (min-width:700px) 
+{
+    .website-iframe.iframe-container
+    {
+        margin: 0 1rem 1rem;
+        width: calc(100svw - 2rem);
+    }
 }
