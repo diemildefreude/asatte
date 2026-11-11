@@ -58,7 +58,7 @@ class SecurityHeaders
         
         // Permissions Policy (formerly Feature Policy)
         // Restricts access to sensitive browser features (camera, mic, geolocation, etc.)
-        $response->headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(), usb=()');
+        $response->headers->set('Permissions-Policy', 'geolocation=(), payment=(), usb=()');
 
         return $response;
     }

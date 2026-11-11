@@ -67,6 +67,8 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
         is_private: post ? !!post.is_private : false,
         is_draft: post ? !!post.is_draft : true,
         is_news: post ? !!post.is_news : (category == Category.News),
+        post_iframe_enabled: post ? !!post.post_iframe_enabled : true,
+        popout_iframe_enabled: post ? !!post.popout_iframe_enabled : false,
         theme: post?.theme || PageTheme.Default,
         statement: hydratedStatement
     });
@@ -681,20 +683,41 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
                             error={errors.website}
                             onErrorUpdate={(id, msg) => msg ? setError(id, msg) : clearErrors(id)}
                         />
-                        <FormField 
-                            id="source_code"
-                            label="source code"
-                            placeholder="eg. Github repo"
-                            value={data.source_code}
-                            onChange={(e) => {setHasChanged(true); setData('source_code', e.target.value)}}
-                            onValidate={handleSourceCodeValidation}
-                            disabled={isSubmitting}
-                            type="text"
-                            isInline={true}
-                            classes="inline-form-field"
-                            error={errors.source_code}
-                            onErrorUpdate={(id, msg) => msg ? setError(id, msg) : clearErrors(id)}
-                        />
+                        <details>
+                            <summary className="main-label">web art: advanced settings</summary>
+                            <div className="details-list">
+                                <CheckboxField
+                                    name="post_iframe"
+                                    label="enable post iframe"
+                                    value={data.post_iframe_enabled}
+                                    onChange={(e) => {setHasChanged(true); setData('post_iframe_enabled', e.target.checked)}}
+                                    disabled={isSubmitting}
+                                    labelTitle="Allows your website to be viewed inside the post."
+                                />
+                                <CheckboxField
+                                    name="popout_iframe"
+                                    label="enable popout iframe"
+                                    value={data.popout_iframe_enabled}
+                                    onChange={(e) => {setHasChanged(true); setData('popout_iframe_enabled', e.target.checked)}}
+                                    disabled={isSubmitting}
+                                    labelTitle="When opened via the 'popout' link, your site is loaded within an iframe and given an 'Enter' button. Try enabling this if you have issues with Autoplay."
+                                />
+                                <FormField 
+                                    id="source_code"
+                                    label="source code"
+                                    placeholder="eg. Github repo"
+                                    value={data.source_code}
+                                    onChange={(e) => {setHasChanged(true); setData('source_code', e.target.value)}}
+                                    onValidate={handleSourceCodeValidation}
+                                    disabled={isSubmitting}
+                                    type="text"
+                                    isInline={true}
+                                    classes="inline-form-field"
+                                    error={errors.source_code}
+                                    onErrorUpdate={(id, msg) => msg ? setError(id, msg) : clearErrors(id)}
+                                />
+                            </div>
+                        </details>                        
                         <FormField
                             id="main_video_raw"
                             label="main video"

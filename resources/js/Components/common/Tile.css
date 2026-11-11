@@ -28,6 +28,10 @@
     justify-content: space-between;
     opacity: 0; /* Faint enough to be invisible, but >0 so VoiceOver reads it in browse mode */
 }
+.info-panel:link
+{
+    text-decoration: none;
+}
 .panel-top, .panel-bottom
 {
     display: flex;
@@ -97,8 +101,8 @@
 }
 .info-item i 
 {
+    top: 5px;    
     position: relative;
-    top: 5px;
 }
 .info-item.date
 {
@@ -114,11 +118,9 @@
 }
 .link-container a
 {
+    position: relative;
     gap: 0.5rem;
     margin: 0.2rem 0 0;
-}
-.link-container a
-{
     display: flex;    
     flex-direction: row;
     width: fit-content;
@@ -137,4 +139,10 @@
 {
     font-size: 0.9em;
     max-width: 300px;
+}
+.tile-image-link
+{
+    position: absolute;
+    width: 100%;
+    height: 100%;
 }

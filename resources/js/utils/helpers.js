@@ -841,10 +841,13 @@ export function getDateString(date = new Date())
 
 export function openPopup(url, windowName, left, top, width, height)
 {
-
     const features = `width=${width},height=${height},left=${left},top=${top},
                       resizable=yes,scrollbars=yes,status=no,menubar=no,toolbar=no,location=no`;
     return window.open(url, windowName, features);
+    // const features = `width=${width},height=${height},left=${left},top=${top},
+    //                   resizable=yes,scrollbars=yes,status=no,menubar=no,toolbar=no,location=no`;
+    // const iframeUrl = `${domain}/popout/?title=${windowName}&url=${url}`;
+    // return window.open(iframeUrl, windowName, features);
 }
 
 export function getNextFetchIndex(fetchedPosts, fetchOrder) 
@@ -1025,18 +1028,24 @@ export const retryOperation = async (fn, retries = 3, delay = 1000, errorMessage
 /**
  * Constructs the routing URL for a post depending on whether it is a news post.
  * @param {Object} post - The post object containing is_news, created_at, slug, and user.username
+ * @param {bool} loadIframe - If the post has a website URL, a param is attached to load it in an iframe on page load
  * @returns {string} The routing URL
  */
-export function getPostUrl(post) {
+export function getPostUrl(post, loadIframe=false) 
+{
     if (!post) return '';
-    if (post.is_news && post.created_at) {
+    if (post.is_news && post.created_at) 
+    {
         const date = new Date(post.created_at);
         const yyyy = date.getUTCFullYear();
         const mm = String(date.getUTCMonth() + 1).padStart(2, '0');
         const dd = String(date.getUTCDate()).padStart(2, '0');
         return `/news/${yyyy}${mm}${dd}/${post.slug}`;
     }
-    return `/${post.user?.username}/${post.slug}`;
+    let postUrl = `/${post.user?.username}/${post.slug}`;
+    postUrl = (loadIframe && post.website) ? `${postUrl}?iframe=1` : postUrl;
+
+    return postUrl;
 }
 
 /**

@@ -8,7 +8,6 @@ function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false, siz
 {
     const { props } = usePage();
     if (!post || (!user && !post.user)) return null;
-
     const author = user ?? post.user;
     let viewText = "info";
     if(isDashboard)
@@ -49,15 +48,21 @@ function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false, siz
         <article className="work-tile">                                    
         { 
             imageUrls && imageUrls.length > 0 && 
-            (
+            (                
                 <img className='tile-image'
                     src={`${directory}/${imageUrls[0]}`} 
                     alt={`Thumbnail for ${post.title}`} 
                     draggable="false"
                 />
             )                            
-        }
-            <div className="info-panel">                
+        }            
+            <div className="info-panel">    
+                <Link href={isDashboard ? `${props.app_url}/dashboard/edit-post/${post.slug}` : getPostUrl(post, true)} 
+                    className='tile-image-link'
+                    onClick={handleLinkClick} 
+                    draggable="false"
+                    aria-label={`View ${post.is_news ? 'news ' : ''}post: ${post.title}. ${post.subtitle}`}
+                />                        
                 {
                     post?.is_hidden_by_admin ? (
                         <div className="centered-icon red">
@@ -138,7 +143,7 @@ function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false, siz
                     <div className="info-item action-links link-container">
                         { !post && <p>Post not loaded yet</p> }
 
-                        <Link href={getPostUrl(post)} 
+                        <Link href={getPostUrl(post, false)} 
                             className="post-link"
                             onClick={handleLinkClick} 
                             draggable="false"
@@ -174,18 +179,20 @@ function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false, siz
                                             return;
                                         }
                                         e.preventDefault();
-                                        openPopup(post.website,`${post.id} : ${post.title}`, 
+                                        const iframePopoutUrl = `${props.app_url}/popout/${author.username}/${post.slug}`;
+                                        const url = post.popout_iframe_enabled ? iframePopoutUrl : post.website;
+                                        openPopup(url, post.title, 
                                             window.screen.width * 0.2, window.screen.height * 0.2,
                                             window.screen.width * 0.8, window.screen.height * 0.8);
                                     }
                                 }>
                                     <i className="fa-solid fa-arrow-up-right-from-square"></i>
-                                    <span>visit</span>                                            
+                                    <span>pop out</span>                                            
                                 </a>                                
                             </div>
                         )
-                    }                                    
-                </div>
+                    }                                                      
+                </div>                    
             </div>
             
         </article>

@@ -368,7 +368,35 @@ class PostController extends Controller
         $redirectRoute = $isNews ? 'dashboard.news' : 'dashboard.posts';
         return redirect()->route($redirectRoute);
     }
+    /**
+     * Provide needed data for an iframe popup.
+     */
+    public function popout(Request $request, string $username, string $slug)
+    {
+        $user = User::where('username', $username)->first();
+        if (!$user) 
+        {
+            abort(404, 'No user by that name found.');
+        }
 
+        $query = Post::with('user:id,username')
+            ->where('slug', $slug)
+            ->where('user_id', $user->id)
+            ->where('is_private', false)
+            ->where('is_draft', false)
+            ->where('is_hidden_by_admin', false);
+
+        $post = $query->first();
+
+        if(!$post)
+        {
+            abort(404, 'No such post found.');
+        }
+
+        return \Inertia\Inertia::render('Popout', [
+            'post' => $post,
+        ]);
+    }
     /**
      * Display the specified resource.
      */
@@ -441,7 +469,8 @@ class PostController extends Controller
             $query->with('user:id,username,avatar')->oldest();
         }]);
 
-        if ($isPostCreator) {
+        if ($isPostCreator) 
+        {
             $post->load(['usersWhoLiked' => function ($query) {
                 $query->select('users.id', 'users.username', 'users.avatar')
                     ->orderByPivot('created_at', 'desc')

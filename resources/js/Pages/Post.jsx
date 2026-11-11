@@ -15,16 +15,17 @@
     import TileCarousel from '../Components/common/TileCarousel';
     import CommentSection from '../Components/common/CommentSection';
     import VideoIframe from '../Components/common/VideoIframe';
+    import PostInfoBox from '../Components/common/PostInfoBox';
+    import WebsiteIframe from '../Components/common/WebsiteIframe';
     import HiddenPostNotice from '../Components/common/HiddenPostNotice';
-    import RichTextEditor from '../Components/common/RichTextEditor';
 
     function Post({ post, carouselPosts: userPosts = [], allLikers = null })
     {
-        const { props } = usePage();
+        const { props, url } = usePage();
         const appUrl = props.app_url;
         const isLiked = !!post?.have_liked;
         const likeCount = post?.users_who_liked_count || 0;
-        
+        console.log(url);
         const [adminMessageIsVisible, setAdminMessageIsVisible] = useState(false);
         const [adminMessage, setAdminMessage] = useState("");
         const [isSubmitting, setIsSubmitting] = useState(false);
@@ -33,6 +34,10 @@
         const [isLikersShortlistOpen, setIsLikersShortlistOpen] = useState(false);
         const [isAllLikersModalOpen, setIsAllLikersModalOpen] = useState(false);
         const [isLoadingAllLikers, setIsLoadingAllLikers] = useState(false);
+        const [showSiteIframe, setShowSiteIframe] = useState(() => {
+            if (typeof window === 'undefined') return false;
+            return new URLSearchParams(window.location.search).get('iframe') === '1';
+        });
         const likeCountRef = useRef(null);
         
         const user = props.auth?.user;
@@ -46,7 +51,6 @@
         let canHidePost = false;
         const authorMemberType = post?.user?.member_type;
 
-        console.log("carouselPosts", userPosts ?? null);
         if (isWebmaster) 
         {
             canHidePost = true;
@@ -66,6 +70,12 @@
                 replace: true
             });
         },[post.id]);
+
+        useEffect(() => //with this param in the URL, the iframe loads right away, if there is one.
+        {
+            const params = new URLSearchParams(window.location.search);
+            setShowSiteIframe(params.get('iframe') === '1');
+        }, [post?.id, url]);
         
         const imageUrls = useMemo(() =>
         {
@@ -255,101 +265,39 @@
                             )
                         }
                         <div className="image-info-container">
-                            <div className="main-image-container">
-                                <div className="image-link-subcontainer">
-                                    <img className="main-image" src={mainImg} alt={mainAlt} />
-                                    <div className="main-image-link-container">
-                                        <div className="info-panel">
+                            {
+                                (showSiteIframe && post.website && post.post_iframe_enabled) ? (<WebsiteIframe url={post.website}/>):
+                                (
+                                <div className="main-image-container">
+                                    <div className="image-link-subcontainer">
+                                        <img className="main-image" src={mainImg} alt={mainAlt} />
                                         {
-                                            (post?.is_private || post?.is_draft)? (
-                                            <div
-                                                className={"big-icon blue"}
-                                                title={post?.is_private ? "private" : "draft"}                                                   
-                                            >
-                                                <i className={post?.is_private ? "fa-regular fa-eye-slash" : "fa-solid fa-file-pen"}></i>
-                                            </div>
-                                            ):(
-                                            isAuthenticated && (
-                                                <button 
-                                                    type="button" 
-                                                    className={isLiked ? "like-button liked" : "like-button"}
-                                                    onClick={handleLikeToggle}                                                    
-                                                    aria-label="Toggle Like"
-                                                    aria-pressed={isLiked}
+                                            (post.website && post.post_iframe_enabled) && (<div className="main-image-link-container">
+                                            <div className="info-panel">
+                                                <button className='button-link'
+                                                    onClick={()=>setShowSiteIframe(true)}
                                                 >
-                                                    <i className={isLiked ? "fa-solid fa-star" : "fa-regular fa-star"}></i>
-                                                </button>))
-                                        }
-                                        { 
-                                            post.website ?
-                                            (
-                                                <div className="info-item action-links link-container group">
-                                                    <a className="post-link" 
-                                                        href={post.website}
-                                                        onClick={(e) =>
-                                                        {
-                                                            e.preventDefault();
-                                                            openPopup(post.website,`${post.id} : ${post.title}`, 
-                                                                window.screen.width * 0.2, window.screen.height * 0.2,
-                                                                window.screen.width * 0.8, window.screen.height * 0.8);
-                                                        }}  
-                                                    >
-                                                        <i className="fa-solid fa-arrow-up-right-from-square"></i>
-                                                        <span>visit site</span>
-                                                    </a>
-                                                    {' '}
-                                                    <button className='button-link' 
-                                                        aria-label="copy URL to clipboard" 
-                                                        title={`copy ${post.website} to clipboard`}
-                                                        onClick={(e) => {
-                                                            e.preventDefault();
-                                                            copyToClipboard(post.website, 'Website URL copied to clipboard!');
-                                                        }}
-                                                    > 
-                                                        <i className="fa-regular fa-copy medium-icon"/>
-                                                    </button>
-                                                </div>
-                                            ) : ( <></>)
-                                        }
-                                        </div>
-                                    </div>
-                                </div>                                
-                            </div>
+                                                    <i className="fa-solid fa-expand"></i> <span>view site</span>
+                                                </button>
+                                            </div>
+                                        </div>)
+                                        }                                        
+                                    </div>                                
+                                </div>)
+                            }                            
                             <div className="page-section main-info-container top-version">
-                                <div className="main-info-box">
-                                    <div className='centered-content'><h1>{post.title}</h1></div>
-                                        <div><p><em>{post.subtitle}</em></p></div>   
-                                        <div><p className="post-date"> posted by <UserLink user={post.user}/> <em>on {getDateAsYYYYMMDD(post.created_at)}</em></p></div> 
-                                        {
-                                            post.premiere_date && (
-                                                <div><p className="post-date"><em>premiered on {getDateAsYYYYMMDD(post.premiere_date)}</em></p></div> 
-                                            )
-                                        }
-                                        {
-                                            post.source_code && (
-                                                <div className="source-link"><a href={post.source_code} target="_blank"><i className="fa-solid fa-code"></i><span>source</span></a></div>   
-                                            )
-                                        }
-                                </div>
+                                <PostInfoBox post={post}
+                                    isAuthenticated={isAuthenticated}
+                                    isLiked={isLiked}
+                                    likeHandler={handleLikeToggle}/>
                             </div>
                         </div>
                         <div className="main-info-statement-container">
                             <div className="page-section main-info-container sticky-version">
-                                <div className="main-info-box">
-                                    <div className='centered-content no-margin'><h1>{post.title}</h1></div>
-                                    <div><p><em>{post.subtitle}</em></p></div>   
-                                    <div><p className="post-date"> posted by <UserLink user={post.user}/> on {getDateAsYYYYMMDD(post.created_at)}</p></div>    
-                                    {
-                                        post.premiere_date && (
-                                            <div><p className="post-date"><em>premiered on {getDateAsYYYYMMDD(post.premiere_date)}</em></p></div> 
-                                        )
-                                    }
-                                    {
-                                        post.source_code && (
-                                            <div className="source-link"><a href={post.source_code} target="_blank"><i className="fa-solid fa-code"></i><span>source</span></a></div>   
-                                        )
-                                    }
-                                </div>
+                                <PostInfoBox post={post}
+                                    isAuthenticated={isAuthenticated}
+                                    isLiked={isLiked}
+                                    likeHandler={handleLikeToggle}/>
                             </div>
                             <div className="page-section statement rte-container article-text"
                                 dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(hydrateEditorImagePaths(post.statement, appUrl))}}

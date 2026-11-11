@@ -66,15 +66,11 @@ body:has(.post.sunset, .public-profile.sunset) .post-link, body:has(.post.sunset
 {
     color: var(--bright-blue);
 }
-body:has(.post.sunset, .public-profile.sunset) .main-image-container .like-button:enabled
+body:has(.post.sunset, .public-profile.sunset) .like-button:enabled
 {
     color: var(--bright-blue);
 }
-body:has(.post.sunset, .public-profile.sunset) .main-image-container .like-button:enabled
-{
-    color: var(--bright-blue);
-}
-body:has(.post.sunset, .public-profile.sunset) .source-link a
+body:has(.post.sunset, .public-profile.sunset) .post-info-link a
 {
     color: var(--dark-purple);
 }
@@ -238,7 +234,7 @@ body:has(.post.bubblegum, .public-profile.bubblegum) .icon
 {
     color: white;
 }
-body:has(.post.bubblegum, .public-profile.bubblegum) .main-image-container .like-button:enabled
+body:has(.post.bubblegum, .public-profile.bubblegum) .like-button:enabled
 {
     color: var(--bright-blue);
 }
@@ -256,7 +252,7 @@ body:has(.post.bubblegum, .public-profile.bubblegum) button:not(.button-link, .l
     color: var(--blue);
     border-color: var(--blue);
 }
-body:has(.post.bubblegum, .public-profile.bubblegum) .source-link a
+body:has(.post.bubblegum, .public-profile.bubblegum) .post-info-link a
 {
     color: var(--bright-blue);
 }
@@ -345,7 +341,7 @@ body:has(.post.noir, .public-profile.noir) .post-link, body:has(.post.noir, .pub
 }
 body:has(.post.noir, .public-profile.noir) .like-button:enabled i
 {
-    -webkit-text-stroke: 1px black;
+    -webkit-text-stroke: 1px grey;
 }
 body:has(.post.noir, .public-profile.noir) .article-text blockquote
 {
@@ -373,7 +369,6 @@ body:has(.post.noir, .public-profile.noir) button:not(.button-link, .like-button
 {
     border-color: white;
 }
-/* body:has(.post.noir, .public-profile.noir) .nav-item:hover,  */
 body:has(.post.noir, .public-profile.noir) button:not(.button-link, .like-button, .nav-button, .nav-halves button):enabled:hover
 {
     background: var(--noir-gradient);
@@ -411,9 +406,9 @@ body:has(.post.noir, .public-profile.noir) .icon
 {
     color: white;
 }
-body:has(.post.noir, .public-profile.noir) .main-image-container .like-button:enabled
+body:has(.post.noir, .public-profile.noir) .like-button:enabled
 {
-    color: white;
+    color: var(--grey);
 }
 body:has(.post.noir, .public-profile.noir) .comment .user-link:not(.nav-item) span,
 body:has(.post.noir, .public-profile.noir) .work-tile .user-link:not(.nav-item) span
@@ -457,9 +452,9 @@ body:has(.public-profile.noir) .article-text img
 {
     border-color: white;
 }
-body:has(.post.noir, .public-profile.noir) .source-link a
+body:has(.post.noir, .public-profile.noir) .post-info-link a
 {
-    color: rgb(116, 116, 116);
+    color: black;
 }
 body:has(.post.noir, .public-profile.noir) .yellow-gradient-background .notice
 {

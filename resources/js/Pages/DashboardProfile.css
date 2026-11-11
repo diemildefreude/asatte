@@ -906,7 +906,7 @@ details .main-label
     margin: 0rem 0;
     width: 100%;
 }
-.email-notifications-details summary
+details summary.main-label
 {
     font-family: 'Cascadia Code', sans-serif;
     font-size: 1rem;
@@ -915,7 +915,7 @@ details .main-label
     cursor: pointer;
     user-select: none;
 }
-.email-notifications-list
+.details-list
 {
     display: flex;
     flex-direction: column;

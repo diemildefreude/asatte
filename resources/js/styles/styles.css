@@ -842,3 +842,7 @@ button, .link-button
         padding: 0;
     }
 }
+.tooltip
+{
+    cursor:help;
+}

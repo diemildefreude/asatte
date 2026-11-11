@@ -210,6 +210,7 @@ Route::post('/posts', [App\Http\Controllers\PostController::class, 'store'])->mi
 Route::put('/posts/{post}', [App\Http\Controllers\PostController::class, 'update'])->middleware('auth')->name('posts.update');
 Route::delete('/posts/{post}', [App\Http\Controllers\PostController::class, 'destroy'])->middleware('auth')->name('posts.destroy');
 
+Route::get('/popout/{username}/{slug}', [PostController::class, 'popout'])->name('posts.popout');
 
 // Post/Comment interactions (migrated from API)
 Route::middleware('auth')->group(function () {

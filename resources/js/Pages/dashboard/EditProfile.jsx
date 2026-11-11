@@ -234,7 +234,7 @@ function EditProfile()
                 />
                 <details className="email-notifications-details">
                     <summary className="main-label">e-mail notifications</summary>
-                    <div className="email-notifications-list">
+                    <div className="details-list">
                         <CheckboxField
                             name="email_news"
                             label="news article"
