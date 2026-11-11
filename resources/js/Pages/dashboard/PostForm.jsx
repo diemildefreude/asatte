@@ -67,8 +67,8 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
         is_private: post ? !!post.is_private : false,
         is_draft: post ? !!post.is_draft : true,
         is_news: post ? !!post.is_news : (category == Category.News),
-        post_iframe_enabled: post ? !!post.post_iframe_enabled : true,
-        popout_iframe_enabled: post ? !!post.popout_iframe_enabled : false,
+        post_iframe_enabled: post ? Boolean(post.post_iframe_enabled ?? true) : true,
+        popout_iframe_enabled: post ? Boolean(post.popout_iframe_enabled ?? false) : false,
         theme: post?.theme || PageTheme.Default,
         statement: hydratedStatement
     });
@@ -262,6 +262,8 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
             is_private: !!post.is_private,
             is_draft: !!post.is_draft,
             is_news: !!post.is_news,
+            post_iframe_enabled: Boolean(post.post_iframe_enabled ?? true),
+            popout_iframe_enabled: Boolean(post.popout_iframe_enabled ?? false),
             theme: post.theme || PageTheme.Default,
             statement: hydr
         });
@@ -321,6 +323,8 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
             formData.append('is_private', data.is_private ? '1' : '0');
             formData.append('is_draft', asDraft ? '1' : '0');
             formData.append('is_news', data.is_news ? '1' : '0');
+            formData.append('post_iframe_enabled', data.post_iframe_enabled ? '1' : '0');
+            formData.append('popout_iframe_enabled', data.popout_iframe_enabled ? '1' : '0');
             formData.append('theme', data.theme || 'default');
             formData.append('statement', statementWithResizedImages || '');
 

@@ -35,7 +35,7 @@
     background-color: rgba(0, 0, 0, 0.5);
     opacity: 0;
 }
-.main-image-link-container:hover
+.main-image-link-container:hover, .main-image-link-container:focus-within
 {
     opacity: 1;
 }
@@ -446,6 +446,7 @@ button.likers-dialog-close
     height: 90dvh;
     padding-bottom: 0;
     position:relative;
+    background-color: white;
 }
 .website-iframe.iframe-container .resize-button
 {
@@ -459,4 +460,8 @@ button.likers-dialog-close
 .content:not(.touch-device) .website-iframe.iframe-container .resize-button.minimize
 {
     display: none;
+}
+.website-iframe.iframe-container.fullscreen
+{
+    border: none;
 }

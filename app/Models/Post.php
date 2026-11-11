@@ -15,6 +15,8 @@ class Post extends Model
         'title',
         'subtitle',
         'website',
+        'post_iframe_enabled',
+        'popout_iframe_enabled',
         'source_code',
         'main_video',
         'is_private',
@@ -31,6 +33,8 @@ class Post extends Model
     [
         'is_hidden_by_admin' => 'bool',
         'is_draft' => 'bool',
+        'post_iframe_enabled' => 'bool',
+        'popout_iframe_enabled' => 'bool',
         'gallery_image_urls' => 'array',
         'gallery_alts' => 'array',
         // 'statement' => 'array',

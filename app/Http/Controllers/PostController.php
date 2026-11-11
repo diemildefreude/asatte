@@ -252,6 +252,8 @@ class PostController extends Controller
         $isPrivate = $request->boolean('is_private');        
         $isNews = $request->boolean('is_news');    
         $isDraft = $request->boolean('is_draft');
+        $postIframeEnabled = $request->boolean('post_iframe_enabled', true);
+        $popoutIframeEnabled = $request->boolean('popout_iframe_enabled', false);
 
         if($isNews && $user->member_type != MemberType::Webmaster)
         {
@@ -332,6 +334,8 @@ class PostController extends Controller
             'slug' => $slug,
             ...$basicFields,
             'website' => $website,
+            'post_iframe_enabled' => $postIframeEnabled,
+            'popout_iframe_enabled' => $popoutIframeEnabled,
             'source_code' => $sourceCode,
             'is_private' => $isPrivate,
             'is_draft' => $isDraft,
@@ -695,6 +699,8 @@ class PostController extends Controller
         ]); 
         $isPrivate = $request->input('is_private') ? true : false; 
         $isDraft = $request->boolean('is_draft');
+        $postIframeEnabled = $request->boolean('post_iframe_enabled', true);
+        $popoutIframeEnabled = $request->boolean('popout_iframe_enabled', false);
         
         $isNews = false;
         if($user->member_type == MemberType::Webmaster)
@@ -896,6 +902,8 @@ class PostController extends Controller
             ...$basicFields,
             'slug' => $postUrl,
             'website' => $website,
+            'post_iframe_enabled' => $postIframeEnabled,
+            'popout_iframe_enabled' => $popoutIframeEnabled,
             'source_code' => $sourceCode,
             'is_private' => $isPrivate,
             'is_draft' => $isDraft,
