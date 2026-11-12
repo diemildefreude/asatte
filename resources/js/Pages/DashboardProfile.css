@@ -170,13 +170,14 @@
 .profile-avatar-container.dashboard-avatar
 {
     border: 2px solid var(--pale-yellow);
-    max-width: 200px;
+    max-width: 300px;
 }
 .avatar-section
 {
     display: flex;
     position: relative;
     flex-direction: column;
+    flex-grow: 4;
     gap: 1rem;
 }
 .avatar-button

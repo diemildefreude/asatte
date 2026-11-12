@@ -282,7 +282,7 @@
     }
     .main-info-container.sticky-version > .main-info-box
     {
-        display: block
+        display: flex;
     }
     .page-section.main-info-container.sticky-version
     {

@@ -100,7 +100,7 @@ function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false, siz
                                 </div>
                             </div>
                         ):(
-                            <div className="info-item title">{post.title}</div>
+                            <div className="info-item title" title={post.title}>{post.title}</div>
                         )
 
                     }

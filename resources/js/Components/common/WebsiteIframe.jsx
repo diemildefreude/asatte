@@ -63,7 +63,7 @@ function WebsiteIframe({url, isPopout=false})
             >
                 <iframe src={secureUrl}
                     title="Embedded website"
-                    allow="camera; microphone; fullscreen; autoplay"
+                    allow="camera *; microphone *; fullscreen *; autoplay *"
                 >
                 </iframe>
                 {    

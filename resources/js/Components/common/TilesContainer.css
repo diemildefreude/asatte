@@ -44,14 +44,6 @@
     {
         grid-column: span 4; /* Each spans 2 columns, resulting in 3 items across 6 columns */
     }
-    .work-tile .info-item.title
-    {
-        font-size: 1.2em;
-    }
-    .link-container.action-links a
-    {
-        font-size: 0.9em;
-    }
 }
 @media (min-width:1200px)
 {

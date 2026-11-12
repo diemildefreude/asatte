@@ -306,6 +306,7 @@ p iframe
     border: 1px solid var(--grey-yellow);
     padding: 1rem;
     background: var(--dark-blue-gradient);
+    font-weight: 300;
     /* width: fit-content; */
 }
 .red-gradient-background

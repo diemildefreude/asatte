@@ -14,9 +14,14 @@ function Popup({post})
     const mainImage = `${directory}/${post.gallery_image_urls[0]}`;
     const mainAlt = post.gallery_alts[0];
 
+    const origin = (() => {
+        try { return new URL(post.website).origin; } catch { return null; }
+    })();
+
     return(
     <>
         <PageHead title={post.title}/>
+        {origin && <link rel="preconnect" href={origin} />}
         {
             isStarted ? (
             <WebsiteIframe 
