@@ -663,6 +663,7 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
                         <FormField
                             id="premiere_date"
                             label="premiere date"
+                            labelTitle="performance or publishing date"
                             placeholder="e.g. YYYY-MM-DD"
                             value={data.premiere_date}
                             onChange={(e) => {setHasChanged(true); setData('premiere_date', e.target.value)}}
@@ -675,7 +676,7 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
                         />
                         <FormField 
                             id="website"
-                            label="website"
+                            label="web art url"
                             placeholder="url of the work"
                             value={data.website}
                             onChange={(e) => {setHasChanged(true); setData('website', e.target.value)}}
@@ -685,6 +686,7 @@ function PostForm({isCreateForm=true, post=null, user, category=Category.Archive
                             isInline={true}
                             classes="inline-form-field"
                             error={errors.website}
+                            labelTitle="You can also use this for any URL related to the work. If you do not want it viewable within the post, turn off 'enable post iframe' in the advanced settings below."
                             onErrorUpdate={(id, msg) => msg ? setError(id, msg) : clearErrors(id)}
                         />
                         <details>

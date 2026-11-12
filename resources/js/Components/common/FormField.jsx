@@ -2,13 +2,14 @@ import './Form.css';
 
 function FormField({ classes='', id, label, placeholder, value="", 
     onChange, onBlur, disabled, min, max, type = "text", onValidate, 
-    isTextArea=false, sideText="", error="", onErrorUpdate = () => {} }) 
+    isTextArea=false, sideText="", error="", labelTitle="", onErrorUpdate = () => {} }) 
 {
     let fieldClasses = 'form-field ';
     fieldClasses = isTextArea ? fieldClasses + "text-area " : fieldClasses;
     fieldClasses += classes;
 
     let labelClasses = isTextArea ? 'main-label centered-content no-margin' : 'main-label';
+    labelClasses = `${labelClasses} ${labelTitle ? "tooltip" : ""}`
 
     // Internal handler that calls both the parent's onChange and the validation function
     const handleInternalChange = (e) => 
@@ -32,6 +33,7 @@ function FormField({ classes='', id, label, placeholder, value="",
             <label 
                 htmlFor={id}
                 className={labelClasses}
+                title={labelTitle}
             >
                 {label}
             </label>
