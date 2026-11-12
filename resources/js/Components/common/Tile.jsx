@@ -127,7 +127,7 @@ function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false, siz
                     {
                         isDashboard &&
                         (
-                            <div className="info-item action-links link-container">
+                            
                                 <Link href={`/dashboard/edit-post/${post.slug}`}
                                     className="post-link"
                                     onClick={handleLinkClick} 
@@ -137,10 +137,10 @@ function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false, siz
                                     <i className="fa-solid fa-pen-to-square"></i>
                                     <span>edit</span>  
                                 </Link>
-                            </div>
+                            
                         )
                     }
-                    <div className="info-item action-links link-container">
+                    
                         { !post && <p>Post not loaded yet</p> }
 
                         <Link href={getPostUrl(post, false)} 
@@ -158,11 +158,11 @@ function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false, siz
                             }
                             <span>{viewText}</span>                                            
                         </Link>
-                    </div>                                  
+                                                
                     {
                         post.website && !isDashboard && 
                         (
-                            <div className="info-item action-links link-container group">
+                            
                                 <a href={post.website} 
                                     className="post-link"
                                     draggable="false"
@@ -188,8 +188,7 @@ function Tile({post, isSliderDraggedPointerUp, user=null, isDashboard=false, siz
                                 }>
                                     <i className="fa-solid fa-arrow-up-right-from-square"></i>
                                     <span>pop out</span>                                            
-                                </a>                                
-                            </div>
+                                </a>  
                         )
                     }                                                      
                 </div>                    

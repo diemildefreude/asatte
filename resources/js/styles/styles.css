@@ -686,7 +686,7 @@ button, .link-button
     height: 0;
     overflow: hidden;
     background-color: #000;
-    border: 2px solid var(--grey-yellow); /* Add the border here */
+    border: 1px solid var(--grey-yellow); /* Add the border here */
 }
 .iframe-container iframe
 {

@@ -44,7 +44,7 @@
 }
 .panel-bottom
 {
-    gap: 1rem;    
+    gap: 0rem;    
     padding: 0 0.6rem 0.3rem;
 }
 .work-tile:hover .info-panel, .work-tile:focus-within .info-panel, 
@@ -78,6 +78,7 @@
 .info-item.title
 {
     font-size: 1.3em;
+    font-weight: 300;
     white-space: nowrap;  
     overflow: hidden;   
     text-overflow: ellipsis;
@@ -101,7 +102,7 @@
 }
 .info-item i 
 {
-    top: 5px;    
+    top: 5px;  
     position: relative;
 }
 .info-item.date
@@ -129,11 +130,22 @@
 {
     color: var(--pale-yellow);
     text-decoration: none;
-    cursor:pointer
+    cursor:pointer;
+    position: relative;
+    z-index: 2;
+    padding: 1em 1em 0 0;   
+    font-size: 1.2em;
+    font-weight: 300;
+    display: flex;
+    gap: 0.5em;
 }
 .post-link span
 {
     text-decoration: underline;
+}
+.post-link i
+{
+    padding-top: 4px;
 }
 .work-tile .user-link > span.username 
 {

@@ -297,7 +297,15 @@
                                 <PostInfoBox post={post}
                                     isAuthenticated={isAuthenticated}
                                     isLiked={isLiked}
-                                    likeHandler={handleLikeToggle}/>
+                                    likeHandler={handleLikeToggle}
+                                />
+                                {
+                                    videoUrl && (
+                                        <div className="page-section video">
+                                            <VideoIframe url={videoUrl}/>
+                                        </div>
+                                    )
+                                }
                             </div>
                             <div className="page-section statement rte-container article-text"
                                 dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(hydrateEditorImagePaths(post.statement, appUrl))}}
@@ -305,13 +313,13 @@
                             </div>
                         </div>
                     </div>     
-                    {
+                    {/* {
                         videoUrl && (
                             <div className="page-section video">
                                 <VideoIframe url={videoUrl}/>
                             </div>
                         )
-                    }    
+                    }     */}
                     <div className="page-section carousel">
                         <ImageCarousel size="small" post={post} title={"gallery:"}></ImageCarousel>
                     </div>       
