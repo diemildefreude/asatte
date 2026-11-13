@@ -22,6 +22,8 @@ body:has(.post.sunset, .public-profile.sunset) .main-info-box .profile-avatar-co
 }
 body:has(.post.sunset, .public-profile.sunset) .yellow-gradient-background.main-info-box label,
 body:has(.post.sunset, .public-profile.sunset) .yellow-gradient-background.main-info-box a,
+body:has(.post.sunset, .public-profile.sunset) .yellow-gradient-background.main-info-box a:link,
+body:has(.post.sunset, .public-profile.sunset) .yellow-gradient-background.main-info-box a:visited,
 body:has(.post.sunset, .public-profile.sunset) .yellow-gradient-background.main-info-box span:not(.member-type span),
 body:has(.public-profile.sunset) .main-info-box .button-link:enabled
 {
@@ -152,10 +154,13 @@ html:has(.post.bubblegum, .public-profile.bubblegum)
 }
 body:has(.public-profile.bubblegum) .main-info-box label.field-name,
 body:has(.public-profile.bubblegum) .main-info-box .inline-form-field span, 
-body:has(.public-profile.bubblegum) .main-info-box a, 
+body:has(.public-profile.bubblegum, .post.bubblegum) .main-info-box a,
+body:has(.public-profile.bubblegum, .post.bubblegum) .main-info-box a:link,
+body:has(.public-profile.bubblegum, .post.bubblegum) .main-info-box a:visited,
 body:has(.public-profile.bubblegum) .main-info-box a span,
 body:has(.public-profile.bubblegum) .main-info-box a i,
-body:has(.public-profile.bubblegum) .main-info-box .button-link:enabled
+body:has(.public-profile.bubblegum) .main-info-box .button-link:enabled,
+body:has(.post.bubblegum, .public-profile.bubblegum) .user-link:not(.nav-item) span
 {
     color: var(--bright-blue);
 }
@@ -199,11 +204,6 @@ body:has(.post.bubblegum, .public-profile.bubblegum) label.field-name
 {
     color: white;
 }
-body:has(.post.bubblegum, .public-profile.bubblegum) .user-link:not(.nav-item) span
-{
-    color: var(--bright-blue);
-}
-
 body:has(.post.bubblegum, .public-profile.bubblegum) .notice.small
 {
     color: var(--blue);
@@ -398,7 +398,7 @@ body:has(.post.noir, .public-profile.noir) article a:link,
 body:has(.post.noir, .public-profile.noir) article a:visited, 
 body:has(.post.noir, .public-profile.noir) article .button-link
 {
-    color: rgb(216, 214, 214);
+    color: rgb(255, 255, 255);
 }
 body:has(.post.noir, .public-profile.noir) .statement a, 
 body:has(.post.noir, .public-profile.noir) .statement a:link, 
