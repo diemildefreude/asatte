@@ -25,7 +25,6 @@
         const appUrl = props.app_url;
         const isLiked = !!post?.have_liked;
         const likeCount = post?.users_who_liked_count || 0;
-        console.log(url);
         const [adminMessageIsVisible, setAdminMessageIsVisible] = useState(false);
         const [adminMessage, setAdminMessage] = useState("");
         const [isSubmitting, setIsSubmitting] = useState(false);
@@ -34,10 +33,14 @@
         const [isLikersShortlistOpen, setIsLikersShortlistOpen] = useState(false);
         const [isAllLikersModalOpen, setIsAllLikersModalOpen] = useState(false);
         const [isLoadingAllLikers, setIsLoadingAllLikers] = useState(false);
-        const [showSiteIframe, setShowSiteIframe] = useState(() => {
+        const [showSiteIframe, setShowSiteIframe] = useState(() => 
+        {
             if (typeof window === 'undefined') return false;
             return new URLSearchParams(window.location.search).get('iframe') === '1';
         });
+        const [autoplayMainVid, setAutoplayMainVid] = useState(!!post.main_video 
+                && (!post.post_iframe_enabled  || (!!post.post_iframe_enabled && !post.website))
+                && showSiteIframe);
         const likeCountRef = useRef(null);
         
         const user = props.auth?.user;
@@ -78,6 +81,15 @@
             setShowSiteIframe(params.get('iframe') === '1');
         }, [post?.id, url]);
         
+        useEffect(() =>
+        {
+            const enable = !!post.main_video 
+                && (!post.post_iframe_enabled  || (!!post.post_iframe_enabled) && !post.website)
+                && showSiteIframe;
+                     
+            setAutoplayMainVid(enable);
+        },[post, showSiteIframe]);
+
         const imageUrls = useMemo(() =>
         {
             try
@@ -314,7 +326,7 @@
                                 {
                                     videoUrl && (
                                         <div className="page-section video">
-                                            <VideoIframe url={videoUrl}/>
+                                            <VideoIframe url={videoUrl} autoplay={autoplayMainVid}/>
                                         </div>
                                     )
                                 }

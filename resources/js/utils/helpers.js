@@ -1043,7 +1043,7 @@ export function getPostUrl(post, loadIframe=false)
         return `/news/${yyyy}${mm}${dd}/${post.slug}`;
     }
     let postUrl = `/${post.user?.username}/${post.slug}`;
-    postUrl = (loadIframe && post.website) ? `${postUrl}?iframe=1` : postUrl;
+    postUrl = loadIframe ? `${postUrl}?iframe=1` : postUrl;
 
     return postUrl;
 }
