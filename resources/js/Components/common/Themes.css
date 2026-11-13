@@ -152,6 +152,7 @@ html:has(.post.bubblegum, .public-profile.bubblegum)
 {
     scrollbar-color: var(--bright-blue) rgb(208, 132, 255);
 }
+body:has(.post.bubblegum) article button.button-link.main-image-button,
 body:has(.public-profile.bubblegum) .main-info-box label.field-name,
 body:has(.public-profile.bubblegum) .main-info-box .inline-form-field span, 
 body:has(.public-profile.bubblegum, .post.bubblegum) .main-info-box a,

@@ -285,7 +285,7 @@
                                             post.website && (
                                             <div className="main-image-link-container">
                                                 <div className="info-panel">
-                                                    <button className='button-link bottom-right'
+                                                    <button className='button-link main-image-button'
                                                         onClick={post.post_iframe_enabled ? () => setShowSiteIframe(true) : handlePopout}
                                                     >
                                                         <i className={`fa-solid ${post.post_iframe_enabled ? 'fa-expand' : 'fa-arrow-up-right-from-square'}`}>
