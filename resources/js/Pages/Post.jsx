@@ -49,7 +49,8 @@
         const isAdmin = user?.member_type === MemberType.Admin;
         
         let canHidePost = false;
-        const authorMemberType = post?.user?.member_type;
+        const author = post?.user;
+        const authorMemberType = author?.member_type;
 
         if (isWebmaster) 
         {
@@ -242,6 +243,15 @@
             </div>
         ) : null;
 
+        const handlePopout = useCallback(() => 
+        {
+            const iframePopoutUrl = `${props.app_url}/popout/${author.username}/${post.slug}`;
+            const url = post.popout_iframe_enabled ? iframePopoutUrl : post.website;
+            openPopup(url, post.title, 
+                window.screen.width * 0.2, window.screen.height * 0.2,
+                window.screen.width * 0.8, window.screen.height * 0.8);
+        },[post, props.app_url]);
+
         return (
         <>
             <PageHead title={post.is_news ? `News: "${post.title}"` :
@@ -272,16 +282,18 @@
                                     <div className="image-link-subcontainer">
                                         <img className="main-image" src={mainImg} alt={mainAlt} />
                                         {
-                                            (post.website && post.post_iframe_enabled) && (<div className="main-image-link-container">
-                                            <div className="info-panel">
-                                                <button className='button-link'
-                                                    onClick={()=>setShowSiteIframe(true)}
-                                                >
-                                                    <i className="fa-solid fa-expand"></i> <span>view site</span>
-                                                </button>
-                                            </div>
-                                        </div>)
-                                        }                                        
+                                            post.website && (
+                                            <div className="main-image-link-container">
+                                                <div className="info-panel">
+                                                    <button className='button-link bottom-right'
+                                                        onClick={post.post_iframe_enabled ? () => setShowSiteIframe(true) : handlePopout}
+                                                    >
+                                                        <i className={`fa-solid ${post.post_iframe_enabled ? 'fa-expand' : 'fa-arrow-up-right-from-square'}`}>
+                                                        </i> <span>{post.post_iframe_enabled? 'view site' : 'popout'}</span>
+                                                    </button>
+                                                </div>
+                                            </div>)
+                                        }              
                                     </div>                                
                                 </div>)
                             }                            
