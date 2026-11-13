@@ -193,7 +193,7 @@ function UserProfile({ user: profileUserProp })
                                 </div>
                             </div>        
                         </div>
-                        <div className="rte-container black-gradient-background">
+                        <div className="rte-container statement black-gradient-background">
                             <div className="centered-header-box">       
                                 <div className="centered-content top-2rem">
                                     <h2>bio</h2>                    

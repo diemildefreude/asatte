@@ -214,10 +214,10 @@ body:has(.post.bubblegum, .public-profile.bubblegum) .statement
     background: var(--transparent-white);
     color: var(--navy);
 }
-body:has(.post.bubblegum, .public-profile.bubblegum) article a, 
-body:has(.post.bubblegum, .public-profile.bubblegum) article a:link, 
-body:has(.post.bubblegum, .public-profile.bubblegum) article a:visited, 
-body:has(.post.bubblegum, .public-profile.bubblegum) article .button-link:enabled
+body:has(.post.bubblegum, .public-profile.bubblegum) .statement a, 
+body:has(.post.bubblegum, .public-profile.bubblegum) .statement a:link, 
+body:has(.post.bubblegum, .public-profile.bubblegum) .statement a:visited, 
+body:has(.post.bubblegum, .public-profile.bubblegum) .statement .button-link:enabled
 {
     color: var(--dark-blue);
 }
@@ -336,7 +336,8 @@ body:has(.post.noir, .public-profile.noir) .image-link-subcontainer
 {
     border-color: white;
 }
-body:has(.post.noir, .public-profile.noir) .post-link, body:has(.post.noir, .public-profile.noir) .info-item .button-link:enabled
+body:has(.post.noir, .public-profile.noir) .post-link, body:has(.post.noir, .public-profile.noir) .info-item .button-link:enabled,
+body:has(.post.noir) article button.button-link.main-image-button
 {
     color: white;
 }
@@ -376,7 +377,7 @@ body:has(.post.noir, .public-profile.noir) button:not(.button-link, .like-button
     color: white;
     border-color: black;
 }
-body:has(.post.noir, .public-profile.noir) .content:not(.touch-device) .public-profile.noir .main-info-box button.avatar-button.public-hover:hover
+.content:not(.touch-device) .public-profile.noir .main-info-box button.avatar-button.public-hover:hover
 {
     background: linear-gradient(45deg, #00000088 0%, #ffffff88 100%);
     color: white;
@@ -389,24 +390,29 @@ body:has(.post.noir, .public-profile.noir) .notice.small
 {
     color: black;
 }
-body:has(.post.noir, .public-profile.noir) .statement
+body:has(.public-profile.noir) .statement
+{
+    background: var(--true-black-gradient);
+    color: rgb(250, 250, 250);
+}
+body:has(.post.noir) .statement
 {
     background: rgba(255,255,255,0.8);
     color: black;
 }
-body:has(.post.noir, .public-profile.noir) article a, 
-body:has(.post.noir, .public-profile.noir) article a:link, 
-body:has(.post.noir, .public-profile.noir) article a:visited, 
-body:has(.post.noir, .public-profile.noir) article .button-link
+body:has(.public-profile.noir) .statement a, 
+body:has(.public-profile.noir) .statement a:link, 
+body:has(.public-profile.noir) .statement a:visited, 
+body:has(.public-profile.noir) .statement .button-link
 {
     color: rgb(255, 255, 255);
 }
-body:has(.post.noir, .public-profile.noir) .statement a, 
-body:has(.post.noir, .public-profile.noir) .statement a:link, 
-body:has(.post.noir, .public-profile.noir) .statement a:visited, 
-body:has(.post.noir, .public-profile.noir) .statement .button-link
+body:has(.post.noir) .statement a, 
+body:has(.post.noir) .statement a:link, 
+body:has(.post.noir) .statement a:visited, 
+body:has(.post.noir) .statement .button-link
 {
-    color: rgb(76, 76, 76);
+    color: rgb(99, 99, 99);
 }
 body:has(.post.noir, .public-profile.noir) .slider-end-left, body:has(.post.noir, .public-profile.noir) .slider-end-right
 {
@@ -450,10 +456,6 @@ body:has(.public-profile.noir) .main-info-box a i,
 body:has(.public-profile.noir) .main-info-box .button-link:enabled
 {
     color: #404040;
-}
-body:has(.public-profile.noir) .rte-container
-{
-    background: var(--true-black-gradient);
 }
 body:has(.post.noir) .article-text img
 {

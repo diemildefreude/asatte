@@ -297,7 +297,7 @@
     }
     .page-section.video
     {
-        min-width: 500px;
+        min-width: 45vw;
     }
     :has(.website-iframe.iframe-container) .page-section.main-info-container,
     :has(.website-iframe.iframe-container) .page-section.statement
