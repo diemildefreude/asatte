@@ -86,7 +86,7 @@ function WebsiteIframe({url, isPopout=false})
                                 ? "Exit fullscreen (Press Escape)"
                                 : "Enter fullscreen (Shortcut: F, press Escape to exit)"
                         }
-                        title={isFullscreen ? "Exit fullscreen (Esc)" : "Fullscreen (f)"}
+                        title={isFullscreen ? "exit fullscreen (esc)" : "fullscreen (f)"}
                     >
                         <i className={`fa-solid ${isFullscreen ? 'fa-minimize' : 'fa-maximize'}`} aria-hidden="true"></i>
                     </div>  ) 

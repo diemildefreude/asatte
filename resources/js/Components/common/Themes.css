@@ -183,6 +183,10 @@ body:has(.public-profile.bubblegum) .main-info-box .profile-avatar-container
 {
     color: var(--bright-blue);
 }
+body:has(.post.bubblegum) .website-iframe.iframe-container .resize-button
+{
+    -webkit-text-stroke: 1px var(--dark-blue);
+}
 body:has(.public-profile.bubblegum) .rte-container
 {
     background: var(--white-gradient);
@@ -341,9 +345,13 @@ body:has(.post.noir) article button.button-link.main-image-button
 {
     color: white;
 }
+body:has(.post.noir) .website-iframe.iframe-container .resize-button
+{
+    -webkit-text-stroke: 1px rgba(83, 83, 83, 0.701);
+}
 body:has(.post.noir, .public-profile.noir) .like-button:enabled i
 {
-    -webkit-text-stroke: 1px grey;
+    -webkit-text-stroke: 1px rgba(128, 128, 128, 0.7);
 }
 body:has(.post.noir, .public-profile.noir) .article-text blockquote
 {
