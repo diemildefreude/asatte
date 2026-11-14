@@ -256,8 +256,8 @@
     .main-image-container
     {
         flex-basis: calc(100% - 2rem);
-        max-width: 600px;
-        min-height: 400px;
+        max-width: 900px;
+        min-height: 600px;
         margin: 0 auto;
     }
     .main-image
