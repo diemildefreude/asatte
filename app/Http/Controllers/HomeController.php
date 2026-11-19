@@ -22,7 +22,7 @@ class HomeController extends Controller
             ->where('is_private', false)
             ->where('is_hidden_by_admin', false)
             ->where('is_draft', false)
-            ->inRandomOrder()
+            ->orderByRaw('ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY RAND()) ASC, RAND()')
             ->limit(11)
             ->get();
 
